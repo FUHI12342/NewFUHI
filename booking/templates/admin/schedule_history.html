@@ -1,0 +1,32 @@
+{% extends "admin/base_site.html" %}
+{% block content %}
+    <h1>予約履歴 (Hashed ID: {{ hashed_id }})</h1>
+    <table>
+        <thead>
+            <tr>
+                <th>予約番号</th>
+                <th>顧客名</th>
+                <th>開始時間</th>
+                <th>終了時間</th>
+                <th>スタッフ</th>
+                <th>一時的</th>
+                <th>価格</th>
+                <th>メモ</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for schedule in schedules %}
+            <tr>
+                <td>{{ schedule.reservation_number }}</td>
+                <td>{{ schedule.customer_name }}</td>
+                <td>{{ schedule.start }}</td>
+                <td>{{ schedule.end }}</td>
+                <td>{{ schedule.staff }}</td>
+                <td>{{ schedule.is_temporary }}</td>
+                <td>{{ schedule.price }}</td>
+                <td>{{ schedule.memo }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+{% endblock %}

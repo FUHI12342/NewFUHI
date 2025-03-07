@@ -23,14 +23,14 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SECRET_KEY = '&670@la%)g1zo2y7(+4+^pl00sb(cjl4rpvkf@2ly)eo+a$1k!'
 
 # # ローカル
-# DEBUG = True
+DEBUG = True
 
-# ALLOWED_HOSTS = ['localhost', '127.0.0.1']
+ALLOWED_HOSTS = ['localhost', '127.0.0.1']
 
 # 本番
-DEBUG = False
+# DEBUG = False
 
-ALLOWED_HOSTS = ['timebaibai.com', 'localhost', '127.0.0.1']
+# ALLOWED_HOSTS = ['timebaibai.com', 'localhost', '127.0.0.1']
 
 
 # Application definition
@@ -44,7 +44,6 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    #'testApp', 
     'rest_framework'
 ]
 
@@ -53,6 +52,7 @@ MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
+    'django.contrib.sessions.middleware.SessionMiddleware', 
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
@@ -70,7 +70,10 @@ ROOT_URLCONF = 'project.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [os.path.join(BASE_DIR, 'booking/templates')],
+        'DIRS': [
+            os.path.join(BASE_DIR, 'booking/templates'),
+            os.path.join(BASE_DIR, 'booking/templates/admin'), 
+        ],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -86,6 +89,11 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'project.wsgi.application'
 
+# セッションエンジンの設定
+SESSION_ENGINE = 'django.contrib.sessions.backends.db'  # デフォルトはデータベースセッション
+# 他のセッションエンジンを使用する場合は以下のように設定します
+# SESSION_ENGINE = 'django.contrib.sessions.backends.cache'  # キャッシュセッション
+# SESSION_ENGINE = 'django.contrib.sessions.backends.signed_cookies'  # クッキーセッション
 
 # Database
 # https://docs.djangoproject.com/en/2.2/ref/settings/#databases
@@ -215,42 +223,35 @@ LOGOUT_REDIRECT_URL = 'booking:login'
 
 DEFAULT_AUTO_FIELD='django.db.models.AutoField'
 #ローカル
-# LINE_CHANNEL_ID = "2006040383"
-# LINE_CHANNEL_SECRET = "44d0ddf511abac410bf2be6b302e2f48"
-# LINE_REDIRECT_URL = 'http://127.0.0.1:8000/booking/login/line/success/' 
+LINE_CHANNEL_ID = "2006040383"
+LINE_CHANNEL_SECRET = "44d0ddf511abac410bf2be6b302e2f48"
+LINE_REDIRECT_URL = 'http://127.0.0.1:8000/booking/login/line/success/' 
 
-# # 本番
-LINE_CHANNEL_ID = "2003969601"
+# # # 本番
+# LINE_CHANNEL_ID = "2003969601"
 
-LINE_CHANNEL_SECRET = "0f65e88a404ba95833bca990cf312e40"
+# LINE_CHANNEL_SECRET = "0f65e88a404ba95833bca990cf312e40"
 
-LINE_REDIRECT_URL = 'https://timebaibai.com/booking/login/line/success/' # リダイレクトURL
+# LINE_REDIRECT_URL = 'https://timebaibai.com/booking/login/line/success/' # リダイレクトURL
 import requests
 from linebot import LineBotApi
 from linebot.models import TextSendMessage
 
 # LINE Messaging APIのアクセストークン
-line_access_token = 'SwYJEbvMawMifRQ2yXIvhLLZJHwsBAOQzo4uGOrwIACTOybf3YbvJsWxVWN7KOtEcQJnpjQ6A4nYsc9+8is7ZYU2aIyrc2w1XESYFUOlWb17nScbom6jUxW/8UeejLpoFBPwErqH6JKes7SMSYd/PgdB04t89/1O/w1cDnyilFU='
-
+LINE_ACCESS_TOKEN = 'GVMEVG7Q83BMUzcXpShX2s0mfBC9SZ/UnZHVqKgWngRbvdQ2WPNsMOEHLoBcOr/bq36X48a93ErCJq95Wqs/KU5q2djJohPSer8OqkVr4ybtPyl48fTN3u204rMZT/KrBrnuR0oL+u88w4InAjGrfwdB04t89/1O/w1cDnyilFU='
 # # 決済サービスのAPIキー
 PAYMENT_API_KEY = 'sk_live_7ldzwc0xXXyVcarFazjHEEN7bTvXpa7x'
 
 # ユーザーID（LINEログイン後に取得）
 user_id = 'USER_ID'
 
-# LINE Messaging APIの初期化
-line_bot_api = LineBotApi(line_access_token)
-
-# 決済サービスのAPIを使用して決済URLを生成
-PAYMENT_API_URL = 'https://api.payment-service.com/create-payment-url'
-
-# LINE Messaging APIのアクセストークン
-LINE_ACCESS_TOKEN = 'GVMEVG7Q83BMUzcXpShX2s0mfBC9SZ/UnZHVqKgWngRbvdQ2WPNsMOEHLoBcOr/bq36X48a93ErCJq95Wqs/KU5q2djJohPSer8OqkVr4ybtPyl48fTN3u204rMZT/KrBrnuR0oL+u88w4InAjGrfwdB04t89/1O/w1cDnyilFU='
+# # LINE Messaging APIの初期化
+# line_bot_api = LineBotApi(LINE_ACCESS_TOKEN)
 
 # ユーザーIDとメッセージ
 #ユーザーIDはログイン後に取得
 user_id = 'Udf02e8cec56a91be9005b6f10c6b7a56'
-print('セッティング７７７')
+
 
 
 CELERY_broker_url = 'redis://localhost:6379/0'

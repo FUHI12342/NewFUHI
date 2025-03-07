@@ -4,26 +4,45 @@ from django.utils.html import format_html
 from social_django.models import Association, Nonce, UserSocialAuth
 from django.urls import path
 from django.utils.safestring import mark_safe
-
+from django.shortcuts import render
 """ Django 管理サイト名変更 """
 admin.site.site_header = '占いサロンチャンス管理ページ'
 admin.site.site_title = '占いサロンチャンス管理ページ'
 from django.db.models import Count
-
 from django.contrib import admin
 from .models import Schedule
+from django.urls import reverse
+from django.utils.html import format_html
 
 class ScheduleAdmin(admin.ModelAdmin):
-    list_display = ('hashed_id_short', 'customer_name', 'start', 'end', 'staff', 'is_temporary', 'price', 'memo')
-    
-    search_fields = ('customer_name', 'hashed_id')  # 顧客名とハッシュIDで検索可能にする
+    list_display = ('hashed_id_link', 'customer_name', 'start', 'end', 'staff', 'is_temporary', 'price', 'memo','reservation_number' )
+    search_fields = ('customer_name', 'reservation_number')  # 顧客名と予約番号で検索可能にする
     ordering = ('-start',)  # 新しい予約から表示
 
-    def hashed_id_short(self, obj):
-        return str(obj.hashed_id)[:10]  # hashed_idを10桁に制限
-    hashed_id_short.short_description = 'Hashed ID'  # 管理画面での列名
+    def get_urls(self):
+        urls = super().get_urls()
+        custom_urls = [
+            path('history/<str:hashed_id>/', self.admin_site.admin_view(self.view_history), name='schedule-history'),
+        ]
+        return custom_urls + urls
+
+    def view_history(self, request, hashed_id):
+        schedules = Schedule.objects.filter(hashed_id=hashed_id)
+        context = dict(
+            self.admin_site.each_context(request),
+            schedules=schedules,
+            hashed_id=hashed_id,
+        )
+        return render(request, 'admin/schedule_history.html', context)
+
+    def hashed_id_link(self, obj):
+        url = reverse('admin:schedule-history', args=[obj.hashed_id])
+        return format_html('<a href="{}">{}</a>', url, obj.hashed_id[:10] if obj.hashed_id else "No ID")
+    hashed_id_link.short_description = 'Hashed ID'  # 管理画面での列名
 
 admin.site.register(Schedule, ScheduleAdmin)
+# 管理画面のデフォルトページを予約スケジュールに設定
+admin.site.index_template = 'admin/custom_index.html'
 
 class StaffAdmin(admin.ModelAdmin):
     list_display = ('name', 'display_thumbnail')  # 'name'と'display_thumbnail'を表示する

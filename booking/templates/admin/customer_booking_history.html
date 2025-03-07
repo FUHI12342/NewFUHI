@@ -1,0 +1,12 @@
+{% extends "admin/base_site.html" %}
+
+{% block content %}
+<div id="content-main">
+    <h1>{{ customer.name }}の予約履歴</h1>
+    <ul>
+        {% for booking in bookings %}
+            <li>{{ booking.booking_date }} - {{ booking.staff.name }} ({{ booking.staff.position }})</li>
+        {% endfor %}
+    </ul>
+</div>
+{% endblock %}

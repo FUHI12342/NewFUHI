@@ -1,0 +1,69 @@
+{% load i18n %}
+{% load custom_admin %}
+
+<style>
+    .sidebar-container {
+        display: flex;
+        flex-direction: column;
+        width: 200px; /* サイドバーの幅を固定 */
+    }
+    .app-item {
+        margin-bottom: 20px;
+    }
+    .app-item table {
+        width: 100%; /* テーブルの幅をサイドバーに合わせる */
+        border-collapse: collapse;
+    }
+    .app-item th, .app-item td {
+        padding: 8px;
+        border: 1px solid #ddd; /* テーブルセルの境界線 */
+        text-align: left; /* テキストを左揃え */
+    }
+    .app-item caption {
+        font-weight: bold;
+        text-align: left;
+        margin-bottom: 5px;
+    }
+    .app-item a {
+        text-decoration: none;
+        color: #0073aa; /* WordPressのリンク色に近い色 */
+    }
+    .app-item a:hover {
+        text-decoration: underline;
+    }
+</style>
+
+<div class="sidebar-container">
+    {% for app in app_list %}
+        <div class="app-item app-{{ app.app_label }}">
+            <table>
+                <caption>
+                    <a href="{{ app.app_url }}">◆{{ app.name }}</a>
+                </caption>
+                <tbody>
+                    {% for model in app.models %}
+                        <tr class="model-{{ model.object_name|lower }}">
+                            <th scope="row">
+                                <a href="{{ model.admin_url }}">{{ model.name }}</a>
+                            </th>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% endfor %}
+    <div class="app-item">
+        <table>
+            <caption>
+                <a href="#">◆データ</a>
+            </caption>
+            <tbody>
+                <tr>
+                    <th scope="row">
+                        <a href="{{ analyze_customers_url }}">顧客情報分析</a>
+                    </th>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>

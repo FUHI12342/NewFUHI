@@ -1,7 +1,7 @@
 from django.contrib.auth.views import LoginView, LogoutView
 from django.urls import path, include
 from . import views
-from .views import LineEnterView, LineCallbackView,CancelReservationView,UserList
+from .views import LineEnterView, LineCallbackView,CancelReservationView,UserList,analyze_customers,LineWebhookView
 from .admin import custom_site
 
 app_name = 'booking'
@@ -38,4 +38,8 @@ urlpatterns = [
     path('mypage/schedule/<int:pk>/delete/', views.MyPageScheduleDelete.as_view(), name='my_page_schedule_delete'),
     path('mypage/holiday/add/<int:pk>/<int:year>/<int:month>/<int:day>/<int:hour>/', views.my_page_holiday_add, name='my_page_holiday_add'),
     path('mypage/holiday/add/<int:pk>/<int:year>/<int:month>/<int:day>/', views.my_page_day_add, name='my_page_day_add'),
+    path('customer/<int:customer_id>/booking_history/', views.customer_booking_history, name='customer_booking_history'),
+    path('analyze_customers/', views.analyze_customers, name='analyze_customers'),
+    path('line/webhook/', LineWebhookView.as_view(), name='line-webhook'),
+    
 ]

@@ -1,0 +1,12 @@
+{% extends "booking/base.html" %}
+
+{% block content %}
+    <div>
+        仮予約が完了しました。支払いリンクがLINEに送信されました。
+    </div>
+    <script type="text/javascript">
+        setTimeout(function() {
+            window.location.href = 'line://msg/text/?仮予約が完了しました。支払いリンクがLINEに送信されました。';
+        }, 2000);
+    </script>
+{% endblock %}

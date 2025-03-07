@@ -1,0 +1,11 @@
+{% extends "admin/base.html" %}
+{% load i18n %}
+{% load custom_admin %}
+
+{% block branding %}
+<h1 id="site-name"><a href="{% url 'admin:index' %}">占いサロンチャンス管理ページ</a></h1>
+{% endblock %}
+
+{% block nav-sidebar %}
+{% custom_sidebar %}
+{% endblock %}

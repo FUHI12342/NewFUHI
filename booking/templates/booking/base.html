@@ -57,29 +57,27 @@
 <!--PC用（901px以上端末）メニュー-->
 <nav id="menubar" class="nav-fix-pos">
     <ul class="inner">
-    <li><a href="index.html">ホーム<span>Home</span></a></li>
-    <li><a href="{% url 'booking:store_list' %}">店舗情報<span>Store</span></a>
-    <ul class="ddmenu">
-    <li><a href="calendar.html">新宿１号店</a></li>
-    <li><a href="calendar.html">新宿2号店</a></li>
-    <li><a href="calendar.html">池袋店</a></li>
-    </ul>
-    </li>
-    <li><a href="{% url 'booking:store_list' %}">ご予約<span>Reservation</span></a></li>
-    <li><a href="faq.html">所属占い師<span>Fortune-teller</span></a></li>
-    <li><a href="contact.html">お問い合わせ<span>Contact</span></a></li>
-    <li><a href=" ">スタッフページ<span></span></a></li>
+     <li><a href="{% url 'booking:index' %}">ホーム<span>Home</span></a></li>
+        <li><a href="{% url 'booking:store_list' %}">店舗情報<span>Store</span></a>
+        <!-- <ul class="ddmenu">
+        <li><a href="calendar.html">新宿１号店</a></li>
+        <li><a href="calendar.html">新宿2号店</a></li>
+        <li><a href="calendar.html">池袋店</a></li>
+        </ul> -->
+        </li>
+        <li><a href="{% url 'booking:store_list' %}">ご予約<span>Reservation</span></a></li>
+        <li><a href="contact.html">お問い合わせ<span>Contact</span></a></li>
+        <li><a href="{% url 'admin:index' %}">スタッフページ<span>Staff</span></a></li>
     </ul>
     </nav>
     <!--小さな端末用（900px以下端末）メニュー-->
     <nav id="menubar-s">
     <ul>
-    <li><a href="index.html">ホーム<span>Home</span></a></li>
-    <li><a href="{% url 'booking:store_list' %}">店舗一覧<span>Store</span></a></li>
-    <li><a href="{% url 'booking:store_list' %}">ご予約<span>Reservation</span></a></li>
-    <li><a href="link.html">所属占い師<span>Fortune-teller</span></a></li>
-    <li><a href="contact.html">お問い合わせ<span>Contact</span></a></li>
-    <li><a href=" "><span>スタッフページ</span> </a></li>
+        <li><a href="{% url 'booking:index' %}"></a>ホーム<span>Home</span></a></li>
+        <li><a href="{% url 'booking:store_list' %}">店舗情報<span>Store</span></a></li>
+        <li><a href="{% url 'booking:store_list' %}">ご予約<span>Reservation</span></a></li>
+        <li><a href="contact.html">お問い合わせ<span>Contact</span></a></li>
+        <li><a href="{% url 'booking:login' %}">スタッフページ<span>Staff</span></a></li>
     </ul>
     </nav>
 

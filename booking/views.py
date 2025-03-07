@@ -24,8 +24,6 @@ import sys
 from rest_framework import generics
 from django.contrib.auth.models import User
 
-#print('環境変数1' + str(sys.path))
-
 class UserList(generics.ListAPIView):
     queryset = User.objects.all()
     serializer_class = UserSerializer
@@ -105,10 +103,11 @@ import jwt
 from linebot import LineBotApi
 from linebot.exceptions import LineBotApiError
 from linebot.models import TextSendMessage
+import requests
 
 LINE_CHANNEL_ID =  settings.LINE_CHANNEL_ID
 LINE_CHANNEL_SECRET = settings.LINE_CHANNEL_SECRET
-REDIRECT_URL = settings.LINE_REDIRECT_URL
+LINE_REDIRECT_URL = settings.LINE_REDIRECT_URL
 
 class LineEnterView(View):
     def get(self, request):
@@ -119,7 +118,7 @@ class LineEnterView(View):
         params = {
             'response_type': 'code',
             'client_id': LINE_CHANNEL_ID,
-            'redirect_uri': REDIRECT_URL,
+            'redirect_uri':LINE_REDIRECT_URL,
             'state': state,
             'scope': 'openid profile email',
         }
@@ -128,185 +127,214 @@ class LineEnterView(View):
         # ユーザーをLINEログインページにリダイレクト
         return HttpResponseRedirect(auth_url)
     
+from django.shortcuts import redirect, render
+from django.http import HttpResponse, HttpResponseBadRequest
+from linebot import LineBotApi
+from linebot.exceptions import LineBotApiError
+from linebot.models import TextSendMessage
+import requests
+import json
+import hashlib
+import jwt
+from django.conf import settings
+from django.utils import timezone
+from datetime import datetime, timedelta
+from linebot.models import FollowEvent, TextSendMessage
+from linebot.exceptions import LineBotApiError
+from linebot.exceptions import InvalidSignatureError
+from django.http import HttpResponse, HttpResponseBadRequest, HttpResponseForbidden
 
 class LineCallbackView(View):
     def get(self, request):
-                # 以下、既存のコード...
-                context = {}
-                code = request.GET.get('code')
-                state = request.GET.get('state')
+        context = {}
+        code = request.GET.get('code')
+        state = request.GET.get('state')
 
-                # stateがセッションに保存されたものと一致することを確認します。
-                if state != request.session.get('state'):
-                    return HttpResponseBadRequest()
-                
-                # 認可コードを取得する
-                uri_access_token = "https://api.line.me/oauth2/v2.1/token"
-                headers = {"Content-Type": "application/x-www-form-urlencoded"}
+        if state != request.session.get('state'):
+            return HttpResponseBadRequest("Invalid state parameter")
 
-                if code is not None:
-                    data_params = {
-                        "grant_type": "authorization_code",
-                        "code": code,
-                        "redirect_uri": REDIRECT_URL,
-                        "client_id": LINE_CHANNEL_ID,
-                        "client_secret": LINE_CHANNEL_SECRET
-                    }
-                    # トークンを取得するためにリクエストを送る
-                    response_post = requests.post(uri_access_token, headers=headers, data=data_params)
+        uri_access_token = "https://api.line.me/oauth2/v2.1/token"
+        headers = {"Content-Type": "application/x-www-form-urlencoded"}
 
-                    if response_post.status_code == 200:
-                        # 今回は"id_token"のみを使用する
-                        line_id_token = json.loads(response_post.text)["id_token"]
-                        # ペイロード部分をデコードすることで、ユーザ情報を取得する
-                        
-                    user_profile = jwt.decode(line_id_token,
-                                                LINE_CHANNEL_SECRET,
-                                                audience=LINE_CHANNEL_ID,
-                                                issuer='https://access.line.me',
-                                                algorithms=['HS256'],
-                                                options={'verify_iat': False})
+        if code is not None:
+            data_params = {
+                "grant_type": "authorization_code",
+                "code": code,
+                "redirect_uri": settings.LINE_REDIRECT_URL,
+                "client_id": settings.LINE_CHANNEL_ID,
+                "client_secret": settings.LINE_CHANNEL_SECRET
+            }
+            response_post = requests.post(uri_access_token, headers=headers, data=data_params)
 
-                    # ユーザープロフィールから顧客名を取得
-                    customer_name = user_profile['name'] if user_profile else 'Unknown User'
+            if response_post.status_code == 200:
+                line_id_token = json.loads(response_post.text)["id_token"]
+                user_profile = jwt.decode(line_id_token,
+                                          settings.LINE_CHANNEL_SECRET,
+                                          audience=settings.LINE_CHANNEL_ID,
+                                          issuer='https://access.line.me',
+                                          algorithms=['HS256'],
+                                          options={'verify_iat': False})
 
-                    # ユーザーIDをハッシュ化
-                    hashed_id = hashlib.sha256(user_profile['sub'].encode()).hexdigest()
+                customer_name = user_profile['name'] if user_profile else 'Unknown User'
+                hashed_id = hashlib.sha256(user_profile['sub'].encode()).hexdigest()
+                context["user_profile"] = user_profile
+                print('★★★ユーザー情報★★★: ' + str(user_profile))
 
+                temporary_booking = request.session.get('temporary_booking')
 
-                    # LINE登録のユーザー情報を表示する場合は、contextに追加しておく
-                    context["user_profile"]=user_profile
-                    #print('★★★ユーザー情報★★★: ' + str(user_profile))
-
-                    # LINE Messaging APIの初期化
-                    line_bot_api = LineBotApi(settings.LINE_ACCESS_TOKEN)
-
-                    #ユーザーIDとメッセージ
-                    #ユーザーIDはログイン後に取得
-                    user_id = user_profile['sub']
-                    print('◆□ユーザーID: ' + user_id)
-
-                    try:
-                        profile = line_bot_api.get_profile(user_id)
-                        user_id = profile.user_id
-                    except LineBotApiError as e:
-                        if e.status_code == 404:
-                            print('ユーザーがボットを友達登録していません400')
-                            friend_register_url = "https://line.me/R/ti/p/2003969601"
-                            message = TextSendMessage(text=f"ボットを友達登録してください: {friend_register_url}")
-                            line_bot_api.push_message(user_id, message)
-                            return HttpResponseBadRequest()
-                        else:
-                            print('ユーザーがボットを友達登録していません500')
-                            print(f"Failed to get profile: {e}")
-                            return HttpResponseBadRequest()
-
-                    print('-------分岐・前--------') 
-                    try:
-                        print('-------分岐・後--------')
-                        # ユーザープロファイルの取得
-                        profile = line_bot_api.get_profile(user_id)
-                        # ユーザーIDとメッセージ
-                        user_id = profile.user_id
-                        
-                        from datetime import datetime, timedelta
-                        # 現在の日時を取得
-                        now = datetime.now()
-
-                        # 現在の日時から1日後の日時を取得
-                        expired_on = now + timedelta(days=1)
-
-                        # expired_onをISO 8601形式の文字列に変換
-                        expired_on_str = expired_on.strftime('%Y-%m-%d')
-
-                        # 仮予約情報をセッションから取得
-                        temporary_booking = request.session.get('temporary_booking')
-                        print('★★★仮予約情報★★★: ' + str(temporary_booking))
-                        if temporary_booking is not None:
-                            # 新しいScheduleインスタンスを作成して保存
-                            schedule = Schedule(
-                                reservation_number=temporary_booking['reservation_number'],
-                                start=timezone.make_aware(datetime.fromisoformat(temporary_booking['start'])),  # タイムゾーン情報を追加
-                                end=timezone.make_aware(datetime.fromisoformat(temporary_booking['end'])),  # タイムゾーン情報を追加
-                                price=temporary_booking['price'],
-                                customer_name=customer_name,  # 顧客名を設定
-                                hashed_id=hashed_id,  # ハッシュIDを設定
-                                staff_id=self.request.session['temporary_booking']['staff_id']  # スタッフIDをセッションから取得
-                            )
-
-                            schedule.save()
-                            print('★★★スケジュール★★★: ' + str(schedule))
-                            print('★★顧客名★★: ' + str(customer_name))
-                            print('★★ハッシュID★★: ' + str(hashed_id))
-
-                            # 仮予約情報をセッションから削除
-                            del request.session['temporary_booking']
-                        else:
-                            print("仮予約情報がセッションに存在しません。")
-                            price = None  # または適切なデフォルト値を設定
-                            
-                        # 決済サービスのAPIを使用して決済URLを生成
-                        payment_api_url = settings.PAYMENT_API_URL
-                        headers = {
-                            'Authorization': 'Bearer ' + settings.PAYMENT_API_KEY,
-                            'Content-Type': 'application/json'  
-                        }
-                        reservation_number = schedule.reservation_number
-                        price = schedule.price
-                        # Webhook URLを動的に設定
-                        webhook_url = f"{settings.WEBHOOK_URL_BASE}{reservation_number}/"
-
-                        data = {
-                            "amount": price,  # 仮予約情報から取得した価格情報を設定
-                            "currency": "jpy",
-                            "locale": "ja_JP",
-                            "cancelUrl": settings.CANCEL_URL,
-                            "webhookUrl": webhook_url,  # ここで設定
-                            "method": "creditcard",
-                            "subject": "ご予約料金",
-                            "description": "ウェブサイトからの支払い",
-                            "remarks": "仮予約から10分を過ぎますと自動的にキャンセルとなります。あらかじめご了承ください。",
-                            "metadata": {
-                                "orderId":reservation_number
-                            },
-                            "expiredOn": expired_on_str
-                        }
-                        # 以下のコードは変更なし...
-                        payment_url = None  # 初期化
-
-                        response = requests.post(payment_api_url, headers=headers, data=json.dumps(data))  # json.dumpsを使用
-                        if response.status_code == 201:
-                            try:
-                                payment_url = response.json()['links']['paymentUrl']
-                            except ValueError:
-                                print("Error decoding JSON")
-                        else:
-                            print("HTTP request failed with status code ", response.status_code)
-                            print("Response body: ", response.content)
-                        #LINE Messaging APIを使用してメッセージを送信
-                        message = None  # 初期化
-
-                        if payment_url is not None:
-                            message = TextSendMessage(text='こちらのURLから決済を行ってください。決済後に予約が確定します。: ' + payment_url)
-                            line_bot_api.push_message(user_id, message)
-                            print('LINEアカウントID'+ user_id)
-                            print("Message sent successfully")
-                        else:
-                            print("Payment URL is not available")  
-                    except LineBotApiError as e:
-                        print("Failed to send message: ", e)
-                        if e.status_code == 404:
-                            print('ユーザーがボットを友達登録していません')
-
-                    # ユーザープロファイル情報をセッションに保存
-                    request.session['profile'] = user_profile
-                    #print('セッション情報' + str(request.session.items()))
-                                    
-                    return render(request, 'booking/line_success.html', {'profile': user_profile})      
+                if temporary_booking is not None:
+                    schedule = Schedule(
+                        reservation_number=temporary_booking['reservation_number'],       
+                        start=timezone.make_aware(datetime.datetime.fromisoformat(temporary_booking['start'])),
+                        end=timezone.make_aware(datetime.datetime.fromisoformat(temporary_booking['end'])),
+                        price=temporary_booking['price'],
+                        customer_name=customer_name,
+                        hashed_id=hashed_id,
+                        staff_id=temporary_booking['staff_id']
+                    )
+                    schedule.save()
+                    del request.session['temporary_booking']
                 else:
-                    print('トークンの取得に失敗しました')
-                return HttpResponse('トークンの取得に失敗しました')
-            
+                    print("仮予約情報がセッションに存在しません。")
+                    return HttpResponseBadRequest("Temporary booking not found in session")
+
+                line_bot_api = LineBotApi(settings.LINE_ACCESS_TOKEN)
+
+                try:
+                    user_id = user_profile['sub']
+                    profile = line_bot_api.get_profile(user_id)
+                    user_id = profile.user_id
+
+                    payment_url = 'https://api.coiney.io/api/v1/payments'
+                    reservation_number = schedule.reservation_number
+
+                    headers = {
+                        'Authorization': 'Bearer ' + settings.PAYMENT_API_KEY,
+                        'Content-Type': 'application/json'
+                    }
+                    price = schedule.price
+                    webhook_url = f"{settings.WEBHOOK_URL_BASE}{reservation_number}/"
+                    now = timezone.now()
+                    expired_on = now + timedelta(days=1)
+                    expired_on_str = expired_on.strftime('%Y-%m-%d')
+                    print('有効期限' + expired_on_str)
+
+                    data = {
+                        "amount": price,
+                        "currency": "jpy",
+                        "locale": "ja_JP",
+                        "cancelUrl": settings.CANCEL_URL,
+                        "webhookUrl": webhook_url,
+                        "method": "creditcard",
+                        "subject": "ご予約料金",
+                        "description": "ウェブサイトからの支払い",
+                        "remarks": "仮予約から10分を過ぎますと自動的にキャンセルとなります。あらかじめご了承ください。",
+                        "metadata": {
+                            "orderId": reservation_number
+                        },
+                        "expiredOn": expired_on_str
+                    }
+
+                    response = requests.post(payment_url, headers=headers, data=json.dumps(data))
+                    if response.status_code == 201:
+                        try:
+                            payment_url = response.json()['links']['paymentUrl']
+                        except (ValueError, KeyError):
+                            print("Error decoding JSON or key not found")
+                            payment_url = None
+                    else:
+                        print("HTTP request failed with status code ", response.status_code)
+                        print("Response body: ", response.content)
+                        payment_url = None
+
+                    if payment_url is not None:
+                        message = TextSendMessage(text='こちらのURLから決済を行ってください。決済後に予約が確定します。: ' + payment_url)
+                        line_bot_api.push_message(user_id, message)
+                        print('LINEアカウントID' + user_id)
+                        return render(request, 'booking/redirect.html')
+                    else:
+                        print("Payment URL is not available")
+                        return HttpResponseBadRequest("Payment URL is not available")
+
+                except LineBotApiError as e:
+                    print("LineBotApiError: ", e.status_code, e.error.message)
+                    if e.status_code == 404:
+                            print('ユーザーがボットを友達登録していません400')
+                            friend_register_url = "https://line.me/R/ti/p/@649whqyj"
+                            request.session['user_profile'] = user_profile
+                            request.session['schedule_id'] = schedule.reservation_number
+                            return render(request, 'booking/friend_register.html')
+                    else:
+                        return HttpResponseBadRequest("Failed to get user profile")
+
+            request.session['profile'] = user_profile
+
+            return render(request, 'booking/line_success.html', {'profile': user_profile})
+
+def send_payment_url(user_id, payment_url):
+    line_bot_api = LineBotApi(settings.LINE_ACCESS_TOKEN)
+    message = TextSendMessage(text='こちらのURLから決済を行ってください。決済後に予約が確定します。: ' + payment_url)
+    line_bot_api.push_message(user_id, message)
+    print('LINEアカウントID' + user_id)
+
+class FriendRegisterView(View):
+    def get(self, request, *args, **kwargs):
+        user_profile = request.session.get('user_profile')
+        schedule_id = request.session.get('schedule_id')
+        payment_url = request.session.get('payment_url')  # セッションから決済URLを取得
+
+        if user_profile and schedule_id and payment_url:
+            send_payment_url(user_profile['sub'], payment_url)  # 決済URLを再送
+            return JsonResponse({'message': 'Payment URL sent again.'})
+        else:
+            return JsonResponse({'message': 'Required data not found.'}, status=400)
+        
+from django.views.decorators.csrf import csrf_exempt
+from django.utils.decorators import method_decorator
+from django.http import HttpResponse
+from linebot import LineBotApi, WebhookHandler
+from linebot.exceptions import InvalidSignatureError
+from django.http import HttpRequest
+from django.contrib.sessions.middleware import SessionMiddleware
+from django.utils.decorators import method_decorator
+from django.views.decorators.csrf import csrf_exempt
+
+line_bot_api = LineBotApi(settings.LINE_ACCESS_TOKEN)
+handler = WebhookHandler(settings.LINE_CHANNEL_SECRET)
+
+@method_decorator(csrf_exempt, name='dispatch')
+class LineWebhookView(View):
+    def post(self, request, *args, **kwargs):
+        signature = request.META['HTTP_X_LINE_SIGNATURE']
+        body = request.body.decode('utf-8')
+
+        try:
+            handler.handle(body, signature)
+        except InvalidSignatureError:
+            return HttpResponse(status=400)
+
+        return HttpResponse(status=200)
+
+@handler.add(FollowEvent)
+def handle_follow(event):
+    user_id = event.source.user_id
+
+    # 新しいリクエストオブジェクトを作成
+    request = HttpRequest()
+    # セッションミドルウェアを適用
+    middleware = SessionMiddleware()
+    middleware.process_request(request)
+    request.session.save()
+
+    # セッションにユーザーIDを保存
+    request.session['user_profile'] = {'sub': user_id}
+    request.session.save()
+
+    # FriendRegisterViewを呼び出して決済用リンクを再送
+    view = FriendRegisterView.as_view()
+    response = view(request)
+    return response
+                  
 from django.http import JsonResponse
 from django.views import View
 from linebot import LineBotApi
@@ -440,7 +468,6 @@ class ScheduleForm(forms.ModelForm):
 import pytz
 
 class PreBooking(generic.CreateView):
-    print('プリブッキング')
     model = Schedule
     form_class = ScheduleForm
     template_name = 'booking/booking.html'
@@ -591,21 +618,53 @@ class MyPageSchedule(OnlyScheduleMixin, generic.UpdateView):
 class MyPageScheduleDelete(OnlyScheduleMixin, generic.DeleteView):
     model = Schedule
     success_url = reverse_lazy('booking:my_page')
-
-#print('環境変数2' + str(sys.path))
+    
 from django.shortcuts import render
-from .forms import YourForm
+from django.http import HttpResponse
+from django.contrib.admin.views.decorators import staff_member_required
+import pandas as pd
+import json
+import datetime
+from .models import Schedule
 
-def your_view(request):
-    if request.method == 'POST':
-        form = YourForm(request.POST)
-        if form.is_valid():
-            # フォームのデータを処理します
-            pass
-    else:
-        form = YourForm()
+from django.contrib.admin.sites import site
 
-    return render(request, 'your_template.html', {'form': form})
+@staff_member_required
+def analyze_customers(request):
+    try:
+        # 直近1年のデータを取得
+        one_year_ago = datetime.datetime.now() - datetime.timedelta(days=365)
+        schedules = Schedule.objects.filter(reservation_time__gte=one_year_ago).values()
+        
+        # データフレームに変換
+        df = pd.DataFrame(schedules)
+        
+        # データが存在しない場合の処理
+        if df.empty:
+            return HttpResponse("予約データが存在しません", status=400)
+        
+        # スタッフ別予約数
+        staff_reservations = df.groupby('staff_id').size().to_dict()
+        
+        # 店舗別予約数
+        store_reservations = df.groupby('store_id').size().to_dict()
+        
+        # 時間別予約数
+        df['hour'] = df['reservation_time'].dt.hour
+        hourly_reservations = df.groupby('hour').size().to_dict()
+        # 管理サイトのアプリケーションリストを取得
+        app_list = site.get_app_list(request)
+        
+        context = {
+            'staff_reservations': json.dumps(staff_reservations),
+            'store_reservations': json.dumps(store_reservations),
+            'hourly_reservations': json.dumps(hourly_reservations),
+            'app_list': app_list,
+        }
+        
+        return render(request, 'analyze_customers.html', context)
+    except Exception as e:
+        return HttpResponse(f"エラーが発生しました: {str(e)}", status=500)
 
 from django.contrib import messages
 from django.shortcuts import get_object_or_404, redirect
@@ -791,3 +850,19 @@ from .models import Media
 def your_view(request):
     medias = Media.objects.order_by('-created_at')  # created_atフィールドの降順で並べ替え
     return render(request, 'booking/base.html', {'medias': medias})
+
+from django.shortcuts import render
+from django.contrib.admin.views.decorators import staff_member_required
+from booking.models import Customer, Schedule
+
+@staff_member_required
+def customer_booking_history(request, customer_id):
+    customer = Customer.objects.get(id=customer_id)
+    bookings = Schedule.objects.filter(customer=customer).select_related('staff').order_by('-start')
+    
+    context = {
+        'customer': customer,
+        'bookings': bookings,
+    }
+    
+    return render(request, 'customer_booking_history.html', context)

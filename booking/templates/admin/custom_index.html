@@ -1,0 +1,7 @@
+{% extends "admin/index.html" %}
+
+{% block content %}
+    <script type="text/javascript">
+        window.location = "{% url 'admin:booking_schedule_changelist' %}";
+    </script>
+{% endblock %}
