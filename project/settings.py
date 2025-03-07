@@ -22,15 +22,15 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = '&670@la%)g1zo2y7(+4+^pl00sb(cjl4rpvkf@2ly)eo+a$1k!'
 
-# # ローカル
-DEBUG = True
+# ローカル
+# DEBUG = True
 
-ALLOWED_HOSTS = ['localhost', '127.0.0.1']
+# ALLOWED_HOSTS = ['localhost', '127.0.0.1']
 
 # 本番
-# DEBUG = False
+DEBUG = False
 
-# ALLOWED_HOSTS = ['timebaibai.com', 'localhost', '127.0.0.1']
+ALLOWED_HOSTS = ['timebaibai.com', 'localhost', '127.0.0.1']
 
 
 # Application definition
@@ -161,19 +161,19 @@ USE_TZ = True
 from dotenv import load_dotenv
 import os
 
-# 静的ファイルの設定
-STATIC_URL = '/static/'
-STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')  # プロジェクトディレクトリ内の'staticfiles'ディレクトリを指定
-STATICFILES_DIRS = [
-    os.path.join(BASE_DIR, 'static'),  # 'testApp/static'ディレクトリを静的ファイルのソースとして追加
-]
+# # 静的ファイルの設定
+# STATIC_URL = '/static/'
+# STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')  # プロジェクトディレクトリ内の'staticfiles'ディレクトリを指定
+# STATICFILES_DIRS = [
+#     os.path.join(BASE_DIR, 'static'),  # 'testApp/static'ディレクトリを静的ファイルのソースとして追加
+# ]
 
 
-# #本番環境での静的ファイルの設定
-# STATIC_ROOT = '/usr/share/nginx/html/static'
+#本番環境での静的ファイルの設定
+STATIC_ROOT = '/usr/share/nginx/html/static'
 
-MEDIA_URL = '/media/'
-# MEDIA_ROOT = '/usr/share/nginx/html/media'
+# MEDIA_URL = '/media/'
+MEDIA_ROOT = '/usr/share/nginx/html/media'
 
 
 import datetime
@@ -222,17 +222,17 @@ LOGIN_REDIRECT_URL = 'booking:store_list' # ログイン後にリダイレクト
 LOGOUT_REDIRECT_URL = 'booking:login' 
 
 DEFAULT_AUTO_FIELD='django.db.models.AutoField'
-#ローカル
-LINE_CHANNEL_ID = "2006040383"
-LINE_CHANNEL_SECRET = "44d0ddf511abac410bf2be6b302e2f48"
-LINE_REDIRECT_URL = 'http://127.0.0.1:8000/booking/login/line/success/' 
+# #ローカル
+# LINE_CHANNEL_ID = "2006040383"
+# LINE_CHANNEL_SECRET = "44d0ddf511abac410bf2be6b302e2f48"
+# LINE_REDIRECT_URL = 'http://127.0.0.1:8000/booking/login/line/success/' 
 
-# # # 本番
-# LINE_CHANNEL_ID = "2003969601"
+# # 本番
+LINE_CHANNEL_ID = "2003969601"
 
-# LINE_CHANNEL_SECRET = "0f65e88a404ba95833bca990cf312e40"
+LINE_CHANNEL_SECRET = "0f65e88a404ba95833bca990cf312e40"
 
-# LINE_REDIRECT_URL = 'https://timebaibai.com/booking/login/line/success/' # リダイレクトURL
+LINE_REDIRECT_URL = 'https://timebaibai.com/booking/login/line/success/' # リダイレクトURL
 import requests
 from linebot import LineBotApi
 from linebot.models import TextSendMessage
