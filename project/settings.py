@@ -22,7 +22,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = '&670@la%)g1zo2y7(+4+^pl00sb(cjl4rpvkf@2ly)eo+a$1k!'
 
-# ローカル
+# # ローカル
 # DEBUG = True
 
 # ALLOWED_HOSTS = ['localhost', '127.0.0.1']
@@ -163,16 +163,15 @@ import os
 
 # # 静的ファイルの設定
 # STATIC_URL = '/static/'
+# MEDIA_URL = '/media/'
 # STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')  # プロジェクトディレクトリ内の'staticfiles'ディレクトリを指定
-# STATICFILES_DIRS = [
-#     os.path.join(BASE_DIR, 'static'),  # 'testApp/static'ディレクトリを静的ファイルのソースとして追加
-# ]
+STATICFILES_DIRS = [
+    os.path.join(BASE_DIR, 'static'),  # 'testApp/static'ディレクトリを静的ファイルのソースとして追加
+]
 
 
 #本番環境での静的ファイルの設定
 STATIC_ROOT = '/usr/share/nginx/html/static'
-
-# MEDIA_URL = '/media/'
 MEDIA_ROOT = '/usr/share/nginx/html/media'
 
 
@@ -222,10 +221,17 @@ LOGIN_REDIRECT_URL = 'booking:store_list' # ログイン後にリダイレクト
 LOGOUT_REDIRECT_URL = 'booking:login' 
 
 DEFAULT_AUTO_FIELD='django.db.models.AutoField'
+
+import requests
+from linebot import LineBotApi
+from linebot.models import TextSendMessage
 # #ローカル
 # LINE_CHANNEL_ID = "2006040383"
 # LINE_CHANNEL_SECRET = "44d0ddf511abac410bf2be6b302e2f48"
 # LINE_REDIRECT_URL = 'http://127.0.0.1:8000/booking/login/line/success/' 
+# # LINE Messaging APIのアクセストークン
+# LINE_ACCESS_TOKEN = 'GVMEVG7Q83BMUzcXpShX2s0mfBC9SZ/UnZHVqKgWngRbvdQ2WPNsMOEHLoBcOr/bq36X48a93ErCJq95Wqs/KU5q2djJohPSer8OqkVr4ybtPyl48fTN3u204rMZT/KrBrnuR0oL+u88w4InAjGrfwdB04t89/1O/w1cDnyilFU='
+
 
 # # 本番
 LINE_CHANNEL_ID = "2003969601"
@@ -233,13 +239,13 @@ LINE_CHANNEL_ID = "2003969601"
 LINE_CHANNEL_SECRET = "0f65e88a404ba95833bca990cf312e40"
 
 LINE_REDIRECT_URL = 'https://timebaibai.com/booking/login/line/success/' # リダイレクトURL
-import requests
-from linebot import LineBotApi
-from linebot.models import TextSendMessage
 
 # LINE Messaging APIのアクセストークン
-LINE_ACCESS_TOKEN = 'GVMEVG7Q83BMUzcXpShX2s0mfBC9SZ/UnZHVqKgWngRbvdQ2WPNsMOEHLoBcOr/bq36X48a93ErCJq95Wqs/KU5q2djJohPSer8OqkVr4ybtPyl48fTN3u204rMZT/KrBrnuR0oL+u88w4InAjGrfwdB04t89/1O/w1cDnyilFU='
-# # 決済サービスのAPIキー
+LINE_ACCESS_TOKEN = 'SwYJEbvMawMifRQ2yXIvhLLZJHwsBAOQzo4uGOrwIACTOybf3YbvJsWxVWN7KOtEcQJnpjQ6A4nYsc9+8is7ZYU2aIyrc2w1XESYFUOlWb17nScbom6jUxW/8UeejLpoFBPwErqH6JKes7SMSYd/PgdB04t89/1O/w1cDnyilFU='
+
+
+
+# 決済サービスのAPIキー
 PAYMENT_API_KEY = 'sk_live_7ldzwc0xXXyVcarFazjHEEN7bTvXpa7x'
 
 # ユーザーID（LINEログイン後に取得）
@@ -248,11 +254,8 @@ user_id = 'USER_ID'
 # # LINE Messaging APIの初期化
 # line_bot_api = LineBotApi(LINE_ACCESS_TOKEN)
 
-# ユーザーIDとメッセージ
 #ユーザーIDはログイン後に取得
 user_id = 'Udf02e8cec56a91be9005b6f10c6b7a56'
-
-
 
 CELERY_broker_url = 'redis://localhost:6379/0'
 accept_content = ['json']
