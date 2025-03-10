@@ -866,3 +866,25 @@ def customer_booking_history(request, customer_id):
     }
     
     return render(request, 'customer_booking_history.html', context)
+import logging
+from linebot import LineBotApi
+from linebot.exceptions import LineBotApiError
+
+# ログの設定
+logging.basicConfig(level=logging.ERROR, format='%(asctime)s %(levelname)s %(message)s')
+logger = logging.getLogger(__name__)
+
+line_bot_api = LineBotApi('YOUR_CHANNEL_ACCESS_TOKEN')
+
+def get(self, request, *args, **kwargs):
+    user_id = 'USER_ID'
+    message = 'YOUR_MESSAGE'
+    try:
+        profile = line_bot_api.get_profile(user_id)
+        line_bot_api.push_message(user_id, message)
+    except LineBotApiError as e:
+        # エラーメッセージをログに記録
+        logger.error(f"LineBotApiError: status_code={e.status_code}, request_id={e.request_id}, error_response={e.error.message}")
+        for detail in e.error.details:
+            logger.error(f"  - {detail.property}: {detail.message}")
+        return HttpResponse("An error occurred", status=500)
