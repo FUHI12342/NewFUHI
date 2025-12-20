@@ -155,3 +155,6 @@ dump.rdb
 db.sqlite3
 myvenv/
 .venv/
+
+# Backup files
+*.bak_*
