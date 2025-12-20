@@ -6,8 +6,9 @@ import sys
 # 重複するエントリをsys.pathから削除
 sys.path = list(dict.fromkeys(sys.path))
 
+
 def main():
-    os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'project.settings')
+    os.environ.setdefault("DJANGO_SETTINGS_MODULE", "project.settings")
     try:
         from django.core.management import execute_from_command_line
     except ImportError as exc:
@@ -19,5 +20,5 @@ def main():
     execute_from_command_line(sys.argv)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

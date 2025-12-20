@@ -1,7 +1,14 @@
-from .models import Company, Notice, Media
+# booking/context_processors.py
+
+from django.conf import settings
+
 
 def global_context(request):
-    company = Company.objects.first()  # 最初のCompanyインスタンスを取得
-    notices = Notice.objects.all()  # 全てのNoticeインスタンスを取得
-    medias = Media.objects.all()  # 全てのMediaインスタンスを取得
-    return {'company': company, 'notices': notices, 'medias': medias}  # 'media'を'medias'に変更
+    """
+    全テンプレートで共通して使いたい値があればここに足す。
+    とりあえず今はダミーで最低限だけ返しておく。
+    """
+    return {
+        # 例: フッターにバージョン出したくなったらこんな感じ
+        # "PROJECT_VERSION": getattr(settings, "PROJECT_VERSION", "dev"),
+    }

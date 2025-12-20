@@ -1,0 +1,24 @@
+/* admin の IoTEvent リスト画面用 */
+
+.change-list #result_list {
+  display: block;
+  max-width: 100%;
+  overflow-x: auto;    /* 横スクロール */
+}
+
+.change-list #result_list table {
+  width: 100%;
+  table-layout: fixed; /* 列幅を均等にしてギチギチになりすぎないように */
+}
+
+.change-list #result_list th,
+.change-list #result_list td {
+  white-space: nowrap;   /* 折り返さず横スクロール前提 */
+  padding: 0.2rem 0.4rem;
+  font-size: 0.85rem;
+}
+
+.change-list #result_list th.action-checkbox-column,
+.change-list #result_list td.action-checkbox {
+  width: 1.5rem;
+}

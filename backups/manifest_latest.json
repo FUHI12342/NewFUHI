@@ -1,0 +1,9 @@
+{
+  "project": "NewFUHI",
+  "version": "1.0",
+  "db_type": "sqlite",
+  "timestamp": "20251220_154924",
+  "db_file": "db.sqlite.bak_20251220_154924",
+  "s3_db_key": "db/db.sqlite.bak_20251220_154924",
+  "latest_pointer": "db/latest.txt"
+}

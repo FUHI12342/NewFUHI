@@ -1,0 +1,9 @@
+/bin/bash: aws: command not found
+/bin/bash: aws: command not found
+/bin/bash: aws: command not found
+/bin/bash: aws: command not found
+/bin/bash: aws: command not found
+/bin/bash: aws: command not found
+/bin/bash: aws: command not found
+/bin/bash: aws: command not found
+delete: s3://mee-newfuhi-backups/media/test.txt

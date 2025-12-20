@@ -1,0 +1,31 @@
+{% extends "admin/change_list.html" %}
+{% load i18n %}
+
+{# タイトルを少しだけカスタム #}
+{% block content_title %}
+  <h1>IoTイベント一覧（自動更新）</h1>
+  <p style="margin-top: 4px; color: #555;">
+    この一覧は <strong>20秒ごとに自動で再読み込み</strong> されます。<br>
+    MQ-9 やボタンなど、Pico から送られてきた生ログがここに溜まります。
+  </p>
+{% endblock %}
+
+{# head に自動リロード用の JS を追加 #}
+{% block extrahead %}
+  {{ block.super }}
+  <script>
+    (function () {
+      const INTERVAL_MS = 20000;  // 20秒ごと
+
+      function reloadWithSameQuery() {
+        const url = new URL(window.location.href);
+        // 検索条件や並び替え（?q= や ?o= など）を維持したままリロード
+        window.location.href = url.pathname + url.search;
+      }
+
+      window.addEventListener("load", function () {
+        setTimeout(reloadWithSameQuery, INTERVAL_MS);
+      });
+    })();
+  </script>
+{% endblock %}

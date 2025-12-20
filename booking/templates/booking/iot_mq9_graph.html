@@ -1,0 +1,127 @@
+{% extends "admin/base_site.html" %}
+{% load static %}
+
+{% block extrahead %}
+  {{ block.super }}
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    .mq9-chart-wrap {
+      max-width: 960px;
+      margin: 1.5rem auto 2rem;
+    }
+    .mq9-chart-wrap-inner {
+      position: relative;
+      width: 100%;
+      max-height: 320px;
+    }
+    .mq9-meta {
+      font-size: 0.9rem;
+      color: #ccc;
+      margin-bottom: 0.5rem;
+    }
+    table.mq9-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 1rem;
+      font-size: 0.85rem;
+    }
+    table.mq9-table th,
+    table.mq9-table td {
+      border: 1px solid #444;
+      padding: 0.3rem 0.5rem;
+      white-space: nowrap;
+    }
+    table.mq9-table th {
+      background: #222;
+    }
+  </style>
+{% endblock %}
+
+{% block content %}
+<div id="content-main">
+  <h1>MQ-9 ガス濃度グラフ</h1>
+
+  <p class="mq9-meta">
+    デバイス: {{ device_external_id|default:"すべて" }} /
+    表示件数: {{ labels|length }} 件（古い→新しい 最大500件）
+  </p>
+
+  <form method="get" style="margin-bottom: 1rem;">
+    <label for="device">デバイスID:</label>
+    <input type="text"
+           id="device"
+           name="device"
+           value="{{ device_external_id|default_if_none:'' }}"
+           style="min-width: 120px;">
+    <button type="submit" class="button">更新</button>
+  </form>
+
+  <div class="mq9-chart-wrap">
+    <div class="mq9-chart-wrap-inner">
+      <canvas id="mq9Chart"></canvas>
+    </div>
+  </div>
+
+  <h2>ライブデータ（最新 → 古い順）</h2>
+  <table class="mq9-table">
+    <thead>
+      <tr>
+        <th>時刻</th>
+        <th>MQ-9 値</th>
+      </tr>
+    </thead>
+    <tbody>
+      {# labels_values は Python 側ですでに「最新が先頭」にしてある #}
+      {% for ts, val in labels_values %}
+        <tr>
+          <td>{{ ts }}</td>
+          <td>{{ val }}</td>
+        </tr>
+      {% empty %}
+        <tr><td colspan="2">データがありません。</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <script>
+    (function () {
+      const labels = JSON.parse('{{ labels_json|escapejs }}');
+      const values = JSON.parse('{{ values_json|escapejs }}');
+
+      const ctx = document.getElementById('mq9Chart').getContext('2d');
+
+      new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: labels,
+          datasets: [{
+            label: 'MQ-9 value',
+            data: values,
+            borderWidth: 1,
+            pointRadius: 0,
+            tension: 0.1
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          scales: {
+            x: {
+              ticks: {
+                maxTicksLimit: 8,
+                autoSkip: true
+              }
+            },
+            y: {
+              beginAtZero: true
+            }
+          },
+          plugins: {
+            legend: { display: false }
+          }
+        }
+      });
+    })();
+  </script>
+</div>
+{% endblock %}

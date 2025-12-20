@@ -1,119 +1,275 @@
 from __future__ import absolute_import, unicode_literals
+
 import datetime
 import json
 import jwt
 import requests
 import secrets
 from datetime import timedelta
+from urllib.parse import quote
+import hashlib
+import urllib.parse
+import pytz
+import logging
+from booking.admin_site import custom_site
+
 from django.utils import timezone
-from celery import shared_task
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth import get_user_model
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.core.exceptions import PermissionDenied
+from django.core.mail import send_mail
 from django.db.models import Q
-from django.http import HttpResponse
+from django.db import transaction
+from django.http import (
+    HttpResponse,
+    JsonResponse,
+    HttpResponseBadRequest,
+    HttpResponseRedirect,
+)
 from django.shortcuts import get_object_or_404, redirect, render
-from django.urls import reverse_lazy
-from django.utils import timezone
+from django.urls import reverse_lazy, reverse
 from django.views import generic, View
 from django.views.decorators.http import require_POST
-from booking.models import Store, Staff, Schedule, Timer,UserSerializer
-import sys
-from rest_framework import generics
-from django.contrib.auth.models import User
+from django.views.decorators.csrf import csrf_exempt
+from django.contrib import admin
 
-#print('環境変数1' + str(sys.path))
+from rest_framework import generics, status
+from rest_framework.views import APIView
+from rest_framework.response import Response
+
+from django import forms
+
+from booking.models import (
+    Store,
+    Staff,
+    Schedule,
+    Timer,
+    UserSerializer,
+    IoTDevice,
+    IoTEvent,
+    Media,
+    # ===== 追加: 在庫 / 注文 / 入庫QR / 多言語 =====
+    Category,
+    Product,
+    ProductTranslation,
+    Order,
+    OrderItem,
+    StockMovement,
+    apply_stock_movement,
+)
+from .forms import StaffForm
+from linebot import LineBotApi
+from linebot.exceptions import LineBotApiError
+from linebot.models import TextSendMessage
+
+logger = logging.getLogger(__name__)
+
+User = get_user_model()
+
 
 class UserList(generics.ListAPIView):
     queryset = User.objects.all()
     serializer_class = UserSerializer
-    
-User = get_user_model()
+
+
 class Index(generic.TemplateView):
     template_name = 'booking/index.html'
 
-    
-from django.http import JsonResponse
-from django.utils import timezone
-from datetime import timedelta
-from rest_framework.views import APIView
-from rest_framework.response import Response
-from django.shortcuts import render
 
 def LINETimerView(request, user_id):
-    # タイマーの開始時刻をデータベースに保存します
-    timer, created = Timer.objects.get_or_create(user_id=user_id, defaults={'start_time': timezone.now()})
-
+    timer, created = Timer.objects.get_or_create(
+        user_id=user_id,
+        defaults={'start_time': timezone.now()}
+    )
     if not created:
-        # 既存のタイマーを更新する場合の処理
         timer.start_time = timezone.now()
         timer.save()
 
-    # タイマーの終了時間を設定します（ここでは開始時間から10分後とします）
     timer.end_time = timer.start_time + timedelta(minutes=60)
     timer.save()
 
-    # 終了時間をcontextに追加します
     context = {'end_time': timer.end_time}
-
-    # timer.htmlテンプレートをレンダリングします
     return render(request, 'booking/timer.html', context)
 
-# 終了時間を保存する変数
-# ここではサーバー起動時から1時間後を終了時間としています
+
 end_time = timezone.now() + timedelta(hours=1)
 
+
 def get_end_time(request):
-    # 終了時間をISO 8601形式の文字列として返す
     return JsonResponse({'time': end_time.isoformat()})
 
+
 def get_current_time(request):
-    # 現在時間をISO 8601形式の文字列として返す
     return JsonResponse({'time': timezone.now().isoformat()})
 
+
 def get_reservation_times(request, pk):
-    # pkを使用して予約を取得
     schedule = get_object_or_404(Schedule, pk=pk)
-    # 開始時間と終了時間をISO 8601形式の文字列として返す
     return JsonResponse({'startTime': schedule.start.isoformat(), 'endTime': schedule.end.isoformat()})
 
+
 def get_reservation(request, pk):
-    # pkを使用して予約を取得
     schedule = get_object_or_404(Schedule, pk=pk)
-    # 開始時間と終了時間をISO 8601形式の文字列として返す
-    return JsonResponse({
-        'startTime': schedule.start.isoformat(),
-        'endTime': schedule.end.isoformat()
-    })
-     
+    return JsonResponse({'startTime': schedule.start.isoformat(), 'endTime': schedule.end.isoformat()})
+
+
 class CurrentTimeView(APIView):
     def get(self, request):
-        import datetime
         current_time = datetime.datetime.now()
         return Response({"current_time": str(current_time)})
-    
-    
-from django.http import HttpResponseBadRequest, HttpResponseRedirect
-from django.views import View
-import hashlib
-import urllib.parse
-import requests
-import json
-import jwt
-from linebot import LineBotApi
-from linebot.exceptions import LineBotApiError
 
-LINE_CHANNEL_ID =  '2006040383'
-LINE_CHANNEL_SECRET = '44d0ddf511abac410bf2be6b302e2f48'
-REDIRECT_URL = 'http://127.0.0.1:8000/booking/login/line/success/'
+
+class IoTEventAPIView(APIView):
+    authentication_classes = []
+    permission_classes = []
+
+    def post(self, request, *args, **kwargs):
+        api_key = request.headers.get("X-API-KEY")
+        if not api_key:
+            return Response({"detail": "X-API-KEY header is required"}, status=status.HTTP_400_BAD_REQUEST)
+
+        device_name = request.data.get("device")
+        if not device_name:
+            return Response({"detail": "device is required"}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            device = IoTDevice.objects.get(api_key=api_key, external_id=device_name)
+        except IoTDevice.DoesNotExist:
+            return Response({"detail": "device not found"}, status=status.HTTP_404_NOT_FOUND)
+
+        event_type = request.data.get("event_type", "sensor")
+        incoming_payload = request.data.get("payload", None)
+
+        payload_dict = {}
+        if isinstance(incoming_payload, dict):
+            payload_dict.update(incoming_payload)
+        elif isinstance(incoming_payload, str):
+            try:
+                payload_dict.update(json.loads(incoming_payload))
+            except Exception:
+                payload_dict["payload_raw"] = incoming_payload
+        elif incoming_payload is not None:
+            payload_dict["payload_raw"] = incoming_payload
+
+        sensors_in_payload = {}
+        if isinstance(payload_dict.get("sensors"), dict):
+            sensors_in_payload = payload_dict.get("sensors")
+
+        def pick_value(key):
+            if key in request.data:
+                return request.data.get(key)
+            if key in sensors_in_payload:
+                return sensors_in_payload.get(key)
+            return payload_dict.get(key)
+
+        mq9 = pick_value("mq9")
+        if mq9 is None:
+            mq9 = request.data.get("mq9_value")
+        light = pick_value("light")
+        sound = pick_value("sound")
+        temp = pick_value("temp")
+        hum = pick_value("hum")
+        ts = pick_value("ts")
+
+        payload_dict.update({"mq9": mq9, "light": light, "sound": sound, "temp": temp, "hum": hum, "ts": ts})
+
+        mq9_value = mq9
+        try:
+            if mq9_value is not None and isinstance(mq9_value, str):
+                mq9_value = float(mq9_value) if "." in mq9_value else int(mq9_value)
+        except Exception:
+            pass
+
+        evt = IoTEvent.objects.create(
+            device=device,
+            event_type=event_type,
+            payload=json.dumps(payload_dict, ensure_ascii=False),
+            mq9_value=mq9_value,
+        )
+
+        device.last_seen_at = timezone.now()
+        device.save(update_fields=["last_seen_at"])
+
+        return Response({"id": evt.id, "device": device.external_id, "event_type": evt.event_type}, status=status.HTTP_201_CREATED)
+
+
+class IoTConfigAPIView(APIView):
+    authentication_classes = []
+    permission_classes = []
+
+    def get(self, request, *args, **kwargs):
+        external_id = request.GET.get('device')
+        api_key = request.headers.get('X-API-KEY')
+
+        if not external_id or not api_key:
+            return Response({'detail': 'device または X-API-KEY が足りません'}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            device = IoTDevice.objects.get(external_id=external_id, api_key=api_key, is_active=True)
+        except IoTDevice.DoesNotExist:
+            return Response({'detail': '認証失敗'}, status=status.HTTP_403_FORBIDDEN)
+
+        return Response({
+            'device': device.external_id,
+            'wifi': {'ssid': device.wifi_ssid, 'password': device.wifi_password},
+            'mq9_threshold': device.mq9_threshold,
+            'alert_enabled': device.alert_enabled,
+        })
+
+
+class IoTMQ9GraphView(LoginRequiredMixin, generic.TemplateView):
+    template_name = "booking/iot_mq9_graph.html"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context.update(custom_site.each_context(self.request))
+
+        device_external_id = self.request.GET.get("device")
+
+        date_str = self.request.GET.get("date")
+        if date_str:
+            try:
+                target_date = datetime.datetime.strptime(date_str, "%Y-%m-%d").date()
+            except ValueError:
+                target_date = timezone.localdate()
+        else:
+            target_date = timezone.localdate()
+
+        qs = IoTEvent.objects.filter(mq9_value__isnull=False, created_at__date=target_date)
+        if device_external_id:
+            qs = qs.filter(device__external_id=device_external_id)
+        qs = qs.order_by("created_at")
+
+        labels = [timezone.localtime(ev.created_at).strftime("%H:%M:%S") for ev in qs]
+        values = [ev.mq9_value for ev in qs]
+
+        context["labels_json"] = json.dumps(labels, ensure_ascii=False)
+        context["values_json"] = json.dumps(values)
+        context["labels"] = labels
+        context["labels_values"] = list(zip(labels, values))[::-1]
+
+        live_qs = IoTEvent.objects.filter(mq9_value__isnull=False)
+        if device_external_id:
+            live_qs = live_qs.filter(device__external_id=device_external_id)
+        context["live_events"] = live_qs.order_by("-created_at")[:20]
+
+        context["device_external_id"] = device_external_id
+        context["target_date"] = target_date
+        return context
+
+
+# NOTE: hard-coded secrets are dangerous; keep backward compatibility via fallbacks.
+LINE_CHANNEL_ID = getattr(settings, 'LINE_CHANNEL_ID', '2006040383')
+LINE_CHANNEL_SECRET = getattr(settings, 'LINE_CHANNEL_SECRET', '44d0ddf511abac410bf2be6b302e2f48')
+REDIRECT_URL = getattr(settings, 'LINE_REDIRECT_URL', 'http://127.0.0.1:8000/booking/login/line/success/')
+
 
 class LineEnterView(View):
     def get(self, request):
-        # 認証URLを生成する
-        state = secrets.token_hex(10)  # ランダムな文字列を生成
-        request.session['state'] = state  # stateをセッションに保存
+        state = secrets.token_hex(10)
+        request.session['state'] = state
 
         params = {
             'response_type': 'code',
@@ -123,217 +279,153 @@ class LineEnterView(View):
             'scope': 'openid profile email',
         }
         auth_url = 'https://access.line.me/oauth2/v2.1/authorize?' + urllib.parse.urlencode(params)
-
-        # ユーザーをLINEログインページにリダイレクト
         return HttpResponseRedirect(auth_url)
-    
+
 
 class LineCallbackView(View):
     def get(self, request):
-                # 以下、既存のコード...
-                context = {}
-                code = request.GET.get('code')
-                state = request.GET.get('state')
+        code = request.GET.get('code')
+        state = request.GET.get('state')
 
-                # stateがセッションに保存されたものと一致することを確認します。
-                if state != request.session.get('state'):
-                    return HttpResponseBadRequest()
-                
-                # 認可コードを取得する
-                uri_access_token = "https://api.line.me/oauth2/v2.1/token"
-                headers = {"Content-Type": "application/x-www-form-urlencoded"}
+        if state != request.session.get('state'):
+            return HttpResponseBadRequest()
 
-                if code is not None:
-                    data_params = {
-                        "grant_type": "authorization_code",
-                        "code": code,
-                        "redirect_uri": REDIRECT_URL,
-                        "client_id": LINE_CHANNEL_ID,
-                        "client_secret": LINE_CHANNEL_SECRET
-                    }
-                    # トークンを取得するためにリクエストを送る
-                    response_post = requests.post(uri_access_token, headers=headers, data=data_params)
+        if code is None:
+            return HttpResponse('トークンの取得に失敗しました')
 
-                    if response_post.status_code == 200:
-                        # 今回は"id_token"のみを使用する
-                        line_id_token = json.loads(response_post.text)["id_token"]
-                        # ペイロード部分をデコードすることで、ユーザ情報を取得する
-                        
-                    user_profile = jwt.decode(line_id_token,
-                                                LINE_CHANNEL_SECRET,
-                                                audience=LINE_CHANNEL_ID,
-                                                issuer='https://access.line.me',
-                                                algorithms=['HS256'],
-                                                options={'verify_iat': False})
+        uri_access_token = "https://api.line.me/oauth2/v2.1/token"
+        headers = {"Content-Type": "application/x-www-form-urlencoded"}
+        data_params = {
+            "grant_type": "authorization_code",
+            "code": code,
+            "redirect_uri": REDIRECT_URL,
+            "client_id": LINE_CHANNEL_ID,
+            "client_secret": LINE_CHANNEL_SECRET
+        }
+        response_post = requests.post(uri_access_token, headers=headers, data=data_params)
 
-                    # ユーザープロフィールから顧客名を取得
-                    customer_name = user_profile['name'] if user_profile else 'Unknown User'
+        if response_post.status_code != 200:
+            print('トークンの取得に失敗しました: ', response_post.status_code, response_post.text)
+            return HttpResponse('トークンの取得に失敗しました')
 
-                    # ユーザーIDをハッシュ化
-                    hashed_id = hashlib.sha256(user_profile['sub'].encode()).hexdigest()
+        line_id_token = json.loads(response_post.text)["id_token"]
 
+        user_profile = jwt.decode(
+            line_id_token,
+            LINE_CHANNEL_SECRET,
+            audience=LINE_CHANNEL_ID,
+            issuer='https://access.line.me',
+            algorithms=['HS256'],
+            options={'verify_iat': False}
+        )
 
-                    # LINE登録のユーザー情報を表示する場合は、contextに追加しておく
-                    context["user_profile"]=user_profile
-                    #print('★★★ユーザー情報★★★: ' + str(user_profile))
+        customer_name = user_profile.get('name') if user_profile else 'Unknown User'
+        hashed_id = hashlib.sha256(user_profile['sub'].encode()).hexdigest()
 
-                    # LINE Messaging APIの初期化
-                    line_bot_api = LineBotApi(settings.LINE_ACCESS_TOKEN)
+        line_bot_api = LineBotApi(settings.LINE_ACCESS_TOKEN)
+        user_id = user_profile['sub']
 
-                    #ユーザーIDとメッセージ
-                    #ユーザーIDはログイン後に取得
-                    user_id = user_profile['sub']
-                    print('◆□ユーザーID: ' + user_id)
+        try:
+            profile = line_bot_api.get_profile(user_id)
+            user_id = profile.user_id
+        except LineBotApiError as e:
+            if getattr(e, "status_code", None) == 404:
+                try:
+                    line_bot_api.push_message(user_id, TextSendMessage(text="Please add our bot as a friend to continue."))
+                except Exception:
+                    pass
+                return HttpResponseBadRequest()
+            return HttpResponseBadRequest()
 
-                    try:
-                        # ユーザープロファイルの取得
-                        profile = line_bot_api.get_profile(user_id)
-                        # ユーザーIDとメッセージ
-                        user_id = profile.user_id
-                    except LineBotApiError as e:
-                        if e.status_code == 404:
-                            print('ユーザーがボットを友達登録していません400')
-                            # ユーザーがボットを友達登録していない場合
-                            # ユーザーにボットを友達登録するように促すメッセージを送信
-                            message = TextSendMessage(text="Please add our bot as a friend to continue.")
-                            line_bot_api.push_message(user_id, message)
-                            return HttpResponseBadRequest()
-                        else:
-                            print('ユーザーがボットを友達登録していません500')
-                            # その他のエラー
-                            print(f"Failed to get profile: {e}")
-                            return HttpResponseBadRequest()
-                    print('-------分岐・前--------') 
-                    try:
-                        print('-------分岐・後--------')
-                        # ユーザープロファイルの取得
-                        profile = line_bot_api.get_profile(user_id)
-                        # ユーザーIDとメッセージ
-                        user_id = profile.user_id
-                        
-                        from datetime import datetime, timedelta
-                        # 現在の日時を取得
-                        now = datetime.now()
+        try:
+            from datetime import datetime as dt, timedelta as td
+            now = dt.now()
+            expired_on = now + td(days=1)
+            expired_on_str = expired_on.strftime('%Y-%m-%d')
 
-                        # 現在の日時から1日後の日時を取得
-                        expired_on = now + timedelta(days=1)
+            temporary_booking = request.session.get('temporary_booking')
+            if temporary_booking is None:
+                return HttpResponse('仮予約情報がありません')
 
-                        # expired_onをISO 8601形式の文字列に変換
-                        expired_on_str = expired_on.strftime('%Y-%m-%d')
+            schedule = Schedule(
+                reservation_number=temporary_booking['reservation_number'],
+                start=timezone.make_aware(dt.fromisoformat(temporary_booking['start'])),
+                end=timezone.make_aware(dt.fromisoformat(temporary_booking['end'])),
+                price=temporary_booking['price'],
+                customer_name=customer_name,
+                hashed_id=hashed_id,
+                staff_id=temporary_booking['staff_id'],
+                is_temporary=True,
+            )
+            schedule.save()
 
-                        # 仮予約情報をセッションから取得
-                        temporary_booking = request.session.get('temporary_booking')
-                        print('★★★仮予約情報★★★: ' + str(temporary_booking))
-                        if temporary_booking is not None:
-                            # 新しいScheduleインスタンスを作成して保存
-                            schedule = Schedule(
-                                reservation_number=temporary_booking['reservation_number'],
-                                start=timezone.make_aware(datetime.fromisoformat(temporary_booking['start'])),  # タイムゾーン情報を追加
-                                end=timezone.make_aware(datetime.fromisoformat(temporary_booking['end'])),  # タイムゾーン情報を追加
-                                price=temporary_booking['price'],
-                                customer_name=customer_name,  # 顧客名を設定
-                                hashed_id=hashed_id,  # ハッシュIDを設定
-                                staff_id=self.request.session['temporary_booking']['staff_id']  # スタッフIDをセッションから取得
-                            )
+            # ▼ここが重要：生のLINE user_idは保存しない（暗号化+ハッシュで保存）
+            try:
+                schedule.set_line_user_id(user_id)
+                schedule.save(update_fields=["line_user_hash", "line_user_enc"])
+            except Exception as e:
+                logger.warning("Failed to store encrypted LINE user id: %s", e)
 
-                            schedule.save()
-                            print('★★★スケジュール★★★: ' + str(schedule))
-                            print('★★顧客名★★: ' + str(customer_name))
-                            print('★★ハッシュID★★: ' + str(hashed_id))
+            del request.session['temporary_booking']
 
-                            # 仮予約情報をセッションから削除
-                            del request.session['temporary_booking']
-                        else:
-                            print("仮予約情報がセッションに存在しません。")
-                            price = None  # または適切なデフォルト値を設定
-                            
-                        # 決済サービスのAPIを使用して決済URLを生成
-                        payment_api_url = settings.PAYMENT_API_URL
-                        headers = {
-                            'Authorization': 'Bearer ' + settings.PAYMENT_API_KEY,
-                            'Content-Type': 'application/json'  
-                        }
-                        reservation_number = schedule.reservation_number
-                        price = schedule.price
-                        # Webhook URLを動的に設定
-                        webhook_url = f"{settings.WEBHOOK_URL_BASE}{reservation_number}/"
+            payment_api_url = settings.PAYMENT_API_URL
+            headers = {
+                'Authorization': 'Bearer ' + settings.PAYMENT_API_KEY,
+                'Content-Type': 'application/json'
+            }
+            reservation_number = schedule.reservation_number
+            webhook_url = f"{settings.WEBHOOK_URL_BASE}{reservation_number}/"
 
-                        data = {
-                            "amount": price,  # 仮予約情報から取得した価格情報を設定
-                            "currency": "jpy",
-                            "locale": "ja_JP",
-                            "cancelUrl": settings.CANCEL_URL,
-                            "webhookUrl": webhook_url,  # ここで設定
-                            "method": "creditcard",
-                            "subject": "ご予約料金",
-                            "description": "ウェブサイトからの支払い",
-                            "remarks": "仮予約から10分を過ぎますと自動的にキャンセルとなります。あらかじめご了承ください。",
-                            "metadata": {
-                                "orderId":reservation_number
-                            },
-                            "expiredOn": expired_on_str
-                        }
-                        # 以下のコードは変更なし...
-                        payment_url = None  # 初期化
+            data = {
+                "amount": schedule.price,
+                "currency": "jpy",
+                "locale": "ja_JP",
+                "cancelUrl": settings.CANCEL_URL,
+                "webhookUrl": webhook_url,
+                "method": "creditcard",
+                "subject": "ご予約料金",
+                "description": "ウェブサイトからの支払い",
+                "remarks": "仮予約から10分を過ぎますと自動的にキャンセルとなります。あらかじめご了承ください。",
+                "metadata": {"orderId": reservation_number},
+                "expiredOn": expired_on_str
+            }
 
-                        response = requests.post(payment_api_url, headers=headers, data=json.dumps(data))  # json.dumpsを使用
-                        if response.status_code == 201:
-                            try:
-                                payment_url = response.json()['links']['paymentUrl']
-                            except ValueError:
-                                print("Error decoding JSON")
-                        else:
-                            print("HTTP request failed with status code ", response.status_code)
-                            print("Response body: ", response.content)
-                        #LINE Messaging APIを使用してメッセージを送信
-                        message = None  # 初期化
+            response = requests.post(payment_api_url, headers=headers, data=json.dumps(data))
+            payment_url = None
+            if response.status_code == 201:
+                try:
+                    payment_url = response.json()['links']['paymentUrl']
+                except ValueError:
+                    print("Error decoding JSON")
+            else:
+                print("HTTP request failed with status code ", response.status_code)
+                print("Response body: ", response.content)
 
-                        if payment_url is not None:
-                            message = TextSendMessage(text='こちらのURLから決済を行ってください。決済後に予約が確定します。: ' + payment_url)
-                            line_bot_api.push_message(user_id, message)
-                            print('LINEアカウントID'+ user_id)
-                            print("Message sent successfully")
-                        else:
-                            print("Payment URL is not available")  
-                    except LineBotApiError as e:
-                        print("Failed to send message: ", e)
-                        if e.status_code == 404:
-                            print('ユーザーがボットを友達登録していません')
+            if payment_url is not None:
+                line_bot_api.push_message(
+                    user_id,
+                    TextSendMessage(text='こちらのURLから決済を行ってください。決済後に予約が確定します。: ' + payment_url)
+                )
 
-                    # ユーザープロファイル情報をセッションに保存
-                    request.session['profile'] = user_profile
-                    #print('セッション情報' + str(request.session.items()))
-                                    
-                    return render(request, 'booking/line_success.html', {'profile': user_profile})      
-                else:
-                    print('トークンの取得に失敗しました')
-                return HttpResponse('トークンの取得に失敗しました')
-            
-from django.http import JsonResponse
-from django.views import View
-from linebot import LineBotApi
-from linebot.models import TextSendMessage
-from django.urls import reverse
-from urllib.parse import quote
-from linebot.exceptions import LineBotApiError
-import json
+        except LineBotApiError as e:
+            print("Failed to send message: ", e)
+
+        request.session['profile'] = user_profile
+        return render(request, 'booking/line_success.html', {'profile': user_profile})
 
 
 class PayingSuccessView(View):
     def post(self, request, orderId):
-        # 決済サービスからのレスポンスを解析
         payment_response = json.loads(request.body)
-        #print('PayingSuccessView起動、決済サービスからのレスポンス解析中')
         return process_payment(payment_response, request, orderId)
-    
+
+
 class LineSuccessView(View):
     def get(self, request):
-        # セッションからプロフィールを取得します。
         profile = request.session.get('profile')
-
         return render(request, 'booking/line_success.html', {'profile': profile})
-    
-   
+
+
 class OnlyStaffMixin(UserPassesTestMixin):
     raise_exception = True
 
@@ -372,53 +464,42 @@ class StaffList(generic.ListView):
         return context
 
     def get_queryset(self):
-        store = self.store = get_object_or_404(Store, pk=self.kwargs['pk'])
-        queryset = super().get_queryset().filter(store=store)
-        return queryset
+        self.store = get_object_or_404(Store, pk=self.kwargs['pk'])
+        return super().get_queryset().filter(store=self.store)
 
 
 class StaffCalendar(generic.TemplateView):
     template_name = 'booking/calendar.html'
 
     def get_context_data(self, **kwargs):
-        print(datetime.date)  # ここを追加
         context = super().get_context_data(**kwargs)
         staff = get_object_or_404(Staff, pk=self.kwargs['pk'])
         today = datetime.date.today()
 
-        # どの日を基準にカレンダーを表示するかの処理。
-        # 年月日の指定があればそれを、なければ今日からの表示。
         year = self.kwargs.get('year')
         month = self.kwargs.get('month')
         day = self.kwargs.get('day')
-        if year and month and day:
-            base_date = datetime.date(year=year, month=month, day=day)
-        else:
-            base_date = today
+        base_date = datetime.date(year=year, month=month, day=day) if (year and month and day) else today
 
-        # カレンダーは1週間分表示するので、基準日から1週間の日付を作成しておく
-        days = [base_date + datetime.timedelta(days=day) for day in range(7)]
+        days = [base_date + datetime.timedelta(days=d) for d in range(7)]
         start_day = days[0]
         end_day = days[-1]
 
-        # 9時から17時まで1時間刻み、1週間分の、値がTrueなカレンダーを作る
         calendar = {}
         for hour in range(9, 18):
-            row = {}
-            for day in days:
-                row[day] = True
-            calendar[hour] = row
+            calendar[hour] = {d: True for d in days}
 
-        # カレンダー表示する最初と最後の日時の間にある予約を取得する
         start_time = datetime.datetime.combine(start_day, datetime.time(hour=9, minute=0, second=0))
         end_time = datetime.datetime.combine(end_day, datetime.time(hour=17, minute=0, second=0))
-        
-        for schedule in Schedule.objects.filter(staff=staff).exclude(Q(start__gt=end_time) | Q(end__lt=start_time)):
+
+        for schedule in (
+            Schedule.objects.filter(staff=staff, is_cancelled=False)
+            .exclude(Q(start__gt=end_time) | Q(end__lt=start_time))
+        ):
             local_dt = timezone.localtime(schedule.start)
             booking_date = local_dt.date()
             booking_hour = local_dt.hour
             if booking_hour in calendar and booking_date in calendar[booking_hour]:
-                # 予約が仮予約の場合は値を'Temp'に、そうでない場合は'Booked'に設定
                 calendar[booking_hour][booking_date] = 'Temp' if schedule.is_temporary else 'Booked'
 
         context['staff'] = staff
@@ -431,101 +512,97 @@ class StaffCalendar(generic.TemplateView):
         context['today'] = today
         context['public_holidays'] = settings.PUBLIC_HOLIDAYS
         return context
-    
-from django import forms
+
 
 class ScheduleForm(forms.ModelForm):
     class Meta:
         model = Schedule
-        fields = []  # Scheduleモデルのフィールドを指定
+        fields = []
 
-import pytz
 
 class PreBooking(generic.CreateView):
-    print('プリブッキング')
     model = Schedule
     form_class = ScheduleForm
     template_name = 'booking/booking.html'
-    
+
     def get_context_data(self, **kwargs):
-        print('ゲットコンテキストデータ')
         context = super().get_context_data(**kwargs)
         context['staff'] = get_object_or_404(Staff, pk=self.kwargs['pk'])
         return context
 
-    def post(self, request, *args, **kwargs):
-        print(request.POST)  # POSTデータを出力
-        return super().post(request, *args, **kwargs)
-
-    def form_invalid(self, form):
-        print('form_invalid:', form.errors)  # フォームのエラーを出力
-        return super().form_invalid(form)
-    
     def form_valid(self, form):
-        print('form.is_valid()の結果:', form.is_valid())        
-        print('form.errorsの結果:', form.errors)
         staff = get_object_or_404(Staff, pk=self.kwargs['pk'])
-        # StaffからPriceを取得
         price = staff.price
+
         year = int(self.kwargs.get('year'))
         month = int(self.kwargs.get('month'))
         day = int(self.kwargs.get('day'))
         hour = int(self.kwargs.get('hour'))
+
         tz = pytz.timezone(settings.TIME_ZONE)
         start = datetime.datetime(year=year, month=month, day=day, hour=hour)
         end = datetime.datetime(year=year, month=month, day=day, hour=hour + 1)
-        
-        # 既存のスケジュールがあるかどうかを確認
-        if Schedule.objects.filter(staff=staff, start=start).exists():
-            print("既に同じスタッフと開始時間でスケジュールが存在します。")
-            messages.error(self.request, 'すみません、入れ違いで予約がありました。別の日時はどうですか。')
-            return HttpResponseRedirect(reverse('booking:staff_calendar', args=[staff.id]))  # スタッフのカレンダーページにリダイレクト
-        else:
-            schedule = form.save(commit=False)
-            schedule.staff = staff
-            schedule.start = start
-            schedule.end = end
-            schedule.is_temporary = True  # 仮予約フラグを設定
-            schedule.price = price  # 価格を設定
-            schedule.temporary_booked_at = datetime.datetime.now(tz)  # 仮予約日時を設定
-            
-            # 仮予約情報をセッションに保存
-            self.request.session['temporary_booking'] = {
-                'reservation_number': str(schedule.reservation_number),
-                'start': start.isoformat(),
-                'end': end.isoformat(),
-                'price': price,
-                'is_temporary': schedule.is_temporary,  # 仮予約フラグを保存
-                'staff_id': staff.id,  # スタッフIDを保存
-            }
 
+        if Schedule.objects.filter(staff=staff, start=start, is_cancelled=False).exists():
+            messages.error(self.request, 'すみません、入れ違いで予約がありました。別の日時はどうですか。')
+            return HttpResponseRedirect(reverse('booking:staff_calendar', args=[staff.id]))
+
+        schedule = form.save(commit=False)
+        schedule.staff = staff
+        schedule.start = start
+        schedule.end = end
+        schedule.is_temporary = True
+        schedule.price = price
+        schedule.temporary_booked_at = datetime.datetime.now(tz)
+
+        self.request.session['temporary_booking'] = {
+            'reservation_number': str(schedule.reservation_number),
+            'start': start.isoformat(),
+            'end': end.isoformat(),
+            'price': price,
+            'is_temporary': schedule.is_temporary,
+            'staff_id': staff.id,
+        }
 
         return redirect('booking:line_enter')
-    
-from linebot import LineBotApi
-from linebot.models import TextSendMessage
+
 
 class CancelReservationView(View):
     def post(self, request, schedule_id):
-        # 予約情報を取得
-        schedule = Schedule.objects.get(id=schedule_id)
-
-        # 予約をキャンセル
+        schedule = get_object_or_404(Schedule, id=schedule_id)
         schedule.is_cancelled = True
-        schedule.save()
+        schedule.save(update_fields=["is_cancelled"])
 
-        # LINE Messaging APIの初期化
-        line_bot_api = LineBotApi(settings.LINE_ACCESS_TOKEN)
+        # スタッフ通知（任意）
+        try:
+            staff_line_account_id = schedule.staff.line_id
+            if staff_line_account_id:
+                line_bot_api = LineBotApi(settings.LINE_ACCESS_TOKEN)
+                local_tz = pytz.timezone('Asia/Tokyo')
+                local_time = timezone.localtime(schedule.start, local_tz)
+                line_bot_api.push_message(
+                    staff_line_account_id,
+                    TextSendMessage(text=f'予約がキャンセルされました。予約日時: {local_time}')
+                )
+        except Exception as e:
+            logger.warning('CancelReservationView: スタッフLINE通知に失敗しました: %s', e)
 
-        # 予約者のLINEアカウントIDを取得
-        customer_line_account_id = schedule.customer.line_id
+        # 顧客通知（復号できる場合のみ）
+        try:
+            customer_user_id = schedule.get_line_user_id()
+            if customer_user_id:
+                line_bot_api = LineBotApi(settings.LINE_ACCESS_TOKEN)
+                local_tz = pytz.timezone('Asia/Tokyo')
+                local_time = timezone.localtime(schedule.start, local_tz)
+                line_bot_api.push_message(
+                    customer_user_id,
+                    TextSendMessage(text=f'あなたの予約がキャンセルされました。予約日時: {local_time}')
+                )
+        except Exception as e:
+            logger.warning('CancelReservationView: 顧客LINE通知に失敗しました: %s', e)
 
-        # キャンセル情報をメッセージとして送信
-        message_text = 'あなたの予約がキャンセルされました。予約日時: {}'.format(schedule.start)
-        message = TextSendMessage(text=message_text)
-        line_bot_api.push_message(customer_line_account_id, message)
+        return render(request, 'booking/cancel_success.html', {"schedule": schedule})
 
-        return render(request, 'booking/cancel_success.html')
 
 class MyPage(LoginRequiredMixin, generic.TemplateView):
     template_name = 'booking/my_page.html'
@@ -533,7 +610,10 @@ class MyPage(LoginRequiredMixin, generic.TemplateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['staff_list'] = Staff.objects.filter(user=self.request.user).order_by('name')
-        context['schedule_list'] = Schedule.objects.filter(staff__user=self.request.user, start__gte=timezone.now()).order_by('user')
+        context['schedule_list'] = Schedule.objects.filter(
+            staff__user=self.request.user,
+            start__gte=timezone.now()
+        ).order_by('start')
         return context
 
 
@@ -544,7 +624,10 @@ class MyPageWithPk(OnlyUserMixin, generic.TemplateView):
         context = super().get_context_data(**kwargs)
         context['user'] = get_object_or_404(User, pk=self.kwargs['pk'])
         context['staff_list'] = Staff.objects.filter(user__pk=self.kwargs['pk']).order_by('name')
-        context['schedule_list'] = Schedule.objects.filter(staff__user__pk=self.kwargs['pk'], start__gte=timezone.now()).order_by('user')
+        context['schedule_list'] = Schedule.objects.filter(
+            staff__user__pk=self.kwargs['pk'],
+            start__gte=timezone.now()
+        ).order_by('start')
         return context
 
 
@@ -557,24 +640,22 @@ class MyPageDayDetail(OnlyStaffMixin, generic.TemplateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        pk = self.kwargs['pk']
-        staff = get_object_or_404(Staff, pk=pk)
+        staff = get_object_or_404(Staff, pk=self.kwargs['pk'])
+
         year = self.kwargs.get('year')
         month = self.kwargs.get('month')
         day = self.kwargs.get('day')
         date = datetime.date(year=year, month=month, day=day)
 
-        # 9時から17時まで1時間刻みのカレンダーを作る
-        calendar = {}
-        for hour in range(9, 18):
-            calendar[hour] = []
+        calendar = {hour: [] for hour in range(9, 18)}
 
-        # カレンダー表示する最初と最後の日時の間にある予約を取得する
         start_time = datetime.datetime.combine(date, datetime.time(hour=9, minute=0, second=0))
         end_time = datetime.datetime.combine(date, datetime.time(hour=17, minute=0, second=0))
-        for schedule in Schedule.objects.filter(staff=staff).exclude(Q(start__gt=end_time) | Q(end__lt=start_time)):
+
+        for schedule in Schedule.objects.filter(staff=staff).exclude(
+            Q(start__gt=end_time) | Q(end__lt=start_time)
+        ):
             local_dt = timezone.localtime(schedule.start)
-            booking_date = local_dt.date()
             booking_hour = local_dt.hour
             if booking_hour in calendar:
                 calendar[booking_hour].append(schedule)
@@ -586,7 +667,7 @@ class MyPageDayDetail(OnlyStaffMixin, generic.TemplateView):
 
 class MyPageSchedule(OnlyScheduleMixin, generic.UpdateView):
     model = Schedule
-    fields = ('start', 'end', 'user')
+    fields = ('start', 'end', 'customer_name', 'memo', 'price', 'is_temporary', 'is_cancelled')
     success_url = reverse_lazy('booking:my_page')
 
 
@@ -594,25 +675,6 @@ class MyPageScheduleDelete(OnlyScheduleMixin, generic.DeleteView):
     model = Schedule
     success_url = reverse_lazy('booking:my_page')
 
-#print('環境変数2' + str(sys.path))
-from django.shortcuts import render
-from .forms import YourForm
-
-def your_view(request):
-    if request.method == 'POST':
-        form = YourForm(request.POST)
-        if form.is_valid():
-            # フォームのデータを処理します
-            pass
-    else:
-        form = YourForm()
-
-    return render(request, 'your_template.html', {'form': form})
-
-from django.contrib import messages
-from django.shortcuts import get_object_or_404, redirect
-from django.views import generic
-import datetime
 
 @require_POST
 def my_page_holiday_add(request, pk, year, month, day, hour):
@@ -620,22 +682,22 @@ def my_page_holiday_add(request, pk, year, month, day, hour):
     if staff.user == request.user or request.user.is_superuser:
         start = datetime.datetime(year=year, month=month, day=day, hour=hour)
         end = datetime.datetime(year=year, month=month, day=day, hour=hour + 1)
-        Schedule.objects.create(staff=staff, start=start, end=end, user=request.user)
+        Schedule.objects.create(staff=staff, start=start, end=end, is_temporary=False, price=0)
         return redirect('booking:my_page_day_detail', pk=pk, year=year, month=month, day=day)
-
     raise PermissionDenied
+
 
 @require_POST
 def my_page_day_add(request, pk, year, month, day):
     staff = get_object_or_404(Staff, pk=pk)
-    hour=9
     if staff.user == request.user or request.user.is_superuser:
-            for num in range(9):
-                start = datetime.datetime(year=year, month=month, day=day, hour=hour+num)
-                end = datetime.datetime(year=year, month=month, day=day, hour=hour+num+1)
-                Schedule.objects.create(staff=staff, start=start, end=end, user=request.user)
-            return redirect('booking:my_page_day_detail', pk=pk, year=year, month=month, day=day)
+        for num in range(9):
+            start = datetime.datetime(year=year, month=month, day=day, hour=9 + num)
+            end = datetime.datetime(year=year, month=month, day=day, hour=10 + num)
+            Schedule.objects.create(staff=staff, start=start, end=end, is_temporary=False, price=0)
+        return redirect('booking:my_page_day_detail', pk=pk, year=year, month=month, day=day)
     raise PermissionDenied
+
 
 @require_POST
 def my_page_day_delete(request, pk, year, month, day):
@@ -645,151 +707,468 @@ def my_page_day_delete(request, pk, year, month, day):
         end = datetime.datetime(year=year, month=month, day=day, hour=17)
         Schedule.objects.filter(staff=staff, start__gte=start, end__lte=end).delete()
         return redirect('booking:my_page_day_detail', pk=pk, year=year, month=month, day=day)
-
     raise PermissionDenied
 
-#print('ビューのタスク.py')
-@shared_task
-def delete_temporary_schedules():
-    print('delete_temporary_schedules')
-    # 関数の本体
-    now = timezone.now()
-    print(str(now) + "現在時刻")
-    
-    Schedule.objects.filter(temporary_booked_at__lt=now - timezone.timedelta(minutes=10), is_temporary=True).delete()
-    print('delete_temporary_schedules終了')
-    
-from django.http import HttpResponseRedirect
-from django.shortcuts import render
-from .forms import StaffForm  # Django管理画面でのフォームに対応するフォームをインポートします
 
 def upload_file(request):
     if request.method == 'POST':
         form = StaffForm(request.POST, request.FILES)
-        print('フォームの中身' + str(form))
         if form.is_valid():
             form.save()
-            print('フォームのセーブ')
-            return HttpResponseRedirect('/success/url/')  # 成功時のリダイレクト先URLを指定します
-        else:
-            print('フォームのエラー'+ form.errors)
+            return HttpResponseRedirect('/success/url/')
     else:
         form = StaffForm()
-        print('フォームの中身２' + str(form))
     return render(request, 'upload.html', {'form': form})
 
-from django.views.decorators.csrf import csrf_exempt
-from linebot import LineBotApi
-from linebot.models import TextSendMessage
-from linebot.exceptions import LineBotApiError
 
 def process_payment(payment_response, request, orderId):
-    print('process_paymentを起動、payment_responseは...' + str(payment_response))
-    
-    # 決済が成功したかどうかを確認
     if payment_response.get('type') == 'payment.succeeded':
-        # 注文IDを取得
         schedule = Schedule.objects.get(reservation_number=orderId)
-        print('スケジュール' + str(schedule))
-        
-        # 仮予約フラグをFalseに設定
         schedule.is_temporary = False
+        schedule.save(update_fields=["is_temporary"])
 
-        # 予約情報を保存
-        schedule.save()
-        print('本予約情報として保存')
-        
-        # LINE Messaging APIの初期化
         line_bot_api = LineBotApi(settings.LINE_ACCESS_TOKEN)
-        print('LINE Messaging APIの初期化を行いました')
-        
-        # スタッフのLINEアカウントIDを取得
+
+        # スタッフ通知
         staff_line_account_id = schedule.staff.line_id
-        if not staff_line_account_id:
-            print('スタッフのLINEアカウントIDが取得できませんでした')
-            return JsonResponse({"error": "Staff LINE account ID not found"}, status=400)
+        if staff_line_account_id:
+            local_tz = pytz.timezone('Asia/Tokyo')
+            local_time = schedule.start.astimezone(local_tz)
+            message_text = '予約が完了しました。予約者: {}, 日時: {}'.format(
+                schedule.customer_name or 'Unknown',
+                local_time
+            )
+            try:
+                line_bot_api.push_message(staff_line_account_id, TextSendMessage(text=message_text))
+            except LineBotApiError as e:
+                print('スタッフメッセージにてLineBotApiErrorが発生しました:', e)
 
-        import pytz
-
-        # ローカルタイムゾーンを取得
-        local_tz = pytz.timezone('Asia/Tokyo')
-
-        # schedule.startをローカルタイムゾーンに変換
-        local_time = schedule.start.astimezone(local_tz)
-        
-        print('スタッフのLINEアカウントIDはこれです' + str(staff_line_account_id))
-        print(schedule.start)
-        # 予約完了情報をメッセージとして送信
-        message_text = '予約が完了しました。予約者: {}, 日時: {}'.format(schedule.customer.name, local_time)
-        message = TextSendMessage(text=message_text)
-        import logging
-        logger = logging.getLogger(__name__)
+        # ▼顧客通知：Scheduleに保存した暗号化LINE user id を復号してpush
+        user_id = None
         try:
-            line_bot_api.push_message(staff_line_account_id, message)  # LINEアカウントに通知
-            print('スタッフのLINEアカウントに通知')
-            print(message_text)
-        except LineBotApiError as e:
-            print('スタッフメッセージにてLineBotApiErrorが発生しました:', e)            
-                        
-           # 確認済みのセッションから顧客のLINE IDを取得します。
-        try:
-            user_id = request.session.get('temporary_booking').get('user_id')
-            if user_id is None:
-                logger.error('user_id is None')
-                return JsonResponse({"error": "user_id not found"}, status=400)
+            user_id = schedule.get_line_user_id()
         except Exception as e:
-            logger.error('Error getting user_id from session: %s', e)
-            return JsonResponse({"error": "Error getting user_id"}, status=500)
+            logger.warning('Failed to decrypt LINE user id: %s', e)
 
-        # LINEプロフィールから名前を取得
-        try:
-            profile = line_bot_api.get_profile(user_id)
-            name = profile.display_name
-        except LineBotApiError as e:
-            print('LINEプロフィール取得時にエラーが発生しました:', e)
-            return JsonResponse({"error": "Error getting LINE profile"}, status=500)
+        if user_id:
+            timer_url = reverse('booking:LINETimerView', args=[user_id])
+            encoded_timer_url = quote(timer_url)
+            message_text = (
+                '決済が完了しました。こちらのURLから予約情報・タイマーを確認できます: '
+                + '<' + 'https://timebaibai.com/' + encoded_timer_url + '>'
+            )
+            try:
+                line_bot_api.push_message(user_id, TextSendMessage(text=message_text))
+            except LineBotApiError as e:
+                print('顧客向け決済完了メッセージにてLineBotApiErrorが発生しました:', e)
 
-        # 予約情報を更新
-        schedule.customer.name = name
-        schedule.save()
-
-            
-        # タイマーURLを生成
-        timer_url = reverse('booking:LINETimerView', args=[user_id])
-        encoded_timer_url = quote(timer_url)
-        message = None  # 初期化
-        
-        # 決済完了の通知とタイマーURLをメッセージとして送信（予約キャンセルもこの先）
-        message_text = '決済が完了しました。こちらのURLから予約情報・タイマーを確認できます: ' + '<' + 'https://timebaibai.com/' + encoded_timer_url + '>'
-        
-        message = TextSendMessage(text=message_text)
-        try:  
-            line_bot_api.push_message(user_id, message)  # LINEアカウントに通知
-            print('顧客のLINEアカウントに通知')
-            print(message_text)
-        except LineBotApiError as e:
-            print('顧客向け決済完了メッセージにてLineBotApiErrorが発生しました:', e)
-        
     return JsonResponse({"status": "success"})
 
-import logging
-
-logger = logging.getLogger(__name__)
 
 @csrf_exempt
 def coiney_webhook(request, orderId):
     if request.method == 'POST':
-        # リクエストヘッダーをログに出力
         logger.info(request.META)
-        print('coiney_webhook起動')
-
         if orderId:
             view = PayingSuccessView()
-            return view.post(request,orderId)
-        else:
-            return JsonResponse({"error": "orderId not found in request body"}, status=400)
-from .models import Media
+            return view.post(request, orderId)
+        return JsonResponse({"error": "orderId not found in request body"}, status=400)
+
 
 def your_view(request):
-    medias = Media.objects.order_by('-created_at')  # created_atフィールドの降順で並べ替え
+    medias = Media.objects.order_by('-created_at')
     return render(request, 'booking/base.html', {'medias': medias})
+
+
+# ==========================================================
+# 追加機能: 在庫 / 注文 / 入庫QR / 多言語（商品翻訳）
+# ==========================================================
+
+def _resolve_lang(request, store: Store) -> str:
+    """言語決定: ?lang=xx があれば優先、なければ店舗既定、最後に ja"""
+    lang = request.GET.get("lang")
+    if lang:
+        return lang
+    store_lang = getattr(store, "default_language", None)
+    return store_lang or "ja"
+
+
+def _product_display(product: Product, lang: str) -> dict:
+    tr = product.translations.filter(lang=lang).first()
+    return {
+        "id": product.id,
+        "sku": product.sku,
+        "name": tr.name if tr else product.name,
+        "description": tr.description if tr else product.description,
+        "price": product.price,
+        "stock": product.stock,
+        "is_sold_out": (product.stock <= 0),
+        "category_id": product.category_id,
+    }
+
+
+class CustomerMenuView(generic.TemplateView):
+    """客側メニュー（テンプレ）
+    URL: /booking/menu/<store_id>/
+    Template: booking/customer_menu.html
+    """
+    template_name = "booking/customer_menu.html"
+
+    def get_context_data(self, **kwargs):
+        ctx = super().get_context_data(**kwargs)
+        store = get_object_or_404(Store, pk=self.kwargs["store_id"])
+        lang = _resolve_lang(self.request, store)
+
+        categories = Category.objects.filter(store=store).order_by("sort_order", "name")
+        products = Product.objects.filter(store=store, is_active=True).select_related("category")
+
+        ctx.update({
+            "store": store,
+            "lang": lang,
+            "categories": categories,
+            "products": [_product_display(p, lang) for p in products],
+        })
+        return ctx
+
+
+class CustomerMenuJsonAPIView(APIView):
+    """客側メニュー（JSON）
+    GET /booking/api/menu?store_id=1&lang=en
+    """
+    authentication_classes = []
+    permission_classes = []
+
+    def get(self, request, *args, **kwargs):
+        store_id = request.GET.get("store_id")
+        if not store_id:
+            return Response({"detail": "store_id is required"}, status=status.HTTP_400_BAD_REQUEST)
+
+        store = get_object_or_404(Store, pk=store_id)
+        lang = _resolve_lang(request, store)
+
+        categories = Category.objects.filter(store=store).order_by("sort_order", "name")
+        products = Product.objects.filter(store=store, is_active=True).select_related("category")
+
+        return Response({
+            "store": {"id": store.id, "name": store.name},
+            "lang": lang,
+            "categories": [{"id": c.id, "name": c.name} for c in categories],
+            "products": [_product_display(p, lang) for p in products],
+        })
+
+
+class ProductAlternativesAPIView(APIView):
+    """売切時の代替候補 API
+    GET /booking/api/products/alternatives/?product_id=123&lang=ja
+    """
+    authentication_classes = []
+    permission_classes = []
+
+    def get(self, request, *args, **kwargs):
+        product_id = request.GET.get("product_id")
+        if not product_id:
+            return Response({"detail": "product_id is required"}, status=status.HTTP_400_BAD_REQUEST)
+
+        product = get_object_or_404(Product, pk=product_id)
+        store = product.store
+        lang = _resolve_lang(request, store)
+
+        qs = Product.objects.filter(store=store, is_active=True, stock__gt=0)
+        if product.category_id:
+            qs = qs.filter(category_id=product.category_id)
+
+        # シンプル: 人気順 -> 価格順
+        qs = qs.exclude(id=product.id).order_by("-popularity", "price")[:5]
+        return Response({"alternatives": [_product_display(p, lang) for p in qs]})
+
+class OrderCreateAPIView(APIView):
+    """注文作成（在庫引当=OUT + StockMovement 作成）
+    POST /booking/api/orders/create/
+    {
+      "store_id": 1,
+      "schedule_id": 10,   # 任意
+      "items": [{"product_id": 123, "qty": 2}, ...]
+    }
+
+    同時更新（多重注文/多重入庫）に耐えるため、対象商品の行をまとめて `select_for_update()` でロックし、
+    在庫チェック→出庫→明細作成を同一トランザクションで行う。
+    """
+    authentication_classes = []
+    permission_classes = []
+
+    def post(self, request, *args, **kwargs):
+        store_id = request.data.get("store_id")
+        items = request.data.get("items", [])
+        schedule_id = request.data.get("schedule_id")
+
+        if not store_id or not isinstance(items, list) or not items:
+            return Response({"detail": "store_id and items are required"}, status=status.HTTP_400_BAD_REQUEST)
+
+        store = get_object_or_404(Store, pk=store_id)
+        schedule = get_object_or_404(Schedule, pk=schedule_id) if schedule_id else None
+        customer_hash = schedule.line_user_hash if (schedule and schedule.line_user_hash) else None
+
+        # items を正規化（product_id 単位で合算）
+        normalized = {}
+        for it in items:
+            pid = it.get("product_id")
+            try:
+                qty = int(it.get("qty", 1))
+            except Exception:
+                qty = 0
+            if not pid or qty <= 0:
+                continue
+            normalized[pid] = normalized.get(pid, 0) + qty
+
+        if not normalized:
+            return Response({"detail": "items are invalid"}, status=status.HTTP_400_BAD_REQUEST)
+
+        product_ids = sorted(normalized.keys())
+
+        with transaction.atomic():
+            order = Order.objects.create(
+                store=store,
+                schedule=schedule,
+                customer_line_user_hash=customer_hash,
+                status=Order.STATUS_OPEN,
+            )
+
+            # 対象商品をまとめてロック（デッドロック回避のためID順）
+            locked_products = list(
+                Product.objects.select_for_update()
+                .filter(store=store, is_active=True, id__in=product_ids)
+                .order_by("id")
+            )
+            product_map = {p.id: p for p in locked_products}
+
+            missing = [pid for pid in product_ids if pid not in product_map]
+            if missing:
+                return Response({"detail": f"product not found: {missing}"}, status=status.HTTP_404_NOT_FOUND)
+
+            # 在庫チェック（ロック済み）
+            for pid in product_ids:
+                p = product_map[pid]
+                qty = normalized[pid]
+                if int(p.stock) - int(qty) < 0:
+                    return Response({"detail": f"insufficient stock: {p.sku}"}, status=status.HTTP_409_CONFLICT)
+
+            # 出庫 + 明細作成
+            for pid in product_ids:
+                p = product_map[pid]
+                qty = normalized[pid]
+
+                StockMovement.objects.create(
+                    store=store,
+                    product=p,
+                    movement_type=StockMovement.TYPE_OUT,
+                    qty=qty,
+                    by_staff=None,
+                    note=f"order#{order.id}",
+                )
+
+                # ロック済みのインスタンスに対して更新
+                apply_stock_movement(p, StockMovement.TYPE_OUT, qty)
+
+                OrderItem.objects.create(
+                    order=order,
+                    product=p,
+                    qty=qty,
+                    unit_price=p.price,
+                    status=OrderItem.STATUS_ORDERED,
+                )
+
+        return Response({"order_id": order.id}, status=status.HTTP_201_CREATED)
+
+class OrderStatusAPIView(APIView):
+    """注文状況（客側ポーリング用）
+    GET /booking/api/orders/status/?order_id=1
+    """
+    authentication_classes = []
+    permission_classes = []
+
+    def get(self, request, *args, **kwargs):
+        order_id = request.GET.get("order_id")
+        if not order_id:
+            return Response({"detail": "order_id is required"}, status=status.HTTP_400_BAD_REQUEST)
+
+        order = get_object_or_404(Order, pk=order_id)
+
+        items = []
+        for it in order.items.select_related("product").order_by("created_at"):
+            items.append({
+                "id": it.id,
+                "product_id": it.product_id,
+                "product_sku": it.product.sku,
+                "product_name": it.product.name,
+                "qty": it.qty,
+                "unit_price": it.unit_price,
+                "status": it.status,
+                "updated_at": it.updated_at.isoformat(),
+            })
+
+        return Response({
+            "order_id": order.id,
+            "status": order.status,
+            "items": items,
+            "updated_at": order.updated_at.isoformat(),
+        })
+
+
+class StaffMarkServedAPIView(LoginRequiredMixin, APIView):
+    """スタッフ側: 提供完了"""
+
+    def post(self, request, *args, **kwargs):
+        item_id = request.data.get("order_item_id")
+        if not item_id:
+            return Response({"detail": "order_item_id is required"}, status=status.HTTP_400_BAD_REQUEST)
+
+        item = get_object_or_404(OrderItem, pk=item_id)
+
+        if not request.user.is_superuser:
+            try:
+                staff = request.user.staff
+            except Exception:
+                raise PermissionDenied
+            if staff.store_id != item.order.store_id:
+                raise PermissionDenied
+
+        item.status = OrderItem.STATUS_SERVED
+        item.save(update_fields=["status", "updated_at"])
+
+        return Response({"ok": True, "order_item_id": item.id, "status": item.status})
+
+
+class InboundQRView(LoginRequiredMixin, generic.TemplateView):
+    """入庫QR画面（スタッフ用）
+    GET /booking/stock/inbound/?store_id=1&sku=ABC
+    Template: booking/inbound_qr.html
+    """
+    template_name = "booking/inbound_qr.html"
+
+    def get_context_data(self, **kwargs):
+        ctx = super().get_context_data(**kwargs)
+        sku = self.request.GET.get("sku", "")
+        store_id = self.request.GET.get("store_id")
+
+        if store_id:
+            store = get_object_or_404(Store, pk=store_id)
+        else:
+            try:
+                store = self.request.user.staff.store
+            except Exception:
+                store = None
+
+        product = None
+        if store and sku:
+            product = Product.objects.filter(store=store, sku=sku).first()
+
+        ctx.update({
+            "store": store,
+            "sku": sku,
+            "product": product,
+        })
+        return ctx
+
+class InboundApplyAPIView(LoginRequiredMixin, APIView):
+    """入庫登録 API
+    POST /booking/api/stock/inbound/apply/
+    {"store_id": 1, "sku": "ABC", "qty": 10, "note": "仕入れ"}
+
+    同時更新（複数スタッフが同時に入庫登録など）に耐えるため、対象商品の行を `select_for_update()` でロック。
+    """
+
+    def post(self, request, *args, **kwargs):
+        sku = request.data.get("sku")
+        store_id = request.data.get("store_id")
+        try:
+            qty = int(request.data.get("qty", 0))
+        except Exception:
+            qty = 0
+        note = request.data.get("note", "")
+
+        if not sku or not store_id or qty <= 0:
+            return Response({"detail": "sku, store_id, qty(>0) are required"}, status=status.HTTP_400_BAD_REQUEST)
+
+        store = get_object_or_404(Store, pk=store_id)
+
+        if not request.user.is_superuser:
+            try:
+                staff = request.user.staff
+            except Exception:
+                raise PermissionDenied
+            if staff.store_id != store.id:
+                raise PermissionDenied
+        else:
+            staff = None
+
+        with transaction.atomic():
+            # ★同時更新対策：商品行をロック
+            try:
+                product = Product.objects.select_for_update().get(store=store, sku=sku)
+            except Product.DoesNotExist:
+                return Response({"detail": "product not found"}, status=status.HTTP_404_NOT_FOUND)
+
+            StockMovement.objects.create(
+                store=store,
+                product=product,
+                movement_type=StockMovement.TYPE_IN,
+                qty=qty,
+                by_staff=staff,
+                note=note,
+            )
+
+            apply_stock_movement(product, StockMovement.TYPE_IN, qty)
+
+            # apply_stock_movement が save() するので、ここでは refresh だけして返す
+            product.refresh_from_db(fields=["stock"])
+
+        return Response({"ok": True, "sku": sku, "stock": product.stock})
+    
+class OrderItemStatusUpdateAPIView(LoginRequiredMixin, APIView):
+    """
+    スタッフ側: 注文アイテムのステータス更新
+    POST /booking/api/staff/orders/items/<item_id>/status/
+    body: {"status": "PREPARING"} or {"status": "SERVED"}
+
+    遷移:
+      ORDERED -> PREPARING -> SERVED
+    """
+
+    def post(self, request, item_id, *args, **kwargs):
+        new_status = request.data.get("status")
+        if not new_status:
+            return Response({"detail": "status is required"}, status=status.HTTP_400_BAD_REQUEST)
+
+        preparing = getattr(OrderItem, "STATUS_PREPARING", "PREPARING")
+
+        allowed = {OrderItem.STATUS_ORDERED, preparing, OrderItem.STATUS_SERVED}
+        if new_status not in allowed:
+            return Response({"detail": "invalid status"}, status=status.HTTP_400_BAD_REQUEST)
+
+        item = get_object_or_404(OrderItem, pk=item_id)
+
+        # 権限: 自店舗のみ（superuserは全許可）
+        if not request.user.is_superuser:
+            try:
+                staff = request.user.staff
+            except Exception:
+                raise PermissionDenied
+            if staff.store_id != item.order.store_id:
+                raise PermissionDenied
+
+        current = item.status
+
+        if current == OrderItem.STATUS_SERVED:
+            return Response({"detail": "already served"}, status=status.HTTP_409_CONFLICT)
+
+        # 飛び級禁止
+        if current == OrderItem.STATUS_ORDERED and new_status != preparing:
+            return Response({"detail": "must transition ORDERED -> PREPARING"}, status=status.HTTP_409_CONFLICT)
+
+        if current == preparing and new_status != OrderItem.STATUS_SERVED:
+            return Response({"detail": "must transition PREPARING -> SERVED"}, status=status.HTTP_409_CONFLICT)
+
+        item.status = new_status
+        item.save(update_fields=["status", "updated_at"])
+
+        return Response({"ok": True, "order_item_id": item.id, "status": item.status})
