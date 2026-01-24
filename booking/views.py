@@ -12,6 +12,7 @@ import urllib.parse
 import pytz
 import logging
 from booking.admin_site import custom_site
+from typing import Optional, Dict, Any, Tuple
 
 from django.utils import timezone
 from django.conf import settings
@@ -67,6 +68,107 @@ from linebot.models import TextSendMessage
 logger = logging.getLogger(__name__)
 
 User = get_user_model()
+
+
+# ===== IoT API Helper Functions =====
+
+def _safe_json_loads(s: str) -> Optional[Any]:
+    """Safely parse JSON string, return None if parsing fails."""
+    if not isinstance(s, str):
+        return None
+    try:
+        return json.loads(s.strip())
+    except (json.JSONDecodeError, ValueError):
+        return None
+
+
+def _as_mapping(value: Any) -> Dict[str, Any]:
+    """Convert value to dict if possible, otherwise return empty dict."""
+    if isinstance(value, dict):
+        return value
+    if isinstance(value, str):
+        parsed = _safe_json_loads(value)
+        if isinstance(parsed, dict):
+            return parsed
+    return {}
+
+
+def _normalize_payload(incoming: Any) -> Tuple[Optional[dict], Dict[str, Any]]:
+    """
+    Normalize payload to (payload_raw_dict, sensors_dict).
+    
+    Returns:
+        payload_raw_dict: Original dict if incoming was dict, None otherwise
+        sensors_dict: Sensor data dict extracted from payload
+    """
+    if incoming is None:
+        return None, {}
+    
+    if isinstance(incoming, dict):
+        # Check for nested sensors structure
+        if "sensors" in incoming and isinstance(incoming["sensors"], dict):
+            return incoming, incoming["sensors"]
+        # Use dict as flat sensors
+        return incoming, incoming
+    
+    # Try to parse as JSON string
+    parsed = _safe_json_loads(str(incoming))
+    if isinstance(parsed, dict):
+        if "sensors" in parsed and isinstance(parsed["sensors"], dict):
+            return parsed, parsed["sensors"]
+        return parsed, parsed
+    
+    # Fallback: not parseable
+    return None, {}
+
+
+def _pick_value(request_data: Dict[str, Any], sensors_dict: Dict[str, Any], 
+                payload_raw_dict: Optional[dict], key: str) -> Any:
+    """
+    Pick sensor value from multiple sources with proper None handling.
+    
+    Priority: 1) request_data, 2) sensors_dict, 3) payload_raw_dict
+    Uses 'is not None' to properly handle 0.0 values.
+    """
+    # Priority 1: top-level request data
+    if key in request_data:
+        value = request_data.get(key)
+        if value is not None:
+            return value
+    
+    # Priority 2: sensors dict from nested payload
+    if key in sensors_dict:
+        value = sensors_dict.get(key)
+        if value is not None:
+            return value
+    
+    # Priority 3: payload root (if dict)
+    if payload_raw_dict is not None and key in payload_raw_dict:
+        value = payload_raw_dict.get(key)
+        if value is not None:
+            return value
+    
+    return None
+
+
+def _to_float_or_none(value: Any) -> Optional[float]:
+    """
+    Convert value to float, return None if conversion fails.
+    Handles 0, 0.0, "0", "0.0" correctly as 0.0.
+    """
+    if value is None:
+        return None
+    
+    try:
+        if isinstance(value, (int, float)):
+            return float(value)
+        elif isinstance(value, str):
+            # Handle both "0" and "0.0" formats
+            return float(value)
+        else:
+            return None
+    except (ValueError, TypeError):
+        return None
 
 
 class UserList(generics.ListAPIView):
@@ -126,6 +228,7 @@ class IoTEventAPIView(APIView):
     permission_classes = []
 
     def post(self, request, *args, **kwargs):
+        # Header and required field validation
         api_key = request.headers.get("X-API-KEY")
         if not api_key:
             return Response({"detail": "X-API-KEY header is required"}, status=status.HTTP_400_BAD_REQUEST)
@@ -134,54 +237,37 @@ class IoTEventAPIView(APIView):
         if not device_name:
             return Response({"detail": "device is required"}, status=status.HTTP_400_BAD_REQUEST)
 
+        # Device resolution
         try:
             device = IoTDevice.objects.get(api_key=api_key, external_id=device_name)
         except IoTDevice.DoesNotExist:
             return Response({"detail": "device not found"}, status=status.HTTP_404_NOT_FOUND)
 
+        # Extract event type and payload
         event_type = request.data.get("event_type", "sensor")
         incoming_payload = request.data.get("payload", None)
 
+        # Normalize payload and extract sensor data using helper functions
+        payload_raw_dict, sensors_dict = _normalize_payload(incoming_payload)
+
+        # Extract sensor values with proper priority using helper functions
+        sensor_keys = ["mq9", "light", "sound", "temp", "hum", "ts"]
         payload_dict = {}
-        if isinstance(incoming_payload, dict):
-            payload_dict.update(incoming_payload)
-        elif isinstance(incoming_payload, str):
-            try:
-                payload_dict.update(json.loads(incoming_payload))
-            except Exception:
-                payload_dict["payload_raw"] = incoming_payload
-        elif incoming_payload is not None:
-            payload_dict["payload_raw"] = incoming_payload
+        
+        for key in sensor_keys:
+            value = _pick_value(request.data, sensors_dict, payload_raw_dict, key)
+            payload_dict[key] = value
 
-        sensors_in_payload = {}
-        if isinstance(payload_dict.get("sensors"), dict):
-            sensors_in_payload = payload_dict.get("sensors")
+        # Handle mq9_value alternative field name
+        if payload_dict["mq9"] is None:
+            mq9_alt = request.data.get("mq9_value")
+            if mq9_alt is not None:
+                payload_dict["mq9"] = mq9_alt
 
-        def pick_value(key):
-            if key in request.data:
-                return request.data.get(key)
-            if key in sensors_in_payload:
-                return sensors_in_payload.get(key)
-            return payload_dict.get(key)
+        # Convert mq9 to float for database storage using helper function
+        mq9_value = _to_float_or_none(payload_dict["mq9"])
 
-        mq9 = pick_value("mq9")
-        if mq9 is None:
-            mq9 = request.data.get("mq9_value")
-        light = pick_value("light")
-        sound = pick_value("sound")
-        temp = pick_value("temp")
-        hum = pick_value("hum")
-        ts = pick_value("ts")
-
-        payload_dict.update({"mq9": mq9, "light": light, "sound": sound, "temp": temp, "hum": hum, "ts": ts})
-
-        mq9_value = mq9
-        try:
-            if mq9_value is not None and isinstance(mq9_value, str):
-                mq9_value = float(mq9_value) if "." in mq9_value else int(mq9_value)
-        except Exception:
-            pass
-
+        # Create IoT event
         evt = IoTEvent.objects.create(
             device=device,
             event_type=event_type,
@@ -189,10 +275,15 @@ class IoTEventAPIView(APIView):
             mq9_value=mq9_value,
         )
 
+        # Update device last seen timestamp
         device.last_seen_at = timezone.now()
         device.save(update_fields=["last_seen_at"])
 
-        return Response({"id": evt.id, "device": device.external_id, "event_type": evt.event_type}, status=status.HTTP_201_CREATED)
+        return Response({
+            "id": evt.id, 
+            "device": device.external_id, 
+            "event_type": evt.event_type
+        }, status=status.HTTP_201_CREATED)
 
 
 class IoTConfigAPIView(APIView):
