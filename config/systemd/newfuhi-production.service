@@ -1,8 +1,8 @@
-# systemd service file for NewFUHI staging environment
-# Location: /etc/systemd/system/newfuhi-staging.service
+# systemd service file for NewFUHI production environment
+# Location: /etc/systemd/system/newfuhi-production.service
 
 [Unit]
-Description=NewFUHI Django Application (Staging)
+Description=NewFUHI Django Application (Production)
 Documentation=https://github.com/your-org/newfuhi
 After=network.target
 Wants=network.target
@@ -15,11 +15,11 @@ RuntimeDirectory=newfuhi
 WorkingDirectory=/var/www/newfuhi
 
 # Environment
-Environment=DJANGO_ENVIRONMENT=staging
+Environment=DJANGO_ENVIRONMENT=production
 Environment=PYTHONPATH=/var/www/newfuhi
 Environment=PYTHONUNBUFFERED=1
 Environment=APP_GIT_SHA=unknown
-EnvironmentFile=/var/www/newfuhi/.env.staging
+EnvironmentFile=/var/www/newfuhi/.env.production
 
 # Command
 ExecStart=/var/www/newfuhi/venv/bin/gunicorn --config /var/www/newfuhi/gunicorn.conf.py project.wsgi:application
@@ -42,7 +42,7 @@ ReadWritePaths=/var/www/newfuhi /var/log/newfuhi /tmp
 # Logging
 StandardOutput=journal
 StandardError=journal
-SyslogIdentifier=newfuhi-staging
+SyslogIdentifier=newfuhi-production
 
 # Resource limits
 LimitNOFILE=65536

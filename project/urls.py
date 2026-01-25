@@ -7,9 +7,13 @@ from django.conf.urls.static import static
 
 from booking import views as booking_views
 from booking.admin_site import custom_site
+from booking.health import healthz
 import booking.admin
 
 urlpatterns = [
+    # Health check endpoint (no auth required)
+    path("healthz", healthz, name="healthz"),
+    
     # ★ 管理画面配下の MQ9 グラフ
     # 例: http://127.0.0.1:8000/admin/iot/mq9/?device=Ace1
     path(
