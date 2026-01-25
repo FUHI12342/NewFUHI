@@ -8,6 +8,8 @@ from .views import (
     CancelReservationView,
     UserList,
     IoTMQ9GraphView,
+    IoTEventAPIView,
+    IoTConfigAPIView,
 )
 
 
@@ -98,9 +100,6 @@ urlpatterns = [
     # ===== IoT 関連 API =====
     path('api/iot/events/', views.IoTEventAPIView.as_view(), name='iot_events'),
     path('api/iot/config/', views.IoTConfigAPIView.as_view(), name='iot_config'),
-
-    # ===== IoT 管理画面（MQ-9 グラフ） =====
-    path('admin/iot/mq9/', IoTMQ9GraphView.as_view(), name='admin_iot_mq9'),
 
     # ===== 在庫・注文・入庫QR・多言語メニュー =====
     path('menu/<int:store_id>/', views.CustomerMenuView.as_view(), name='customer_menu'),

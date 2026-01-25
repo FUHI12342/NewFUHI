@@ -88,7 +88,13 @@ def env_int(key: str, default: int) -> int:
 # ====================================
 SECRET_KEY = env_required("SECRET_KEY")
 DEBUG = env_bool("DEBUG", False)
-ALLOWED_HOSTS = env_list("ALLOWED_HOSTS", ["127.0.0.1", "localhost"])
+ALLOWED_HOSTS = env_list("ALLOWED_HOSTS", ["127.0.0.1", "localhost", "testserver"])
+
+# テスト環境での追加設定
+import sys
+if 'test' in sys.argv or 'shell' in sys.argv:
+    if 'testserver' not in ALLOWED_HOSTS:
+        ALLOWED_HOSTS.append('testserver')
 
 
 # ====================================

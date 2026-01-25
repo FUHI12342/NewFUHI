@@ -31,6 +31,7 @@ class Timer(models.Model):
     end_time = models.DateTimeField(null=True, blank=True)
 
     class Meta:
+        app_label = 'booking'
         verbose_name = 'タイマー'
         verbose_name_plural = 'タイマー'
 
@@ -52,6 +53,7 @@ class Store(models.Model):
     default_language = models.CharField('既定言語', max_length=10, default='ja', blank=True)
 
     class Meta:
+        app_label = 'booking'
         verbose_name = '店舗一覧'
         verbose_name_plural = '店舗一覧'
 
@@ -85,6 +87,7 @@ class Staff(models.Model):
     price = models.IntegerField('価格', default=0)
 
     class Meta:
+        app_label = 'booking'
         verbose_name = '在籍占い師スタッフリスト'
         verbose_name_plural = '在籍占い師スタッフリスト'
 
@@ -120,6 +123,7 @@ class Schedule(models.Model):
     temporary_booked_at = models.DateTimeField(null=True, blank=True, db_index=True)
 
     class Meta:
+        app_label = 'booking'
         verbose_name = '予約確定済みのスケジュール'
         verbose_name_plural = '予約確定済みのスケジュール'
         indexes = [
@@ -200,6 +204,7 @@ class Company(models.Model):
     tel = models.CharField('電話番号', max_length=20, default='000-0000-0000')
 
     class Meta:
+        app_label = 'booking'
         verbose_name = '運営会社情報'
         verbose_name_plural = '運営会社情報'
 
@@ -214,6 +219,7 @@ class Notice(models.Model):
     content = models.TextField(default='')
 
     class Meta:
+        app_label = 'booking'
         verbose_name = 'お知らせ'
         verbose_name_plural = 'お知らせ'
 
@@ -243,6 +249,7 @@ class Media(models.Model):
         return article.top_image
 
     class Meta:
+        app_label = 'booking'
         verbose_name = 'メディア掲載情報'
         verbose_name_plural = 'メディア掲載情報'
 
@@ -276,6 +283,7 @@ class IoTDevice(models.Model):
     last_seen_at = models.DateTimeField('最終通信日時', null=True, blank=True)
 
     class Meta:
+        app_label = 'booking'
         verbose_name = 'IoTデバイス'
         verbose_name_plural = 'IoTデバイス'
 
@@ -292,6 +300,7 @@ class IoTEvent(models.Model):
     mq9_value = models.FloatField('MQ-9値', null=True, blank=True, db_index=True)
 
     class Meta:
+        app_label = 'booking'
         verbose_name = 'IoTイベントログ'
         verbose_name_plural = 'IoTイベントログ'
         indexes = [
@@ -313,6 +322,7 @@ class Category(models.Model):
     sort_order = models.IntegerField('並び順', default=0)
 
     class Meta:
+        app_label = 'booking'
         verbose_name = '商品カテゴリ'
         verbose_name_plural = '商品カテゴリ'
         unique_together = (('store', 'name'),)
@@ -354,6 +364,7 @@ class Product(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
+        app_label = 'booking'
         verbose_name = '商品'
         verbose_name_plural = '商品'
         unique_together = (('store', 'sku'),)
@@ -397,6 +408,7 @@ class ProductTranslation(models.Model):
     description = models.TextField('説明', blank=True, default='')
 
     class Meta:
+        app_label = 'booking'
         verbose_name = '商品翻訳'
         verbose_name_plural = '商品翻訳'
         unique_together = (('product', 'lang'),)
@@ -438,6 +450,7 @@ class Order(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
+        app_label = 'booking'
         verbose_name = '注文'
         verbose_name_plural = '注文'
         indexes = [
@@ -476,6 +489,7 @@ class OrderItem(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
+        app_label = 'booking'
         verbose_name = '注文明細'
         verbose_name_plural = '注文明細'
         indexes = [
@@ -511,6 +525,7 @@ class StockMovement(models.Model):
     created_at = models.DateTimeField(auto_now_add=True, db_index=True)
 
     class Meta:
+        app_label = 'booking'
         verbose_name = '入出庫履歴'
         verbose_name_plural = '入出庫履歴'
         indexes = [

@@ -153,9 +153,53 @@ awscliv2.zip
 celerybeat-schedule.db
 dump.rdb
 db.sqlite3
+db.sqlite3.*
 myvenv/
 .venv/
 
 # Backup files
 *.bak_*
 *.bak_*
+
+# macOS
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Django static files (collected)
+staticfiles/
+
+# Media files (uploads)
+media/
+
+# AWS and deployment
+aws/
+*.zip
+
+# Debug and logs
+debug.log
+nohup.out
+
+# Backup directories
+backups/
+backup.lock/
+backup_heartbeat_*
+
+# Development tools
+.vscode/
+apps/
+tools/
+remote-agent/
+Doppelgänger/
+
+# Project specific
+com.roo.*.plist
+FUHI.srctrl*
+名称未設定フォルダ/
+thumbnails/
+store_thumbnails/
+runs/
