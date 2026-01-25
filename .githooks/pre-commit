@@ -1,0 +1,118 @@
+#!/bin/bash
+# Pre-commit hook for NewFUHI project
+# Validates file sizes and types before commit
+
+set -e
+
+# Configuration
+MAX_FILE_SIZE=104857600  # 100MB in bytes
+REPO_ROOT=$(git rev-parse --show-toplevel)
+
+echo "🔍 Running pre-commit validation..."
+
+# Function to check file size
+check_file_size() {
+    local file="$1"
+    local size=$(stat -f%z "$file" 2>/dev/null || stat -c%s "$file" 2>/dev/null || echo 0)
+    
+    if [ "$size" -gt "$MAX_FILE_SIZE" ]; then
+        echo "❌ ERROR: File $file is too large ($(numfmt --to=iec $size))"
+        echo "   Maximum allowed size: $(numfmt --to=iec $MAX_FILE_SIZE)"
+        echo "   Consider using Git LFS or external storage:"
+        echo "   - git lfs track \"$file\""
+        echo "   - Or move to external storage (S3, etc.)"
+        return 1
+    fi
+    return 0
+}
+
+# Function to check file type
+check_file_type() {
+    local file="$1"
+    local filename=$(basename "$file")
+    local extension="${filename##*.}"
+    
+    # Check for problematic file types
+    case "$extension" in
+        zip|rar|7z|tar|gz|bz2)
+            echo "⚠️  WARNING: Archive file detected: $file"
+            echo "   Consider using Git LFS or external storage for large archives"
+            echo "   If this is a small configuration archive, you can ignore this warning"
+            ;;
+        bak|backup|old|tmp)
+            echo "⚠️  WARNING: Backup file detected: $file"
+            echo "   Consider using .gitignore to exclude backup files"
+            echo "   Or use proper versioning instead of backup files"
+            ;;
+        db|sqlite|sqlite3)
+            if [ "$size" -gt 10485760 ]; then  # 10MB
+                echo "⚠️  WARNING: Large database file detected: $file"
+                echo "   Consider using database dumps or external database for production"
+            fi
+            ;;
+    esac
+    
+    return 0
+}
+
+# Get list of staged files
+staged_files=$(git diff --cached --name-only --diff-filter=ACM)
+
+if [ -z "$staged_files" ]; then
+    echo "✅ No files to validate"
+    exit 0
+fi
+
+# Validate each staged file
+validation_failed=false
+
+while IFS= read -r file; do
+    if [ -f "$file" ]; then
+        echo "Checking: $file"
+        
+        # Check file size
+        if ! check_file_size "$file"; then
+            validation_failed=true
+        fi
+        
+        # Check file type
+        check_file_type "$file"
+    fi
+done <<< "$staged_files"
+
+# Check for sensitive data patterns
+echo "🔍 Checking for sensitive data..."
+sensitive_patterns=(
+    "password\s*=\s*['\"][^'\"]*['\"]"
+    "secret\s*=\s*['\"][^'\"]*['\"]"
+    "api_key\s*=\s*['\"][^'\"]*['\"]"
+    "private_key"
+    "BEGIN RSA PRIVATE KEY"
+    "BEGIN PRIVATE KEY"
+)
+
+for pattern in "${sensitive_patterns[@]}"; do
+    if git diff --cached | grep -iE "$pattern" >/dev/null; then
+        echo "⚠️  WARNING: Potential sensitive data detected (pattern: $pattern)"
+        echo "   Please review your changes and ensure no secrets are committed"
+        echo "   Use environment variables or secret management instead"
+    fi
+done
+
+# Final validation result
+if [ "$validation_failed" = true ]; then
+    echo ""
+    echo "❌ Pre-commit validation FAILED"
+    echo "   Please fix the issues above before committing"
+    echo ""
+    echo "To bypass this check (NOT RECOMMENDED):"
+    echo "   git commit --no-verify"
+    echo ""
+    exit 1
+else
+    echo ""
+    echo "✅ Pre-commit validation PASSED"
+    echo ""
+fi
+
+exit 0
