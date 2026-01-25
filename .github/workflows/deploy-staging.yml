@@ -1,0 +1,216 @@
+name: Deploy to Staging
+
+"on":
+  push:
+    branches: [ develop, staging ]
+  workflow_dispatch:
+    inputs:
+      force_deploy:
+        description: 'Force deployment even if tests fail'
+        required: false
+        default: 'false'
+        type: boolean
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment: staging
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.9'
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+
+    - name: Create staging environment file
+      run: |
+        echo "SECRET_KEY=${{ secrets.DJANGO_SECRET_KEY }}" > .env.staging
+        echo "DEBUG=False" >> .env.staging
+        echo "DJANGO_ENVIRONMENT=staging" >> .env.staging
+        echo "ALLOWED_HOSTS=${{ secrets.STAGING_ALLOWED_HOSTS }}" >> .env.staging
+        echo "CSRF_TRUSTED_ORIGINS=${{ secrets.STAGING_CSRF_TRUSTED_ORIGINS }}" >> .env.staging
+        echo "STATIC_ROOT=/var/www/newfuhi/static" >> .env.staging
+        echo "MEDIA_ROOT=/var/www/newfuhi/media" >> .env.staging
+        echo "LOG_LEVEL=INFO" >> .env.staging
+        echo "LOG_FILE=/var/log/newfuhi/django.log" >> .env.staging
+        echo "LINE_CHANNEL_ID=${{ secrets.LINE_CHANNEL_ID }}" >> .env.staging
+        echo "LINE_CHANNEL_SECRET=${{ secrets.LINE_CHANNEL_SECRET }}" >> .env.staging
+        echo "LINE_REDIRECT_URL=${{ secrets.STAGING_LINE_REDIRECT_URL }}" >> .env.staging
+        echo "LINE_ACCESS_TOKEN=${{ secrets.LINE_ACCESS_TOKEN }}" >> .env.staging
+        echo "PAYMENT_API_KEY=${{ secrets.PAYMENT_API_KEY }}" >> .env.staging
+        echo "PAYMENT_API_URL=${{ secrets.PAYMENT_API_URL }}" >> .env.staging
+        echo "WEBHOOK_URL_BASE=${{ secrets.STAGING_WEBHOOK_URL_BASE }}" >> .env.staging
+        echo "CANCEL_URL=${{ secrets.STAGING_CANCEL_URL }}" >> .env.staging
+        echo "EMAIL_HOST=${{ secrets.EMAIL_HOST }}" >> .env.staging
+        echo "EMAIL_HOST_USER=${{ secrets.EMAIL_HOST_USER }}" >> .env.staging
+        echo "EMAIL_HOST_PASSWORD=${{ secrets.EMAIL_HOST_PASSWORD }}" >> .env.staging
+        echo "CELERY_BROKER_URL=${{ secrets.STAGING_CELERY_BROKER_URL }}" >> .env.staging
+        echo "LINE_USER_ID_ENCRYPTION_KEY=${{ secrets.LINE_USER_ID_ENCRYPTION_KEY }}" >> .env.staging
+        echo "LINE_USER_ID_HASH_PEPPER=${{ secrets.LINE_USER_ID_HASH_PEPPER }}" >> .env.staging
+
+    - name: Pre-deployment validation
+      run: |
+        export DJANGO_SETTINGS_MODULE=project.settings.staging
+        python manage.py check --deploy
+        python manage.py collectstatic --noinput --dry-run
+      env:
+        SECRET_KEY: ${{ secrets.DJANGO_SECRET_KEY }}
+        DJANGO_ENVIRONMENT: staging
+        ALLOWED_HOSTS: ${{ secrets.STAGING_ALLOWED_HOSTS }}
+        STATIC_ROOT: /tmp/static
+      continue-on-error: ${{ github.event.inputs.force_deploy == 'true' }}
+
+    - name: Setup SSH key
+      uses: webfactory/ssh-agent@v0.8.0
+      with:
+        ssh-private-key: ${{ secrets.STAGING_SSH_PRIVATE_KEY }}
+
+    - name: Add staging server to known hosts
+      run: |
+        ssh-keyscan -H ${{ secrets.STAGING_HOST }} >> ~/.ssh/known_hosts
+
+    - name: Deploy to staging server
+      run: |
+        # Create deployment script
+        cat > deploy.sh << 'EOF'
+        #!/bin/bash
+        set -e
+        
+        echo "🚀 Starting deployment to staging..."
+        
+        # Variables
+        DEPLOY_USER="${{ secrets.STAGING_USER }}"
+        DEPLOY_HOST="${{ secrets.STAGING_HOST }}"
+        DEPLOY_PATH="/var/www/newfuhi"
+        SERVICE_NAME="newfuhi-staging"
+        
+        # Create deployment directory if it doesn't exist
+        ssh ${DEPLOY_USER}@${DEPLOY_HOST} "sudo mkdir -p ${DEPLOY_PATH} && sudo chown ${DEPLOY_USER}:${DEPLOY_USER} ${DEPLOY_PATH}"
+        
+        # Sync code to server (excluding sensitive files)
+        rsync -avz --delete \
+          --exclude='.git' \
+          --exclude='.env*' \
+          --exclude='__pycache__' \
+          --exclude='*.pyc' \
+          --exclude='.pytest_cache' \
+          --exclude='htmlcov' \
+          --exclude='node_modules' \
+          --exclude='.DS_Store' \
+          ./ ${DEPLOY_USER}@${DEPLOY_HOST}:${DEPLOY_PATH}/
+        
+        # Copy environment file
+        scp .env.staging ${DEPLOY_USER}@${DEPLOY_HOST}:${DEPLOY_PATH}/.env.staging
+        
+        # Copy configuration files
+        scp config/gunicorn/staging.conf.py ${DEPLOY_USER}@${DEPLOY_HOST}:${DEPLOY_PATH}/gunicorn.conf.py
+        
+        # Remote deployment commands
+        ssh ${DEPLOY_USER}@${DEPLOY_HOST} << 'REMOTE_EOF'
+        cd ${DEPLOY_PATH}
+        
+        # Create virtual environment if it doesn't exist
+        if [ ! -d "venv" ]; then
+          python3 -m venv venv
+        fi
+        
+        # Activate virtual environment and install dependencies
+        source venv/bin/activate
+        pip install --upgrade pip
+        pip install -r requirements.txt
+        
+        # Set proper permissions
+        chmod 600 .env.staging
+        
+        # Create log directory
+        sudo mkdir -p /var/log/newfuhi
+        sudo chown ${DEPLOY_USER}:${DEPLOY_USER} /var/log/newfuhi
+        
+        # Run Django management commands
+        export DJANGO_SETTINGS_MODULE=project.settings.staging
+        python manage.py migrate --noinput
+        python manage.py collectstatic --noinput
+        python manage.py check --deploy
+        
+        # Restart the service
+        sudo systemctl daemon-reload
+        sudo systemctl restart ${SERVICE_NAME}
+        sudo systemctl enable ${SERVICE_NAME}
+        
+        # Check service status
+        sleep 5
+        sudo systemctl is-active ${SERVICE_NAME}
+        
+        echo "✅ Deployment completed successfully!"
+        REMOTE_EOF
+        EOF
+        
+        chmod +x deploy.sh
+        ./deploy.sh
+
+    - name: Health check
+      run: |
+        # Wait for service to be ready
+        sleep 10
+        
+        # Check if staging site is responding
+        STAGING_URL="${{ secrets.STAGING_URL }}"
+        if [ -n "$STAGING_URL" ]; then
+          echo "🔍 Performing health check on $STAGING_URL"
+          
+          # Try to access the site (may fail due to IP restrictions, that's OK)
+          HTTP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" "$STAGING_URL" || echo "000")
+          
+          if [ "$HTTP_STATUS" = "200" ] || [ "$HTTP_STATUS" = "403" ] || [ "$HTTP_STATUS" = "401" ]; then
+            echo "✅ Health check passed (HTTP $HTTP_STATUS)"
+          else
+            echo "⚠️  Health check returned HTTP $HTTP_STATUS (may be due to IP restrictions)"
+          fi
+        else
+          echo "ℹ️  No staging URL configured, skipping external health check"
+        fi
+
+    - name: Notify deployment status
+      if: always()
+      uses: actions/github-script@v6
+      with:
+        script: |
+          const status = '${{ job.status }}';
+          const branch = '${{ github.ref_name }}';
+          const commit = '${{ github.sha }}'.substring(0, 7);
+          const actor = '${{ github.actor }}';
+          
+          let emoji = status === 'success' ? '🚀' : '❌';
+          let color = status === 'success' ? 'green' : 'red';
+          
+          const message = `${emoji} **Staging Deployment ${status.toUpperCase()}**
+          
+          **Branch:** \`${branch}\`
+          **Commit:** \`${commit}\`
+          **Triggered by:** @${actor}
+          **Environment:** staging
+          
+          ${status === 'success' ? 
+            '✅ Application deployed and running on staging server' : 
+            '❌ Deployment failed - check logs for details'}`;
+          
+          // Create deployment status
+          github.rest.repos.createDeploymentStatus({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            deployment_id: context.payload.deployment?.id || 0,
+            state: status === 'success' ? 'success' : 'failure',
+            description: `Staging deployment ${status}`,
+            environment: 'staging'
+          }).catch(() => {
+            console.log('Could not create deployment status');
+          });
+      continue-on-error: true
