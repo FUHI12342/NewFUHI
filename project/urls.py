@@ -1,28 +1,33 @@
-"""project URL Configuration
+"""project URL Configuration"""
 
-The `urlpatterns` list routes URLs to views. For more information please see:
-    https://docs.djangoproject.com/en/2.2/topics/http/urls/
-Examples:
-Function views
-    1. Add an import:  from my_app import views
-    2. Add a URL to urlpatterns:  path('', views.home, name='home')
-Class-based views
-    1. Add an import:  from other_app.views import Home
-    2. Add a URL to urlpatterns:  path('', Home.as_view(), name='home')
-Including another URLconf
-    1. Import the include() function: from django.urls import include, path
-    2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
-"""
 from django.contrib import admin
 from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
 
-urlpatterns = [
-    path('admin/', admin.site.urls),
-    path('', include('booking.urls')),
-]
+from booking import views as booking_views
+from booking.admin_site import custom_site
+from booking.health import healthz
+import booking.admin
 
+urlpatterns = [
+    # Health check endpoint (no auth required)
+    path("healthz", healthz, name="healthz"),
+    
+    # ★ 管理画面配下の MQ9 グラフ
+    # 例: http://127.0.0.1:8000/admin/iot/mq9/?device=Ace1
+    path(
+        "admin/iot/mq9/",
+        custom_site.admin_view(booking_views.IoTMQ9GraphView.as_view()),
+        name="admin_iot_mq9",
+    ),
+
+    # 通常の管理画面
+    path("admin/", custom_site.urls),
+
+    # booking アプリ配下
+    path("", include("booking.urls")),
+]
 
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

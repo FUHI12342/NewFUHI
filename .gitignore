@@ -101,8 +101,10 @@ celerybeat.pid
 # SageMath parsed files
 *.sage.py
 
-# Environments
+# Environments / dotenv
 .env
+.env.*
+!.env.example
 .venv
 .myvenv
 env/
@@ -112,7 +114,20 @@ ENV/
 env.bak/
 venv.bak/
 myvenv.bak/
-.git/config
+
+# Secrets / keys (never commit)
+*.pem
+*.key
+*.p12
+*.pfx
+*.crt
+*.cer
+
+# Local data
+*.sqlite3
+*.sqlite3-journal
+
+# Note: do NOT ignore .git/config (it is not meant to be in .gitignore)
 # Spyder project settings
 .spyderproject
 .spyproject
@@ -131,3 +146,61 @@ dmypy.json
 # Pyre type checker
 .pyre/
 
+
+# secrets
+*.pem
+awscliv2.zip
+celerybeat-schedule.db
+dump.rdb
+db.sqlite3
+db.sqlite3.*
+myvenv/
+.venv/
+
+# Backup files
+*.bak_*
+*.bak_*
+
+# macOS
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Django static files (collected)
+staticfiles/
+
+# Media files (uploads)
+media/
+
+# AWS and deployment
+aws/
+*.zip
+
+# Debug and logs
+debug.log
+nohup.out
+
+# Backup directories
+backups/
+backup.lock/
+backup_heartbeat_*
+
+# Development tools
+.vscode/
+apps/
+tools/
+remote-agent/
+Doppelgänger/
+
+# Project specific
+com.roo.*.plist
+FUHI.srctrl*
+名称未設定フォルダ/
+thumbnails/
+store_thumbnails/
+runs/
+db.sqlite3

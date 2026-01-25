@@ -1,0 +1,25 @@
+version: '3.8'
+
+services:
+  rustdesk-server:
+    image: rustdesk/rustdesk-server
+    container_name: rustdesk-server
+    command: hbbs -r rustdesk.myserver.com
+    ports:
+      - "21115:21115"
+      - "21116:21116"
+      - "21117:21117"
+    volumes:
+      - ./rustdesk-data:/root
+    environment:
+      - RUSTDESK_RELAY_SERVER=rustdesk.myserver.com
+    restart: unless-stopped
+
+  # 必要に応じてhbbrも追加
+  rustdesk-relay:
+    image: rustdesk/rustdesk-server
+    container_name: rustdesk-relay
+    command: hbbr
+    ports:
+      - "21118:21118"
+    restart: unless-stopped

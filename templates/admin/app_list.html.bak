@@ -1,0 +1,146 @@
+{% load i18n %}
+
+{% if app_list %}
+
+  {# ======================== #}
+  {#  アカウント管理（auth）   #}
+  {# ======================== #}
+  <div class="app-auth module">
+    <h2>アカウント管理</h2>
+    <table>
+      <tbody>
+        {% for app in app_list %}
+          {% if app.app_label == "auth" %}
+            {% for model in app.models %}
+              {% if model.perms.change or model.perms.view %}
+                <tr class="model-{{ model.object_name|lower }}">
+                  <th scope="row">
+                    <a href="{{ model.admin_url }}">{{ model.name }}</a>
+                  </th>
+                  <td></td>
+                </tr>
+              {% endif %}
+            {% endfor %}
+          {% endif %}
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  {# ======================== #}
+  {#  登録情報メニュー         #}
+  {# ======================== #}
+  <div class="app-booking module">
+    <h2>登録情報メニュー</h2>
+    <table>
+      <tbody>
+        {% for app in app_list %}
+          {% for model in app.models %}
+            {% if model.perms.change or model.perms.view %}
+              {# 予約確定済みのスケジュール #}
+              {% if model.name == "予約確定済みのスケジュール" %}
+                <tr class="model-{{ model.object_name|lower }}">
+                  <th scope="row">
+                    <a href="{{ model.admin_url }}">{{ model.name }}</a>
+                  </th>
+                  <td></td>
+                </tr>
+              {% endif %}
+
+              {# 在籍占い師スタッフリスト #}
+              {% if model.name == "在籍占い師スタッフリスト" %}
+                <tr class="model-{{ model.object_name|lower }}">
+                  <th scope="row">
+                    <a href="{{ model.admin_url }}">{{ model.name }}</a>
+                  </th>
+                  <td></td>
+                </tr>
+              {% endif %}
+
+              {# 店舗一覧 #}
+              {% if model.name == "店舗一覧" %}
+                <tr class="model-{{ model.object_name|lower }}">
+                  <th scope="row">
+                    <a href="{{ model.admin_url }}">{{ model.name }}</a>
+                  </th>
+                  <td></td>
+                </tr>
+              {% endif %}
+            {% endif %}
+          {% endfor %}
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  {# ============================== #}
+  {#  スーパー権限専用メニュー      #}
+  {# ============================== #}
+  {% if request.user.is_superuser %}
+    <div class="app-super module">
+      <h2>スーパー権限専用メニュー</h2>
+      <table>
+        <tbody>
+          {% for app in app_list %}
+            {% for model in app.models %}
+              {% if model.perms.change or model.perms.view %}
+                {# IoTイベント関連 #}
+                {% if model.name == "IoTイベント" %}
+                  <tr class="model-{{ model.object_name|lower }}">
+                    <th scope="row">
+                      <a href="{{ model.admin_url }}">{{ model.name }}</a>
+                    </th>
+                    <td></td>
+                  </tr>
+                {% endif %}
+
+                {# IoTイベントログ #}
+                {% if model.name == "IoTイベントログ" %}
+                  <tr class="model-{{ model.object_name|lower }}">
+                    <th scope="row">
+                      <a href="{{ model.admin_url }}">{{ model.name }}</a>
+                    </th>
+                    <td></td>
+                  </tr>
+                {% endif %}
+
+                {# IoTデバイス #}
+                {% if model.name == "IoTデバイス" %}
+                  <tr class="model-{{ model.object_name|lower }}">
+                    <th scope="row">
+                      <a href="{{ model.admin_url }}">{{ model.name }}</a>
+                    </th>
+                    <td></td>
+                  </tr>
+                {% endif %}
+
+                {# お知らせ #}
+                {% if model.name == "お知らせ" %}
+                  <tr class="model-{{ model.object_name|lower }}">
+                    <th scope="row">
+                      <a href="{{ model.admin_url }}">{{ model.name }}</a>
+                    </th>
+                    <td></td>
+                  </tr>
+                {% endif %}
+
+                {# 運営会社情報 #}
+                {% if model.name == "運営会社情報" %}
+                  <tr class="model-{{ model.object_name|lower }}">
+                    <th scope="row">
+                      <a href="{{ model.admin_url }}">{{ model.name }}</a>
+                    </th>
+                    <td></td>
+                  </tr>
+                {% endif %}
+              {% endif %}
+            {% endfor %}
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  {% endif %}
+
+{% else %}
+  <p>{% trans "You don’t have permission to view or edit anything." %}</p>
+{% endif %}

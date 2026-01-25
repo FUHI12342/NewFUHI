@@ -1,0 +1,63 @@
+{% extends "admin/base_site.html" %}
+{% load i18n static booking_admin_extras %}
+
+{% block content_title %}{% endblock %}
+
+{% block content %}
+<div id="content-main">
+  <h1>管理トップページへようこそ</h1>
+  
+  {# ============================== #}
+  {#   最新5件ダッシュボード       #}
+  {# ============================== #}
+
+  {# 予約 最新5件 #}
+  <h1>最新の予約（5件）</h1>
+  <div class="module">
+    {% latest_bookings 5 as latest_bookings %}
+    {% if latest_bookings %}
+      <table>
+        <tbody>
+          {% for obj in latest_bookings %}
+            <tr>
+              <th scope="row">
+                {# Schedule の管理画面 詳細ページへ #}
+                <a href="{% url 'admin:booking_schedule_change' obj.pk %}">
+                  {{ obj }}
+                </a>
+              </th>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    {% else %}
+      <p>予約データがまだありません。</p>
+    {% endif %}
+  </div>
+
+  {# IoTイベント 最新5件 #}
+  <h1>最新の IoT イベントログ（5件）</h1>
+  <div class="module">
+    {% latest_iot_events 5 as latest_iot_events %}
+    {% if latest_iot_events %}
+      <table>
+        <tbody>
+          {% for obj in latest_iot_events %}
+            <tr>
+              <th scope="row">
+                {# IoTEvent の管理画面 詳細ページへ #}
+                <a href="{% url 'admin:booking_iotevent_change' obj.pk %}">
+                  {{ obj }}
+                </a>
+              </th>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    {% else %}
+      <p>IoTログがまだありません。</p>
+    {% endif %}
+  </div>
+
+</div>
+{% endblock %}
