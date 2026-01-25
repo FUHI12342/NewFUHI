@@ -203,3 +203,4 @@ FUHI.srctrl*
 thumbnails/
 store_thumbnails/
 runs/
+db.sqlite3
