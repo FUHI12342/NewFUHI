@@ -21,6 +21,19 @@ except Exception:  # pragma: no cover
 
 
 # ==============================
+# 共通定数
+# ==============================
+LANG_CHOICES = (
+    ('ja', '日本語'),
+    ('en', 'English'),
+    ('zh-hant', '繁體中文'),
+    ('zh-hans', '简体中文'),
+    ('ko', '한국어'),
+    ('es', 'Español'),
+    ('pt', 'Português'),
+)
+
+# ==============================
 # 既存（あなたの貼ってくれたコード）ここから
 # ==============================
 
@@ -50,7 +63,9 @@ class Store(models.Model):
     description = models.TextField('店舗情報', default='', blank=True)
 
     # 追加（多言語）：店舗の既定言語（任意）
-    default_language = models.CharField('既定言語', max_length=10, default='ja', blank=True)
+    default_language = models.CharField(
+        '既定言語', max_length=10, default='ja', blank=True, choices=LANG_CHOICES,
+    )
 
     class Meta:
         app_label = 'booking'
@@ -232,21 +247,47 @@ class Media(models.Model):
     title = models.CharField(max_length=200, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     description = models.TextField(blank=True)
+    cached_thumbnail_url = models.URLField('サムネイルURL', blank=True)
+
+    @staticmethod
+    def _is_safe_url(url: str) -> bool:
+        """内部ネットワークへのアクセスを防ぐURLバリデーション"""
+        from urllib.parse import urlparse
+        import ipaddress
+        import socket
+        parsed = urlparse(url)
+        if parsed.scheme not in ('http', 'https'):
+            return False
+        hostname = parsed.hostname
+        if not hostname:
+            return False
+        # 内部IPアドレスをブロック
+        try:
+            ip = ipaddress.ip_address(socket.gethostbyname(hostname))
+            if ip.is_private or ip.is_loopback or ip.is_link_local:
+                return False
+        except (socket.gaierror, ValueError):
+            pass
+        return True
 
     def save(self, *args, **kwargs):
-        article = Article(self.link)
-        article.download()
-        article.parse()
-        self.title = article.title[:10] + '...' if len(article.title) > 10 else article.title
-        wrapped_text = textwrap.wrap(article.text, width=12)
-        self.description = '\n'.join(wrapped_text[:3])
+        if self.link and self._is_safe_url(self.link):
+            try:
+                article = Article(self.link)
+                article.download()
+                article.parse()
+                self.title = article.title[:10] + '...' if len(article.title) > 10 else article.title
+                wrapped_text = textwrap.wrap(article.text, width=12)
+                self.description = '\n'.join(wrapped_text[:3])
+                if article.top_image:
+                    self.cached_thumbnail_url = article.top_image
+            except Exception:
+                pass  # 外部URLの取得失敗時もsave自体は成功させる
         super().save(*args, **kwargs)
 
     def thumbnail_url(self):
-        article = Article(self.link)
-        article.download()
-        article.parse()
-        return article.top_image
+        """キャッシュされたサムネイルURLを返す（毎回ダウンロードしない）"""
+        return self.cached_thumbnail_url or ''
 
     class Meta:
         app_label = 'booking'
@@ -269,15 +310,60 @@ class IoTDevice(models.Model):
     store = models.ForeignKey(Store, verbose_name='店舗', on_delete=models.CASCADE, related_name='iot_devices')
     device_type = models.CharField('種別', choices=DEVICE_TYPE_CHOICES, max_length=20, default='multi')
 
-    external_id = models.CharField('デバイスID（AWS側）', max_length=255, unique=True, db_index=True)
-    api_key = models.CharField('APIキー', max_length=255, db_index=True)
+    external_id = models.CharField('デバイスID（AWS側）', max_length=255, unique=True)
+    api_key_hash = models.CharField('APIキーハッシュ', max_length=64, db_index=True, default='',
+                                     help_text='SHA-256ハッシュ。認証時の照合用')
+    api_key_prefix = models.CharField('APIキープレフィックス', max_length=8, blank=True, default='',
+                                       help_text='管理画面表示用（先頭8文字）')
 
     mq9_threshold = models.FloatField('MQ-9閾値', null=True, blank=True)
     alert_enabled = models.BooleanField('ガス検知アラート有効', default=False)
     alert_email = models.EmailField('アラート送信メール', blank=True)
 
     wifi_ssid = models.CharField('Wi-Fi SSID', max_length=64, blank=True)
-    wifi_password = models.CharField('Wi-Fi パスワード', max_length=128, blank=True)
+    wifi_password_enc = models.CharField('Wi-Fi パスワード（暗号化）', max_length=512, blank=True)
+
+    @staticmethod
+    def _get_iot_fernet():
+        """IoT秘密情報用のFernetインスタンスを返す"""
+        if Fernet is None:
+            raise ImproperlyConfigured("cryptography is required for IoT credential encryption")
+        key = getattr(settings, 'IOT_ENCRYPTION_KEY', None)
+        if not key:
+            raise ImproperlyConfigured("IOT_ENCRYPTION_KEY is not set")
+        return Fernet(key.encode('utf-8') if isinstance(key, str) else key)
+
+    def set_wifi_password(self, plain_password: str) -> None:
+        """Wi-Fiパスワードを暗号化して保存する"""
+        if not plain_password:
+            self.wifi_password_enc = ''
+            return
+        f = self._get_iot_fernet()
+        self.wifi_password_enc = f.encrypt(plain_password.encode('utf-8')).decode('utf-8')
+
+    def get_wifi_password(self) -> Optional[str]:
+        """暗号化されたWi-Fiパスワードを復号して返す"""
+        if not self.wifi_password_enc:
+            return None
+        try:
+            f = self._get_iot_fernet()
+            return f.decrypt(self.wifi_password_enc.encode('utf-8')).decode('utf-8')
+        except Exception:
+            return None
+
+    @staticmethod
+    def hash_api_key(raw_key: str) -> str:
+        """APIキーのSHA-256ハッシュを返す"""
+        return hashlib.sha256(raw_key.encode('utf-8')).hexdigest()
+
+    def set_api_key(self, raw_key: str) -> None:
+        """APIキーをハッシュ化して保存。生のキーは保存しない。"""
+        self.api_key_hash = self.hash_api_key(raw_key)
+        self.api_key_prefix = raw_key[:8]
+
+    def verify_api_key(self, raw_key: str) -> bool:
+        """APIキーを検証する"""
+        return self.api_key_hash == self.hash_api_key(raw_key)
 
     is_active = models.BooleanField('有効', default=True)
     last_seen_at = models.DateTimeField('最終通信日時', null=True, blank=True)
@@ -298,6 +384,9 @@ class IoTEvent(models.Model):
     event_type = models.CharField('イベント種別', max_length=50, blank=True)
     payload = models.TextField('ペイロード(JSON)', blank=True)
     mq9_value = models.FloatField('MQ-9値', null=True, blank=True, db_index=True)
+    light_value = models.FloatField('照度値', null=True, blank=True, db_index=True)
+    sound_value = models.FloatField('音値', null=True, blank=True, db_index=True)
+    pir_triggered = models.BooleanField('PIR検知', null=True, blank=True)
 
     class Meta:
         app_label = 'booking'
@@ -306,6 +395,8 @@ class IoTEvent(models.Model):
         indexes = [
             models.Index(fields=['device', 'created_at']),
             models.Index(fields=['device', 'mq9_value', 'created_at']),
+            models.Index(fields=['device', 'created_at', 'light_value']),
+            models.Index(fields=['device', 'created_at', 'sound_value']),
         ]
 
     def __str__(self):
@@ -392,15 +483,7 @@ class Product(models.Model):
 
 class ProductTranslation(models.Model):
     """商品データ文言の多言語テーブル"""
-    LANG_CHOICES = (
-        ('ja', '日本語'),
-        ('en', 'English'),
-        ('zh-hant', '繁體中文'),
-        ('zh-hans', '简体中文'),
-        ('ko', '한국어'),
-        ('es', 'Español'),
-        ('pt', 'Português'),
-    )
+    LANG_CHOICES = LANG_CHOICES  # backward compat alias
 
     product = models.ForeignKey(Product, verbose_name='商品', on_delete=models.CASCADE, related_name='translations')
     lang = models.CharField('言語', max_length=10, choices=LANG_CHOICES, db_index=True)
@@ -586,3 +669,129 @@ def apply_stock_movement(
         product.stock = locked.stock
         product.last_low_stock_notified_at = locked.last_low_stock_notified_at
         product.updated_at = locked.updated_at
+
+
+# ==============================
+# Phase 2: デバッグ / ランタイム設定
+# ==============================
+
+class SystemConfig(models.Model):
+    """シングルトンパターンのランタイム設定（ログレベル等）"""
+    key = models.CharField('キー', max_length=100, unique=True)
+    value = models.TextField('値', blank=True, default='')
+    updated_at = models.DateTimeField('更新日時', auto_now=True)
+
+    class Meta:
+        app_label = 'booking'
+        verbose_name = 'システム設定'
+        verbose_name_plural = 'システム設定'
+
+    def __str__(self):
+        return f"{self.key} = {self.value}"
+
+    @classmethod
+    def get(cls, key, default=''):
+        try:
+            return cls.objects.get(key=key).value
+        except cls.DoesNotExist:
+            return default
+
+    @classmethod
+    def set(cls, key, value):
+        obj, _ = cls.objects.update_or_create(key=key, defaults={'value': str(value)})
+        return obj
+
+
+# ==============================
+# Phase 5: 不動産IoTモニタリング
+# ==============================
+
+class Property(models.Model):
+    """物件情報"""
+    PROPERTY_TYPE_CHOICES = [
+        ('apartment', 'アパート/マンション'),
+        ('house', '一戸建て'),
+        ('office', 'オフィス'),
+        ('store', '店舗'),
+    ]
+
+    name = models.CharField('物件名', max_length=200)
+    address = models.CharField('住所', max_length=300)
+    property_type = models.CharField('種別', max_length=20, choices=PROPERTY_TYPE_CHOICES, default='apartment')
+    owner_name = models.CharField('オーナー名', max_length=100, blank=True)
+    owner_contact = models.CharField('オーナー連絡先', max_length=200, blank=True)
+    store = models.ForeignKey(
+        Store, verbose_name='関連店舗', on_delete=models.SET_NULL,
+        null=True, blank=True, related_name='properties',
+    )
+    is_active = models.BooleanField('有効', default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        app_label = 'booking'
+        verbose_name = '物件'
+        verbose_name_plural = '物件'
+
+    def __str__(self):
+        return self.name
+
+
+class PropertyDevice(models.Model):
+    """物件に設置されたデバイス"""
+    property = models.ForeignKey(
+        Property, verbose_name='物件', on_delete=models.CASCADE, related_name='property_devices',
+    )
+    device = models.ForeignKey(
+        IoTDevice, verbose_name='デバイス', on_delete=models.CASCADE, related_name='property_placements',
+    )
+    location_label = models.CharField('設置場所', max_length=100, help_text='例: リビング, 玄関, 寝室')
+
+    class Meta:
+        app_label = 'booking'
+        verbose_name = '物件デバイス'
+        verbose_name_plural = '物件デバイス'
+        unique_together = (('property', 'device'),)
+
+    def __str__(self):
+        return f"{self.property.name} / {self.location_label} / {self.device.name}"
+
+
+class PropertyAlert(models.Model):
+    """物件アラート"""
+    ALERT_TYPE_CHOICES = [
+        ('gas_leak', 'ガス漏れ'),
+        ('no_motion', '長期不在'),
+        ('device_offline', 'デバイスオフライン'),
+        ('custom', 'カスタム'),
+    ]
+    SEVERITY_CHOICES = [
+        ('critical', '緊急'),
+        ('warning', '警告'),
+        ('info', '情報'),
+    ]
+
+    property = models.ForeignKey(
+        Property, verbose_name='物件', on_delete=models.CASCADE, related_name='alerts',
+    )
+    device = models.ForeignKey(
+        IoTDevice, verbose_name='デバイス', on_delete=models.SET_NULL,
+        null=True, blank=True, related_name='property_alerts',
+    )
+    alert_type = models.CharField('種別', max_length=20, choices=ALERT_TYPE_CHOICES)
+    severity = models.CharField('重要度', max_length=10, choices=SEVERITY_CHOICES, default='info')
+    message = models.TextField('メッセージ', blank=True)
+    is_resolved = models.BooleanField('解決済み', default=False, db_index=True)
+    created_at = models.DateTimeField(auto_now_add=True, db_index=True)
+    resolved_at = models.DateTimeField('解決日時', null=True, blank=True)
+
+    class Meta:
+        app_label = 'booking'
+        verbose_name = '物件アラート'
+        verbose_name_plural = '物件アラート'
+        indexes = [
+            models.Index(fields=['property', 'is_resolved', 'created_at']),
+            models.Index(fields=['alert_type', 'is_resolved']),
+        ]
+
+    def __str__(self):
+        return f"[{self.get_severity_display()}] {self.property.name} - {self.get_alert_type_display()}"

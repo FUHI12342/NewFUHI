@@ -1,0 +1,386 @@
+{% extends "admin/base_site.html" %}
+{% load i18n static %}
+
+{% block extrahead %}
+<!-- Tailwind CSS CDN -->
+<script src="https://cdn.tailwindcss.com"></script>
+<!-- Chart.js CDN -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+<style>
+  /* Override Django admin content area to allow full-width Tailwind layout */
+  #content { max-width: 100%; padding: 0; }
+  #content > h1 { padding: 0 1rem; }
+  .dashboard-wrap { padding: 0 1rem 2rem; }
+  canvas { max-height: 400px; }
+</style>
+{% endblock %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="dashboard-wrap">
+
+  {# ===== Section 1: Reservations ===== #}
+  <section class="mb-10">
+    <h2 class="text-2xl font-bold text-gray-800 mb-4 border-b-2 border-indigo-500 pb-2">予約状況</h2>
+
+    {# KPI cards #}
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+      {# Future reservation count #}
+      <div class="bg-white rounded-2xl shadow p-6 flex flex-col items-center">
+        <span class="text-sm text-gray-500 mb-1">今後の予約数</span>
+        <span id="future-count" class="text-4xl font-extrabold text-indigo-600">--</span>
+      </div>
+      {# Cancellation rate #}
+      <div class="bg-white rounded-2xl shadow p-6 flex flex-col items-center">
+        <span class="text-sm text-gray-500 mb-1">キャンセル率</span>
+        <span id="cancel-rate" class="text-4xl font-extrabold text-rose-500">--%</span>
+      </div>
+      {# Total reservations (last 90 days) #}
+      <div class="bg-white rounded-2xl shadow p-6 flex flex-col items-center">
+        <span class="text-sm text-gray-500 mb-1">過去90日の予約合計</span>
+        <span id="total-reservations-90" class="text-4xl font-extrabold text-emerald-600">--</span>
+      </div>
+    </div>
+
+    {# Daily reservation bar chart #}
+    <div class="bg-white rounded-2xl shadow p-6">
+      <h3 class="text-lg font-semibold text-gray-700 mb-3">日別予約数（過去90日）</h3>
+      <canvas id="reservationChart"></canvas>
+    </div>
+  </section>
+
+  {# ===== Section 2: Sales ===== #}
+  <section class="mb-10">
+    <h2 class="text-2xl font-bold text-gray-800 mb-4 border-b-2 border-emerald-500 pb-2">売上</h2>
+
+    {# Period selector #}
+    <div class="mb-4 flex items-center gap-3">
+      <label for="sales-period" class="text-sm font-medium text-gray-600">期間:</label>
+      <select id="sales-period"
+              class="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-400 focus:outline-none">
+        <option value="daily">日別</option>
+        <option value="weekly">週別</option>
+        <option value="monthly">月別</option>
+      </select>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      {# Sales trend line chart #}
+      <div class="bg-white rounded-2xl shadow p-6">
+        <h3 class="text-lg font-semibold text-gray-700 mb-3">売上推移</h3>
+        <canvas id="salesTrendChart"></canvas>
+      </div>
+      {# Top 10 popular products horizontal bar #}
+      <div class="bg-white rounded-2xl shadow p-6">
+        <h3 class="text-lg font-semibold text-gray-700 mb-3">人気商品 TOP10</h3>
+        <canvas id="topProductsChart"></canvas>
+      </div>
+    </div>
+  </section>
+
+  {# ===== Section 3: Staff Performance ===== #}
+  <section class="mb-10">
+    <h2 class="text-2xl font-bold text-gray-800 mb-4 border-b-2 border-amber-500 pb-2">スタッフ実績</h2>
+
+    <div class="bg-white rounded-2xl shadow p-6">
+      <h3 class="text-lg font-semibold text-gray-700 mb-3">スタッフ別 予約数・売上比較</h3>
+      <canvas id="staffChart"></canvas>
+    </div>
+  </section>
+
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+
+  /* ------------------------------------------------------------------ */
+  /*  Colour palette                                                     */
+  /* ------------------------------------------------------------------ */
+  const COLORS = {
+    indigo:   'rgba(99,102,241,0.8)',
+    rose:     'rgba(244,63,94,0.7)',
+    emerald:  'rgba(16,185,129,0.8)',
+    amber:    'rgba(245,158,11,0.8)',
+    sky:      'rgba(14,165,233,0.8)',
+    violet:   'rgba(139,92,246,0.8)',
+    pink:     'rgba(236,72,153,0.7)',
+    teal:     'rgba(20,184,166,0.8)',
+    orange:   'rgba(249,115,22,0.8)',
+    lime:     'rgba(132,204,22,0.8)',
+  };
+  const PALETTE = Object.values(COLORS);
+
+  /* ------------------------------------------------------------------ */
+  /*  Helper: CSRF-safe fetch                                            */
+  /* ------------------------------------------------------------------ */
+  function getCookie(name) {
+    let val = null;
+    document.cookie.split(';').forEach(function (c) {
+      c = c.trim();
+      if (c.startsWith(name + '=')) val = decodeURIComponent(c.substring(name.length + 1));
+    });
+    return val;
+  }
+
+  function apiFetch(url) {
+    return fetch(url, {
+      credentials: 'same-origin',
+      headers: { 'X-CSRFToken': getCookie('csrftoken') || '' }
+    }).then(function (r) { return r.json(); });
+  }
+
+  /* ------------------------------------------------------------------ */
+  /*  1. Reservations                                                    */
+  /* ------------------------------------------------------------------ */
+  var reservationChart = null;
+
+  function loadReservations() {
+    apiFetch('/api/dashboard/reservations/').then(function (data) {
+      // KPI cards
+      document.getElementById('future-count').textContent = data.future_count;
+      document.getElementById('cancel-rate').textContent = (data.cancel_rate * 100).toFixed(1) + '%';
+
+      var daily = data.daily || [];
+      var totalRes = daily.reduce(function (s, d) { return s + d.count; }, 0);
+      document.getElementById('total-reservations-90').textContent = totalRes;
+
+      var labels = daily.map(function (d) { return d.date; });
+      var counts = daily.map(function (d) { return d.count; });
+      var cancelled = daily.map(function (d) { return d.cancelled; });
+
+      if (reservationChart) reservationChart.destroy();
+
+      var ctx = document.getElementById('reservationChart').getContext('2d');
+      reservationChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: labels,
+          datasets: [
+            {
+              label: '予約数',
+              data: counts,
+              backgroundColor: COLORS.indigo,
+              borderRadius: 4,
+            },
+            {
+              label: 'キャンセル数',
+              data: cancelled,
+              backgroundColor: COLORS.rose,
+              borderRadius: 4,
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          plugins: {
+            legend: { position: 'top' },
+            tooltip: { mode: 'index', intersect: false }
+          },
+          scales: {
+            x: {
+              ticks: {
+                maxTicksLimit: 15,
+                maxRotation: 45,
+                minRotation: 0,
+                font: { size: 10 }
+              }
+            },
+            y: { beginAtZero: true, ticks: { precision: 0 } }
+          }
+        }
+      });
+    }).catch(function (err) {
+      console.error('Failed to load reservations:', err);
+    });
+  }
+
+  loadReservations();
+
+  /* ------------------------------------------------------------------ */
+  /*  2. Sales                                                           */
+  /* ------------------------------------------------------------------ */
+  var salesTrendChart = null;
+  var topProductsChart = null;
+
+  function loadSales(period) {
+    apiFetch('/api/dashboard/sales/?period=' + encodeURIComponent(period)).then(function (data) {
+      // --- Sales trend line chart ---
+      var trend = data.trend || [];
+      var trendLabels = trend.map(function (d) { return d.date; });
+      var trendTotals = trend.map(function (d) { return d.total; });
+
+      if (salesTrendChart) salesTrendChart.destroy();
+
+      var ctx1 = document.getElementById('salesTrendChart').getContext('2d');
+      salesTrendChart = new Chart(ctx1, {
+        type: 'line',
+        data: {
+          labels: trendLabels,
+          datasets: [{
+            label: '売上 (円)',
+            data: trendTotals,
+            borderColor: COLORS.emerald,
+            backgroundColor: 'rgba(16,185,129,0.15)',
+            fill: true,
+            tension: 0.3,
+            pointRadius: 2,
+            pointHoverRadius: 5
+          }]
+        },
+        options: {
+          responsive: true,
+          plugins: {
+            legend: { position: 'top' },
+            tooltip: {
+              callbacks: {
+                label: function (ctx) {
+                  return '売上: ' + Number(ctx.parsed.y).toLocaleString() + ' 円';
+                }
+              }
+            }
+          },
+          scales: {
+            x: {
+              ticks: {
+                maxTicksLimit: 12,
+                maxRotation: 45,
+                minRotation: 0,
+                font: { size: 10 }
+              }
+            },
+            y: {
+              beginAtZero: true,
+              ticks: {
+                callback: function (v) { return Number(v).toLocaleString() + ' 円'; }
+              }
+            }
+          }
+        }
+      });
+
+      // --- Top products horizontal bar chart ---
+      var products = (data.top_products || []).slice(0, 10);
+      var prodLabels = products.map(function (p) { return p.name; });
+      var prodTotals = products.map(function (p) { return p.total; });
+
+      if (topProductsChart) topProductsChart.destroy();
+
+      var ctx2 = document.getElementById('topProductsChart').getContext('2d');
+      topProductsChart = new Chart(ctx2, {
+        type: 'bar',
+        data: {
+          labels: prodLabels,
+          datasets: [{
+            label: '注文数',
+            data: prodTotals,
+            backgroundColor: PALETTE.slice(0, products.length),
+            borderRadius: 4,
+          }]
+        },
+        options: {
+          indexAxis: 'y',
+          responsive: true,
+          plugins: {
+            legend: { display: false }
+          },
+          scales: {
+            x: { beginAtZero: true, ticks: { precision: 0 } }
+          }
+        }
+      });
+    }).catch(function (err) {
+      console.error('Failed to load sales:', err);
+    });
+  }
+
+  // Initial load with default period
+  loadSales(document.getElementById('sales-period').value);
+
+  // Re-fetch when period selector changes
+  document.getElementById('sales-period').addEventListener('change', function () {
+    loadSales(this.value);
+  });
+
+  /* ------------------------------------------------------------------ */
+  /*  3. Staff Performance                                               */
+  /* ------------------------------------------------------------------ */
+  var staffChart = null;
+
+  function loadStaffPerformance() {
+    apiFetch('/api/dashboard/staff-performance/').then(function (data) {
+      var staff = data.staff || [];
+      var staffLabels = staff.map(function (s) { return s.name; });
+      var reservations = staff.map(function (s) { return s.reservations; });
+      var sales = staff.map(function (s) { return s.sales; });
+
+      if (staffChart) staffChart.destroy();
+
+      var ctx = document.getElementById('staffChart').getContext('2d');
+      staffChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: staffLabels,
+          datasets: [
+            {
+              label: '予約数',
+              data: reservations,
+              backgroundColor: COLORS.sky,
+              borderRadius: 4,
+              yAxisID: 'y',
+            },
+            {
+              label: '売上 (円)',
+              data: sales,
+              backgroundColor: COLORS.amber,
+              borderRadius: 4,
+              yAxisID: 'y1',
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          plugins: {
+            legend: { position: 'top' },
+            tooltip: {
+              callbacks: {
+                label: function (ctx) {
+                  if (ctx.dataset.yAxisID === 'y1') {
+                    return ctx.dataset.label + ': ' + Number(ctx.parsed.y).toLocaleString() + ' 円';
+                  }
+                  return ctx.dataset.label + ': ' + ctx.parsed.y;
+                }
+              }
+            }
+          },
+          scales: {
+            y: {
+              type: 'linear',
+              position: 'left',
+              beginAtZero: true,
+              title: { display: true, text: '予約数' },
+              ticks: { precision: 0 }
+            },
+            y1: {
+              type: 'linear',
+              position: 'right',
+              beginAtZero: true,
+              title: { display: true, text: '売上 (円)' },
+              grid: { drawOnChartArea: false },
+              ticks: {
+                callback: function (v) { return Number(v).toLocaleString(); }
+              }
+            }
+          }
+        }
+      });
+    }).catch(function (err) {
+      console.error('Failed to load staff performance:', err);
+    });
+  }
+
+  loadStaffPerformance();
+
+});
+</script>
+{% endblock %}

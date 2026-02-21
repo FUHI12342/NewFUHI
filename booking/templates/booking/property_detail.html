@@ -1,0 +1,430 @@
+{% extends "booking/base.html" %}
+{% load i18n %}
+
+{% block title %}{{ property.name }} - {% trans "IoTモニタリング" %} | {{ block.super }}{% endblock %}
+
+{% block content %}
+<!-- ===== Property Info Header ===== -->
+<div class="mb-6">
+    <a href="{% url 'booking:property_list' %}" class="inline-flex items-center text-sm text-salon-brown hover:underline mb-3">
+        <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+        </svg>
+        {% trans "物件一覧に戻る" %}
+    </a>
+    <div class="bg-white border border-gray-200 rounded-lg p-5">
+        <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
+            <div>
+                <h1 class="text-2xl font-bold text-salon-dark">{{ property.name }}</h1>
+                <p class="text-sm text-gray-500 mt-1">{{ property.address }}</p>
+                <div class="flex flex-wrap items-center gap-2 mt-2">
+                    <span class="text-xs font-medium bg-salon-beige text-salon-brown px-2 py-0.5 rounded">
+                        {{ property.property_type }}
+                    </span>
+                    {% if property.owner %}
+                    <span class="text-xs text-gray-500">{% trans "オーナー" %}: {{ property.owner }}</span>
+                    {% endif %}
+                </div>
+            </div>
+            <!-- Occupancy Indicator -->
+            <div id="occupancy-indicator" class="flex-shrink-0">
+                {% if property.occupied %}
+                <span class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-semibold bg-orange-100 text-orange-700">
+                    <span class="relative flex h-2.5 w-2.5">
+                        <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-orange-400 opacity-75"></span>
+                        <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-orange-500"></span>
+                    </span>
+                    {% trans "在室中" %}
+                </span>
+                {% else %}
+                <span class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-semibold bg-gray-100 text-gray-500">
+                    <span class="inline-flex rounded-full h-2.5 w-2.5 bg-gray-400"></span>
+                    {% trans "不在" %}
+                </span>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ===== Device Status Grid ===== -->
+<div class="mb-6">
+    <h2 class="text-lg font-bold text-salon-dark mb-3">{% trans "デバイス状況" %}</h2>
+    <div id="device-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        {% for device in devices %}
+        <div class="device-card bg-white border border-gray-200 rounded-lg p-4" data-device-id="{{ device.id }}">
+            <div class="flex items-start justify-between mb-3">
+                <div>
+                    <h3 class="font-semibold text-salon-dark text-sm">{{ device.name }}</h3>
+                    <p class="text-xs text-gray-400 mt-0.5">{{ device.location_label }}</p>
+                </div>
+                {% if device.online %}
+                <span class="device-status inline-flex items-center gap-1 text-xs font-medium bg-green-100 text-green-700 px-2 py-0.5 rounded-full">
+                    <span class="inline-block w-1.5 h-1.5 rounded-full bg-green-500"></span>
+                    {% trans "オンライン" %}
+                </span>
+                {% else %}
+                <span class="device-status inline-flex items-center gap-1 text-xs font-medium bg-red-100 text-red-600 px-2 py-0.5 rounded-full">
+                    <span class="inline-block w-1.5 h-1.5 rounded-full bg-red-500"></span>
+                    {% trans "オフライン" %}
+                </span>
+                {% endif %}
+            </div>
+
+            <!-- Sensor Readings -->
+            <div class="grid grid-cols-2 gap-2 text-xs">
+                <div class="bg-gray-50 rounded p-2">
+                    <p class="text-gray-400 mb-0.5">{% trans "ガス(MQ-9)" %}</p>
+                    <p class="sensor-mq9 font-mono font-semibold text-salon-dark">
+                        {% if device.latest_mq9 != None %}{{ device.latest_mq9 }}{% else %}--{% endif %}
+                    </p>
+                </div>
+                <div class="bg-gray-50 rounded p-2">
+                    <p class="text-gray-400 mb-0.5">{% trans "照度" %}</p>
+                    <p class="sensor-light font-mono font-semibold text-salon-dark">
+                        {% if device.latest_light != None %}{{ device.latest_light }}{% else %}--{% endif %}
+                    </p>
+                </div>
+                <div class="bg-gray-50 rounded p-2">
+                    <p class="text-gray-400 mb-0.5">{% trans "音量" %}</p>
+                    <p class="sensor-sound font-mono font-semibold text-salon-dark">
+                        {% if device.latest_sound != None %}{{ device.latest_sound }}{% else %}--{% endif %}
+                    </p>
+                </div>
+                <div class="bg-gray-50 rounded p-2">
+                    <p class="text-gray-400 mb-0.5">{% trans "人感(PIR)" %}</p>
+                    <p class="sensor-pir font-mono font-semibold">
+                        {% if device.pir_recent %}
+                        <span class="text-orange-600">{% trans "検知" %}</span>
+                        {% else %}
+                        <span class="text-gray-400">{% trans "なし" %}</span>
+                        {% endif %}
+                    </p>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-span-full text-center py-10 text-gray-400 text-sm">
+            {% trans "登録デバイスはありません。" %}
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<!-- ===== Active Alerts Table ===== -->
+<div class="mb-6">
+    <h2 class="text-lg font-bold text-salon-dark mb-3">
+        {% trans "アクティブアラート" %}
+        <span id="active-alert-count" class="text-sm font-normal text-gray-400 ml-1">({{ active_alerts|length }})</span>
+    </h2>
+    <div class="bg-white border border-gray-200 rounded-lg overflow-hidden">
+        <div class="overflow-x-auto">
+            <table id="active-alerts-table" class="w-full text-sm">
+                <thead class="bg-gray-50 text-gray-500 text-xs uppercase tracking-wide">
+                    <tr>
+                        <th class="px-4 py-3 text-left">{% trans "重要度" %}</th>
+                        <th class="px-4 py-3 text-left">{% trans "種別" %}</th>
+                        <th class="px-4 py-3 text-left">{% trans "メッセージ" %}</th>
+                        <th class="px-4 py-3 text-left">{% trans "発生日時" %}</th>
+                        <th class="px-4 py-3 text-center">{% trans "操作" %}</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-100">
+                    {% for alert in active_alerts %}
+                    <tr class="alert-row hover:bg-gray-50" data-alert-id="{{ alert.id }}">
+                        <td class="px-4 py-3">
+                            {% if alert.severity == "critical" %}
+                            <span class="inline-flex items-center gap-1 text-xs font-semibold bg-red-100 text-red-700 px-2 py-0.5 rounded-full">
+                                <span class="inline-block w-1.5 h-1.5 rounded-full bg-red-500"></span>
+                                {% trans "危険" %}
+                            </span>
+                            {% elif alert.severity == "warning" %}
+                            <span class="inline-flex items-center gap-1 text-xs font-semibold bg-yellow-100 text-yellow-700 px-2 py-0.5 rounded-full">
+                                <span class="inline-block w-1.5 h-1.5 rounded-full bg-yellow-500"></span>
+                                {% trans "警告" %}
+                            </span>
+                            {% else %}
+                            <span class="inline-flex items-center gap-1 text-xs font-semibold bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full">
+                                <span class="inline-block w-1.5 h-1.5 rounded-full bg-blue-500"></span>
+                                {% trans "情報" %}
+                            </span>
+                            {% endif %}
+                        </td>
+                        <td class="px-4 py-3 text-gray-700">{{ alert.type }}</td>
+                        <td class="px-4 py-3 text-gray-700">{{ alert.message }}</td>
+                        <td class="px-4 py-3 text-gray-500 whitespace-nowrap">{{ alert.created_at }}</td>
+                        <td class="px-4 py-3 text-center">
+                            <button onclick="resolveAlert({{ alert.id }})"
+                                    class="resolve-btn inline-flex items-center gap-1 text-xs font-medium bg-green-50 text-green-700 hover:bg-green-100 px-3 py-1.5 rounded transition">
+                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                                </svg>
+                                {% trans "解決" %}
+                            </button>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr id="no-active-alerts">
+                        <td colspan="5" class="px-4 py-8 text-center text-gray-400">
+                            <svg class="w-8 h-8 mx-auto mb-2 text-green-300" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                            </svg>
+                            {% trans "アクティブなアラートはありません。" %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- ===== Resolved Alerts (Collapsible) ===== -->
+<div class="mb-6">
+    <button onclick="toggleResolved()" class="flex items-center gap-2 text-lg font-bold text-salon-dark mb-3 hover:text-salon-brown transition">
+        <svg id="resolved-chevron" class="w-5 h-5 transform -rotate-90 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+        </svg>
+        {% trans "解決済みアラート" %}
+        <span class="text-sm font-normal text-gray-400">({{ resolved_alerts|length }})</span>
+    </button>
+    <div id="resolved-section" class="hidden">
+        <div class="bg-white border border-gray-200 rounded-lg overflow-hidden opacity-75">
+            <div class="overflow-x-auto">
+                <table class="w-full text-sm">
+                    <thead class="bg-gray-50 text-gray-500 text-xs uppercase tracking-wide">
+                        <tr>
+                            <th class="px-4 py-3 text-left">{% trans "重要度" %}</th>
+                            <th class="px-4 py-3 text-left">{% trans "種別" %}</th>
+                            <th class="px-4 py-3 text-left">{% trans "メッセージ" %}</th>
+                            <th class="px-4 py-3 text-left">{% trans "発生日時" %}</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-100">
+                        {% for alert in resolved_alerts %}
+                        <tr class="hover:bg-gray-50">
+                            <td class="px-4 py-3">
+                                {% if alert.severity == "critical" %}
+                                <span class="inline-flex items-center gap-1 text-xs font-semibold bg-red-50 text-red-400 px-2 py-0.5 rounded-full">
+                                    {% trans "危険" %}
+                                </span>
+                                {% elif alert.severity == "warning" %}
+                                <span class="inline-flex items-center gap-1 text-xs font-semibold bg-yellow-50 text-yellow-400 px-2 py-0.5 rounded-full">
+                                    {% trans "警告" %}
+                                </span>
+                                {% else %}
+                                <span class="inline-flex items-center gap-1 text-xs font-semibold bg-blue-50 text-blue-400 px-2 py-0.5 rounded-full">
+                                    {% trans "情報" %}
+                                </span>
+                                {% endif %}
+                            </td>
+                            <td class="px-4 py-3 text-gray-500">{{ alert.type }}</td>
+                            <td class="px-4 py-3 text-gray-500">{{ alert.message }}</td>
+                            <td class="px-4 py-3 text-gray-400 whitespace-nowrap">{{ alert.created_at }}</td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="4" class="px-4 py-6 text-center text-gray-400">
+                                {% trans "解決済みアラートはありません。" %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ===== Last Refresh Indicator ===== -->
+<div class="text-right text-xs text-gray-400 mb-4">
+    {% trans "自動更新" %}: 30{% trans "秒" %}
+    <span class="mx-1">|</span>
+    {% trans "最終更新" %}: <span id="last-refresh">--</span>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+(function () {
+    const PROPERTY_ID = {{ property.id }};
+    const REFRESH_INTERVAL = 30000; // 30 seconds
+    const API_URL = '/api/properties/' + PROPERTY_ID + '/status/';
+
+    // ---------- Collapsible resolved section ----------
+    window.toggleResolved = function () {
+        const section = document.getElementById('resolved-section');
+        const chevron = document.getElementById('resolved-chevron');
+        section.classList.toggle('hidden');
+        chevron.classList.toggle('-rotate-90');
+    };
+
+    // ---------- Resolve alert ----------
+    window.resolveAlert = function (alertId) {
+        const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]')?.value
+            || getCookie('csrftoken');
+        fetch('/api/alerts/' + alertId + '/resolve/', {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': csrfToken,
+                'Content-Type': 'application/json'
+            }
+        })
+        .then(function (resp) {
+            if (resp.ok) {
+                refreshStatus();
+            }
+        });
+    };
+
+    function getCookie(name) {
+        const value = '; ' + document.cookie;
+        const parts = value.split('; ' + name + '=');
+        if (parts.length === 2) return parts.pop().split(';').shift();
+        return '';
+    }
+
+    // ---------- Auto-refresh ----------
+    function refreshStatus() {
+        fetch(API_URL)
+            .then(function (resp) { return resp.json(); })
+            .then(function (data) {
+                updateDevices(data.devices || []);
+                updateAlerts(data.alerts || []);
+                updateOccupancy(data.occupied);
+                updateTimestamp();
+            })
+            .catch(function (err) {
+                console.error('IoT refresh failed:', err);
+            });
+    }
+
+    function updateDevices(devices) {
+        devices.forEach(function (d) {
+            const card = document.querySelector('.device-card[data-device-id="' + d.id + '"]');
+            if (!card) return;
+
+            // Status badge
+            const statusEl = card.querySelector('.device-status');
+            if (statusEl) {
+                if (d.online) {
+                    statusEl.className = 'device-status inline-flex items-center gap-1 text-xs font-medium bg-green-100 text-green-700 px-2 py-0.5 rounded-full';
+                    statusEl.innerHTML = '<span class="inline-block w-1.5 h-1.5 rounded-full bg-green-500"></span> オンライン';
+                } else {
+                    statusEl.className = 'device-status inline-flex items-center gap-1 text-xs font-medium bg-red-100 text-red-600 px-2 py-0.5 rounded-full';
+                    statusEl.innerHTML = '<span class="inline-block w-1.5 h-1.5 rounded-full bg-red-500"></span> オフライン';
+                }
+            }
+
+            // Sensor values
+            var mq9El = card.querySelector('.sensor-mq9');
+            if (mq9El) mq9El.textContent = d.latest_mq9 != null ? d.latest_mq9 : '--';
+
+            var lightEl = card.querySelector('.sensor-light');
+            if (lightEl) lightEl.textContent = d.latest_light != null ? d.latest_light : '--';
+
+            var soundEl = card.querySelector('.sensor-sound');
+            if (soundEl) soundEl.textContent = d.latest_sound != null ? d.latest_sound : '--';
+
+            var pirEl = card.querySelector('.sensor-pir');
+            if (pirEl) {
+                if (d.pir_recent) {
+                    pirEl.innerHTML = '<span class="text-orange-600">検知</span>';
+                } else {
+                    pirEl.innerHTML = '<span class="text-gray-400">なし</span>';
+                }
+            }
+        });
+    }
+
+    function severityBadge(severity, active) {
+        var colors;
+        var label;
+        if (severity === 'critical') {
+            colors = active ? 'bg-red-100 text-red-700' : 'bg-red-50 text-red-400';
+            label = '危険';
+        } else if (severity === 'warning') {
+            colors = active ? 'bg-yellow-100 text-yellow-700' : 'bg-yellow-50 text-yellow-400';
+            label = '警告';
+        } else {
+            colors = active ? 'bg-blue-100 text-blue-700' : 'bg-blue-50 text-blue-400';
+            label = '情報';
+        }
+        var dotColor = severity === 'critical' ? 'bg-red-500' : severity === 'warning' ? 'bg-yellow-500' : 'bg-blue-500';
+        var dot = active ? '<span class="inline-block w-1.5 h-1.5 rounded-full ' + dotColor + '"></span>' : '';
+        return '<span class="inline-flex items-center gap-1 text-xs font-semibold ' + colors + ' px-2 py-0.5 rounded-full">' + dot + ' ' + label + '</span>';
+    }
+
+    function updateAlerts(alerts) {
+        var activeAlerts = alerts.filter(function (a) { return !a.resolved; });
+        var resolvedAlerts = alerts.filter(function (a) { return a.resolved; });
+
+        // Active alerts table
+        var tbody = document.querySelector('#active-alerts-table tbody');
+        if (tbody) {
+            if (activeAlerts.length === 0) {
+                tbody.innerHTML = '<tr id="no-active-alerts"><td colspan="5" class="px-4 py-8 text-center text-gray-400">' +
+                    '<svg class="w-8 h-8 mx-auto mb-2 text-green-300" fill="currentColor" viewBox="0 0 20 20">' +
+                    '<path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>' +
+                    '</svg>アクティブなアラートはありません。</td></tr>';
+            } else {
+                var rows = '';
+                activeAlerts.forEach(function (a) {
+                    rows += '<tr class="alert-row hover:bg-gray-50" data-alert-id="' + a.id + '">' +
+                        '<td class="px-4 py-3">' + severityBadge(a.severity, true) + '</td>' +
+                        '<td class="px-4 py-3 text-gray-700">' + escapeHtml(a.type) + '</td>' +
+                        '<td class="px-4 py-3 text-gray-700">' + escapeHtml(a.message) + '</td>' +
+                        '<td class="px-4 py-3 text-gray-500 whitespace-nowrap">' + escapeHtml(a.created_at) + '</td>' +
+                        '<td class="px-4 py-3 text-center">' +
+                        '<button onclick="resolveAlert(' + a.id + ')" class="resolve-btn inline-flex items-center gap-1 text-xs font-medium bg-green-50 text-green-700 hover:bg-green-100 px-3 py-1.5 rounded transition">' +
+                        '<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>' +
+                        ' 解決</button>' +
+                        '</td></tr>';
+                });
+                tbody.innerHTML = rows;
+            }
+        }
+
+        // Active count badge
+        var countEl = document.getElementById('active-alert-count');
+        if (countEl) countEl.textContent = '(' + activeAlerts.length + ')';
+    }
+
+    function updateOccupancy(occupied) {
+        var el = document.getElementById('occupancy-indicator');
+        if (!el) return;
+        if (occupied) {
+            el.innerHTML = '<span class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-semibold bg-orange-100 text-orange-700">' +
+                '<span class="relative flex h-2.5 w-2.5"><span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-orange-400 opacity-75"></span>' +
+                '<span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-orange-500"></span></span>' +
+                ' 在室中</span>';
+        } else {
+            el.innerHTML = '<span class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-semibold bg-gray-100 text-gray-500">' +
+                '<span class="inline-flex rounded-full h-2.5 w-2.5 bg-gray-400"></span>' +
+                ' 不在</span>';
+        }
+    }
+
+    function updateTimestamp() {
+        var el = document.getElementById('last-refresh');
+        if (el) {
+            var now = new Date();
+            el.textContent = now.toLocaleTimeString('ja-JP');
+        }
+    }
+
+    function escapeHtml(str) {
+        if (!str) return '';
+        var div = document.createElement('div');
+        div.appendChild(document.createTextNode(str));
+        return div.innerHTML;
+    }
+
+    // Initial timestamp
+    updateTimestamp();
+
+    // Start polling
+    setInterval(refreshStatus, REFRESH_INTERVAL);
+})();
+</script>
+{% endblock %}

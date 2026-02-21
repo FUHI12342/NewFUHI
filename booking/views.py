@@ -18,8 +18,9 @@ from django.utils import timezone
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth import get_user_model
+from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
-from django.core.exceptions import PermissionDenied
+from django.core.exceptions import ImproperlyConfigured, PermissionDenied
 from django.core.mail import send_mail
 from django.db.models import Q
 from django.db import transaction
@@ -37,6 +38,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.contrib import admin
 
 from rest_framework import generics, status
+from rest_framework.permissions import IsAdminUser, IsAuthenticated
 from rest_framework.views import APIView
 from rest_framework.response import Response
 
@@ -172,12 +174,18 @@ def _to_float_or_none(value: Any) -> Optional[float]:
 
 
 class UserList(generics.ListAPIView):
+    """ユーザー一覧API — 管理者のみアクセス可能"""
     queryset = User.objects.all()
     serializer_class = UserSerializer
+    permission_classes = [IsAdminUser]
 
 
 class Index(generic.TemplateView):
     template_name = 'booking/index.html'
+
+
+class HelpView(generic.TemplateView):
+    template_name = 'booking/help.html'
 
 
 def LINETimerView(request, user_id):
@@ -196,10 +204,8 @@ def LINETimerView(request, user_id):
     return render(request, 'booking/timer.html', context)
 
 
-end_time = timezone.now() + timedelta(hours=1)
-
-
 def get_end_time(request):
+    end_time = timezone.now() + timedelta(hours=1)
     return JsonResponse({'time': end_time.isoformat()})
 
 
@@ -237,9 +243,10 @@ class IoTEventAPIView(APIView):
         if not device_name:
             return Response({"detail": "device is required"}, status=status.HTTP_400_BAD_REQUEST)
 
-        # Device resolution
+        # Device resolution (APIキーはハッシュで照合)
+        api_key_hash = IoTDevice.hash_api_key(api_key)
         try:
-            device = IoTDevice.objects.get(api_key=api_key, external_id=device_name)
+            device = IoTDevice.objects.get(api_key_hash=api_key_hash, external_id=device_name)
         except IoTDevice.DoesNotExist:
             return Response({"detail": "device not found"}, status=status.HTTP_404_NOT_FOUND)
 
@@ -264,8 +271,16 @@ class IoTEventAPIView(APIView):
             if mq9_alt is not None:
                 payload_dict["mq9"] = mq9_alt
 
-        # Convert mq9 to float for database storage using helper function
+        # Convert sensor values to appropriate types for database storage
         mq9_value = _to_float_or_none(payload_dict["mq9"])
+        light_value = _to_float_or_none(payload_dict.get("light"))
+        sound_value = _to_float_or_none(payload_dict.get("sound"))
+
+        # PIR: treat any truthy value as triggered
+        pir_raw = _pick_value(request.data, sensors_dict, payload_raw_dict, "pir")
+        pir_triggered = None
+        if pir_raw is not None:
+            pir_triggered = bool(pir_raw)
 
         # Create IoT event
         evt = IoTEvent.objects.create(
@@ -273,6 +288,9 @@ class IoTEventAPIView(APIView):
             event_type=event_type,
             payload=json.dumps(payload_dict, ensure_ascii=False),
             mq9_value=mq9_value,
+            light_value=light_value,
+            sound_value=sound_value,
+            pir_triggered=pir_triggered,
         )
 
         # Update device last seen timestamp
@@ -297,15 +315,29 @@ class IoTConfigAPIView(APIView):
         if not external_id or not api_key:
             return Response({'detail': 'device または X-API-KEY が足りません'}, status=status.HTTP_400_BAD_REQUEST)
 
+        # APIキーをハッシュで照合
+        api_key_hash = IoTDevice.hash_api_key(api_key)
         try:
-            device = IoTDevice.objects.get(external_id=external_id, api_key=api_key, is_active=True)
+            device = IoTDevice.objects.get(external_id=external_id, api_key_hash=api_key_hash, is_active=True)
         except IoTDevice.DoesNotExist:
             return Response({'detail': '認証失敗'}, status=status.HTTP_403_FORBIDDEN)
 
+        # Ensure mq9_threshold is never null - provide default value
+        DEFAULT_MQ9_THRESHOLD = 500
+        mq9_threshold = device.mq9_threshold if device.mq9_threshold is not None else DEFAULT_MQ9_THRESHOLD
+
+        # Ensure threshold is positive
+        if mq9_threshold <= 0:
+            logger.warning(f"IoT device {device.external_id} has invalid threshold {mq9_threshold}, using default")
+            mq9_threshold = DEFAULT_MQ9_THRESHOLD
+
+        # Wi-Fiパスワードは暗号化されたものを復号して返す
+        wifi_password = device.get_wifi_password() or ''
+
         return Response({
             'device': device.external_id,
-            'wifi': {'ssid': device.wifi_ssid, 'password': device.wifi_password},
-            'mq9_threshold': device.mq9_threshold,
+            'wifi': {'ssid': device.wifi_ssid, 'password': wifi_password},
+            'mq9_threshold': int(mq9_threshold),
             'alert_enabled': device.alert_enabled,
         })
 
@@ -351,10 +383,18 @@ class IoTMQ9GraphView(LoginRequiredMixin, generic.TemplateView):
         return context
 
 
-# NOTE: hard-coded secrets are dangerous; keep backward compatibility via fallbacks.
-LINE_CHANNEL_ID = getattr(settings, 'LINE_CHANNEL_ID', '2006040383')
-LINE_CHANNEL_SECRET = getattr(settings, 'LINE_CHANNEL_SECRET', '44d0ddf511abac410bf2be6b302e2f48')
-REDIRECT_URL = getattr(settings, 'LINE_REDIRECT_URL', 'http://127.0.0.1:8000/booking/login/line/success/')
+def _get_line_setting(name):
+    """LINE設定値を取得。未設定の場合はエラーを発生させる。"""
+    value = getattr(settings, name, None)
+    if not value:
+        raise ImproperlyConfigured(
+            f"settings.{name} が設定されていません。.envファイルを確認してください。"
+        )
+    return value
+
+LINE_CHANNEL_ID = _get_line_setting('LINE_CHANNEL_ID')
+LINE_CHANNEL_SECRET = _get_line_setting('LINE_CHANNEL_SECRET')
+REDIRECT_URL = _get_line_setting('LINE_REDIRECT_URL')
 
 
 class LineEnterView(View):
@@ -506,8 +546,17 @@ class LineCallbackView(View):
 
 
 class PayingSuccessView(View):
+    """決済成功処理 — coiney_webhookからのみ呼び出されることを想定"""
+    _called_from_webhook = False
+
     def post(self, request, orderId):
-        payment_response = json.loads(request.body)
+        if not self._called_from_webhook:
+            logger.warning('PayingSuccessView: webhookを経由せず直接呼び出されました')
+            return JsonResponse({"error": "Forbidden"}, status=403)
+        try:
+            payment_response = json.loads(request.body)
+        except json.JSONDecodeError:
+            return JsonResponse({"error": "Invalid JSON"}, status=400)
         return process_payment(payment_response, request, orderId)
 
 
@@ -658,9 +707,16 @@ class PreBooking(generic.CreateView):
         return redirect('booking:line_enter')
 
 
-class CancelReservationView(View):
+class CancelReservationView(LoginRequiredMixin, View):
     def post(self, request, schedule_id):
         schedule = get_object_or_404(Schedule, id=schedule_id)
+        # 本人またはスタッフ/管理者のみキャンセル可能
+        is_owner = (schedule.line_user_hash and
+                    schedule.line_user_hash == Schedule.make_line_user_hash(
+                        request.session.get('line_user_id', '')))
+        is_staff_or_admin = (request.user.is_staff or request.user.is_superuser)
+        if not is_owner and not is_staff_or_admin:
+            raise PermissionDenied
         schedule.is_cancelled = True
         schedule.save(update_fields=["is_cancelled"])
 
@@ -767,6 +823,7 @@ class MyPageScheduleDelete(OnlyScheduleMixin, generic.DeleteView):
     success_url = reverse_lazy('booking:my_page')
 
 
+@login_required
 @require_POST
 def my_page_holiday_add(request, pk, year, month, day, hour):
     staff = get_object_or_404(Staff, pk=pk)
@@ -778,6 +835,7 @@ def my_page_holiday_add(request, pk, year, month, day, hour):
     raise PermissionDenied
 
 
+@login_required
 @require_POST
 def my_page_day_add(request, pk, year, month, day):
     staff = get_object_or_404(Staff, pk=pk)
@@ -790,18 +848,26 @@ def my_page_day_add(request, pk, year, month, day):
     raise PermissionDenied
 
 
+@login_required
 @require_POST
 def my_page_day_delete(request, pk, year, month, day):
     staff = get_object_or_404(Staff, pk=pk)
     if staff.user == request.user or request.user.is_superuser:
         start = datetime.datetime(year=year, month=month, day=day, hour=9)
         end = datetime.datetime(year=year, month=month, day=day, hour=17)
-        Schedule.objects.filter(staff=staff, start__gte=start, end__lte=end).delete()
+        # 顧客予約を保護: customer_nameが空のスタッフ作成ブロックのみ削除
+        Schedule.objects.filter(
+            staff=staff, start__gte=start, end__lte=end,
+            customer_name__isnull=True, price=0
+        ).delete()
         return redirect('booking:my_page_day_detail', pk=pk, year=year, month=month, day=day)
     raise PermissionDenied
 
 
+@login_required
 def upload_file(request):
+    if not request.user.is_staff:
+        raise PermissionDenied
     if request.method == 'POST':
         form = StaffForm(request.POST, request.FILES)
         if form.is_valid():
@@ -858,12 +924,33 @@ def process_payment(payment_response, request, orderId):
 
 @csrf_exempt
 def coiney_webhook(request, orderId):
-    if request.method == 'POST':
-        logger.info(request.META)
-        if orderId:
-            view = PayingSuccessView()
-            return view.post(request, orderId)
-        return JsonResponse({"error": "orderId not found in request body"}, status=400)
+    if request.method != 'POST':
+        return JsonResponse({"error": "Method not allowed"}, status=405)
+
+    # Webhook署名検証
+    webhook_secret = getattr(settings, 'COINEY_WEBHOOK_SECRET', None)
+    if webhook_secret:
+        import hmac as _hmac
+        signature = request.headers.get('X-Coiney-Signature', '')
+        expected = _hmac.new(
+            webhook_secret.encode(), request.body, hashlib.sha256
+        ).hexdigest()
+        if not _hmac.compare_digest(signature, expected):
+            logger.warning('coiney_webhook: 署名検証に失敗しました orderId=%s', orderId)
+            return JsonResponse({"error": "Invalid signature"}, status=403)
+    else:
+        logger.warning('coiney_webhook: COINEY_WEBHOOK_SECRET が未設定です。署名検証をスキップしています。')
+
+    # リクエストヘッダーのログ出力（機密情報を除外）
+    safe_meta = {k: v for k, v in request.META.items()
+                 if k.startswith('HTTP_') and k not in ('HTTP_COOKIE', 'HTTP_AUTHORIZATION')}
+    logger.info('coiney_webhook called: orderId=%s, headers=%s', orderId, safe_meta)
+
+    if orderId:
+        view = PayingSuccessView()
+        view._called_from_webhook = True
+        return view.post(request, orderId)
+    return JsonResponse({"error": "orderId not found in request body"}, status=400)
 
 
 def your_view(request):
@@ -988,8 +1075,11 @@ class OrderCreateAPIView(APIView):
     permission_classes = []
 
     def post(self, request, *args, **kwargs):
+        # セッションベースの簡易保護: store_idの妥当性チェックで不正大量注文を抑止
         store_id = request.data.get("store_id")
         items = request.data.get("items", [])
+        if not items or len(items) > 50:
+            return Response({"detail": "items must be 1-50"}, status=status.HTTP_400_BAD_REQUEST)
         schedule_id = request.data.get("schedule_id")
 
         if not store_id or not isinstance(items, list) or not items:
@@ -1263,3 +1353,19 @@ class OrderItemStatusUpdateAPIView(LoginRequiredMixin, APIView):
         item.save(update_fields=["status", "updated_at"])
 
         return Response({"ok": True, "order_item_id": item.id, "status": item.status})
+
+
+# ===== Phase 3: Sensor Dashboard View (HTML page, APIs in views_dashboard.py) =====
+
+class IoTSensorDashboardView(generic.TemplateView):
+    template_name = 'booking/iot_sensor_dashboard.html'
+
+    def get_context_data(self, **kwargs):
+        ctx = super().get_context_data(**kwargs)
+        ctx['devices'] = IoTDevice.objects.filter(is_active=True).select_related('store')
+        return ctx
+
+
+# ===== Phase 5: Property Views (re-exports for URL routing) =====
+
+from booking.views_property import PropertyListView, PropertyDetailView  # noqa: E402, F401

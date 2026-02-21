@@ -16,13 +16,14 @@ from .views import (
 app_name = 'booking'
 
 urlpatterns = [
-    # トップ・認証
+    # Top / Auth
     path('', views.StoreList.as_view(), name='store_list'),
     path('index/', views.Index.as_view(), name='index'),
+    path('help/', views.HelpView.as_view(), name='help'),
     path('login/', LoginView.as_view(template_name='admin/login.html'), name='login'),
     path('logout/', LogoutView.as_view(), name='logout'),
 
-    # 店舗・スタッフ・予約
+    # Store / Staff / Booking
     path('store/<int:pk>/staffs/', views.StaffList.as_view(), name='staff_list'),
     path('staff/<int:pk>/calendar/', views.StaffCalendar.as_view(), name='staff_calendar'),
     path(
@@ -36,37 +37,25 @@ urlpatterns = [
         name='prebooking'
     ),
 
-    # LINE ログイン & 決済フロー
+    # LINE login & payment
     path('line_enter/', LineEnterView.as_view(), name='line_enter'),
     path('booking/login/line/success/', LineCallbackView.as_view(), name='line_success'),
     path('line_timer/<str:user_id>/', views.LINETimerView, name='LINETimerView'),
 
-    # 時刻・予約関連API
-    path('api/endTime', views.get_end_time),
-    path('api/currentTime', views.get_current_time),
-    path('api/reservation/<int:pk>/', views.get_reservation, name='get_reservation'),
-    path('api/reservation_times/<int:pk>/', views.get_reservation_times, name='get_reservation_times'),
-
-    # 決済Webhook
-    path('coiney_webhook/<str:orderId>/', views.coiney_webhook, name='coiney_webhook'),
-
-    # ユーザーAPI（サンプル）
-    path('users/', UserList.as_view(), name='user_list'),
-
-    
-    
-
-    # 予約キャンセル
+    # Cancel
     path(
         'cancel_reservation/<int:schedule_id>/',
         CancelReservationView.as_view(),
         name='cancel_reservation'
     ),
 
-    # ファイルアップロード（スタッフ画像など）
+    # Users
+    path('users/', UserList.as_view(), name='user_list'),
+
+    # File upload
     path('upload/', views.upload_file, name='upload_file'),
 
-    # マイページ系
+    # My Page
     path('mypage/', views.MyPage.as_view(), name='my_page'),
     path('mypage/<int:pk>/', views.MyPageWithPk.as_view(), name='my_page_with_pk'),
     path('mypage/<int:pk>/calendar/', views.MyPageCalendar.as_view(), name='my_page_calendar'),
@@ -97,21 +86,16 @@ urlpatterns = [
         name='my_page_day_add'
     ),
 
-    # ===== IoT 関連 API =====
-    path('api/iot/events/', views.IoTEventAPIView.as_view(), name='iot_events'),
-    path('api/iot/config/', views.IoTConfigAPIView.as_view(), name='iot_config'),
-
-    # ===== 在庫・注文・入庫QR・多言語メニュー =====
+    # Menu page (user-facing HTML)
     path('menu/<int:store_id>/', views.CustomerMenuView.as_view(), name='customer_menu'),
-    path('api/menu', views.CustomerMenuJsonAPIView.as_view(), name='customer_menu_json'),
 
-    path('api/products/alternatives/', views.ProductAlternativesAPIView.as_view(), name='product_alternatives_api'),
-
-    path('api/orders/create/', views.OrderCreateAPIView.as_view(), name='order_create_api'),
-    path('api/orders/status/', views.OrderStatusAPIView.as_view(), name='order_status_api'),
-    path('api/staff/orders/served/', views.StaffMarkServedAPIView.as_view(), name='staff_mark_served_api'),
-    path('api/staff/orders/items/<int:item_id>/status/', views.OrderItemStatusUpdateAPIView.as_view(), name='order_item_status_update_api'),
-
+    # Stock inbound (user-facing HTML)
     path('stock/inbound/', views.InboundQRView.as_view(), name='inbound_qr'),
-    path('api/stock/inbound/apply/', views.InboundApplyAPIView.as_view(), name='inbound_apply_api'),
+
+    # Sensor dashboard
+    path('dashboard/sensors/', views.IoTSensorDashboardView.as_view(), name='iot_sensor_dashboard'),
+
+    # Property monitoring
+    path('properties/', views.PropertyListView.as_view(), name='property_list'),
+    path('properties/<int:pk>/', views.PropertyDetailView.as_view(), name='property_detail'),
 ]

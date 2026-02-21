@@ -8,7 +8,7 @@ from django.core.mail import send_mail
 from django.conf import settings
 from django.db import models
 
-from .models import Schedule, IoTDevice, Product
+from .models import Schedule, IoTDevice, IoTEvent, Product, Property, PropertyDevice, PropertyAlert
 from .line_notify import send_line_notify
 
 logger = logging.getLogger(__name__)
@@ -69,3 +69,74 @@ def check_low_stock_and_notify():
             logger.error('Failed to send low stock notification for %s', product.sku)
 
     logger.info('Low stock check completed: %d notifications sent', notified_count)
+
+
+@shared_task
+def check_property_alerts():
+    """
+    物件アラート検知（5分ごと実行）。
+    - ガス漏れ: MQ-9がthreshold超過（直近5分）→ critical
+    - 長期不在: PIR未検知3日以上 → warning
+    - デバイスオフライン: last_seen_at 30分超過 → info
+    - 重複アラート防止（未解決の同種アラートがあればスキップ）
+    """
+    now = timezone.now()
+    created = 0
+
+    for prop in Property.objects.filter(is_active=True):
+        pds = PropertyDevice.objects.filter(property=prop).select_related('device')
+
+        for pd in pds:
+            device = pd.device
+            if not device.is_active:
+                continue
+
+            # --- Gas leak detection ---
+            if device.mq9_threshold:
+                recent_high = IoTEvent.objects.filter(
+                    device=device,
+                    created_at__gte=now - timezone.timedelta(minutes=5),
+                    mq9_value__gt=device.mq9_threshold,
+                ).exists()
+                if recent_high:
+                    exists = PropertyAlert.objects.filter(
+                        property=prop, device=device, alert_type='gas_leak', is_resolved=False,
+                    ).exists()
+                    if not exists:
+                        PropertyAlert.objects.create(
+                            property=prop, device=device,
+                            alert_type='gas_leak', severity='critical',
+                            message=f'{device.name} ({pd.location_label}): MQ-9がthreshold({device.mq9_threshold})を超過しました',
+                        )
+                        created += 1
+
+            # --- No motion detection (3 days) ---
+            last_pir = IoTEvent.objects.filter(
+                device=device, pir_triggered=True,
+            ).order_by('-created_at').first()
+            if last_pir and (now - last_pir.created_at).days >= 3:
+                exists = PropertyAlert.objects.filter(
+                    property=prop, device=device, alert_type='no_motion', is_resolved=False,
+                ).exists()
+                if not exists:
+                    PropertyAlert.objects.create(
+                        property=prop, device=device,
+                        alert_type='no_motion', severity='warning',
+                        message=f'{device.name} ({pd.location_label}): 3日以上動体未検知',
+                    )
+                    created += 1
+
+            # --- Device offline (30 min) ---
+            if device.last_seen_at and (now - device.last_seen_at).total_seconds() > 1800:
+                exists = PropertyAlert.objects.filter(
+                    property=prop, device=device, alert_type='device_offline', is_resolved=False,
+                ).exists()
+                if not exists:
+                    PropertyAlert.objects.create(
+                        property=prop, device=device,
+                        alert_type='device_offline', severity='info',
+                        message=f'{device.name} ({pd.location_label}): 30分以上通信なし',
+                    )
+                    created += 1
+
+    logger.info('Property alert check completed: %d new alerts created', created)

@@ -1,0 +1,24 @@
+{% extends "admin/index.html" %}
+{% load i18n %}
+
+{% block content %}
+<!-- Dashboard Links -->
+{% if user.is_superuser or user.is_staff %}
+<div style="margin-bottom: 20px; display: flex; gap: 12px; flex-wrap: wrap;">
+    <a href="{% url 'admin_debug_panel' %}"
+       style="display: inline-block; padding: 12px 20px; background: #417690; color: white; text-decoration: none; border-radius: 6px; font-weight: bold;">
+        {% trans "デバッグパネル" %}
+    </a>
+    <a href="{% url 'admin_restaurant_dashboard' %}"
+       style="display: inline-block; padding: 12px 20px; background: #79aec8; color: white; text-decoration: none; border-radius: 6px; font-weight: bold;">
+        {% trans "飲食店ダッシュボード" %}
+    </a>
+    <a href="{% url 'admin_iot_mq9' %}"
+       style="display: inline-block; padding: 12px 20px; background: #609b5b; color: white; text-decoration: none; border-radius: 6px; font-weight: bold;">
+        {% trans "MQ-9 ガスセンサー" %}
+    </a>
+</div>
+{% endif %}
+
+{{ block.super }}
+{% endblock %}

@@ -1,0 +1,261 @@
+{% extends "admin/base_site.html" %}
+{% load i18n static %}
+
+{% block extrahead %}
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+  /* Override admin content area to allow Tailwind to breathe */
+  #content { max-width: 100%; }
+  .debug-badge {
+    display: inline-block;
+    padding: 2px 10px;
+    border-radius: 9999px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+  .badge-online  { background: #d1fae5; color: #065f46; }
+  .badge-offline { background: #fee2e2; color: #991b1b; }
+</style>
+{% endblock %}
+
+{% block title %}IoT Debug Panel | {{ site_title|default:_('Django site admin') }}{% endblock %}
+
+{% block breadcrumbs %}
+<div class="breadcrumbs">
+  <a href="{% url 'admin:index' %}">{% translate 'Home' %}</a>
+  &rsaquo; <a href="{% url 'admin:index' %}">Booking</a>
+  &rsaquo; IoT Debug Panel
+</div>
+{% endblock %}
+
+{% block content %}
+
+{# ── Device Connection Status ────────────────────────────────────────── #}
+<section class="tw-mb-10">
+  <h2 class="tw-text-xl tw-font-bold tw-mb-4 tw-text-gray-800 dark:tw-text-gray-200">
+    Device Connection Status
+  </h2>
+  <div class="tw-overflow-x-auto tw-rounded-lg tw-shadow">
+    <table id="device-table" class="tw-min-w-full tw-divide-y tw-divide-gray-200 dark:tw-divide-gray-700">
+      <thead class="tw-bg-gray-50 dark:tw-bg-gray-800">
+        <tr>
+          <th class="tw-px-6 tw-py-3 tw-text-left tw-text-xs tw-font-semibold tw-text-gray-500 dark:tw-text-gray-400 tw-uppercase tw-tracking-wider">Name</th>
+          <th class="tw-px-6 tw-py-3 tw-text-left tw-text-xs tw-font-semibold tw-text-gray-500 dark:tw-text-gray-400 tw-uppercase tw-tracking-wider">Store</th>
+          <th class="tw-px-6 tw-py-3 tw-text-left tw-text-xs tw-font-semibold tw-text-gray-500 dark:tw-text-gray-400 tw-uppercase tw-tracking-wider">External ID</th>
+          <th class="tw-px-6 tw-py-3 tw-text-left tw-text-xs tw-font-semibold tw-text-gray-500 dark:tw-text-gray-400 tw-uppercase tw-tracking-wider">Type</th>
+          <th class="tw-px-6 tw-py-3 tw-text-left tw-text-xs tw-font-semibold tw-text-gray-500 dark:tw-text-gray-400 tw-uppercase tw-tracking-wider">Status</th>
+          <th class="tw-px-6 tw-py-3 tw-text-left tw-text-xs tw-font-semibold tw-text-gray-500 dark:tw-text-gray-400 tw-uppercase tw-tracking-wider">Last Seen</th>
+          <th class="tw-px-6 tw-py-3 tw-text-left tw-text-xs tw-font-semibold tw-text-gray-500 dark:tw-text-gray-400 tw-uppercase tw-tracking-wider">Actions</th>
+        </tr>
+      </thead>
+      <tbody class="tw-bg-white dark:tw-bg-gray-900 tw-divide-y tw-divide-gray-200 dark:tw-divide-gray-700">
+        {% for d in devices %}
+        <tr class="hover:tw-bg-gray-50 dark:hover:tw-bg-gray-800 tw-transition-colors" data-device-id="{{ d.id }}">
+          <td class="tw-px-6 tw-py-4 tw-whitespace-nowrap tw-text-sm tw-font-medium tw-text-gray-900 dark:tw-text-gray-100">{{ d.name }}</td>
+          <td class="tw-px-6 tw-py-4 tw-whitespace-nowrap tw-text-sm tw-text-gray-600 dark:tw-text-gray-400">{{ d.store }}</td>
+          <td class="tw-px-6 tw-py-4 tw-whitespace-nowrap tw-text-sm tw-font-mono tw-text-gray-600 dark:tw-text-gray-400">{{ d.external_id }}</td>
+          <td class="tw-px-6 tw-py-4 tw-whitespace-nowrap tw-text-sm tw-text-gray-600 dark:tw-text-gray-400">{{ d.device_type }}</td>
+          <td class="tw-px-6 tw-py-4 tw-whitespace-nowrap">
+            {% if d.online %}
+              <span class="debug-badge badge-online">Online</span>
+            {% else %}
+              <span class="debug-badge badge-offline">Offline</span>
+            {% endif %}
+          </td>
+          <td class="tw-px-6 tw-py-4 tw-whitespace-nowrap tw-text-sm tw-text-gray-600 dark:tw-text-gray-400">{{ d.last_seen_at|default:"Never" }}</td>
+          <td class="tw-px-6 tw-py-4 tw-whitespace-nowrap tw-text-sm">
+            <a href="../../debug/device/{{ d.id }}/"
+               class="tw-text-blue-600 hover:tw-text-blue-800 dark:tw-text-blue-400 dark:hover:tw-text-blue-300 tw-underline">
+              Debug &rarr;
+            </a>
+          </td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="7" class="tw-px-6 tw-py-8 tw-text-center tw-text-sm tw-text-gray-500 dark:tw-text-gray-400">
+            No IoT devices found.
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  <p id="device-refresh-status" class="tw-mt-2 tw-text-xs tw-text-gray-400 dark:tw-text-gray-500">
+    Auto-refresh every 10 seconds.
+  </p>
+</section>
+
+{# ── Log Level Control ───────────────────────────────────────────────── #}
+<section class="tw-mb-10">
+  <h2 class="tw-text-xl tw-font-bold tw-mb-4 tw-text-gray-800 dark:tw-text-gray-200">
+    Log Level Control
+  </h2>
+  <form id="log-level-form" method="post" class="tw-bg-white dark:tw-bg-gray-900 tw-rounded-lg tw-shadow tw-p-6">
+    {% csrf_token %}
+    <div class="tw-flex tw-flex-wrap tw-gap-6 tw-items-center">
+      {% for level in log_levels %}
+      <label class="tw-flex tw-items-center tw-gap-2 tw-cursor-pointer tw-text-sm tw-text-gray-700 dark:tw-text-gray-300">
+        <input type="radio" name="log_level" value="{{ level }}"
+               {% if level == current_log_level %}checked{% endif %}
+               class="tw-w-4 tw-h-4 tw-text-blue-600 tw-border-gray-300 focus:tw-ring-blue-500">
+        <span class="tw-font-mono tw-font-semibold">{{ level }}</span>
+      </label>
+      {% endfor %}
+      <button type="submit"
+              class="tw-ml-4 tw-inline-flex tw-items-center tw-px-4 tw-py-2 tw-border tw-border-transparent tw-text-sm tw-font-medium tw-rounded-md tw-text-white tw-bg-blue-600 hover:tw-bg-blue-700 focus:tw-outline-none focus:tw-ring-2 focus:tw-ring-offset-2 focus:tw-ring-blue-500 tw-transition-colors">
+        Save
+      </button>
+    </div>
+    <p id="log-level-status" class="tw-mt-3 tw-text-sm tw-text-green-600 tw-hidden">Log level updated.</p>
+  </form>
+</section>
+
+{# ── Recent API Requests (IoTEvent) ──────────────────────────────────── #}
+<section class="tw-mb-10">
+  <h2 class="tw-text-xl tw-font-bold tw-mb-4 tw-text-gray-800 dark:tw-text-gray-200">
+    Recent API Requests
+  </h2>
+  <div class="tw-overflow-x-auto tw-rounded-lg tw-shadow">
+    <table id="events-table" class="tw-min-w-full tw-divide-y tw-divide-gray-200 dark:tw-divide-gray-700">
+      <thead class="tw-bg-gray-50 dark:tw-bg-gray-800">
+        <tr>
+          <th class="tw-px-6 tw-py-3 tw-text-left tw-text-xs tw-font-semibold tw-text-gray-500 dark:tw-text-gray-400 tw-uppercase tw-tracking-wider">Timestamp</th>
+          <th class="tw-px-6 tw-py-3 tw-text-left tw-text-xs tw-font-semibold tw-text-gray-500 dark:tw-text-gray-400 tw-uppercase tw-tracking-wider">Device</th>
+          <th class="tw-px-6 tw-py-3 tw-text-left tw-text-xs tw-font-semibold tw-text-gray-500 dark:tw-text-gray-400 tw-uppercase tw-tracking-wider">Event Type</th>
+          <th class="tw-px-6 tw-py-3 tw-text-left tw-text-xs tw-font-semibold tw-text-gray-500 dark:tw-text-gray-400 tw-uppercase tw-tracking-wider">MQ-9 Value</th>
+        </tr>
+      </thead>
+      <tbody class="tw-bg-white dark:tw-bg-gray-900 tw-divide-y tw-divide-gray-200 dark:tw-divide-gray-700">
+        {% for ev in recent_events %}
+        <tr class="hover:tw-bg-gray-50 dark:hover:tw-bg-gray-800 tw-transition-colors">
+          <td class="tw-px-6 tw-py-4 tw-whitespace-nowrap tw-text-sm tw-font-mono tw-text-gray-600 dark:tw-text-gray-400">{{ ev.created_at }}</td>
+          <td class="tw-px-6 tw-py-4 tw-whitespace-nowrap tw-text-sm tw-text-gray-900 dark:tw-text-gray-100">{{ ev.device }}</td>
+          <td class="tw-px-6 tw-py-4 tw-whitespace-nowrap tw-text-sm">
+            <span class="tw-inline-block tw-px-2 tw-py-1 tw-rounded tw-bg-gray-100 dark:tw-bg-gray-700 tw-text-gray-700 dark:tw-text-gray-300 tw-font-mono tw-text-xs">
+              {{ ev.event_type }}
+            </span>
+          </td>
+          <td class="tw-px-6 tw-py-4 tw-whitespace-nowrap tw-text-sm tw-font-mono tw-text-gray-600 dark:tw-text-gray-400">{{ ev.mq9_value|default:"--" }}</td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="4" class="tw-px-6 tw-py-8 tw-text-center tw-text-sm tw-text-gray-500 dark:tw-text-gray-400">
+            No recent events.
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>
+
+{# ── Error Log Viewer ────────────────────────────────────────────────── #}
+<section class="tw-mb-10">
+  <h2 class="tw-text-xl tw-font-bold tw-mb-4 tw-text-gray-800 dark:tw-text-gray-200">
+    Error Log Viewer
+  </h2>
+  <div class="tw-rounded-lg tw-shadow tw-bg-gray-900 tw-p-4 tw-overflow-x-auto">
+    <pre class="tw-text-xs tw-leading-relaxed tw-text-green-400 tw-font-mono tw-whitespace-pre-wrap tw-break-words tw-max-h-96 tw-overflow-y-auto">{% for line in log_lines %}{{ line }}
+{% empty %}No log output available.{% endfor %}</pre>
+  </div>
+</section>
+
+{# ── JavaScript: AJAX auto-refresh & log-level POST ─────────────────── #}
+<script>
+(function () {
+  const CSRF_TOKEN = document.querySelector('[name=csrfmiddlewaretoken]').value;
+  const REFRESH_MS = 10000;
+
+  /* ── Auto-refresh devices & events every 10 s ────────────────────── */
+  function refreshPanel() {
+    fetch('/api/debug/panel/', {
+      credentials: 'same-origin',
+      headers: { 'X-Requested-With': 'XMLHttpRequest' }
+    })
+    .then(r => { if (!r.ok) throw new Error(r.status); return r.json(); })
+    .then(data => {
+      /* Rebuild device table body */
+      if (data.devices) {
+        const tbody = document.querySelector('#device-table tbody');
+        tbody.innerHTML = data.devices.map(d => `
+          <tr class="hover:tw-bg-gray-50 dark:hover:tw-bg-gray-800 tw-transition-colors" data-device-id="${d.id}">
+            <td class="tw-px-6 tw-py-4 tw-whitespace-nowrap tw-text-sm tw-font-medium tw-text-gray-900 dark:tw-text-gray-100">${esc(d.name)}</td>
+            <td class="tw-px-6 tw-py-4 tw-whitespace-nowrap tw-text-sm tw-text-gray-600 dark:tw-text-gray-400">${esc(d.store)}</td>
+            <td class="tw-px-6 tw-py-4 tw-whitespace-nowrap tw-text-sm tw-font-mono tw-text-gray-600 dark:tw-text-gray-400">${esc(d.external_id)}</td>
+            <td class="tw-px-6 tw-py-4 tw-whitespace-nowrap tw-text-sm tw-text-gray-600 dark:tw-text-gray-400">${esc(d.device_type)}</td>
+            <td class="tw-px-6 tw-py-4 tw-whitespace-nowrap">
+              <span class="debug-badge ${d.online ? 'badge-online' : 'badge-offline'}">${d.online ? 'Online' : 'Offline'}</span>
+            </td>
+            <td class="tw-px-6 tw-py-4 tw-whitespace-nowrap tw-text-sm tw-text-gray-600 dark:tw-text-gray-400">${d.last_seen_at || 'Never'}</td>
+            <td class="tw-px-6 tw-py-4 tw-whitespace-nowrap tw-text-sm">
+              <a href="../../debug/device/${d.id}/" class="tw-text-blue-600 hover:tw-text-blue-800 dark:tw-text-blue-400 dark:hover:tw-text-blue-300 tw-underline">Debug &rarr;</a>
+            </td>
+          </tr>
+        `).join('');
+      }
+
+      /* Rebuild events table body */
+      if (data.recent_events) {
+        const etbody = document.querySelector('#events-table tbody');
+        etbody.innerHTML = data.recent_events.map(ev => `
+          <tr class="hover:tw-bg-gray-50 dark:hover:tw-bg-gray-800 tw-transition-colors">
+            <td class="tw-px-6 tw-py-4 tw-whitespace-nowrap tw-text-sm tw-font-mono tw-text-gray-600 dark:tw-text-gray-400">${esc(ev.created_at)}</td>
+            <td class="tw-px-6 tw-py-4 tw-whitespace-nowrap tw-text-sm tw-text-gray-900 dark:tw-text-gray-100">${esc(ev.device)}</td>
+            <td class="tw-px-6 tw-py-4 tw-whitespace-nowrap tw-text-sm">
+              <span class="tw-inline-block tw-px-2 tw-py-1 tw-rounded tw-bg-gray-100 dark:tw-bg-gray-700 tw-text-gray-700 dark:tw-text-gray-300 tw-font-mono tw-text-xs">${esc(ev.event_type)}</span>
+            </td>
+            <td class="tw-px-6 tw-py-4 tw-whitespace-nowrap tw-text-sm tw-font-mono tw-text-gray-600 dark:tw-text-gray-400">${ev.mq9_value != null ? esc(String(ev.mq9_value)) : '--'}</td>
+          </tr>
+        `).join('');
+      }
+
+      const ts = document.getElementById('device-refresh-status');
+      ts.textContent = 'Last refreshed: ' + new Date().toLocaleTimeString() + '  (auto-refresh every 10 s)';
+    })
+    .catch(err => {
+      console.error('Debug panel refresh failed:', err);
+    });
+  }
+
+  setInterval(refreshPanel, REFRESH_MS);
+
+  /* ── Escape HTML helper ──────────────────────────────────────────── */
+  function esc(s) {
+    const d = document.createElement('div');
+    d.appendChild(document.createTextNode(s || ''));
+    return d.innerHTML;
+  }
+
+  /* ── Log-level form: POST via AJAX ───────────────────────────────── */
+  const form = document.getElementById('log-level-form');
+  form.addEventListener('submit', function (e) {
+    e.preventDefault();
+    const level = form.querySelector('input[name="log_level"]:checked');
+    if (!level) return;
+
+    fetch('/api/debug/log-level/', {
+      method: 'POST',
+      credentials: 'same-origin',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRFToken': CSRF_TOKEN,
+        'X-Requested-With': 'XMLHttpRequest'
+      },
+      body: JSON.stringify({ log_level: level.value })
+    })
+    .then(r => { if (!r.ok) throw new Error(r.status); return r.json(); })
+    .then(() => {
+      const msg = document.getElementById('log-level-status');
+      msg.classList.remove('tw-hidden');
+      setTimeout(() => msg.classList.add('tw-hidden'), 3000);
+    })
+    .catch(err => {
+      alert('Failed to update log level: ' + err.message);
+    });
+  });
+})();
+</script>
+
+{% endblock %}

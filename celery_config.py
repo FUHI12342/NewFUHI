@@ -28,6 +28,10 @@ app.conf.beat_schedule = {
         "task": "booking.tasks.check_low_stock_and_notify",
         "schedule": crontab(hour=9, minute=0),  # 毎日 09:00
     },
+    "check-property-alerts": {
+        "task": "booking.tasks.check_property_alerts",
+        "schedule": 300.0,  # 5分ごと
+    },
 }
 
 # 互換のため明示（settings.py 側で CELERY_TASK_SERIALIZER などを設定しているなら不要）

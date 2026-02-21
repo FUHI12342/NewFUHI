@@ -23,6 +23,10 @@ from .models import (
     Order,
     OrderItem,
     StockMovement,
+    SystemConfig,
+    Property,
+    PropertyDevice,
+    PropertyAlert,
 )
 
 # ==============================
@@ -516,5 +520,42 @@ from django.contrib.auth.models import User, Group
 from django.contrib.auth.admin import UserAdmin, GroupAdmin
 custom_site.register(User, UserAdmin)
 custom_site.register(Group, GroupAdmin)
+
+# ==============================
+# Phase 2: システム設定
+# ==============================
+class SystemConfigAdmin(admin.ModelAdmin):
+    list_display = ('key', 'value', 'updated_at')
+    search_fields = ('key', 'value')
+    readonly_fields = ('updated_at',)
+
+
+# ==============================
+# Phase 5: 不動産
+# ==============================
+class PropertyDeviceInline(admin.TabularInline):
+    model = PropertyDevice
+    extra = 0
+    autocomplete_fields = ('device',)
+
+
+class PropertyAdmin(admin.ModelAdmin):
+    list_display = ('name', 'address', 'property_type', 'owner_name', 'store', 'is_active')
+    list_filter = ('property_type', 'is_active', 'store')
+    search_fields = ('name', 'address', 'owner_name')
+    inlines = [PropertyDeviceInline]
+
+
+class PropertyAlertAdmin(admin.ModelAdmin):
+    list_display = ('property', 'device', 'alert_type', 'severity', 'is_resolved', 'created_at')
+    list_filter = ('alert_type', 'severity', 'is_resolved')
+    search_fields = ('property__name', 'message')
+    date_hierarchy = 'created_at'
+    readonly_fields = ('created_at',)
+
+
+custom_site.register(SystemConfig, SystemConfigAdmin)
+custom_site.register(Property, PropertyAdmin)
+custom_site.register(PropertyAlert, PropertyAlertAdmin)
 
 print("booking.admin loaded")

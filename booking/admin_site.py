@@ -30,7 +30,7 @@ class RoleBasedAdminSite(AdminSite):
             return app_list
         app_list = super().get_app_list(request, app_label)
         if role == 'manager':
-            allowed_models = ['schedule', 'order', 'orderitem', 'staff', 'store', 'iotdevice', 'iotevent', 'category', 'product', 'producttranslation', 'stockmovement']
+            allowed_models = ['schedule', 'order', 'orderitem', 'staff', 'store', 'iotdevice', 'iotevent', 'category', 'product', 'producttranslation', 'stockmovement', 'property', 'propertydevice', 'propertyalert', 'systemconfig']
         elif role == 'staff':
             allowed_models = ['schedule', 'order', 'orderitem', 'staff', 'iotdevice', 'iotevent', 'product', 'stockmovement']
         else:
@@ -43,7 +43,7 @@ class RoleBasedAdminSite(AdminSite):
                 app_copy = app.copy()
                 app_copy['models'] = models
                 filtered.append(app_copy)
-        result = filtered if filtered else app_list
+        result = filtered
         logger.info(f"filtered app_list: {[app['name'] for app in result]}")
         return result
 

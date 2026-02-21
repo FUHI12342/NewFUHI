@@ -1,222 +1,226 @@
+{% load i18n %}
 <!DOCTYPE html>
-<html lang="ja">
+<html lang="{{ current_language|default:'ja' }}">
 <head>
 <meta charset="UTF-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
-<title>占いサロンチャンス　オンライン予約ページ</title>
+<title>{% block title %}{% trans "占いサロンチャンス　オンライン予約ページ" %}{% endblock %}</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="description" content="ここにサイト説明を入れます">
-<meta name="keywords" content="キーワード１,キーワード２,キーワード３,キーワード４,キーワード５">
+<meta name="description" content="{% trans '占いサロンチャンスのオンライン予約サイト。新宿・池袋の占い師に簡単予約。' %}">
+<meta name="keywords" content="占い,サロン,予約,新宿,池袋,オンライン予約,占いサロンチャンス">
 {% load static %}
+<!-- Tailwind CSS CDN -->
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+tailwind.config = {
+    theme: {
+        extend: {
+            colors: {
+                'salon-brown': '#8c876c',
+                'salon-beige': '#f1f0ec',
+                'salon-dark': '#333333',
+            },
+            fontFamily: {
+                'jp': ['"ヒラギノ角ゴ Pro W3"', '"Hiragino Kaku Gothic Pro"', '"メイリオ"', 'Meiryo', 'sans-serif'],
+            }
+        }
+    }
+}
+</script>
+<!-- 既存CSS（互換性維持） -->
 <link rel="stylesheet" type="text/css" href="{% static 'css/style.css' %}">
-<script src="{% static 'js/ddmenu_min.js' %}"></script>
-<script src="{% static 'js/fixmenu_pagetop.js' %}"></script>
-<script src="{% static 'js/fixmenu.js' %}"></script>
+{% block extra_css %}{% endblock %}
 <script src="{% static 'js/openclose.js' %}"></script>
-
 </head>
 
-<body>
+<body class="font-jp text-salon-dark bg-white min-h-screen flex flex-col">
 
-    <header>
-    <div class="inner">
-        <h1 id="logo"><a href="https://timebaibai.com"><img src="{% static 'images/siteid.png' %}" alt="占いサロンチャンス　オンライン予約サイト(ロゴ)"></a></h1>
-    </div>
-        <style>
-            .blogcard-site {
-                display: flex;
-                align-items: center;  /* faviconとテキストを中央揃えに */
-            }
-
-            .blogcard-favicon-image {
-                width: 24px;  /* faviconの大きさを調整 */
-                height: 24px;  /* 縦横比を保持 */
-                flex-shrink: 0;  /* 追加 */
-            }
-
-            .blogcard-text {
-                display: flex;
-                flex-direction: column;
-                margin-left: 10px;  /* faviconとの間隔を調整 */
-            }
-
-            .blogcard-title {
-                font-weight: bold;  /* タイトルを太字に */
-                text-overflow: ellipsis;  /* 文字列が長すぎる場合に省略記号(...)を表示 */
-            }
-            .submenu h4 {
-                text-decoration: underline;  /* 下線を引きます */
-                white-space: nowrap;  /* テキストを一行に収めます */
-                overflow: hidden;  /* テキストがボックスを超えた場合に隠します */
-                text-overflow: ellipsis;  /* テキストがボックスを超えた場合に省略記号（...）を表示します */
-                width: 200px;  /* 必要に応じて幅を調整します */
-            }
-            </style>
-    </header>
-
-<!--PC用（901px以上端末）メニュー-->
-<nav id="menubar" class="nav-fix-pos">
-    <ul class="inner">
-    <li><a href="index.html">ホーム<span>Home</span></a></li>
-    <li><a href="{% url 'booking:store_list' %}">店舗情報<span>Store</span></a>
-    <ul class="ddmenu">
-    <li><a href="calendar.html">新宿１号店</a></li>
-    <li><a href="calendar.html">新宿2号店</a></li>
-    <li><a href="calendar.html">池袋店</a></li>
-    </ul>
-    </li>
-    <li><a href="{% url 'booking:store_list' %}">ご予約<span>Reservation</span></a></li>
-    <li><a href="faq.html">所属占い師<span>Fortune-teller</span></a></li>
-    <li><a href="contact.html">お問い合わせ<span>Contact</span></a></li>
-    <li><a href=" ">スタッフページ<span></span></a></li>
-    </ul>
-    </nav>
-    <!--小さな端末用（900px以下端末）メニュー-->
-    <nav id="menubar-s">
-    <ul>
-    <li><a href="index.html">ホーム<span>Home</span></a></li>
-    <li><a href="{% url 'booking:store_list' %}">店舗一覧<span>Store</span></a></li>
-    <li><a href="{% url 'booking:store_list' %}">ご予約<span>Reservation</span></a></li>
-    <li><a href="link.html">所属占い師<span>Fortune-teller</span></a></li>
-    <li><a href="contact.html">お問い合わせ<span>Contact</span></a></li>
-    <li><a href=" "><span>スタッフページ</span> </a></li>
-    </ul>
-    </nav>
-
-<div id="contents" class="inner">
-
-<div id="contents-in">
-    
-    <div id="main">
-        
-
-        {% block content %}{% endblock %}
-
-    </div>
-    <!--/#main-->
-
-    <div id="sub">
-
-        <section>
-            <h2>お知らせ</h2>
-            {% for notice in notices %}
-            <div class="submenu">
-                <a href="{{ notice.link }}">
-                    <h4>◆{{ notice.title }}</h4>
-                    <p>更新日：{{ notice.updated_at }}</p>
-                </a>
-            </div>
-            {% endfor %}
-        </section>
-
-        <div class="box1">
-            <h2 class="mb10">運営会社</h2>
-            <p>{{ company.name }}<br>
-            {{ company.address }}<br>
-            TEL:{{ company.tel }}<br>
-        </div>       
-       
-    </div>
-    <!--/#sub-->
-
-</div>
-<!--/#contents-in-->
-
-    <div id="side">
-
-    <section>
-        <h2>☆メディア掲載情報☆</h2>
-        {% for media in medias %}
-        <div class="list-sub">
-            <a href="{{ media.link }}" target="_blank">
-                <div class="blogcard-site external-blogcard-site">
-                    <div class="blogcard-favicon-image external-blogcard-favicon-image">
-                        <img src="https://www.google.com/s2/favicons?domain={{ media.link }}" alt="" class="blogcard-favicon-image external-blogcard-favicon-image"/>
-                    </div>
-                    <div class="blogcard-text">
-                        <div class="blogcard-title external-blogcard-title">{{ media.title }}</div>
-                        <div class="blogcard-snippet external-blogcard-snippet">{{ media.description }}</div>
-                    </div>
-                </div>
-            {% if forloop.first %}
-                <span class="new">new</span>
-            {% endif %}
-            </a>
-        </div>
-        {% endfor %}
-    </section>
-
-    <p>
-        <a href="recruit.html"><img src="{% static 'images/banner1.jpg' %}" alt="採用情報" class="pc"></a>
-        <!-- <a href="recruit.html"><img src="images/banner1_sh.jpg" alt="採用情報" class="sh"></a> -->
-        </p>
-
-    </div>
-    <!--/#side-->
-
-    </div>
-    <!--/#contents-->
-
-</section>
-
-    <footer>
-        <div id="footermenu" class="inner">
-            <ul>
-            <li class="title">メニュータイトル</li>
-            <li><a href="index.html">ホーム</a></li>
-            <li><a href="{% url 'booking:store_list' %}">ご予約はこちらから</a>/li>
-            <li><a href="contact.html">お問い合わせ</a></li>
-            <li><a href="company.html">会社概要</a></li>
-            </ul>
-            
-            <ul>
-            <li class="title">スタッフ用ページ</li>
+<!-- ===== HEADER ===== -->
+<header class="bg-white shadow-sm border-b border-gray-200">
+    <div class="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
+        <a href="{% url 'booking:store_list' %}" class="flex items-center">
+            <img src="{% static 'images/siteid.png' %}" alt="占いサロンチャンス" class="h-12 md:h-16">
+        </a>
+        <div class="flex items-center gap-3">
+            <!-- Language Switcher -->
+            <form action="{% url 'set_language' %}" method="post" class="inline-flex">
+                {% csrf_token %}
+                <input type="hidden" name="next" value="{{ request.path }}">
+                <select name="language" onchange="this.form.submit()" class="text-xs border border-gray-300 rounded px-1.5 py-1 bg-white">
+                    {% for lang_code, lang_name in available_languages %}
+                    <option value="{{ lang_code }}" {% if lang_code == current_language %}selected{% endif %}>{{ lang_name }}</option>
+                    {% endfor %}
+                </select>
+            </form>
             {% if user.is_authenticated %}
-            <li><a href="{% url 'booking:my_page' %}">マイページ</a></li>
-            <li>
-                <a href="#" onclick="event.preventDefault(); document.getElementById('logout-form').submit();">ログアウト</a>
-                <form id="logout-form" action="{% url 'booking:logout' %}" method="post" style="display: none;">
-                    {% csrf_token %}
-                </form>
-            </li>
+                <span class="hidden md:inline text-sm text-gray-500">{{ user.username }}</span>
+                <a href="#" onclick="event.preventDefault(); document.getElementById('hdr-logout-form').submit();"
+                   class="text-sm bg-gray-200 hover:bg-gray-300 px-3 py-1.5 rounded transition">{% trans "ログアウト" %}</a>
+                <form id="hdr-logout-form" action="{% url 'booking:logout' %}" method="post" class="hidden">{% csrf_token %}</form>
             {% else %}
-            <li><a href="{% url 'booking:login' %}">ログイン</a></li>
+                <a href="{% url 'booking:login' %}"
+                   class="text-sm bg-green-500 hover:bg-green-600 text-white px-4 py-1.5 rounded transition">{% trans "ログイン" %}</a>
             {% endif %}
-            </ul>
-            
-            <ul>
-                <li class="title">外部リンク</li>
-                <li><a href="https://www.senjutsu.jp/">大久保占い研究室</a></li>
-                <li><a href="https://www.senjutsu.jp/forums/forum/uranai">占い掲示板</a></li>
-                <li><a href="https://www.senjutsu.jp/tarot">無料のタロット占い</a></li>
-            </ul>
-            
-            <ul>
-                <li class="title">占いサロンとは？</li>
-                <li><a href="list_foods.html">ごあいさつ</a></li>
-                <li><a href="list_job.html">初めての方へ</a></li>
-                <li><a href="list_job.html">占いサロンのココがすごい！</a></li>
+            <!-- モバイルメニューボタン -->
+            <button id="mobile-menu-btn" class="md:hidden p-2 rounded hover:bg-gray-100" onclick="document.getElementById('mobile-menu').classList.toggle('hidden')">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
+                </svg>
+            </button>
+        </div>
+    </div>
+</header>
+
+<!-- ===== NAVIGATION (PC) ===== -->
+<nav class="bg-salon-brown text-white hidden md:block sticky top-0 z-50 shadow">
+    <div class="max-w-7xl mx-auto px-4">
+        <ul class="flex items-center gap-0">
+            <li><a href="{% url 'booking:store_list' %}" class="block px-4 py-3 hover:bg-white/20 transition text-sm font-medium">ホーム</a></li>
+            <li class="relative group">
+                <a href="{% url 'booking:store_list' %}" class="block px-4 py-3 hover:bg-white/20 transition text-sm font-medium">店舗情報 ▾</a>
+                <ul class="absolute left-0 top-full bg-salon-brown min-w-[180px] shadow-lg rounded-b hidden group-hover:block z-50">
+                    {% for store in stores %}
+                    <li><a href="{% url 'booking:staff_list' store.pk %}" class="block px-4 py-2 hover:bg-white/20 transition text-sm">{{ store.name }}</a></li>
+                    {% endfor %}
                 </ul>
-            <ul>
-                <li class="title">その他</li>
-                <li><a href="list_foods.html">プライバシーポリシー</a></li>
-                <li><a href="list_job.html">サイトマップ</a></li>
-                <li><a href="list_clinic.html">利用規約</a></li>
+            </li>
+            <li><a href="{% url 'booking:store_list' %}" class="block px-4 py-3 hover:bg-white/20 transition text-sm font-medium">ご予約</a></li>
+            <li><a href="{% url 'booking:store_list' %}" class="block px-4 py-3 hover:bg-white/20 transition text-sm font-medium">所属占い師</a></li>
+            <li><a href="{% url 'booking:help' %}" class="block px-4 py-3 hover:bg-white/20 transition text-sm font-medium">ヘルプ</a></li>
+            {% if user.is_staff %}
+            <li><a href="{% url 'admin:index' %}" class="block px-4 py-3 hover:bg-white/20 transition text-sm font-medium">管理画面</a></li>
+            {% endif %}
+        </ul>
+    </div>
+</nav>
+
+<!-- ===== NAVIGATION (Mobile) ===== -->
+<nav id="mobile-menu" class="hidden md:hidden bg-salon-brown text-white shadow-lg">
+    <ul class="divide-y divide-white/20">
+        <li><a href="{% url 'booking:store_list' %}" class="block px-6 py-3 hover:bg-white/10">ホーム</a></li>
+        <li><a href="{% url 'booking:store_list' %}" class="block px-6 py-3 hover:bg-white/10">店舗一覧</a></li>
+        <li><a href="{% url 'booking:store_list' %}" class="block px-6 py-3 hover:bg-white/10">ご予約</a></li>
+        <li><a href="{% url 'booking:store_list' %}" class="block px-6 py-3 hover:bg-white/10">所属占い師</a></li>
+        <li><a href="{% url 'booking:help' %}" class="block px-6 py-3 hover:bg-white/10">ヘルプ</a></li>
+        {% if user.is_staff %}
+        <li><a href="{% url 'admin:index' %}" class="block px-6 py-3 hover:bg-white/10">管理画面</a></li>
+        {% endif %}
+    </ul>
+</nav>
+
+<!-- ===== MAIN CONTENT ===== -->
+<div class="flex-1 max-w-7xl mx-auto px-4 py-6 w-full">
+    <div class="flex flex-col lg:flex-row gap-6">
+
+        <!-- メインコンテンツ -->
+        <main class="flex-1 min-w-0">
+            {% block content %}{% endblock %}
+        </main>
+
+        <!-- サイドバー -->
+        <aside class="w-full lg:w-72 flex-shrink-0 space-y-6">
+
+            <!-- お知らせ -->
+            <div class="bg-salon-beige rounded-lg p-4">
+                <h3 class="text-base font-bold text-salon-brown border-b border-salon-brown/30 pb-2 mb-3">お知らせ</h3>
+                {% for notice in notices %}
+                <a href="{{ notice.link }}" class="block mb-3 hover:opacity-80 transition">
+                    <p class="text-sm font-medium">◆{{ notice.title }}</p>
+                    <p class="text-xs text-gray-500">更新日：{{ notice.updated_at }}</p>
+                </a>
+                {% empty %}
+                <p class="text-sm text-gray-400">お知らせはありません</p>
+                {% endfor %}
+            </div>
+
+            <!-- 運営会社 -->
+            {% if company %}
+            <div class="bg-salon-beige rounded-lg p-4">
+                <h3 class="text-base font-bold text-salon-brown border-b border-salon-brown/30 pb-2 mb-3">運営会社</h3>
+                <p class="text-sm leading-relaxed">
+                    {{ company.name }}<br>
+                    {{ company.address }}<br>
+                    TEL: {{ company.tel }}
+                </p>
+            </div>
+            {% endif %}
+
+            <!-- メディア掲載情報 -->
+            {% if medias %}
+            <div class="bg-salon-beige rounded-lg p-4">
+                <h3 class="text-base font-bold text-salon-brown border-b border-salon-brown/30 pb-2 mb-3">メディア掲載情報</h3>
+                {% for media in medias %}
+                <a href="{{ media.link }}" target="_blank" rel="noopener noreferrer" class="flex items-start gap-2 mb-3 hover:opacity-80 transition">
+                    <img src="https://www.google.com/s2/favicons?domain={{ media.link }}" alt="" class="w-5 h-5 mt-0.5 flex-shrink-0">
+                    <div>
+                        <p class="text-sm font-medium leading-tight">{{ media.title }}{% if forloop.first %} <span class="inline-block bg-red-500 text-white text-[10px] px-1.5 py-0.5 rounded">NEW</span>{% endif %}</p>
+                        <p class="text-xs text-gray-500 mt-0.5">{{ media.description }}</p>
+                    </div>
+                </a>
+                {% endfor %}
+            </div>
+            {% endif %}
+
+        </aside>
+    </div>
+</div>
+
+<!-- ===== FOOTER ===== -->
+<footer class="bg-salon-brown text-white mt-auto">
+    <div class="max-w-7xl mx-auto px-4 py-8">
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-6 text-sm">
+            <div>
+                <h4 class="font-bold mb-3">メニュー</h4>
+                <ul class="space-y-1.5">
+                    <li><a href="{% url 'booking:store_list' %}" class="hover:underline opacity-80 hover:opacity-100">ホーム</a></li>
+                    <li><a href="{% url 'booking:store_list' %}" class="hover:underline opacity-80 hover:opacity-100">ご予約</a></li>
+                    <li><a href="{% url 'booking:help' %}" class="hover:underline opacity-80 hover:opacity-100">ヘルプ</a></li>
                 </ul>
             </div>
-        
-    </footer>
+            <div>
+                <h4 class="font-bold mb-3">スタッフ</h4>
+                <ul class="space-y-1.5">
+                    {% if user.is_authenticated %}
+                    <li><a href="{% url 'booking:my_page' %}" class="hover:underline opacity-80 hover:opacity-100">マイページ</a></li>
+                    <li>
+                        <a href="#" onclick="event.preventDefault(); document.getElementById('ftr-logout-form').submit();" class="hover:underline opacity-80 hover:opacity-100">ログアウト</a>
+                        <form id="ftr-logout-form" action="{% url 'booking:logout' %}" method="post" class="hidden">{% csrf_token %}</form>
+                    </li>
+                    {% else %}
+                    <li><a href="{% url 'booking:login' %}" class="hover:underline opacity-80 hover:opacity-100">ログイン</a></li>
+                    {% endif %}
+                </ul>
+            </div>
+            <div>
+                <h4 class="font-bold mb-3">外部リンク</h4>
+                <ul class="space-y-1.5">
+                    <li><a href="https://www.senjutsu.jp/" target="_blank" rel="noopener noreferrer" class="hover:underline opacity-80 hover:opacity-100">大久保占い研究室</a></li>
+                    <li><a href="https://www.senjutsu.jp/forums/forum/uranai" target="_blank" rel="noopener noreferrer" class="hover:underline opacity-80 hover:opacity-100">占い掲示板</a></li>
+                </ul>
+            </div>
+            <div>
+                <h4 class="font-bold mb-3">その他</h4>
+                <ul class="space-y-1.5">
+                    <li><a href="{% url 'booking:help' %}" class="hover:underline opacity-80 hover:opacity-100">プライバシーポリシー</a></li>
+                    <li><a href="{% url 'booking:help' %}" class="hover:underline opacity-80 hover:opacity-100">利用規約</a></li>
+                </ul>
+            </div>
+        </div>
+        <div class="border-t border-white/20 mt-6 pt-4 text-center text-xs opacity-60">
+            &copy; 占いサロンチャンス All Rights Reserved.
+        </div>
+    </div>
+</footer>
 
-    <!--ページの上部に戻る「↑」ボタン-->
-    <p class="nav-fix-pos-pagetop"><a href="#">↑</a></p>
+<!-- スクロールトップボタン -->
+<button onclick="window.scrollTo({top:0,behavior:'smooth'})"
+        class="fixed bottom-6 right-6 bg-salon-brown text-white w-10 h-10 rounded-full shadow-lg hover:bg-salon-brown/80 transition hidden" id="scroll-top">↑</button>
+<script>
+window.addEventListener('scroll', function() {
+    document.getElementById('scroll-top').classList.toggle('hidden', window.scrollY < 300);
+});
+</script>
 
-    <!--メニュー開閉ボタン-->
-    <div id="menubar_hdr" class="close"></div>
-    <!--メニューの開閉処理条件設定　900px以下-->
-    <script>
-    if (OCwindowWidth() <= 900) {
-        open_close("menubar_hdr", "menubar-s");
-    }
-    </script>
+{% block extra_js %}{% endblock %}
 </body>
 </html>

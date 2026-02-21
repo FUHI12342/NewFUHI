@@ -1,0 +1,175 @@
+{% extends "admin/base_site.html" %}
+{% load i18n static %}
+
+{% block extrahead %}
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+  #content { max-width: 100%; }
+  .debug-badge {
+    display: inline-block;
+    padding: 2px 10px;
+    border-radius: 9999px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+  .badge-online  { background: #d1fae5; color: #065f46; }
+  .badge-offline { background: #fee2e2; color: #991b1b; }
+  .payload-toggle { cursor: pointer; user-select: none; }
+</style>
+{% endblock %}
+
+{% block title %}Device Debug: {{ device.name }} | {{ site_title|default:_('Django site admin') }}{% endblock %}
+
+{% block breadcrumbs %}
+<div class="breadcrumbs">
+  <a href="{% url 'admin:index' %}">{% translate 'Home' %}</a>
+  &rsaquo; <a href="{% url 'admin:index' %}">Booking</a>
+  &rsaquo; <a href="../../">IoT Debug Panel</a>
+  &rsaquo; {{ device.name }}
+</div>
+{% endblock %}
+
+{% block content %}
+
+{# ── Device Info Card ────────────────────────────────────────────────── #}
+<section class="tw-mb-10">
+  <h2 class="tw-text-xl tw-font-bold tw-mb-4 tw-text-gray-800 dark:tw-text-gray-200">
+    Device Information
+  </h2>
+  <div class="tw-bg-white dark:tw-bg-gray-900 tw-rounded-lg tw-shadow tw-overflow-hidden">
+    <dl class="tw-divide-y tw-divide-gray-200 dark:tw-divide-gray-700">
+      <div class="tw-grid tw-grid-cols-3 tw-gap-4 tw-px-6 tw-py-4">
+        <dt class="tw-text-sm tw-font-semibold tw-text-gray-500 dark:tw-text-gray-400">Name</dt>
+        <dd class="tw-col-span-2 tw-text-sm tw-text-gray-900 dark:tw-text-gray-100">{{ device.name }}</dd>
+      </div>
+      <div class="tw-grid tw-grid-cols-3 tw-gap-4 tw-px-6 tw-py-4">
+        <dt class="tw-text-sm tw-font-semibold tw-text-gray-500 dark:tw-text-gray-400">External ID</dt>
+        <dd class="tw-col-span-2 tw-text-sm tw-font-mono tw-text-gray-900 dark:tw-text-gray-100">{{ device.external_id }}</dd>
+      </div>
+      <div class="tw-grid tw-grid-cols-3 tw-gap-4 tw-px-6 tw-py-4">
+        <dt class="tw-text-sm tw-font-semibold tw-text-gray-500 dark:tw-text-gray-400">Store</dt>
+        <dd class="tw-col-span-2 tw-text-sm tw-text-gray-900 dark:tw-text-gray-100">{{ device.store }}</dd>
+      </div>
+      <div class="tw-grid tw-grid-cols-3 tw-gap-4 tw-px-6 tw-py-4">
+        <dt class="tw-text-sm tw-font-semibold tw-text-gray-500 dark:tw-text-gray-400">Device Type</dt>
+        <dd class="tw-col-span-2 tw-text-sm tw-text-gray-900 dark:tw-text-gray-100">{{ device.device_type }}</dd>
+      </div>
+      <div class="tw-grid tw-grid-cols-3 tw-gap-4 tw-px-6 tw-py-4">
+        <dt class="tw-text-sm tw-font-semibold tw-text-gray-500 dark:tw-text-gray-400">Status</dt>
+        <dd class="tw-col-span-2">
+          {% if online %}
+            <span class="debug-badge badge-online">Online</span>
+          {% else %}
+            <span class="debug-badge badge-offline">Offline</span>
+          {% endif %}
+        </dd>
+      </div>
+    </dl>
+  </div>
+</section>
+
+{# ── Raw Sensor Data (last 100 events) ──────────────────────────────── #}
+<section class="tw-mb-10">
+  <h2 class="tw-text-xl tw-font-bold tw-mb-4 tw-text-gray-800 dark:tw-text-gray-200">
+    Raw Sensor Data
+    <span class="tw-text-sm tw-font-normal tw-text-gray-500 dark:tw-text-gray-400">(last 100 events)</span>
+  </h2>
+  <div class="tw-overflow-x-auto tw-rounded-lg tw-shadow">
+    <table class="tw-min-w-full tw-divide-y tw-divide-gray-200 dark:tw-divide-gray-700">
+      <thead class="tw-bg-gray-50 dark:tw-bg-gray-800">
+        <tr>
+          <th class="tw-px-4 tw-py-3 tw-text-left tw-text-xs tw-font-semibold tw-text-gray-500 dark:tw-text-gray-400 tw-uppercase tw-tracking-wider">Timestamp</th>
+          <th class="tw-px-4 tw-py-3 tw-text-left tw-text-xs tw-font-semibold tw-text-gray-500 dark:tw-text-gray-400 tw-uppercase tw-tracking-wider">Event Type</th>
+          <th class="tw-px-4 tw-py-3 tw-text-right tw-text-xs tw-font-semibold tw-text-gray-500 dark:tw-text-gray-400 tw-uppercase tw-tracking-wider">MQ-9</th>
+          <th class="tw-px-4 tw-py-3 tw-text-right tw-text-xs tw-font-semibold tw-text-gray-500 dark:tw-text-gray-400 tw-uppercase tw-tracking-wider">Light</th>
+          <th class="tw-px-4 tw-py-3 tw-text-right tw-text-xs tw-font-semibold tw-text-gray-500 dark:tw-text-gray-400 tw-uppercase tw-tracking-wider">Sound</th>
+          <th class="tw-px-4 tw-py-3 tw-text-center tw-text-xs tw-font-semibold tw-text-gray-500 dark:tw-text-gray-400 tw-uppercase tw-tracking-wider">PIR</th>
+          <th class="tw-px-4 tw-py-3 tw-text-left tw-text-xs tw-font-semibold tw-text-gray-500 dark:tw-text-gray-400 tw-uppercase tw-tracking-wider">Payload</th>
+        </tr>
+      </thead>
+      <tbody class="tw-bg-white dark:tw-bg-gray-900 tw-divide-y tw-divide-gray-200 dark:tw-divide-gray-700">
+        {% for ev in events %}
+        <tr class="hover:tw-bg-gray-50 dark:hover:tw-bg-gray-800 tw-transition-colors">
+          <td class="tw-px-4 tw-py-3 tw-whitespace-nowrap tw-text-xs tw-font-mono tw-text-gray-600 dark:tw-text-gray-400">{{ ev.created_at }}</td>
+          <td class="tw-px-4 tw-py-3 tw-whitespace-nowrap tw-text-xs">
+            <span class="tw-inline-block tw-px-2 tw-py-0.5 tw-rounded tw-bg-gray-100 dark:tw-bg-gray-700 tw-text-gray-700 dark:tw-text-gray-300 tw-font-mono">
+              {{ ev.event_type }}
+            </span>
+          </td>
+          <td class="tw-px-4 tw-py-3 tw-whitespace-nowrap tw-text-xs tw-font-mono tw-text-right tw-text-gray-600 dark:tw-text-gray-400">{{ ev.mq9_value|default:"--" }}</td>
+          <td class="tw-px-4 tw-py-3 tw-whitespace-nowrap tw-text-xs tw-font-mono tw-text-right tw-text-gray-600 dark:tw-text-gray-400">{{ ev.light_value|default:"--" }}</td>
+          <td class="tw-px-4 tw-py-3 tw-whitespace-nowrap tw-text-xs tw-font-mono tw-text-right tw-text-gray-600 dark:tw-text-gray-400">{{ ev.sound_value|default:"--" }}</td>
+          <td class="tw-px-4 tw-py-3 tw-whitespace-nowrap tw-text-xs tw-text-center">
+            {% if ev.pir_triggered %}
+              <span class="tw-inline-block tw-w-3 tw-h-3 tw-rounded-full tw-bg-red-500" title="PIR Triggered"></span>
+            {% else %}
+              <span class="tw-inline-block tw-w-3 tw-h-3 tw-rounded-full tw-bg-gray-300 dark:tw-bg-gray-600" title="No trigger"></span>
+            {% endif %}
+          </td>
+          <td class="tw-px-4 tw-py-3 tw-text-xs">
+            <details>
+              <summary class="payload-toggle tw-text-blue-600 dark:tw-text-blue-400 hover:tw-underline tw-text-xs">
+                Show JSON
+              </summary>
+              <pre class="tw-mt-2 tw-p-3 tw-bg-gray-900 tw-text-green-400 tw-rounded tw-text-xs tw-font-mono tw-overflow-x-auto tw-max-w-md tw-whitespace-pre-wrap">{{ ev.payload|default:"{}" }}</pre>
+            </details>
+          </td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="7" class="tw-px-4 tw-py-8 tw-text-center tw-text-sm tw-text-gray-500 dark:tw-text-gray-400">
+            No sensor events recorded for this device.
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>
+
+{# ── Button / Command Event History ─────────────────────────────────── #}
+<section class="tw-mb-10">
+  <h2 class="tw-text-xl tw-font-bold tw-mb-4 tw-text-gray-800 dark:tw-text-gray-200">
+    Button / Command Event History
+  </h2>
+  <div class="tw-overflow-x-auto tw-rounded-lg tw-shadow">
+    <table class="tw-min-w-full tw-divide-y tw-divide-gray-200 dark:tw-divide-gray-700">
+      <thead class="tw-bg-gray-50 dark:tw-bg-gray-800">
+        <tr>
+          <th class="tw-px-6 tw-py-3 tw-text-left tw-text-xs tw-font-semibold tw-text-gray-500 dark:tw-text-gray-400 tw-uppercase tw-tracking-wider">Timestamp</th>
+          <th class="tw-px-6 tw-py-3 tw-text-left tw-text-xs tw-font-semibold tw-text-gray-500 dark:tw-text-gray-400 tw-uppercase tw-tracking-wider">Event Type</th>
+          <th class="tw-px-6 tw-py-3 tw-text-left tw-text-xs tw-font-semibold tw-text-gray-500 dark:tw-text-gray-400 tw-uppercase tw-tracking-wider">Details</th>
+        </tr>
+      </thead>
+      <tbody class="tw-bg-white dark:tw-bg-gray-900 tw-divide-y tw-divide-gray-200 dark:tw-divide-gray-700">
+        {% for be in button_events %}
+        <tr class="hover:tw-bg-gray-50 dark:hover:tw-bg-gray-800 tw-transition-colors">
+          <td class="tw-px-6 tw-py-4 tw-whitespace-nowrap tw-text-sm tw-font-mono tw-text-gray-600 dark:tw-text-gray-400">{{ be.created_at }}</td>
+          <td class="tw-px-6 tw-py-4 tw-whitespace-nowrap tw-text-sm">
+            <span class="tw-inline-block tw-px-2 tw-py-1 tw-rounded tw-bg-indigo-100 dark:tw-bg-indigo-900 tw-text-indigo-700 dark:tw-text-indigo-300 tw-font-mono tw-text-xs">
+              {{ be.event_type }}
+            </span>
+          </td>
+          <td class="tw-px-6 tw-py-4 tw-text-sm tw-text-gray-600 dark:tw-text-gray-400">
+            {% if be.payload %}
+              <pre class="tw-text-xs tw-font-mono tw-whitespace-pre-wrap">{{ be.payload }}</pre>
+            {% else %}
+              <span class="tw-text-gray-400 dark:tw-text-gray-500">--</span>
+            {% endif %}
+          </td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="3" class="tw-px-6 tw-py-8 tw-text-center tw-text-sm tw-text-gray-500 dark:tw-text-gray-400">
+            No button or command events recorded for this device.
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>
+
+{% endblock %}
