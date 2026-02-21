@@ -27,7 +27,22 @@ from .models import (
     Property,
     PropertyDevice,
     PropertyAlert,
+    StoreScheduleConfig,
+    ShiftPeriod,
+    ShiftRequest,
+    ShiftAssignment,
+    AdminTheme,
 )
+
+
+def _is_owner_or_super(request):
+    """superuser または is_owner の場合 True"""
+    if request.user.is_superuser:
+        return True
+    try:
+        return request.user.staff.is_owner
+    except Staff.DoesNotExist:
+        return False
 
 # ==============================
 # 予約
@@ -55,8 +70,8 @@ class ScheduleAdmin(admin.ModelAdmin):
 # スタッフ / 店舗
 # ==============================
 class StaffAdmin(admin.ModelAdmin):
-    list_display = ('name', 'store', 'is_store_manager', 'display_thumbnail')
-    list_filter = ('store', 'is_store_manager')
+    list_display = ('name', 'store', 'staff_type', 'is_store_manager', 'is_owner', 'display_thumbnail')
+    list_filter = ('store', 'staff_type', 'is_store_manager', 'is_owner')
     search_fields = ('name', 'store__name')
 
     def display_thumbnail(self, obj):
@@ -68,7 +83,7 @@ class StaffAdmin(admin.ModelAdmin):
 
     def get_queryset(self, request):
         qs = super().get_queryset(request)
-        if request.user.is_superuser:
+        if _is_owner_or_super(request):
             return qs
         try:
             staff = request.user.staff
@@ -80,7 +95,7 @@ class StaffAdmin(admin.ModelAdmin):
             return qs.none()
 
     def has_change_permission(self, request, obj=None):
-        if request.user.is_superuser:
+        if _is_owner_or_super(request):
             return True
         try:
             staff = request.user.staff
@@ -92,7 +107,7 @@ class StaffAdmin(admin.ModelAdmin):
             return False
 
     def has_add_permission(self, request):
-        if request.user.is_superuser:
+        if _is_owner_or_super(request):
             return True
         try:
             staff = request.user.staff
@@ -101,7 +116,7 @@ class StaffAdmin(admin.ModelAdmin):
             return False
 
     def has_delete_permission(self, request, obj=None):
-        if request.user.is_superuser:
+        if _is_owner_or_super(request):
             return True
         try:
             staff = request.user.staff
@@ -110,13 +125,26 @@ class StaffAdmin(admin.ModelAdmin):
             return False
 
 
+class StoreScheduleConfigInline(admin.StackedInline):
+    model = StoreScheduleConfig
+    extra = 0
+    max_num = 1
+
+
+class AdminThemeInline(admin.StackedInline):
+    model = AdminTheme
+    extra = 0
+    max_num = 1
+
+
 class StoreAdmin(admin.ModelAdmin):
     list_display = ('name', 'address', 'nearest_station', 'business_hours', 'regular_holiday', 'default_language')
     search_fields = ('name', 'address', 'nearest_station')
+    inlines = [StoreScheduleConfigInline, AdminThemeInline]
 
     def get_queryset(self, request):
         qs = super().get_queryset(request)
-        if request.user.is_superuser:
+        if _is_owner_or_super(request):
             return qs
         try:
             staff = request.user.staff
@@ -161,6 +189,13 @@ class MediaAdmin(admin.ModelAdmin):
 # ==============================
 # IoT
 # ==============================
+class IoTEventInline(admin.TabularInline):
+    model = IoTEvent
+    extra = 0
+    readonly_fields = ('created_at',)
+    max_num = 50
+
+
 class IoTDeviceAdmin(admin.ModelAdmin):
     list_display = (
         'name',
@@ -177,6 +212,7 @@ class IoTDeviceAdmin(admin.ModelAdmin):
     list_filter = ('device_type', 'is_active', 'store', 'alert_enabled')
     search_fields = ('name', 'external_id', 'store__name')
     readonly_fields = ('last_seen_at',)
+    inlines = [IoTEventInline]
 
 
 class IoTEventAdmin(admin.ModelAdmin):
@@ -222,7 +258,7 @@ class CategoryAdmin(admin.ModelAdmin):
 
     def get_queryset(self, request):
         qs = super().get_queryset(request)
-        if request.user.is_superuser:
+        if _is_owner_or_super(request):
             return qs
         try:
             staff = request.user.staff
@@ -231,7 +267,7 @@ class CategoryAdmin(admin.ModelAdmin):
             return qs.none()
 
     def has_change_permission(self, request, obj=None):
-        if request.user.is_superuser:
+        if _is_owner_or_super(request):
             return True
         try:
             staff = request.user.staff
@@ -245,7 +281,7 @@ class CategoryAdmin(admin.ModelAdmin):
             return False
 
     def has_add_permission(self, request):
-        if request.user.is_superuser:
+        if _is_owner_or_super(request):
             return True
         try:
             staff = request.user.staff
@@ -259,7 +295,7 @@ class CategoryAdmin(admin.ModelAdmin):
             return False
 
     def has_delete_permission(self, request, obj=None):
-        if request.user.is_superuser:
+        if _is_owner_or_super(request):
             return True
         try:
             staff = request.user.staff
@@ -383,7 +419,7 @@ class OrderAdmin(admin.ModelAdmin):
 
     def get_queryset(self, request):
         qs = super().get_queryset(request)
-        if request.user.is_superuser:
+        if _is_owner_or_super(request):
             return qs
         try:
             staff = request.user.staff
@@ -401,7 +437,7 @@ class OrderItemAdmin(admin.ModelAdmin):
 
     def get_queryset(self, request):
         qs = super().get_queryset(request)
-        if request.user.is_superuser:
+        if _is_owner_or_super(request):
             return qs
         try:
             staff = request.user.staff
@@ -450,7 +486,7 @@ class StockMovementAdmin(admin.ModelAdmin):
 
     def get_queryset(self, request):
         qs = super().get_queryset(request)
-        if request.user.is_superuser:
+        if _is_owner_or_super(request):
             return qs
         try:
             staff = request.user.staff
@@ -459,7 +495,7 @@ class StockMovementAdmin(admin.ModelAdmin):
             return qs.none()
 
     def has_change_permission(self, request, obj=None):
-        if request.user.is_superuser:
+        if _is_owner_or_super(request):
             return True
         try:
             staff = request.user.staff
@@ -473,7 +509,7 @@ class StockMovementAdmin(admin.ModelAdmin):
             return False
 
     def has_add_permission(self, request):
-        if request.user.is_superuser:
+        if _is_owner_or_super(request):
             return True
         try:
             staff = request.user.staff
@@ -487,7 +523,7 @@ class StockMovementAdmin(admin.ModelAdmin):
             return False
 
     def has_delete_permission(self, request, obj=None):
-        if request.user.is_superuser:
+        if _is_owner_or_super(request):
             return True
         try:
             staff = request.user.staff
@@ -508,11 +544,9 @@ custom_site.register(Notice, NoticeAdmin)
 custom_site.register(Company, CompanyAdmin)
 custom_site.register(Media, MediaAdmin)
 custom_site.register(IoTDevice, IoTDeviceAdmin)
-custom_site.register(IoTEvent, IoTEventAdmin)
 custom_site.register(Category, CategoryAdmin)
 custom_site.register(Product, ProductAdmin)
 custom_site.register(Order, OrderAdmin)
-custom_site.register(OrderItem, OrderItemAdmin)
 custom_site.register(StockMovement, StockMovementAdmin)
 
 # User/Group も
@@ -539,23 +573,90 @@ class PropertyDeviceInline(admin.TabularInline):
     autocomplete_fields = ('device',)
 
 
+class PropertyAlertInline(admin.TabularInline):
+    model = PropertyAlert
+    extra = 0
+    readonly_fields = ('created_at',)
+
+
 class PropertyAdmin(admin.ModelAdmin):
     list_display = ('name', 'address', 'property_type', 'owner_name', 'store', 'is_active')
     list_filter = ('property_type', 'is_active', 'store')
     search_fields = ('name', 'address', 'owner_name')
-    inlines = [PropertyDeviceInline]
-
-
-class PropertyAlertAdmin(admin.ModelAdmin):
-    list_display = ('property', 'device', 'alert_type', 'severity', 'is_resolved', 'created_at')
-    list_filter = ('alert_type', 'severity', 'is_resolved')
-    search_fields = ('property__name', 'message')
-    date_hierarchy = 'created_at'
-    readonly_fields = ('created_at',)
+    inlines = [PropertyDeviceInline, PropertyAlertInline]
 
 
 custom_site.register(SystemConfig, SystemConfigAdmin)
 custom_site.register(Property, PropertyAdmin)
-custom_site.register(PropertyAlert, PropertyAlertAdmin)
+
+
+# ==============================
+# Phase Round2: シフト管理
+# ==============================
+class ShiftRequestInline(admin.TabularInline):
+    model = ShiftRequest
+    extra = 0
+    readonly_fields = ('staff', 'date', 'start_hour', 'end_hour', 'preference')
+
+
+class ShiftAssignmentInline(admin.TabularInline):
+    model = ShiftAssignment
+    extra = 0
+
+
+class ShiftPeriodAdmin(admin.ModelAdmin):
+    list_display = ('store', 'year_month', 'deadline', 'status', 'created_by')
+    list_filter = ('store', 'status')
+    inlines = [ShiftRequestInline, ShiftAssignmentInline]
+    actions = ['run_auto_schedule', 'approve_and_sync']
+
+    @admin.action(description='自動スケジューリング実行')
+    def run_auto_schedule(self, request, queryset):
+        from booking.services.shift_scheduler import auto_schedule
+        total = 0
+        for period in queryset:
+            count = auto_schedule(period)
+            total += count
+        self.message_user(request, f'{total} 件のシフトを自動割り当てしました。')
+
+    @admin.action(description='承認してScheduleに同期')
+    def approve_and_sync(self, request, queryset):
+        from booking.services.shift_scheduler import sync_assignments_to_schedule
+        from booking.services.shift_notifications import notify_shift_approved
+        total = 0
+        for period in queryset:
+            count = sync_assignments_to_schedule(period)
+            total += count
+            notify_shift_approved(period)
+        self.message_user(request, f'{total} 件のScheduleを同期しました。')
+
+
+class ShiftRequestAdmin(admin.ModelAdmin):
+    list_display = ('period', 'staff', 'date', 'start_hour', 'end_hour', 'preference')
+    list_filter = ('period__store', 'preference')
+    search_fields = ('staff__name',)
+
+    def get_queryset(self, request):
+        qs = super().get_queryset(request)
+        if _is_owner_or_super(request):
+            return qs
+        try:
+            staff = request.user.staff
+            if staff.is_store_manager:
+                return qs.filter(period__store=staff.store)
+            return qs.filter(staff=staff)
+        except Staff.DoesNotExist:
+            return qs.none()
+
+
+class ShiftAssignmentAdmin(admin.ModelAdmin):
+    list_display = ('period', 'staff', 'date', 'start_hour', 'end_hour', 'is_synced')
+    list_filter = ('period__store', 'is_synced')
+    search_fields = ('staff__name',)
+
+
+custom_site.register(ShiftPeriod, ShiftPeriodAdmin)
+custom_site.register(ShiftRequest, ShiftRequestAdmin)
+custom_site.register(ShiftAssignment, ShiftAssignmentAdmin)
 
 print("booking.admin loaded")

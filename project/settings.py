@@ -152,6 +152,7 @@ TEMPLATES = [
                 "django.contrib.messages.context_processors.messages",
                 "django.template.context_processors.i18n",
                 "booking.context_processors.global_context",
+                "booking.context_processors.admin_theme",
                 "social_django.context_processors.backends",
                 "social_django.context_processors.login_redirect",
             ],
@@ -294,7 +295,7 @@ PUBLIC_HOLIDAYS = [
 # Auth redirects
 # ====================================
 LOGIN_URL = "booking:login"
-LOGIN_REDIRECT_URL = "booking:store_list"
+LOGIN_REDIRECT_URL = "booking:login_redirect"
 LOGOUT_REDIRECT_URL = "booking:login"
 
 DEFAULT_AUTO_FIELD = "django.db.models.AutoField"

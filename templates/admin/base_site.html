@@ -1,0 +1,51 @@
+{% extends "admin/base.html" %}
+{% load i18n %}
+
+{% block title %}{{ title }} | {% trans 'サイト管理' %}{% endblock %}
+
+{% block branding %}
+<h1 id="site-name">
+    <a href="{% url 'admin:index' %}">{% trans 'サイト管理' %}</a>
+</h1>
+{% endblock %}
+
+{% block extrastyle %}
+{{ block.super }}
+<style>
+    /* AdminTheme カスタムカラー */
+    {% if admin_theme %}
+    :root {
+        --admin-primary-color: {{ admin_theme.primary_color|default:"#417690" }};
+        --admin-secondary-color: {{ admin_theme.secondary_color|default:"#f1f0ec" }};
+    }
+    #header {
+        background: var(--admin-primary-color) !important;
+        {% if admin_theme.header_image %}
+        background-image: url('{{ admin_theme.header_image.url }}') !important;
+        background-size: cover !important;
+        background-position: center !important;
+        {% endif %}
+    }
+    #header a:link, #header a:visited {
+        color: #fff;
+    }
+    div.breadcrumbs {
+        background: var(--admin-primary-color) !important;
+        opacity: 0.9;
+    }
+    .module h2, .module caption, .inline-group h2 {
+        background: var(--admin-primary-color) !important;
+    }
+    a:link, a:visited {
+        color: var(--admin-primary-color);
+    }
+    input[type="submit"], .submit-row input, button.default {
+        background: var(--admin-primary-color) !important;
+        border-color: var(--admin-primary-color) !important;
+    }
+    input[type="submit"]:hover, .submit-row input:hover, button.default:hover {
+        opacity: 0.85;
+    }
+    {% endif %}
+</style>
+{% endblock %}

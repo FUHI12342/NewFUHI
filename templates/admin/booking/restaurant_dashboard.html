@@ -6,93 +6,251 @@
 <script src="https://cdn.tailwindcss.com"></script>
 <!-- Chart.js CDN -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+<!-- gridstack.js CDN -->
+<link href="https://cdn.jsdelivr.net/npm/gridstack@10.1.2/dist/gridstack.min.css" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/gridstack@10.1.2/dist/gridstack-all.js"></script>
 <style>
-  /* Override Django admin content area to allow full-width Tailwind layout */
+  /* Override Django admin content area */
   #content { max-width: 100%; padding: 0; }
   #content > h1 { padding: 0 1rem; }
   .dashboard-wrap { padding: 0 1rem 2rem; }
   canvas { max-height: 400px; }
+
+  /* ===== Dark mode via CSS variables ===== */
+  :root {
+    --bg-primary: #ffffff;
+    --bg-secondary: #f9fafb;
+    --bg-card: #ffffff;
+    --text-primary: #1f2937;
+    --text-secondary: #6b7280;
+    --border-color: #e5e7eb;
+    --shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+  }
+  [data-theme="dark"] {
+    --bg-primary: #111827;
+    --bg-secondary: #1f2937;
+    --bg-card: #1f2937;
+    --text-primary: #f9fafb;
+    --text-secondary: #9ca3af;
+    --border-color: #374151;
+    --shadow: 0 4px 6px -1px rgba(0,0,0,0.4);
+  }
+  [data-theme="dark"] .dashboard-wrap { background-color: var(--bg-primary); }
+  [data-theme="dark"] #content { background-color: var(--bg-primary); }
+
+  .db-card {
+    background: var(--bg-card);
+    color: var(--text-primary);
+    border: 1px solid var(--border-color);
+    box-shadow: var(--shadow);
+    border-radius: 1rem;
+    padding: 1.5rem;
+    height: 100%;
+    overflow: auto;
+  }
+  .db-card h3 { color: var(--text-primary); }
+  .db-text-secondary { color: var(--text-secondary); }
+
+  /* gridstack overrides */
+  .grid-stack { min-height: 600px; }
+  .grid-stack-item-content { overflow: hidden; }
+  .gs-item-content { height: 100%; }
+
+  /* toolbar */
+  .toolbar-btn {
+    padding: 0.5rem 1rem;
+    border-radius: 0.5rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    cursor: pointer;
+    border: 1px solid var(--border-color);
+    background: var(--bg-card);
+    color: var(--text-primary);
+    transition: all 0.2s;
+  }
+  .toolbar-btn:hover { opacity: 0.8; }
+
+  /* Tab styles */
+  .tab-btn {
+    padding: 0.5rem 1.5rem;
+    border-radius: 0.5rem 0.5rem 0 0;
+    font-size: 0.875rem;
+    font-weight: 600;
+    cursor: pointer;
+    border: 1px solid var(--border-color);
+    border-bottom: none;
+    background: var(--bg-secondary);
+    color: var(--text-secondary);
+    transition: all 0.2s;
+  }
+  .tab-btn.active {
+    background: var(--bg-card);
+    color: var(--text-primary);
+    border-bottom: 2px solid var(--bg-card);
+    margin-bottom: -1px;
+  }
+  .tab-content { display: none; }
+  .tab-content.active { display: block; }
 </style>
 {% endblock %}
 
 {% block title %}{{ title }}{% endblock %}
 
 {% block content %}
-<div class="dashboard-wrap">
+<div class="dashboard-wrap" id="dashboard-root">
 
-  {# ===== Section 1: Reservations ===== #}
-  <section class="mb-10">
-    <h2 class="text-2xl font-bold text-gray-800 mb-4 border-b-2 border-indigo-500 pb-2">予約状況</h2>
-
-    {# KPI cards #}
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-      {# Future reservation count #}
-      <div class="bg-white rounded-2xl shadow p-6 flex flex-col items-center">
-        <span class="text-sm text-gray-500 mb-1">今後の予約数</span>
-        <span id="future-count" class="text-4xl font-extrabold text-indigo-600">--</span>
-      </div>
-      {# Cancellation rate #}
-      <div class="bg-white rounded-2xl shadow p-6 flex flex-col items-center">
-        <span class="text-sm text-gray-500 mb-1">キャンセル率</span>
-        <span id="cancel-rate" class="text-4xl font-extrabold text-rose-500">--%</span>
-      </div>
-      {# Total reservations (last 90 days) #}
-      <div class="bg-white rounded-2xl shadow p-6 flex flex-col items-center">
-        <span class="text-sm text-gray-500 mb-1">過去90日の予約合計</span>
-        <span id="total-reservations-90" class="text-4xl font-extrabold text-emerald-600">--</span>
-      </div>
-    </div>
-
-    {# Daily reservation bar chart #}
-    <div class="bg-white rounded-2xl shadow p-6">
-      <h3 class="text-lg font-semibold text-gray-700 mb-3">日別予約数（過去90日）</h3>
-      <canvas id="reservationChart"></canvas>
-    </div>
-  </section>
-
-  {# ===== Section 2: Sales ===== #}
-  <section class="mb-10">
-    <h2 class="text-2xl font-bold text-gray-800 mb-4 border-b-2 border-emerald-500 pb-2">売上</h2>
-
-    {# Period selector #}
-    <div class="mb-4 flex items-center gap-3">
-      <label for="sales-period" class="text-sm font-medium text-gray-600">期間:</label>
-      <select id="sales-period"
-              class="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-400 focus:outline-none">
+  {# ===== Toolbar ===== #}
+  <div class="flex items-center gap-3 mb-4 flex-wrap">
+    <button id="btn-dark-toggle" class="toolbar-btn" onclick="toggleDarkMode()">
+      <span id="dark-icon">&#127769;</span> ダークモード
+    </button>
+    <button class="toolbar-btn" onclick="resetLayout()">
+      &#8635; レイアウトリセット
+    </button>
+    <div class="flex items-center gap-2 ml-auto">
+      <label for="sales-period" class="text-sm font-medium db-text-secondary">期間:</label>
+      <select id="sales-period" class="toolbar-btn">
         <option value="daily">日別</option>
         <option value="weekly">週別</option>
         <option value="monthly">月別</option>
       </select>
     </div>
+  </div>
 
+  {# ===== Tabs ===== #}
+  <div class="flex gap-1 border-b border-gray-200 mb-4" id="dashboard-tabs">
+    <button class="tab-btn active" data-tab="overview" onclick="switchTab('overview')">概要</button>
+    <button class="tab-btn" data-tab="sales" onclick="switchTab('sales')">売上</button>
+    <button class="tab-btn" data-tab="staff" onclick="switchTab('staff')">スタッフ</button>
+    <button class="tab-btn" data-tab="shift" onclick="switchTab('shift')">シフト</button>
+  </div>
+
+  {# ===== Tab: 概要 ===== #}
+  <div class="tab-content active" id="tab-overview">
+    <div class="grid-stack" id="dashboard-grid-overview">
+      {# Widget 1: Reservations KPI #}
+      <div class="grid-stack-item" gs-id="reservations_kpi" gs-x="0" gs-y="0" gs-w="12" gs-h="2" gs-min-h="2">
+        <div class="grid-stack-item-content">
+          <div class="db-card">
+            <h3 class="text-lg font-semibold mb-3">予約KPI</h3>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div class="text-center">
+                <span class="text-sm db-text-secondary">今後の予約数</span>
+                <div id="future-count" class="text-3xl font-extrabold text-indigo-500">--</div>
+              </div>
+              <div class="text-center">
+                <span class="text-sm db-text-secondary">キャンセル率</span>
+                <div id="cancel-rate" class="text-3xl font-extrabold text-rose-500">--%</div>
+              </div>
+              <div class="text-center">
+                <span class="text-sm db-text-secondary">過去90日の予約合計</span>
+                <div id="total-reservations-90" class="text-3xl font-extrabold text-emerald-500">--</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {# Widget 2: Daily Reservation Chart #}
+      <div class="grid-stack-item" gs-id="reservation_chart" gs-x="0" gs-y="2" gs-w="12" gs-h="4" gs-min-h="3">
+        <div class="grid-stack-item-content">
+          <div class="db-card">
+            <h3 class="text-lg font-semibold mb-3">日別予約数（過去90日）</h3>
+            <canvas id="reservationChart"></canvas>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  {# ===== Tab: 売上 ===== #}
+  <div class="tab-content" id="tab-sales">
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-      {# Sales trend line chart #}
-      <div class="bg-white rounded-2xl shadow p-6">
-        <h3 class="text-lg font-semibold text-gray-700 mb-3">売上推移</h3>
+      <div class="db-card">
+        <h3 class="text-lg font-semibold mb-3">売上推移</h3>
         <canvas id="salesTrendChart"></canvas>
       </div>
-      {# Top 10 popular products horizontal bar #}
-      <div class="bg-white rounded-2xl shadow p-6">
-        <h3 class="text-lg font-semibold text-gray-700 mb-3">人気商品 TOP10</h3>
+      <div class="db-card">
+        <h3 class="text-lg font-semibold mb-3">人気商品 TOP10</h3>
         <canvas id="topProductsChart"></canvas>
       </div>
     </div>
-  </section>
+  </div>
 
-  {# ===== Section 3: Staff Performance ===== #}
-  <section class="mb-10">
-    <h2 class="text-2xl font-bold text-gray-800 mb-4 border-b-2 border-amber-500 pb-2">スタッフ実績</h2>
-
-    <div class="bg-white rounded-2xl shadow p-6">
-      <h3 class="text-lg font-semibold text-gray-700 mb-3">スタッフ別 予約数・売上比較</h3>
+  {# ===== Tab: スタッフ ===== #}
+  <div class="tab-content" id="tab-staff">
+    <div class="db-card">
+      <h3 class="text-lg font-semibold mb-3">スタッフ別 予約数・売上比較</h3>
       <canvas id="staffChart"></canvas>
     </div>
-  </section>
+  </div>
+
+  {# ===== Tab: シフト ===== #}
+  <div class="tab-content" id="tab-shift">
+    <div class="db-card">
+      <h3 class="text-lg font-semibold mb-3">今月のシフト状況</h3>
+      <div id="shift-summary" class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div class="text-center p-4 bg-indigo-50 rounded-lg">
+          <span class="text-sm text-gray-500">確定シフト数</span>
+          <div id="shift-total" class="text-3xl font-extrabold text-indigo-500">--</div>
+        </div>
+        <div class="text-center p-4 bg-emerald-50 rounded-lg">
+          <span class="text-sm text-gray-500">同期済み</span>
+          <div id="shift-synced" class="text-3xl font-extrabold text-emerald-500">--</div>
+        </div>
+        <div class="text-center p-4 bg-amber-50 rounded-lg">
+          <span class="text-sm text-gray-500">募集中の期間</span>
+          <div id="shift-open-periods" class="text-3xl font-extrabold text-amber-500">--</div>
+        </div>
+      </div>
+      <div id="shift-staff-table" class="mt-6">
+        <h4 class="text-base font-semibold mb-2">スタッフ別シフト数</h4>
+        <table class="w-full text-sm border border-gray-200 rounded">
+          <thead>
+            <tr class="bg-gray-50">
+              <th class="px-4 py-2 text-left">スタッフ</th>
+              <th class="px-4 py-2 text-right">確定シフト数</th>
+              <th class="px-4 py-2 text-right">同期済み</th>
+            </tr>
+          </thead>
+          <tbody id="shift-staff-tbody">
+            <tr><td colspan="3" class="px-4 py-2 text-gray-400 text-center">読み込み中...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
 
 </div>
 
 <script>
 document.addEventListener('DOMContentLoaded', function () {
+
+  /* ------------------------------------------------------------------ */
+  /*  Tab switching                                                      */
+  /* ------------------------------------------------------------------ */
+  var activeTab = 'overview';
+
+  window.switchTab = function(tabName) {
+    activeTab = tabName;
+    document.querySelectorAll('.tab-content').forEach(function(el) {
+      el.classList.remove('active');
+    });
+    document.querySelectorAll('.tab-btn').forEach(function(el) {
+      el.classList.remove('active');
+    });
+    document.getElementById('tab-' + tabName).classList.add('active');
+    document.querySelector('[data-tab="' + tabName + '"]').classList.add('active');
+
+    // Lazy load tab data
+    if (tabName === 'sales' && !salesLoaded) { loadSales(document.getElementById('sales-period').value); salesLoaded = true; }
+    if (tabName === 'staff' && !staffLoaded) { loadStaffPerformance(); staffLoaded = true; }
+    if (tabName === 'shift' && !shiftLoaded) { loadShiftData(); shiftLoaded = true; }
+  };
+
+  var salesLoaded = false;
+  var staffLoaded = false;
+  var shiftLoaded = false;
 
   /* ------------------------------------------------------------------ */
   /*  Colour palette                                                     */
@@ -123,21 +281,117 @@ document.addEventListener('DOMContentLoaded', function () {
     return val;
   }
 
-  function apiFetch(url) {
-    return fetch(url, {
+  function apiFetch(url, options) {
+    const defaults = {
       credentials: 'same-origin',
-      headers: { 'X-CSRFToken': getCookie('csrftoken') || '' }
-    }).then(function (r) { return r.json(); });
+      headers: { 'X-CSRFToken': getCookie('csrftoken') || '' },
+    };
+    if (options) {
+      defaults.headers = Object.assign(defaults.headers, options.headers || {});
+      Object.assign(defaults, options);
+      defaults.headers = Object.assign({}, defaults.headers, options.headers || {});
+    }
+    return fetch(url, defaults).then(function (r) { return r.json(); });
   }
 
   /* ------------------------------------------------------------------ */
-  /*  1. Reservations                                                    */
+  /*  Default layout                                                     */
+  /* ------------------------------------------------------------------ */
+  const DEFAULT_LAYOUT = [
+    {id: "reservations_kpi", x: 0, y: 0, w: 12, h: 2},
+    {id: "reservation_chart", x: 0, y: 2, w: 12, h: 4},
+  ];
+
+  /* ------------------------------------------------------------------ */
+  /*  GridStack init (overview tab only)                                 */
+  /* ------------------------------------------------------------------ */
+  var grid = GridStack.init({
+    column: 12,
+    cellHeight: 80,
+    animate: true,
+    float: false,
+    draggable: { handle: '.db-card h3' },
+  }, '#dashboard-grid-overview');
+
+  /* ------------------------------------------------------------------ */
+  /*  Dark mode                                                          */
+  /* ------------------------------------------------------------------ */
+  var isDark = false;
+
+  window.toggleDarkMode = function () {
+    isDark = !isDark;
+    document.documentElement.setAttribute('data-theme', isDark ? 'dark' : 'light');
+    document.getElementById('dark-icon').textContent = isDark ? '\u2600\uFE0F' : '\uD83C\uDF19';
+    saveLayout();
+  };
+
+  /* ------------------------------------------------------------------ */
+  /*  Layout save (debounced)                                            */
+  /* ------------------------------------------------------------------ */
+  var saveTimer = null;
+
+  function saveLayout() {
+    clearTimeout(saveTimer);
+    saveTimer = setTimeout(function () {
+      var items = grid.getGridItems().map(function (el) {
+        var node = el.gridstackNode;
+        return {id: node.id || el.getAttribute('gs-id'), x: node.x, y: node.y, w: node.w, h: node.h};
+      });
+      apiFetch('/api/dashboard/layout/', {
+        method: 'PUT',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({layout: items, dark_mode: isDark, active_tab: activeTab}),
+      }).catch(function (e) { console.warn('layout save failed', e); });
+    }, 800);
+  }
+
+  grid.on('change', saveLayout);
+
+  /* ------------------------------------------------------------------ */
+  /*  Layout load                                                        */
+  /* ------------------------------------------------------------------ */
+  function applyLayout(layoutData) {
+    if (!layoutData || !layoutData.length) return;
+    grid.batchUpdate();
+    layoutData.forEach(function (item) {
+      var el = document.querySelector('[gs-id="' + item.id + '"]');
+      if (el) {
+        grid.update(el, {x: item.x, y: item.y, w: item.w, h: item.h});
+      }
+    });
+    grid.batchUpdate(false);
+  }
+
+  window.resetLayout = function () {
+    applyLayout(DEFAULT_LAYOUT);
+    isDark = false;
+    document.documentElement.setAttribute('data-theme', 'light');
+    document.getElementById('dark-icon').textContent = '\uD83C\uDF19';
+    saveLayout();
+  };
+
+  // Load saved layout
+  apiFetch('/api/dashboard/layout/').then(function (data) {
+    if (data.layout && data.layout.length) {
+      applyLayout(data.layout);
+    }
+    if (data.dark_mode) {
+      isDark = true;
+      document.documentElement.setAttribute('data-theme', 'dark');
+      document.getElementById('dark-icon').textContent = '\u2600\uFE0F';
+    }
+    if (data.active_tab) {
+      switchTab(data.active_tab);
+    }
+  }).catch(function () {});
+
+  /* ------------------------------------------------------------------ */
+  /*  1. Reservations (loaded immediately for overview tab)              */
   /* ------------------------------------------------------------------ */
   var reservationChart = null;
 
   function loadReservations() {
     apiFetch('/api/dashboard/reservations/').then(function (data) {
-      // KPI cards
       document.getElementById('future-count').textContent = data.future_count;
       document.getElementById('cancel-rate').textContent = (data.cancel_rate * 100).toFixed(1) + '%';
 
@@ -150,236 +404,156 @@ document.addEventListener('DOMContentLoaded', function () {
       var cancelled = daily.map(function (d) { return d.cancelled; });
 
       if (reservationChart) reservationChart.destroy();
-
       var ctx = document.getElementById('reservationChart').getContext('2d');
       reservationChart = new Chart(ctx, {
         type: 'bar',
         data: {
           labels: labels,
           datasets: [
-            {
-              label: '予約数',
-              data: counts,
-              backgroundColor: COLORS.indigo,
-              borderRadius: 4,
-            },
-            {
-              label: 'キャンセル数',
-              data: cancelled,
-              backgroundColor: COLORS.rose,
-              borderRadius: 4,
-            }
+            { label: '予約数', data: counts, backgroundColor: COLORS.indigo, borderRadius: 4 },
+            { label: 'キャンセル数', data: cancelled, backgroundColor: COLORS.rose, borderRadius: 4 }
           ]
         },
         options: {
           responsive: true,
-          plugins: {
-            legend: { position: 'top' },
-            tooltip: { mode: 'index', intersect: false }
-          },
+          maintainAspectRatio: false,
+          plugins: { legend: { position: 'top' }, tooltip: { mode: 'index', intersect: false } },
           scales: {
-            x: {
-              ticks: {
-                maxTicksLimit: 15,
-                maxRotation: 45,
-                minRotation: 0,
-                font: { size: 10 }
-              }
-            },
+            x: { ticks: { maxTicksLimit: 15, maxRotation: 45, font: { size: 10 } } },
             y: { beginAtZero: true, ticks: { precision: 0 } }
           }
         }
       });
-    }).catch(function (err) {
-      console.error('Failed to load reservations:', err);
-    });
+    }).catch(function (err) { console.error('Failed to load reservations:', err); });
   }
 
   loadReservations();
 
   /* ------------------------------------------------------------------ */
-  /*  2. Sales                                                           */
+  /*  2. Sales (lazy loaded)                                             */
   /* ------------------------------------------------------------------ */
   var salesTrendChart = null;
   var topProductsChart = null;
 
   function loadSales(period) {
     apiFetch('/api/dashboard/sales/?period=' + encodeURIComponent(period)).then(function (data) {
-      // --- Sales trend line chart ---
       var trend = data.trend || [];
       var trendLabels = trend.map(function (d) { return d.date; });
       var trendTotals = trend.map(function (d) { return d.total; });
 
       if (salesTrendChart) salesTrendChart.destroy();
-
       var ctx1 = document.getElementById('salesTrendChart').getContext('2d');
       salesTrendChart = new Chart(ctx1, {
         type: 'line',
         data: {
           labels: trendLabels,
           datasets: [{
-            label: '売上 (円)',
-            data: trendTotals,
-            borderColor: COLORS.emerald,
-            backgroundColor: 'rgba(16,185,129,0.15)',
-            fill: true,
-            tension: 0.3,
-            pointRadius: 2,
-            pointHoverRadius: 5
+            label: '売上 (円)', data: trendTotals,
+            borderColor: COLORS.emerald, backgroundColor: 'rgba(16,185,129,0.15)',
+            fill: true, tension: 0.3, pointRadius: 2, pointHoverRadius: 5
           }]
         },
         options: {
-          responsive: true,
+          responsive: true, maintainAspectRatio: false,
           plugins: {
             legend: { position: 'top' },
-            tooltip: {
-              callbacks: {
-                label: function (ctx) {
-                  return '売上: ' + Number(ctx.parsed.y).toLocaleString() + ' 円';
-                }
-              }
-            }
+            tooltip: { callbacks: { label: function (ctx) { return '売上: ' + Number(ctx.parsed.y).toLocaleString() + ' 円'; } } }
           },
           scales: {
-            x: {
-              ticks: {
-                maxTicksLimit: 12,
-                maxRotation: 45,
-                minRotation: 0,
-                font: { size: 10 }
-              }
-            },
-            y: {
-              beginAtZero: true,
-              ticks: {
-                callback: function (v) { return Number(v).toLocaleString() + ' 円'; }
-              }
-            }
+            x: { ticks: { maxTicksLimit: 12, maxRotation: 45, font: { size: 10 } } },
+            y: { beginAtZero: true, ticks: { callback: function (v) { return Number(v).toLocaleString() + ' 円'; } } }
           }
         }
       });
 
-      // --- Top products horizontal bar chart ---
       var products = (data.top_products || []).slice(0, 10);
-      var prodLabels = products.map(function (p) { return p.name; });
-      var prodTotals = products.map(function (p) { return p.total; });
-
       if (topProductsChart) topProductsChart.destroy();
-
       var ctx2 = document.getElementById('topProductsChart').getContext('2d');
       topProductsChart = new Chart(ctx2, {
         type: 'bar',
         data: {
-          labels: prodLabels,
+          labels: products.map(function (p) { return p.name; }),
           datasets: [{
-            label: '注文数',
-            data: prodTotals,
-            backgroundColor: PALETTE.slice(0, products.length),
-            borderRadius: 4,
+            label: '注文数', data: products.map(function (p) { return p.total; }),
+            backgroundColor: PALETTE.slice(0, products.length), borderRadius: 4
           }]
         },
         options: {
-          indexAxis: 'y',
-          responsive: true,
-          plugins: {
-            legend: { display: false }
-          },
-          scales: {
-            x: { beginAtZero: true, ticks: { precision: 0 } }
-          }
+          indexAxis: 'y', responsive: true, maintainAspectRatio: false,
+          plugins: { legend: { display: false } },
+          scales: { x: { beginAtZero: true, ticks: { precision: 0 } } }
         }
       });
-    }).catch(function (err) {
-      console.error('Failed to load sales:', err);
-    });
+    }).catch(function (err) { console.error('Failed to load sales:', err); });
   }
 
-  // Initial load with default period
-  loadSales(document.getElementById('sales-period').value);
-
-  // Re-fetch when period selector changes
   document.getElementById('sales-period').addEventListener('change', function () {
     loadSales(this.value);
+    salesLoaded = true;
   });
 
   /* ------------------------------------------------------------------ */
-  /*  3. Staff Performance                                               */
+  /*  3. Staff Performance (lazy loaded)                                 */
   /* ------------------------------------------------------------------ */
   var staffChart = null;
 
   function loadStaffPerformance() {
     apiFetch('/api/dashboard/staff-performance/').then(function (data) {
       var staff = data.staff || [];
-      var staffLabels = staff.map(function (s) { return s.name; });
-      var reservations = staff.map(function (s) { return s.reservations; });
-      var sales = staff.map(function (s) { return s.sales; });
-
       if (staffChart) staffChart.destroy();
-
       var ctx = document.getElementById('staffChart').getContext('2d');
       staffChart = new Chart(ctx, {
         type: 'bar',
         data: {
-          labels: staffLabels,
+          labels: staff.map(function (s) { return s.name; }),
           datasets: [
-            {
-              label: '予約数',
-              data: reservations,
-              backgroundColor: COLORS.sky,
-              borderRadius: 4,
-              yAxisID: 'y',
-            },
-            {
-              label: '売上 (円)',
-              data: sales,
-              backgroundColor: COLORS.amber,
-              borderRadius: 4,
-              yAxisID: 'y1',
-            }
+            { label: '予約数', data: staff.map(function (s) { return s.reservations; }), backgroundColor: COLORS.sky, borderRadius: 4, yAxisID: 'y' },
+            { label: '売上 (円)', data: staff.map(function (s) { return s.sales; }), backgroundColor: COLORS.amber, borderRadius: 4, yAxisID: 'y1' }
           ]
         },
         options: {
-          responsive: true,
+          responsive: true, maintainAspectRatio: false,
           plugins: {
             legend: { position: 'top' },
-            tooltip: {
-              callbacks: {
-                label: function (ctx) {
-                  if (ctx.dataset.yAxisID === 'y1') {
-                    return ctx.dataset.label + ': ' + Number(ctx.parsed.y).toLocaleString() + ' 円';
-                  }
-                  return ctx.dataset.label + ': ' + ctx.parsed.y;
-                }
-              }
-            }
+            tooltip: { callbacks: { label: function (ctx) {
+              if (ctx.dataset.yAxisID === 'y1') return ctx.dataset.label + ': ' + Number(ctx.parsed.y).toLocaleString() + ' 円';
+              return ctx.dataset.label + ': ' + ctx.parsed.y;
+            } } }
           },
           scales: {
-            y: {
-              type: 'linear',
-              position: 'left',
-              beginAtZero: true,
-              title: { display: true, text: '予約数' },
-              ticks: { precision: 0 }
-            },
-            y1: {
-              type: 'linear',
-              position: 'right',
-              beginAtZero: true,
-              title: { display: true, text: '売上 (円)' },
-              grid: { drawOnChartArea: false },
-              ticks: {
-                callback: function (v) { return Number(v).toLocaleString(); }
-              }
-            }
+            y: { type: 'linear', position: 'left', beginAtZero: true, title: { display: true, text: '予約数' }, ticks: { precision: 0 } },
+            y1: { type: 'linear', position: 'right', beginAtZero: true, title: { display: true, text: '売上 (円)' }, grid: { drawOnChartArea: false }, ticks: { callback: function (v) { return Number(v).toLocaleString(); } } }
           }
         }
       });
-    }).catch(function (err) {
-      console.error('Failed to load staff performance:', err);
-    });
+    }).catch(function (err) { console.error('Failed to load staff performance:', err); });
   }
 
-  loadStaffPerformance();
+  /* ------------------------------------------------------------------ */
+  /*  4. Shift data (lazy loaded, no API needed - direct DB count)       */
+  /* ------------------------------------------------------------------ */
+  function loadShiftData() {
+    apiFetch('/api/dashboard/shift-summary/').then(function (data) {
+      document.getElementById('shift-total').textContent = data.total_assignments || 0;
+      document.getElementById('shift-synced').textContent = data.synced_assignments || 0;
+      document.getElementById('shift-open-periods').textContent = data.open_periods || 0;
+
+      var tbody = document.getElementById('shift-staff-tbody');
+      var staffData = data.staff_shifts || [];
+      if (staffData.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="3" class="px-4 py-2 text-gray-400 text-center">シフトデータなし</td></tr>';
+      } else {
+        tbody.innerHTML = staffData.map(function(s) {
+          return '<tr><td class="px-4 py-2">' + s.name + '</td><td class="px-4 py-2 text-right">' + s.total + '</td><td class="px-4 py-2 text-right">' + s.synced + '</td></tr>';
+        }).join('');
+      }
+    }).catch(function (err) {
+      console.error('Failed to load shift data:', err);
+      document.getElementById('shift-total').textContent = '0';
+      document.getElementById('shift-synced').textContent = '0';
+      document.getElementById('shift-open-periods').textContent = '0';
+    });
+  }
 
 });
 </script>

@@ -105,12 +105,12 @@
 
 <!-- ===== Calendar Table ===== -->
 <div class="overflow-x-auto rounded-lg border border-gray-200 shadow-sm">
-    <table class="w-full text-center text-sm border-collapse min-w-[640px]">
+    <table class="w-full text-center text-sm border-collapse min-w-[480px]">
         <!-- ===== Header Row ===== -->
         <thead>
             <tr class="bg-salon-beige">
                 <!-- Previous week arrow cell -->
-                <th class="px-2 py-3 border-b border-gray-200 w-16">
+                <th class="px-1 sm:px-2 py-3 border-b border-gray-200 w-14">
                     <a href="{% url 'booking:calendar' staff.pk before.year before.month before.day %}"
                        class="text-salon-brown hover:text-salon-dark transition"
                        title="{% trans '前の週' %}">
@@ -141,7 +141,7 @@
                 {% endfor %}
 
                 <!-- Next week arrow cell -->
-                <th class="px-2 py-3 border-b border-gray-200 w-16">
+                <th class="px-1 sm:px-2 py-3 border-b border-gray-200 w-14">
                     <a href="{% url 'booking:calendar' staff.pk next.year next.month next.day %}"
                        class="text-salon-brown hover:text-salon-dark transition"
                        title="{% trans '次の週' %}">
@@ -155,41 +155,44 @@
 
         <!-- ===== Body Rows ===== -->
         <tbody class="divide-y divide-gray-100">
-            {% for hour, schedules in calendar.items %}
+            {% for slot_label, schedules in calendar.items %}
             <tr class="hover:bg-gray-50/50 transition-colors">
                 <!-- Time label (left) -->
-                <td class="px-2 py-2 text-xs font-medium text-gray-500 bg-gray-50 border-r border-gray-100 whitespace-nowrap">
-                    {{ hour }}:00
+                <td class="px-1 sm:px-2 py-2 text-xs font-medium text-gray-500 bg-gray-50 border-r border-gray-100 whitespace-nowrap">
+                    {{ slot_label }}
                 </td>
 
                 {% for dt, book in schedules.items %}
                 <td class="px-1 py-2 border-r border-gray-50">
                     {% if dt <= today %}
                         {# ---- Past slot ---- #}
-                        <span class="inline-block w-8 h-8 leading-8 rounded text-gray-300 text-base select-none">&ndash;</span>
+                        <span class="inline-block w-6 h-6 sm:w-8 sm:h-8 leading-6 sm:leading-8 rounded text-gray-300 text-base select-none">&ndash;</span>
 
                     {% elif book == 'Booked' %}
                         {# ---- Booked slot ---- #}
-                        <span class="inline-block w-8 h-8 leading-8 rounded bg-red-100 text-red-600 font-bold text-base select-none" title="{% trans '予約済み' %}">&times;</span>
+                        <span class="inline-block w-6 h-6 sm:w-8 sm:h-8 leading-6 sm:leading-8 rounded bg-red-100 text-red-600 font-bold text-base select-none" title="{% trans '予約済み' %}">&times;</span>
 
                     {% elif book == 'Temp' %}
                         {# ---- Temporary reservation ---- #}
-                        <span class="inline-block w-8 h-8 leading-8 rounded bg-yellow-100 text-yellow-700 font-bold text-xs select-none" title="{% trans '仮予約中' %}">仮</span>
+                        <span class="inline-block w-6 h-6 sm:w-8 sm:h-8 leading-6 sm:leading-8 rounded bg-yellow-100 text-yellow-700 font-bold text-xs select-none" title="{% trans '仮予約中' %}">仮</span>
 
                     {% else %}
                         {# ---- Available slot ---- #}
-                        <a href="{% url 'booking:prebooking' staff.pk dt.year dt.month dt.day hour %}"
-                           class="inline-block w-8 h-8 leading-8 rounded bg-green-100 text-green-700 font-bold text-base hover:bg-green-200 hover:shadow transition"
-                           title="{{ dt|date:'Y/m/d' }} {{ hour }}:00 {% trans '予約する' %}">
+                        {% with slot_parts=slot_label|stringformat:"s" %}
+                        <a href="{% url 'booking:prebooking' staff.pk dt.year dt.month dt.day slot_parts|cut:':00'|cut:':30'|cut:':45'|cut:':15' %}"
+                           class="inline-block w-6 h-6 sm:w-8 sm:h-8 leading-6 sm:leading-8 rounded bg-green-100 text-green-700 font-bold text-base hover:bg-green-200 hover:shadow transition"
+                           title="{{ dt|date:'Y/m/d' }} {{ slot_label }} {% trans '予約する' %}"
+                           data-hour="{{ slot_label }}" data-date="{{ dt|date:'Y-m-d' }}">
                             &cir;
                         </a>
+                        {% endwith %}
                     {% endif %}
                 </td>
                 {% endfor %}
 
                 <!-- Time label (right) -->
-                <td class="px-2 py-2 text-xs font-medium text-gray-500 bg-gray-50 border-l border-gray-100 whitespace-nowrap">
-                    {{ hour }}:00
+                <td class="px-1 sm:px-2 py-2 text-xs font-medium text-gray-500 bg-gray-50 border-l border-gray-100 whitespace-nowrap">
+                    {{ slot_label }}
                 </td>
             </tr>
             {% endfor %}
@@ -218,5 +221,21 @@
         </svg>
     </a>
 </div>
+
+<script>
+// Fix prebooking links to include proper hour/minute from slot_label
+document.querySelectorAll('a[data-hour]').forEach(function(a) {
+    var parts = a.dataset.hour.split(':');
+    var hour = parseInt(parts[0]);
+    var minute = parseInt(parts[1] || '0');
+    var date = a.dataset.date.split('-');
+    var staffPk = {{ staff.pk }};
+    if (minute > 0) {
+        a.href = '/' + '{{ request.LANGUAGE_CODE }}' + '/staff/' + staffPk + '/prebooking/' + date[0] + '/' + parseInt(date[1]) + '/' + parseInt(date[2]) + '/' + hour + '/' + minute + '/';
+    } else {
+        a.href = '/' + '{{ request.LANGUAGE_CODE }}' + '/staff/' + staffPk + '/prebooking/' + date[0] + '/' + parseInt(date[1]) + '/' + parseInt(date[2]) + '/' + hour + '/';
+    }
+});
+</script>
 
 {% endblock %}

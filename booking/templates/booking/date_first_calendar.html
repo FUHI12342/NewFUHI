@@ -1,0 +1,131 @@
+{% extends 'booking/base.html' %}
+{% load i18n %}
+{% load static %}
+
+{% block title %}{% trans "日付から予約" %} | {{ block.super }}{% endblock %}
+
+{% block content %}
+
+<!-- Breadcrumb -->
+<nav class="mb-6">
+    <ol class="flex items-center text-sm text-gray-500 gap-1.5">
+        <li>
+            <a href="{% url 'booking:booking_top' %}" class="hover:text-salon-brown transition">{% trans "ホーム" %}</a>
+        </li>
+        <li class="text-gray-300">&gt;</li>
+        <li class="text-salon-brown font-medium">{% trans "日付から予約" %}</li>
+    </ol>
+</nav>
+
+<!-- Page Heading -->
+<div class="mb-6">
+    <h1 class="text-2xl font-bold text-salon-dark">{% trans "日付から予約" %}</h1>
+    <p class="text-sm text-gray-500 mt-1">{% trans "ご希望の日付を選択してください" %}</p>
+</div>
+
+<!-- Date Selector -->
+<div class="mb-8">
+    <div class="flex flex-wrap gap-2">
+        {% for d in calendar_days %}
+        <a href="{% url 'booking:date_first_calendar_day' d.year d.month d.day %}"
+           class="flex flex-col items-center px-3 py-2 rounded-lg border transition-all duration-200
+                  {% if selected_date == d %}bg-salon-brown text-white border-salon-brown shadow-md
+                  {% elif d in public_holidays %}bg-red-50 border-red-200 hover:border-red-400 hover:shadow-sm
+                  {% elif d.weekday == 5 %}bg-blue-50 border-blue-200 hover:border-blue-400 hover:shadow-sm
+                  {% elif d.weekday == 6 %}bg-red-50 border-red-200 hover:border-red-400 hover:shadow-sm
+                  {% else %}bg-white border-gray-200 hover:border-salon-brown/50 hover:shadow-sm{% endif %}
+                  {% if d == today %}ring-2 ring-salon-brown/30{% endif %}">
+            <span class="text-xs
+                {% if selected_date == d %}text-white/80
+                {% elif d in public_holidays or d.weekday == 6 %}text-red-500
+                {% elif d.weekday == 5 %}text-blue-500
+                {% else %}text-gray-500{% endif %}">
+                {{ d|date:"D" }}
+            </span>
+            <span class="text-lg font-bold
+                {% if d in public_holidays or d.weekday == 6 %}{% if selected_date != d %}text-red-600{% endif %}
+                {% elif d.weekday == 5 %}{% if selected_date != d %}text-blue-600{% endif %}{% endif %}">
+                {{ d|date:"j" }}
+            </span>
+            <span class="text-xs
+                {% if selected_date == d %}text-white/80
+                {% elif d in public_holidays or d.weekday == 6 %}text-red-400
+                {% elif d.weekday == 5 %}text-blue-400
+                {% else %}text-gray-500{% endif %}">
+                {{ d|date:"M" }}
+            </span>
+            {% if d in public_holidays %}
+            <span class="text-[9px] bg-red-200 text-red-700 px-1 rounded mt-0.5">{% trans "祝" %}</span>
+            {% endif %}
+        </a>
+        {% endfor %}
+    </div>
+</div>
+
+{% if selected_date %}
+<!-- Selected Date Header -->
+<h2 class="text-xl font-bold text-salon-dark mb-4 border-b-2 border-salon-brown pb-2">
+    {{ selected_date|date:"Y年n月j日" }}{% trans "に空きのある占い師" %}
+</h2>
+
+{% if available_tellers %}
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+    {% for item in available_tellers %}
+    <div class="bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden">
+
+        <!-- Card Header -->
+        <div class="flex items-center gap-3 p-4 border-b border-gray-100">
+            {% if item.staff.thumbnail %}
+            <img src="{{ item.staff.thumbnail.url }}" alt="{{ item.staff.name }}"
+                 class="w-12 h-12 rounded-full object-cover">
+            {% else %}
+            <div class="w-12 h-12 rounded-full bg-salon-beige flex items-center justify-center">
+                <span class="text-salon-brown font-bold text-lg">{{ item.staff.name|truncatechars:1 }}</span>
+            </div>
+            {% endif %}
+            <div>
+                <h3 class="font-bold text-salon-dark">{{ item.staff.name }} {% trans "先生" %}</h3>
+                <span class="text-xs text-gray-500">{{ item.staff.store.name }}</span>
+                <span class="text-xs text-salon-brown ml-1">{{ item.staff.price }}{% trans "円" %}</span>
+            </div>
+        </div>
+
+        <!-- Available Hours -->
+        <div class="p-4">
+            <p class="text-xs text-gray-500 mb-2">{% trans "空き時間" %}</p>
+            <div class="flex flex-wrap gap-1.5">
+                {% for slot in item.free_slots %}
+                {% if slot.minute > 0 %}
+                <a href="{% url 'booking:prebooking_minute' item.staff.pk selected_date.year selected_date.month selected_date.day slot.hour slot.minute %}"
+                   class="inline-block px-3 py-1.5 text-sm bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-md hover:bg-emerald-100 transition">
+                    {{ slot.label }}
+                </a>
+                {% else %}
+                <a href="{% url 'booking:prebooking' item.staff.pk selected_date.year selected_date.month selected_date.day slot.hour %}"
+                   class="inline-block px-3 py-1.5 text-sm bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-md hover:bg-emerald-100 transition">
+                    {{ slot.label }}
+                </a>
+                {% endif %}
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% else %}
+<div class="bg-salon-beige rounded-xl p-10 text-center">
+    <p class="text-gray-500 text-base">{% trans "この日に空きのある占い師はいません。別の日付をお試しください。" %}</p>
+</div>
+{% endif %}
+
+{% else %}
+<!-- No Date Selected -->
+<div class="bg-salon-beige rounded-xl p-10 text-center">
+    <svg class="w-12 h-12 text-gray-300 mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+    </svg>
+    <p class="text-gray-500 text-base">{% trans "上のカレンダーから日付を選択してください。" %}</p>
+</div>
+{% endif %}
+
+{% endblock %}

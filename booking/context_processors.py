@@ -15,3 +15,18 @@ def global_context(request):
         'current_language': get_language() or settings.LANGUAGE_CODE,
         'available_languages': settings.LANGUAGES,
     }
+
+
+def admin_theme(request):
+    """管理画面用のテーマ設定をコンテキストに注入"""
+    if not request.path.startswith('/admin/'):
+        return {}
+    if not hasattr(request, 'user') or not request.user.is_authenticated:
+        return {}
+    try:
+        from .models import Staff
+        staff = Staff.objects.select_related('store__admin_theme').get(user=request.user)
+        theme = staff.store.admin_theme
+        return {'admin_theme': theme}
+    except Exception:
+        return {}

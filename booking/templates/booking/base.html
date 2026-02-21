@@ -35,7 +35,7 @@ tailwind.config = {
 <!-- ===== HEADER ===== -->
 <header class="bg-white shadow-sm border-b border-gray-200">
     <div class="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
-        <a href="{% url 'booking:store_list' %}" class="flex items-center">
+        <a href="{% url 'booking:booking_top' %}" class="flex items-center">
             <img src="{% static 'images/siteid.png' %}" alt="占いサロンチャンス" class="h-12 md:h-16">
         </a>
         <div class="flex items-center gap-3">
@@ -72,17 +72,17 @@ tailwind.config = {
 <nav class="bg-salon-brown text-white hidden md:block sticky top-0 z-50 shadow">
     <div class="max-w-7xl mx-auto px-4">
         <ul class="flex items-center gap-0">
-            <li><a href="{% url 'booking:store_list' %}" class="block px-4 py-3 hover:bg-white/20 transition text-sm font-medium">ホーム</a></li>
+            <li><a href="{% url 'booking:booking_top' %}" class="block px-4 py-3 hover:bg-white/20 transition text-sm font-medium">ホーム</a></li>
             <li class="relative group">
-                <a href="{% url 'booking:store_list' %}" class="block px-4 py-3 hover:bg-white/20 transition text-sm font-medium">店舗情報 ▾</a>
+                <a href="{% url 'booking:booking_top' %}" class="block px-4 py-3 hover:bg-white/20 transition text-sm font-medium">店舗情報 ▾</a>
                 <ul class="absolute left-0 top-full bg-salon-brown min-w-[180px] shadow-lg rounded-b hidden group-hover:block z-50">
                     {% for store in stores %}
                     <li><a href="{% url 'booking:staff_list' store.pk %}" class="block px-4 py-2 hover:bg-white/20 transition text-sm">{{ store.name }}</a></li>
                     {% endfor %}
                 </ul>
             </li>
-            <li><a href="{% url 'booking:store_list' %}" class="block px-4 py-3 hover:bg-white/20 transition text-sm font-medium">ご予約</a></li>
-            <li><a href="{% url 'booking:store_list' %}" class="block px-4 py-3 hover:bg-white/20 transition text-sm font-medium">所属占い師</a></li>
+            <li><a href="{% url 'booking:booking_top' %}" class="block px-4 py-3 hover:bg-white/20 transition text-sm font-medium">ご予約</a></li>
+            <li><a href="{% url 'booking:all_fortune_tellers' %}" class="block px-4 py-3 hover:bg-white/20 transition text-sm font-medium">所属占い師</a></li>
             <li><a href="{% url 'booking:help' %}" class="block px-4 py-3 hover:bg-white/20 transition text-sm font-medium">ヘルプ</a></li>
             {% if user.is_staff %}
             <li><a href="{% url 'admin:index' %}" class="block px-4 py-3 hover:bg-white/20 transition text-sm font-medium">管理画面</a></li>
@@ -94,10 +94,10 @@ tailwind.config = {
 <!-- ===== NAVIGATION (Mobile) ===== -->
 <nav id="mobile-menu" class="hidden md:hidden bg-salon-brown text-white shadow-lg">
     <ul class="divide-y divide-white/20">
-        <li><a href="{% url 'booking:store_list' %}" class="block px-6 py-3 hover:bg-white/10">ホーム</a></li>
-        <li><a href="{% url 'booking:store_list' %}" class="block px-6 py-3 hover:bg-white/10">店舗一覧</a></li>
-        <li><a href="{% url 'booking:store_list' %}" class="block px-6 py-3 hover:bg-white/10">ご予約</a></li>
-        <li><a href="{% url 'booking:store_list' %}" class="block px-6 py-3 hover:bg-white/10">所属占い師</a></li>
+        <li><a href="{% url 'booking:booking_top' %}" class="block px-6 py-3 hover:bg-white/10">ホーム</a></li>
+        <li><a href="{% url 'booking:booking_top' %}" class="block px-6 py-3 hover:bg-white/10">店舗一覧</a></li>
+        <li><a href="{% url 'booking:booking_top' %}" class="block px-6 py-3 hover:bg-white/10">ご予約</a></li>
+        <li><a href="{% url 'booking:all_fortune_tellers' %}" class="block px-6 py-3 hover:bg-white/10">所属占い師</a></li>
         <li><a href="{% url 'booking:help' %}" class="block px-6 py-3 hover:bg-white/10">ヘルプ</a></li>
         {% if user.is_staff %}
         <li><a href="{% url 'admin:index' %}" class="block px-6 py-3 hover:bg-white/10">管理画面</a></li>
@@ -169,8 +169,8 @@ tailwind.config = {
             <div>
                 <h4 class="font-bold mb-3">メニュー</h4>
                 <ul class="space-y-1.5">
-                    <li><a href="{% url 'booking:store_list' %}" class="hover:underline opacity-80 hover:opacity-100">ホーム</a></li>
-                    <li><a href="{% url 'booking:store_list' %}" class="hover:underline opacity-80 hover:opacity-100">ご予約</a></li>
+                    <li><a href="{% url 'booking:booking_top' %}" class="hover:underline opacity-80 hover:opacity-100">ホーム</a></li>
+                    <li><a href="{% url 'booking:booking_top' %}" class="hover:underline opacity-80 hover:opacity-100">ご予約</a></li>
                     <li><a href="{% url 'booking:help' %}" class="hover:underline opacity-80 hover:opacity-100">ヘルプ</a></li>
                 </ul>
             </div>
@@ -198,8 +198,8 @@ tailwind.config = {
             <div>
                 <h4 class="font-bold mb-3">その他</h4>
                 <ul class="space-y-1.5">
-                    <li><a href="{% url 'booking:help' %}" class="hover:underline opacity-80 hover:opacity-100">プライバシーポリシー</a></li>
-                    <li><a href="{% url 'booking:help' %}" class="hover:underline opacity-80 hover:opacity-100">利用規約</a></li>
+                    <li><a href="{% url 'booking:privacy_policy' %}" class="hover:underline opacity-80 hover:opacity-100">プライバシーポリシー</a></li>
+                    <li><a href="{% url 'booking:tokushoho' %}" class="hover:underline opacity-80 hover:opacity-100">特定商取引法に基づく表記</a></li>
                 </ul>
             </div>
         </div>

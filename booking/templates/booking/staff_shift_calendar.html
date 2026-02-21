@@ -1,0 +1,75 @@
+{% extends 'booking/base.html' %}
+{% load i18n %}
+
+{% block title %}{% trans "シフト管理" %} | {{ block.super }}{% endblock %}
+
+{% block content %}
+<div class="max-w-3xl mx-auto">
+    <h1 class="text-2xl font-bold text-salon-dark mb-6 border-b-2 border-salon-brown pb-3">
+        {% trans "シフト管理" %}
+    </h1>
+
+    <p class="text-sm text-gray-500 mb-6">{{ staff.store.name }} &mdash; {{ staff.name }}</p>
+
+    <!-- 募集中のシフト期間 -->
+    {% if open_periods %}
+    <div class="mb-8">
+        <h2 class="text-lg font-bold text-salon-dark mb-4">{% trans "募集中のシフト期間" %}</h2>
+        <div class="space-y-3">
+            {% for period in open_periods %}
+            <div class="bg-white border border-gray-200 rounded-lg p-4 flex items-center justify-between">
+                <div>
+                    <span class="font-semibold text-salon-dark">{{ period.year_month|date:"Y年n月" }}</span>
+                    <span class="text-sm text-gray-500 ml-2">締切: {{ period.deadline|date:"Y/m/d H:i" }}</span>
+                </div>
+                <a href="{% url 'booking:staff_shift_submit' period.pk %}"
+                   class="bg-salon-brown text-white text-sm px-4 py-2 rounded-lg hover:bg-salon-dark transition">
+                    {% trans "希望入力" %}
+                </a>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% else %}
+    <div class="bg-salon-beige rounded-lg p-6 text-center mb-8">
+        <p class="text-gray-500">{% trans "現在募集中のシフト期間はありません。" %}</p>
+    </div>
+    {% endif %}
+
+    <!-- 自分のシフト希望一覧 -->
+    {% if my_requests %}
+    <div>
+        <h2 class="text-lg font-bold text-salon-dark mb-4">{% trans "提出済みのシフト希望" %}</h2>
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+            <table class="w-full text-sm">
+                <thead>
+                    <tr class="bg-salon-beige">
+                        <th class="px-4 py-2 text-left">{% trans "対象月" %}</th>
+                        <th class="px-4 py-2 text-left">{% trans "日付" %}</th>
+                        <th class="px-4 py-2 text-left">{% trans "時間" %}</th>
+                        <th class="px-4 py-2 text-left">{% trans "希望区分" %}</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-100">
+                    {% for req in my_requests %}
+                    <tr>
+                        <td class="px-4 py-2">{{ req.period.year_month|date:"Y年n月" }}</td>
+                        <td class="px-4 py-2">{{ req.date|date:"m/d" }}</td>
+                        <td class="px-4 py-2">{{ req.start_hour }}:00 - {{ req.end_hour }}:00</td>
+                        <td class="px-4 py-2">
+                            <span class="inline-block px-2 py-0.5 rounded text-xs
+                                {% if req.preference == 'preferred' %}bg-green-100 text-green-700
+                                {% elif req.preference == 'available' %}bg-blue-100 text-blue-700
+                                {% else %}bg-red-100 text-red-700{% endif %}">
+                                {{ req.get_preference_display }}
+                            </span>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

@@ -6,9 +6,11 @@ from . import views
 from .views_debug import AdminDebugPanelAPIView, LogLevelControlAPIView
 from .views_dashboard import SensorDataAPIView, PIREventsAPIView
 from .views_restaurant_dashboard import (
+    DashboardLayoutAPIView,
     ReservationStatsAPIView,
     SalesStatsAPIView,
     StaffPerformanceAPIView,
+    ShiftSummaryAPIView,
 )
 from .views_property import PropertyStatusAPIView, PropertyAlertResolveAPIView
 
@@ -45,9 +47,11 @@ urlpatterns = [
     path('iot/sensors/pir-events/', PIREventsAPIView.as_view(), name='pir_events_api'),
 
     # Restaurant Dashboard APIs
+    path('dashboard/layout/', DashboardLayoutAPIView.as_view(), name='dashboard_layout_api'),
     path('dashboard/reservations/', ReservationStatsAPIView.as_view(), name='reservation_stats_api'),
     path('dashboard/sales/', SalesStatsAPIView.as_view(), name='sales_stats_api'),
     path('dashboard/staff-performance/', StaffPerformanceAPIView.as_view(), name='staff_performance_api'),
+    path('dashboard/shift-summary/', ShiftSummaryAPIView.as_view(), name='shift_summary_api'),
 
     # Property APIs
     path('properties/<int:pk>/status/', PropertyStatusAPIView.as_view(), name='property_status_api'),

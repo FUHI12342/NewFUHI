@@ -10,6 +10,17 @@ from .views import (
     IoTMQ9GraphView,
     IoTEventAPIView,
     IoTConfigAPIView,
+    LoginRedirectView,
+    BookingTopPage,
+    AllFortuneTellerList,
+    DateFirstCalendar,
+    BookingChannelChoice,
+    EmailBookingView,
+    EmailVerifyView,
+    PrivacyPolicyView,
+    TokushohoView,
+    StaffShiftCalendarView,
+    StaffShiftSubmitView,
 )
 
 
@@ -17,10 +28,15 @@ app_name = 'booking'
 
 urlpatterns = [
     # Top / Auth
-    path('', views.StoreList.as_view(), name='store_list'),
+    path('', BookingTopPage.as_view(), name='booking_top'),
+    path('stores/', views.StoreList.as_view(), name='store_list'),
+    path('fortune-tellers/', AllFortuneTellerList.as_view(), name='all_fortune_tellers'),
+    path('date-calendar/', DateFirstCalendar.as_view(), name='date_first_calendar'),
+    path('date-calendar/<int:year>/<int:month>/<int:day>/', DateFirstCalendar.as_view(), name='date_first_calendar_day'),
     path('index/', views.Index.as_view(), name='index'),
     path('help/', views.HelpView.as_view(), name='help'),
     path('login/', LoginView.as_view(template_name='admin/login.html'), name='login'),
+    path('login/redirect/', LoginRedirectView.as_view(), name='login_redirect'),
     path('logout/', LogoutView.as_view(), name='logout'),
 
     # Store / Staff / Booking
@@ -36,6 +52,16 @@ urlpatterns = [
         views.PreBooking.as_view(),
         name='prebooking'
     ),
+    path(
+        'staff/<int:pk>/prebooking/<int:year>/<int:month>/<int:day>/<int:hour>/<int:minute>/',
+        views.PreBooking.as_view(),
+        name='prebooking_minute'
+    ),
+
+    # Booking channel choice & email flow
+    path('booking/channel-choice/', BookingChannelChoice.as_view(), name='channel_choice'),
+    path('booking/email/', EmailBookingView.as_view(), name='email_booking'),
+    path('booking/email/verify/', EmailVerifyView.as_view(), name='email_verify'),
 
     # LINE login & payment
     path('line_enter/', LineEnterView.as_view(), name='line_enter'),
@@ -85,6 +111,14 @@ urlpatterns = [
         views.my_page_day_add,
         name='my_page_day_add'
     ),
+
+    # Shift management
+    path('shift/', StaffShiftCalendarView.as_view(), name='staff_shift_calendar'),
+    path('shift/<int:period_id>/submit/', StaffShiftSubmitView.as_view(), name='staff_shift_submit'),
+
+    # Static pages
+    path('privacy/', PrivacyPolicyView.as_view(), name='privacy_policy'),
+    path('tokushoho/', TokushohoView.as_view(), name='tokushoho'),
 
     # Menu page (user-facing HTML)
     path('menu/<int:store_id>/', views.CustomerMenuView.as_view(), name='customer_menu'),

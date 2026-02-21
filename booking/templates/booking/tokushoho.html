@@ -1,0 +1,65 @@
+{% extends 'booking/base.html' %}
+{% load i18n %}
+
+{% block title %}{% trans "特定商取引法に基づく表記" %} | {{ block.super }}{% endblock %}
+
+{% block content %}
+<div class="max-w-3xl mx-auto">
+    <h1 class="text-2xl font-bold text-salon-dark mb-6 border-b-2 border-salon-brown pb-3">
+        {% trans "特定商取引法に基づく表記" %}
+    </h1>
+
+    <div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+        <table class="w-full text-sm">
+            <tbody class="divide-y divide-gray-100">
+                <tr>
+                    <th class="px-4 py-3 bg-salon-beige text-left font-semibold text-salon-dark w-1/3">{% trans "販売業者" %}</th>
+                    <td class="px-4 py-3">{% if company %}{{ company.name }}{% else %}{% trans "会社情報をご確認ください" %}{% endif %}</td>
+                </tr>
+                <tr>
+                    <th class="px-4 py-3 bg-salon-beige text-left font-semibold text-salon-dark">{% trans "代表者" %}</th>
+                    <td class="px-4 py-3">{% trans "お問い合わせください" %}</td>
+                </tr>
+                <tr>
+                    <th class="px-4 py-3 bg-salon-beige text-left font-semibold text-salon-dark">{% trans "所在地" %}</th>
+                    <td class="px-4 py-3">{% if company %}{{ company.address }}{% else %}-{% endif %}</td>
+                </tr>
+                <tr>
+                    <th class="px-4 py-3 bg-salon-beige text-left font-semibold text-salon-dark">{% trans "電話番号" %}</th>
+                    <td class="px-4 py-3">{% if company %}{{ company.tel }}{% else %}-{% endif %}</td>
+                </tr>
+                <tr>
+                    <th class="px-4 py-3 bg-salon-beige text-left font-semibold text-salon-dark">{% trans "サービス内容" %}</th>
+                    <td class="px-4 py-3">{% trans "占い鑑定サービスの提供" %}</td>
+                </tr>
+                <tr>
+                    <th class="px-4 py-3 bg-salon-beige text-left font-semibold text-salon-dark">{% trans "価格" %}</th>
+                    <td class="px-4 py-3">{% trans "各占い師のプロフィールページに記載の料金をご確認ください。表示価格は税込みです。" %}</td>
+                </tr>
+                <tr>
+                    <th class="px-4 py-3 bg-salon-beige text-left font-semibold text-salon-dark">{% trans "支払方法" %}</th>
+                    <td class="px-4 py-3">{% trans "クレジットカード決済" %}</td>
+                </tr>
+                <tr>
+                    <th class="px-4 py-3 bg-salon-beige text-left font-semibold text-salon-dark">{% trans "支払時期" %}</th>
+                    <td class="px-4 py-3">{% trans "予約確定時にお支払いいただきます。" %}</td>
+                </tr>
+                <tr>
+                    <th class="px-4 py-3 bg-salon-beige text-left font-semibold text-salon-dark">{% trans "サービス提供時期" %}</th>
+                    <td class="px-4 py-3">{% trans "予約された日時にサービスを提供いたします。" %}</td>
+                </tr>
+                <tr>
+                    <th class="px-4 py-3 bg-salon-beige text-left font-semibold text-salon-dark">{% trans "キャンセルポリシー" %}</th>
+                    <td class="px-4 py-3">
+                        {% trans "予約確定後のキャンセルについては、マイページまたはお電話にて承ります。仮予約から15分以内にお支払いがない場合は自動キャンセルとなります。" %}
+                    </td>
+                </tr>
+                <tr>
+                    <th class="px-4 py-3 bg-salon-beige text-left font-semibold text-salon-dark">{% trans "返金について" %}</th>
+                    <td class="px-4 py-3">{% trans "キャンセル時の返金については、個別にご対応いたします。お問い合わせください。" %}</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

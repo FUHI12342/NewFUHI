@@ -1,0 +1,63 @@
+{% extends 'booking/base.html' %}
+{% load i18n %}
+
+{% block title %}{% trans "プライバシーポリシー" %} | {{ block.super }}{% endblock %}
+
+{% block content %}
+<div class="max-w-3xl mx-auto">
+    <h1 class="text-2xl font-bold text-salon-dark mb-6 border-b-2 border-salon-brown pb-3">
+        {% trans "プライバシーポリシー" %}
+    </h1>
+
+    <div class="prose prose-sm max-w-none text-gray-700 space-y-6">
+
+        <section>
+            <h2 class="text-lg font-bold text-salon-dark mb-2">{% trans "1. 個人情報の収集について" %}</h2>
+            <p>{% trans "当サロンでは、予約やお問い合わせの際に、お名前、メールアドレス、LINE ID等の個人情報を収集することがあります。収集にあたっては、利用目的を明示し、適切な範囲で行います。" %}</p>
+        </section>
+
+        <section>
+            <h2 class="text-lg font-bold text-salon-dark mb-2">{% trans "2. 個人情報の利用目的" %}</h2>
+            <ul class="list-disc pl-5 space-y-1">
+                <li>{% trans "予約の受付・管理・ご連絡" %}</li>
+                <li>{% trans "サービス向上のためのアンケート実施" %}</li>
+                <li>{% trans "お知らせ・キャンペーン情報のご案内" %}</li>
+                <li>{% trans "お問い合わせへの対応" %}</li>
+            </ul>
+        </section>
+
+        <section>
+            <h2 class="text-lg font-bold text-salon-dark mb-2">{% trans "3. 個人情報の第三者提供" %}</h2>
+            <p>{% trans "当サロンでは、法令に基づく場合を除き、事前にご本人の同意を得ることなく個人情報を第三者に提供することはありません。" %}</p>
+        </section>
+
+        <section>
+            <h2 class="text-lg font-bold text-salon-dark mb-2">{% trans "4. 個人情報の管理" %}</h2>
+            <p>{% trans "当サロンでは、個人情報の正確性及び安全性を確保するため、セキュリティ対策を講じ、個人情報の漏洩、改ざん、不正アクセスなどの防止に努めます。" %}</p>
+        </section>
+
+        <section>
+            <h2 class="text-lg font-bold text-salon-dark mb-2">{% trans "5. Cookieの使用について" %}</h2>
+            <p>{% trans "当サイトでは、サービスの利便性向上のためCookieを使用する場合があります。Cookieにより個人を特定する情報は収集しません。ブラウザの設定でCookieの受け入れを拒否することも可能です。" %}</p>
+        </section>
+
+        <section>
+            <h2 class="text-lg font-bold text-salon-dark mb-2">{% trans "6. プライバシーポリシーの変更" %}</h2>
+            <p>{% trans "当サロンは、必要に応じて本ポリシーを変更することがあります。変更後のプライバシーポリシーは、本ページにて公表した時点から効力を生じるものとします。" %}</p>
+        </section>
+
+        <section>
+            <h2 class="text-lg font-bold text-salon-dark mb-2">{% trans "7. お問い合わせ窓口" %}</h2>
+            <p>{% trans "個人情報の取り扱いに関するお問い合わせは、下記までご連絡ください。" %}</p>
+            {% if company %}
+            <p class="mt-2">
+                {{ company.name }}<br>
+                {{ company.address }}<br>
+                TEL: {{ company.tel }}
+            </p>
+            {% endif %}
+        </section>
+
+    </div>
+</div>
+{% endblock %}

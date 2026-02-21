@@ -61,6 +61,10 @@ from booking.models import (
     OrderItem,
     StockMovement,
     apply_stock_movement,
+    # ===== Round2: シフト管理 =====
+    StoreScheduleConfig,
+    ShiftPeriod,
+    ShiftRequest,
 )
 from .forms import StaffForm
 from linebot import LineBotApi
@@ -70,6 +74,43 @@ from linebot.models import TextSendMessage
 logger = logging.getLogger(__name__)
 
 User = get_user_model()
+
+
+# ===== Store Schedule Config Helper =====
+
+def get_time_slots(store):
+    """店舗のスケジュール設定に基づいてタイムスロットを生成"""
+    try:
+        config = store.schedule_config
+    except StoreScheduleConfig.DoesNotExist:
+        config = None
+
+    open_h = config.open_hour if config else 9
+    close_h = config.close_hour if config else 21
+    duration = config.slot_duration if config else 60
+
+    slots = []
+    current = open_h * 60  # 分に変換
+    while current + duration <= close_h * 60:
+        slots.append({
+            'hour': current // 60,
+            'minute': current % 60,
+            'total_minutes': current,
+            'label': f"{current // 60}:{current % 60:02d}",
+        })
+        current += duration
+    return slots, open_h, close_h, duration
+
+
+def get_hour_range(store):
+    """店舗の営業時間範囲を(start_hour, end_hour)で返す（既存コードとの互換用）"""
+    try:
+        config = store.schedule_config
+    except StoreScheduleConfig.DoesNotExist:
+        config = None
+    open_h = config.open_hour if config else 9
+    close_h = config.close_hour if config else 21
+    return open_h, close_h
 
 
 # ===== IoT API Helper Functions =====
@@ -180,8 +221,16 @@ class UserList(generics.ListAPIView):
     permission_classes = [IsAdminUser]
 
 
+class LoginRedirectView(View):
+    """ログイン後のスマートリダイレクト: is_staff → /admin/, それ以外 → store_list"""
+    def get(self, request):
+        if request.user.is_authenticated and request.user.is_staff:
+            return redirect(reverse('admin:index'))
+        return redirect(reverse('booking:store_list'))
+
+
 class Index(generic.RedirectView):
-    pattern_name = 'booking:store_list'
+    pattern_name = 'booking:booking_top'
 
 
 class HelpView(generic.TemplateView):
@@ -516,7 +565,7 @@ class LineCallbackView(View):
                 "method": "creditcard",
                 "subject": "ご予約料金",
                 "description": "ウェブサイトからの支払い",
-                "remarks": "仮予約から10分を過ぎますと自動的にキャンセルとなります。あらかじめご了承ください。",
+                "remarks": "仮予約から15分を過ぎますと自動的にキャンセルとなります。あらかじめご了承ください。",
                 "metadata": {"orderId": reservation_number},
                 "expiredOn": expired_on_str
             }
@@ -535,7 +584,11 @@ class LineCallbackView(View):
             if payment_url is not None:
                 line_bot_api.push_message(
                     user_id,
-                    TextSendMessage(text='こちらのURLから決済を行ってください。決済後に予約が確定します。: ' + payment_url)
+                    TextSendMessage(
+                        text='こちらのURLから決済を行ってください。決済後に予約が確定します。\n'
+                             '15分以内にお支払いがない場合、仮予約は自動キャンセルされます。\n'
+                             + payment_url
+                    )
                 )
 
         except LineBotApiError as e:
@@ -589,6 +642,91 @@ class OnlyUserMixin(UserPassesTestMixin):
         return self.kwargs['pk'] == self.request.user.pk or self.request.user.is_superuser
 
 
+class BookingTopPage(generic.TemplateView):
+    """トップページ: 3つの入口 (店舗/占い師/日付)"""
+    template_name = 'booking/booking_top.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['stores'] = Store.objects.all().order_by('name')
+        return context
+
+
+class AllFortuneTellerList(generic.ListView):
+    """全店舗横断の占い師一覧 (staff_type='fortune_teller' のみ)"""
+    model = Staff
+    template_name = 'booking/all_fortune_tellers.html'
+    context_object_name = 'fortune_tellers'
+    ordering = 'name'
+
+    def get_queryset(self):
+        return super().get_queryset().filter(
+            staff_type='fortune_teller'
+        ).select_related('store')
+
+
+class DateFirstCalendar(generic.TemplateView):
+    """日付優先カレンダー: 日付を選ぶ → その日空きのある占い師一覧 (全店舗横断)"""
+    template_name = 'booking/date_first_calendar.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        today = datetime.date.today()
+
+        year = self.kwargs.get('year')
+        month = self.kwargs.get('month')
+        day = self.kwargs.get('day')
+
+        if year and month and day:
+            selected_date = datetime.date(year=year, month=month, day=day)
+        else:
+            selected_date = None
+
+        # 14日分のカレンダー
+        calendar_days = [today + datetime.timedelta(days=d) for d in range(14)]
+        context['calendar_days'] = calendar_days
+        context['selected_date'] = selected_date
+        context['today'] = today
+
+        if selected_date:
+            # 全占い師のスケジュールをバルク取得して N+1 回避
+            fortune_tellers = Staff.objects.filter(
+                staff_type='fortune_teller'
+            ).select_related('store')
+
+            # 選択日の既存予約を一括取得
+            booked = Schedule.objects.filter(
+                staff__staff_type='fortune_teller',
+                start__date=selected_date,
+                is_cancelled=False,
+            ).values_list('staff_id', 'start')
+
+            booked_set = set()
+            for staff_id, start in booked:
+                local_dt = timezone.localtime(start) if timezone.is_aware(start) else start
+                booked_set.add((staff_id, local_dt.hour, local_dt.minute))
+
+            available_tellers = []
+            for teller in fortune_tellers:
+                time_slots, open_h, close_h, duration = get_time_slots(teller.store)
+                free_slots = []
+                for slot in time_slots:
+                    if (teller.id, slot['hour'], slot['minute']) not in booked_set:
+                        free_slots.append(slot)
+                if free_slots:
+                    available_tellers.append({
+                        'staff': teller,
+                        'free_slots': free_slots,
+                    })
+
+            context['available_tellers'] = available_tellers
+
+            # 祝日コンテキスト
+            context['public_holidays'] = settings.PUBLIC_HOLIDAYS
+
+        return context
+
+
 class StoreList(generic.ListView):
     model = Store
     ordering = 'name'
@@ -605,7 +743,7 @@ class StaffList(generic.ListView):
 
     def get_queryset(self):
         self.store = get_object_or_404(Store, pk=self.kwargs['pk'])
-        return super().get_queryset().filter(store=self.store)
+        return super().get_queryset().filter(store=self.store, staff_type='fortune_teller')
 
 
 class StaffCalendar(generic.TemplateView):
@@ -625,12 +763,16 @@ class StaffCalendar(generic.TemplateView):
         start_day = days[0]
         end_day = days[-1]
 
-        calendar = {}
-        for hour in range(9, 18):
-            calendar[hour] = {d: True for d in days}
+        # 動的タイムスロット
+        time_slots, open_h, close_h, duration = get_time_slots(staff.store)
 
-        start_time = datetime.datetime.combine(start_day, datetime.time(hour=9, minute=0, second=0))
-        end_time = datetime.datetime.combine(end_day, datetime.time(hour=17, minute=0, second=0))
+        calendar = {}
+        for slot in time_slots:
+            slot_key = slot['label']
+            calendar[slot_key] = {d: True for d in days}
+
+        start_time = datetime.datetime.combine(start_day, datetime.time(hour=open_h, minute=0, second=0))
+        end_time = datetime.datetime.combine(end_day, datetime.time(hour=close_h, minute=0, second=0))
 
         for schedule in (
             Schedule.objects.filter(staff=staff, is_cancelled=False)
@@ -638,9 +780,9 @@ class StaffCalendar(generic.TemplateView):
         ):
             local_dt = timezone.localtime(schedule.start)
             booking_date = local_dt.date()
-            booking_hour = local_dt.hour
-            if booking_hour in calendar and booking_date in calendar[booking_hour]:
-                calendar[booking_hour][booking_date] = 'Temp' if schedule.is_temporary else 'Booked'
+            booking_label = f"{local_dt.hour}:{local_dt.minute:02d}"
+            if booking_label in calendar and booking_date in calendar[booking_label]:
+                calendar[booking_label][booking_date] = 'Temp' if schedule.is_temporary else 'Booked'
 
         context['staff'] = staff
         context['calendar'] = calendar
@@ -651,6 +793,8 @@ class StaffCalendar(generic.TemplateView):
         context['next'] = days[-1] + datetime.timedelta(days=1)
         context['today'] = today
         context['public_holidays'] = settings.PUBLIC_HOLIDAYS
+        context['time_slots'] = time_slots
+        context['slot_duration'] = duration
         return context
 
 
@@ -678,10 +822,14 @@ class PreBooking(generic.CreateView):
         month = int(self.kwargs.get('month'))
         day = int(self.kwargs.get('day'))
         hour = int(self.kwargs.get('hour'))
+        minute = int(self.kwargs.get('minute', 0))
 
         tz = pytz.timezone(settings.TIME_ZONE)
-        start = datetime.datetime(year=year, month=month, day=day, hour=hour)
-        end = datetime.datetime(year=year, month=month, day=day, hour=hour + 1)
+        start = datetime.datetime(year=year, month=month, day=day, hour=hour, minute=minute)
+
+        # 動的コマ長
+        _, _, _, duration = get_time_slots(staff.store)
+        end = start + datetime.timedelta(minutes=duration)
 
         if Schedule.objects.filter(staff=staff, start=start, is_cancelled=False).exists():
             messages.error(self.request, 'すみません、入れ違いで予約がありました。別の日時はどうですか。')
@@ -702,9 +850,196 @@ class PreBooking(generic.CreateView):
             'price': price,
             'is_temporary': schedule.is_temporary,
             'staff_id': staff.id,
+            'staff_name': staff.name,
         }
 
-        return redirect('booking:line_enter')
+        return redirect('booking:channel_choice')
+
+
+class BookingChannelChoice(generic.TemplateView):
+    """LINE or メール選択画面"""
+    template_name = 'booking/channel_choice.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['booking'] = self.request.session.get('temporary_booking')
+        return context
+
+
+class EmailBookingForm(forms.Form):
+    customer_name = forms.CharField(max_length=255, label='お名前')
+    customer_email = forms.EmailField(label='メールアドレス')
+
+
+class EmailBookingView(View):
+    """メアド+名前入力 → OTP送信"""
+
+    def get(self, request):
+        form = EmailBookingForm()
+        booking = request.session.get('temporary_booking')
+        if not booking:
+            return redirect('booking:booking_top')
+        return render(request, 'booking/email_form.html', {'form': form, 'booking': booking})
+
+    def post(self, request):
+        form = EmailBookingForm(request.POST)
+        booking = request.session.get('temporary_booking')
+        if not booking:
+            return redirect('booking:booking_top')
+
+        if not form.is_valid():
+            return render(request, 'booking/email_form.html', {'form': form, 'booking': booking})
+
+        customer_name = form.cleaned_data['customer_name']
+        customer_email = form.cleaned_data['customer_email']
+
+        # 6桁OTP生成
+        otp = f"{secrets.randbelow(1000000):06d}"
+        otp_hash = hashlib.sha256(otp.encode('utf-8')).hexdigest()
+        otp_expires = timezone.now() + datetime.timedelta(minutes=10)
+
+        # セッションに保存
+        request.session['email_booking'] = {
+            'customer_name': customer_name,
+            'customer_email': customer_email,
+            'otp_hash': otp_hash,
+            'otp_expires': otp_expires.isoformat(),
+        }
+
+        # OTPメール送信
+        try:
+            send_mail(
+                subject='予約認証コード',
+                message=f'{customer_name}様\n\nご予約の認証コードは {otp} です。\n10分以内にご入力ください。',
+                from_email=settings.DEFAULT_FROM_EMAIL,
+                recipient_list=[customer_email],
+                fail_silently=False,
+            )
+        except Exception as e:
+            logger.error('OTPメール送信失敗: %s', e)
+            messages.error(request, 'メール送信に失敗しました。もう一度お試しください。')
+            return render(request, 'booking/email_form.html', {'form': form, 'booking': booking})
+
+        return redirect('booking:email_verify')
+
+
+class EmailVerifyView(View):
+    """OTP入力 → 認証 → 仮予約作成 → 決済URL送信"""
+
+    def get(self, request):
+        email_booking = request.session.get('email_booking')
+        if not email_booking:
+            return redirect('booking:booking_top')
+        return render(request, 'booking/email_verify.html', {'email': email_booking['customer_email']})
+
+    def post(self, request):
+        email_booking = request.session.get('email_booking')
+        temporary_booking = request.session.get('temporary_booking')
+
+        if not email_booking or not temporary_booking:
+            return redirect('booking:booking_top')
+
+        otp_input = request.POST.get('otp', '').strip()
+        otp_hash_input = hashlib.sha256(otp_input.encode('utf-8')).hexdigest()
+
+        # ハッシュ照合
+        if otp_hash_input != email_booking['otp_hash']:
+            messages.error(request, '認証コードが正しくありません。')
+            return render(request, 'booking/email_verify.html', {'email': email_booking['customer_email']})
+
+        # 有効期限チェック
+        from datetime import datetime as dt
+        otp_expires = dt.fromisoformat(email_booking['otp_expires'])
+        if timezone.is_naive(otp_expires):
+            otp_expires = timezone.make_aware(otp_expires)
+        if timezone.now() > otp_expires:
+            messages.error(request, '認証コードの有効期限が切れています。もう一度やり直してください。')
+            return redirect('booking:email_booking')
+
+        # 仮予約作成
+        tz = pytz.timezone(settings.TIME_ZONE)
+        schedule = Schedule(
+            reservation_number=temporary_booking['reservation_number'],
+            start=timezone.make_aware(dt.fromisoformat(temporary_booking['start'])),
+            end=timezone.make_aware(dt.fromisoformat(temporary_booking['end'])),
+            price=temporary_booking['price'],
+            customer_name=email_booking['customer_name'],
+            staff_id=temporary_booking['staff_id'],
+            is_temporary=True,
+            temporary_booked_at=timezone.now(),
+            booking_channel='email',
+            customer_email=email_booking['customer_email'],
+            email_verified=True,
+        )
+        schedule.save()
+
+        # Coiney決済URL取得
+        from datetime import timedelta as td
+        now = dt.now()
+        expired_on = now + td(days=1)
+        expired_on_str = expired_on.strftime('%Y-%m-%d')
+
+        payment_api_url = settings.PAYMENT_API_URL
+        headers = {
+            'Authorization': 'Bearer ' + settings.PAYMENT_API_KEY,
+            'Content-Type': 'application/json',
+        }
+        reservation_number = schedule.reservation_number
+        webhook_url = f"{settings.WEBHOOK_URL_BASE}{reservation_number}/"
+
+        data = {
+            "amount": schedule.price,
+            "currency": "jpy",
+            "locale": "ja_JP",
+            "cancelUrl": settings.CANCEL_URL,
+            "webhookUrl": webhook_url,
+            "method": "creditcard",
+            "subject": "ご予約料金",
+            "description": "ウェブサイトからの支払い",
+            "remarks": "仮予約から15分を過ぎますと自動的にキャンセルとなります。あらかじめご了承ください。",
+            "metadata": {"orderId": str(reservation_number)},
+            "expiredOn": expired_on_str,
+        }
+
+        payment_url = None
+        try:
+            response = requests.post(payment_api_url, headers=headers, data=json.dumps(data))
+            if response.status_code == 201:
+                payment_url = response.json()['links']['paymentUrl']
+        except Exception as e:
+            logger.error('決済URL取得失敗: %s', e)
+
+        if payment_url:
+            schedule.payment_url = payment_url
+            schedule.save(update_fields=['payment_url'])
+
+            # メールで決済URL送信
+            try:
+                send_mail(
+                    subject='予約決済のご案内',
+                    message=(
+                        f'{email_booking["customer_name"]}様\n\n'
+                        f'以下のURLから決済を行ってください。\n'
+                        f'{payment_url}\n\n'
+                        f'15分以内にお支払いがない場合、仮予約は自動キャンセルされます。\n'
+                        f'あらかじめご了承ください。'
+                    ),
+                    from_email=settings.DEFAULT_FROM_EMAIL,
+                    recipient_list=[email_booking['customer_email']],
+                    fail_silently=False,
+                )
+            except Exception as e:
+                logger.error('決済URLメール送信失敗: %s', e)
+
+        # セッションクリア
+        del request.session['temporary_booking']
+        del request.session['email_booking']
+
+        return render(request, 'booking/email_payment_sent.html', {
+            'customer_email': email_booking['customer_email'],
+            'customer_name': email_booking['customer_name'],
+            'payment_url_sent': bool(payment_url),
+        })
 
 
 class CancelReservationView(LoginRequiredMixin, View):
@@ -794,23 +1129,29 @@ class MyPageDayDetail(OnlyStaffMixin, generic.TemplateView):
         day = self.kwargs.get('day')
         date = datetime.date(year=year, month=month, day=day)
 
-        calendar = {hour: [] for hour in range(9, 18)}
+        # 動的タイムスロット
+        time_slots, open_h, close_h, duration = get_time_slots(staff.store)
 
-        start_time = datetime.datetime.combine(date, datetime.time(hour=9, minute=0, second=0))
-        end_time = datetime.datetime.combine(date, datetime.time(hour=17, minute=0, second=0))
+        calendar = {}
+        for slot in time_slots:
+            calendar[slot['label']] = []
+
+        start_time = datetime.datetime.combine(date, datetime.time(hour=open_h, minute=0, second=0))
+        end_time = datetime.datetime.combine(date, datetime.time(hour=close_h, minute=0, second=0))
 
         for schedule in Schedule.objects.filter(staff=staff).exclude(
             Q(start__gt=end_time) | Q(end__lt=start_time)
         ):
             local_dt = timezone.localtime(schedule.start)
-            booking_hour = local_dt.hour
-            if booking_hour in calendar:
-                calendar[booking_hour].append(schedule)
+            booking_label = f"{local_dt.hour}:{local_dt.minute:02d}"
+            if booking_label in calendar:
+                calendar[booking_label].append(schedule)
 
         has_any_schedule = any(schedules for schedules in calendar.values())
         context['calendar'] = calendar
         context['staff'] = staff
         context['has_any_schedule'] = has_any_schedule
+        context['time_slots'] = time_slots
         return context
 
 
@@ -920,6 +1261,28 @@ def process_payment(payment_response, request, orderId):
                 line_bot_api.push_message(user_id, TextSendMessage(text=message_text))
             except LineBotApiError as e:
                 print('顧客向け決済完了メッセージにてLineBotApiErrorが発生しました:', e)
+
+        # メール予約の場合: 決済完了メールを送信
+        if schedule.booking_channel == 'email' and schedule.customer_email:
+            local_tz = pytz.timezone('Asia/Tokyo')
+            local_time = schedule.start.astimezone(local_tz)
+            try:
+                send_mail(
+                    subject='予約確定のお知らせ',
+                    message=(
+                        f'{schedule.customer_name}様\n\n'
+                        f'予約が確定しました。\n\n'
+                        f'占い師: {schedule.staff.name}\n'
+                        f'日時: {local_time.strftime("%Y年%m月%d日 %H:%M")}\n'
+                        f'料金: {schedule.price}円\n\n'
+                        f'ご予約ありがとうございます。'
+                    ),
+                    from_email=settings.DEFAULT_FROM_EMAIL,
+                    recipient_list=[schedule.customer_email],
+                    fail_silently=True,
+                )
+            except Exception as e:
+                logger.warning('メール予約確定通知の送信に失敗: %s', e)
 
     return JsonResponse({"status": "success"})
 
@@ -1366,6 +1729,114 @@ class IoTSensorDashboardView(generic.TemplateView):
         ctx = super().get_context_data(**kwargs)
         ctx['devices'] = IoTDevice.objects.filter(is_active=True).select_related('store')
         return ctx
+
+
+# ===== Round2: シフト管理ビュー =====
+
+class StaffShiftCalendarView(LoginRequiredMixin, generic.TemplateView):
+    """占い師が自分のシフトカレンダーを表示"""
+    template_name = 'booking/staff_shift_calendar.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        staff = get_object_or_404(Staff, user=self.request.user)
+        today = datetime.date.today()
+
+        # 現在募集中のシフト期間を取得
+        open_periods = ShiftPeriod.objects.filter(
+            store=staff.store,
+            status='open',
+        ).order_by('year_month')
+
+        # 自分のシフト希望
+        my_requests = ShiftRequest.objects.filter(
+            staff=staff,
+        ).select_related('period').order_by('date', 'start_hour')
+
+        context['staff'] = staff
+        context['today'] = today
+        context['open_periods'] = open_periods
+        context['my_requests'] = my_requests
+        return context
+
+
+class StaffShiftSubmitView(LoginRequiredMixin, View):
+    """占い師がシフト希望を登録/変更"""
+
+    def get(self, request, period_id):
+        staff = get_object_or_404(Staff, user=request.user)
+        period = get_object_or_404(ShiftPeriod, pk=period_id, store=staff.store)
+        open_h, close_h = get_hour_range(staff.store)
+
+        existing = ShiftRequest.objects.filter(
+            period=period, staff=staff,
+        ).order_by('date', 'start_hour')
+
+        return render(request, 'booking/staff_shift_submit.html', {
+            'staff': staff,
+            'period': period,
+            'existing': existing,
+            'open_hour': open_h,
+            'close_hour': close_h,
+        })
+
+    def post(self, request, period_id):
+        staff = get_object_or_404(Staff, user=request.user)
+        period = get_object_or_404(ShiftPeriod, pk=period_id, store=staff.store)
+
+        if period.status != 'open':
+            messages.error(request, 'この募集期間は締め切られています。')
+            return redirect('booking:staff_shift_calendar')
+
+        open_h, close_h = get_hour_range(staff.store)
+
+        date_str = request.POST.get('date')
+        start_hour = request.POST.get('start_hour')
+        end_hour = request.POST.get('end_hour')
+        preference = request.POST.get('preference', 'available')
+        note = request.POST.get('note', '')
+
+        if not all([date_str, start_hour, end_hour]):
+            messages.error(request, '日付と時間を入力してください。')
+            return redirect('booking:staff_shift_submit', period_id=period_id)
+
+        try:
+            date = datetime.date.fromisoformat(date_str)
+            start_h = int(start_hour)
+            end_h = int(end_hour)
+        except (ValueError, TypeError):
+            messages.error(request, '入力値が不正です。')
+            return redirect('booking:staff_shift_submit', period_id=period_id)
+
+        # 営業時間バリデーション
+        if start_h < open_h or end_h > close_h or start_h >= end_h:
+            messages.error(request, f'営業時間({open_h}:00-{close_h}:00)の範囲で入力してください。')
+            return redirect('booking:staff_shift_submit', period_id=period_id)
+
+        ShiftRequest.objects.update_or_create(
+            period=period,
+            staff=staff,
+            date=date,
+            start_hour=start_h,
+            defaults={
+                'end_hour': end_h,
+                'preference': preference,
+                'note': note,
+            },
+        )
+
+        messages.success(request, 'シフト希望を登録しました。')
+        return redirect('booking:staff_shift_submit', period_id=period_id)
+
+
+# ===== Round2: 静的ページ =====
+
+class PrivacyPolicyView(generic.TemplateView):
+    template_name = 'booking/privacy_policy.html'
+
+
+class TokushohoView(generic.TemplateView):
+    template_name = 'booking/tokushoho.html'
 
 
 # ===== Phase 5: Property Views (re-exports for URL routing) =====

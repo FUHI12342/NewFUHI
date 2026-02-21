@@ -81,6 +81,12 @@ class Store(models.Model):
         return settings.STATIC_URL + 'default_thumbnail.jpg'
 
 
+STAFF_TYPE_CHOICES = [
+    ('fortune_teller', '占い師'),
+    ('store_staff', '店舗スタッフ'),
+]
+
+
 class Staff(models.Model):
     """在籍占い師スタッフリスト"""
     name = models.CharField('表示名', max_length=50)
@@ -93,8 +99,16 @@ class Staff(models.Model):
     store = models.ForeignKey(Store, verbose_name='店舗', on_delete=models.CASCADE)
     line_id = models.CharField('LINE ID', max_length=50, null=True, blank=True)
 
+    staff_type = models.CharField(
+        'スタッフ種別', max_length=20,
+        choices=STAFF_TYPE_CHOICES,
+        default='fortune_teller',
+        db_index=True,
+    )
+
     # 追加：仕入れ通知の送信先（店長だけ）
     is_store_manager = models.BooleanField('店長', default=False)
+    is_owner = models.BooleanField('オーナー', default=False)
     is_developer = models.BooleanField('開発者', default=False)
 
     thumbnail = models.ImageField('サムネイル画像', upload_to='thumbnails/', null=True, blank=True)
@@ -136,6 +150,18 @@ class Schedule(models.Model):
     price = models.IntegerField('価格', default=0)
     memo = models.TextField('備考', blank=True, null=True, default='ここに備考を記入してください。')
     temporary_booked_at = models.DateTimeField(null=True, blank=True, db_index=True)
+
+    # Phase 4b: メール予約対応
+    booking_channel = models.CharField(
+        '予約経路', max_length=10,
+        choices=[('line', 'LINE'), ('email', 'Email')],
+        default='line',
+    )
+    customer_email = models.EmailField('顧客メール', blank=True, null=True)
+    email_otp_hash = models.CharField('OTPハッシュ', max_length=64, blank=True, null=True)
+    email_otp_expires = models.DateTimeField('OTP有効期限', blank=True, null=True)
+    email_verified = models.BooleanField('メール認証済み', default=False)
+    payment_url = models.URLField('決済URL', blank=True, null=True)
 
     class Meta:
         app_label = 'booking'
@@ -672,6 +698,38 @@ def apply_stock_movement(
 
 
 # ==============================
+# ダッシュボードレイアウト
+# ==============================
+
+DEFAULT_DASHBOARD_LAYOUT = [
+    {"id": "reservations_kpi", "x": 0, "y": 0, "w": 12, "h": 2},
+    {"id": "reservation_chart", "x": 0, "y": 2, "w": 12, "h": 4},
+    {"id": "sales_trend", "x": 0, "y": 6, "w": 6, "h": 4},
+    {"id": "top_products", "x": 6, "y": 6, "w": 6, "h": 4},
+    {"id": "staff_performance", "x": 0, "y": 10, "w": 12, "h": 4},
+]
+
+
+class DashboardLayout(models.Model):
+    user = models.OneToOneField(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name='dashboard_layout',
+    )
+    layout_json = models.JSONField('レイアウトJSON', default=list)
+    dark_mode = models.BooleanField('ダークモード', default=False)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        app_label = 'booking'
+        verbose_name = 'ダッシュボードレイアウト'
+        verbose_name_plural = 'ダッシュボードレイアウト'
+
+    def __str__(self):
+        return f'DashboardLayout({self.user.username})'
+
+
+# ==============================
 # Phase 2: デバッグ / ランタイム設定
 # ==============================
 
@@ -795,3 +853,110 @@ class PropertyAlert(models.Model):
 
     def __str__(self):
         return f"[{self.get_severity_display()}] {self.property.name} - {self.get_alert_type_display()}"
+
+
+# ==============================
+# Phase Round2: シフト管理 + 管理画面
+# ==============================
+
+class StoreScheduleConfig(models.Model):
+    """店舗営業時間 + 予約コマ設定"""
+    store = models.OneToOneField(Store, on_delete=models.CASCADE, related_name='schedule_config')
+    open_hour = models.IntegerField('営業開始時間', default=9)      # 0-23
+    close_hour = models.IntegerField('営業終了時間', default=21)     # 0-23
+    slot_duration = models.IntegerField('予約コマ(分)', default=60,
+        help_text='15, 30, 45, 60 のいずれか')
+
+    class Meta:
+        app_label = 'booking'
+        verbose_name = '店舗スケジュール設定'
+        verbose_name_plural = '店舗スケジュール設定'
+
+    def __str__(self):
+        return f"{self.store.name} ({self.open_hour}:00-{self.close_hour}:00 / {self.slot_duration}分)"
+
+
+class ShiftPeriod(models.Model):
+    """マネージャーが作成するシフト募集期間（3ヶ月分など）"""
+    STATUS_CHOICES = [
+        ('open', '募集中'),
+        ('closed', '締切'),
+        ('scheduled', 'スケジュール済'),
+        ('approved', '承認済'),
+    ]
+    store = models.ForeignKey(Store, on_delete=models.CASCADE, related_name='shift_periods')
+    year_month = models.DateField('対象年月')  # 月初の日付
+    deadline = models.DateTimeField('申請締切')
+    status = models.CharField('状態', max_length=20, choices=STATUS_CHOICES, default='open')
+    created_by = models.ForeignKey(Staff, on_delete=models.SET_NULL, null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        app_label = 'booking'
+        verbose_name = 'シフト募集期間'
+        verbose_name_plural = 'シフト募集期間'
+
+    def __str__(self):
+        return f"{self.store.name} {self.year_month.strftime('%Y年%m月')} ({self.get_status_display()})"
+
+
+class ShiftRequest(models.Model):
+    """スタッフのシフト希望"""
+    PREF_CHOICES = [
+        ('available', '出勤可能'),
+        ('preferred', '希望'),
+        ('unavailable', '出勤不可'),
+    ]
+    period = models.ForeignKey(ShiftPeriod, on_delete=models.CASCADE, related_name='requests')
+    staff = models.ForeignKey(Staff, on_delete=models.CASCADE, related_name='shift_requests')
+    date = models.DateField('日付')
+    start_hour = models.IntegerField('開始時間')
+    end_hour = models.IntegerField('終了時間')
+    preference = models.CharField('希望区分', max_length=20, choices=PREF_CHOICES, default='available')
+    note = models.TextField('備考', blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        app_label = 'booking'
+        verbose_name = 'シフト希望'
+        verbose_name_plural = 'シフト希望'
+        unique_together = ('period', 'staff', 'date', 'start_hour')
+
+    def __str__(self):
+        return f"{self.staff.name} {self.date} {self.start_hour}:00-{self.end_hour}:00 ({self.get_preference_display()})"
+
+
+class ShiftAssignment(models.Model):
+    """確定シフト"""
+    period = models.ForeignKey(ShiftPeriod, on_delete=models.CASCADE, related_name='assignments')
+    staff = models.ForeignKey(Staff, on_delete=models.CASCADE, related_name='shift_assignments')
+    date = models.DateField('日付')
+    start_hour = models.IntegerField('開始時間')
+    end_hour = models.IntegerField('終了時間')
+    is_synced = models.BooleanField('Schedule同期済み', default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        app_label = 'booking'
+        verbose_name = '確定シフト'
+        verbose_name_plural = '確定シフト'
+        unique_together = ('period', 'staff', 'date', 'start_hour')
+
+    def __str__(self):
+        return f"{self.staff.name} {self.date} {self.start_hour}:00-{self.end_hour}:00"
+
+
+class AdminTheme(models.Model):
+    """管理画面UIカスタムテーマ"""
+    store = models.OneToOneField(Store, on_delete=models.CASCADE, related_name='admin_theme')
+    primary_color = models.CharField('メインカラー', max_length=7, default='#8c876c')
+    secondary_color = models.CharField('サブカラー', max_length=7, default='#f1f0ec')
+    header_image = models.ImageField('ヘッダー画像', upload_to='admin_themes/', blank=True)
+
+    class Meta:
+        app_label = 'booking'
+        verbose_name = '管理画面テーマ'
+        verbose_name_plural = '管理画面テーマ'
+
+    def __str__(self):
+        return f"{self.store.name} テーマ"
