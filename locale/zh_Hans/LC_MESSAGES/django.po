@@ -468,3 +468,180 @@ msgstr "餐饮店仪表盘"
 
 msgid "MQ-9 ガスセンサー"
 msgstr "MQ-9 气体传感器"
+
+msgid "店舗情報"
+msgstr "店铺信息"
+
+msgid "ご予約"
+msgstr "预约"
+
+msgid "所属占い師"
+msgstr "所属占卜师"
+
+msgid "ヘルプ"
+msgstr "帮助"
+
+msgid "管理画面"
+msgstr "管理后台"
+
+msgid "店舗一覧"
+msgstr "店铺列表"
+
+msgid "お知らせ"
+msgstr "公告"
+
+msgid "更新日："
+msgstr "更新日期："
+
+msgid "お知らせはありません"
+msgstr "暂无公告"
+
+msgid "運営会社"
+msgstr "运营公司"
+
+msgid "メディア掲載情報"
+msgstr "媒体报道信息"
+
+msgid "メニュー"
+msgstr "菜单"
+
+msgid "スタッフ"
+msgstr "工作人员"
+
+msgid "マイページ"
+msgstr "我的页面"
+
+msgid "外部リンク"
+msgstr "外部链接"
+
+msgid "プライバシーポリシー"
+msgstr "隐私政策"
+
+msgid "特定商取引法に基づく表記"
+msgstr "特定商业交易法标示"
+
+msgid "ショップ"
+msgstr "商店"
+
+msgid "ショップへ"
+msgstr "前往商店"
+
+msgid "占いグッズやパワーストーンなど、オンラインショップでお買い物できます。"
+msgstr "可在在线商店购买占卜用品和能量石等商品。"
+
+msgid "オンラインショップ"
+msgstr "在线商店"
+
+msgid "商品を検索..."
+msgstr "搜索商品..."
+
+msgid "検索"
+msgstr "搜索"
+
+msgid "カート"
+msgstr "购物车"
+
+msgid "すべて"
+msgstr "全部"
+
+msgid "売り切れ"
+msgstr "已售罄"
+
+msgid "在庫あり"
+msgstr "有库存"
+
+msgid "カートに追加"
+msgstr "加入购物车"
+
+msgid "商品が見つかりません"
+msgstr "未找到商品"
+
+msgid "ショッピングカート"
+msgstr "购物车"
+
+msgid "商品"
+msgstr "商品"
+
+msgid "単価"
+msgstr "单价"
+
+msgid "数量"
+msgstr "数量"
+
+msgid "小計"
+msgstr "小计"
+
+msgid "買い物を続ける"
+msgstr "继续购物"
+
+msgid "合計"
+msgstr "合计"
+
+msgid "レジに進む"
+msgstr "去结算"
+
+msgid "カートは空です"
+msgstr "购物车为空"
+
+msgid "注文確認"
+msgstr "订单确认"
+
+msgid "注文内容"
+msgstr "订单内容"
+
+msgid "お届け先情報"
+msgstr "收货信息"
+
+msgid "お名前"
+msgstr "姓名"
+
+msgid "メールアドレス"
+msgstr "电子邮箱"
+
+msgid "電話番号"
+msgstr "电话号码"
+
+msgid "住所"
+msgstr "地址"
+
+msgid "注文を確定する"
+msgstr "确认订单"
+
+msgid "カートに戻る"
+msgstr "返回购物车"
+
+msgid "予約確認"
+msgstr "预约确认"
+
+msgid "予約確認・チェックインQR"
+msgstr "预约确认・签到二维码"
+
+msgid "チェックインQRコード"
+msgstr "签到二维码"
+
+msgid "来店時にこのQRコードをスタッフに提示してください"
+msgstr "到店时请向工作人员出示此二维码"
+
+msgid "予約番号"
+msgstr "预约编号"
+
+msgid "お客様名"
+msgstr "顾客姓名"
+
+msgid "チェックイン"
+msgstr "签到"
+
+msgid "チェックイン済み"
+msgstr "已签到"
+
+msgid "未チェックイン"
+msgstr "未签到"
+
+msgid "チェックインスキャン"
+msgstr "签到扫描"
+
+msgid "お客様のQRコードをカメラでスキャンしてください。"
+msgstr "请使用摄像头扫描顾客的二维码。"
+
+msgid "手動入力"
+msgstr "手动输入"

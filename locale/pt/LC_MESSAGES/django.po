@@ -491,3 +491,181 @@ msgstr "Painel de controle do restaurante"
 
 msgid "MQ-9 ガスセンサー"
 msgstr "Sensor de gás MQ-9"
+
+msgid "店舗情報"
+msgstr "Informações da loja"
+
+msgid "ご予約"
+msgstr "Reservas"
+
+msgid "所属占い師"
+msgstr "Adivinhos"
+
+msgid "ヘルプ"
+msgstr "Ajuda"
+
+msgid "管理画面"
+msgstr "Administração"
+
+msgid "店舗一覧"
+msgstr "Lista de lojas"
+
+msgid "お知らせ"
+msgstr "Notícias"
+
+msgid "更新日："
+msgstr "Atualizado:"
+
+msgid "お知らせはありません"
+msgstr "Não há notícias"
+
+msgid "運営会社"
+msgstr "Empresa"
+
+msgid "メディア掲載情報"
+msgstr "Cobertura na mídia"
+
+msgid "メニュー"
+msgstr "Menu"
+
+msgid "スタッフ"
+msgstr "Equipe"
+
+msgid "マイページ"
+msgstr "Minha página"
+
+msgid "外部リンク"
+msgstr "Links externos"
+
+msgid "プライバシーポリシー"
+msgstr "Política de privacidade"
+
+msgid "特定商取引法に基づく表記"
+msgstr "Lei de transações comerciais específicas"
+
+msgid "ショップ"
+msgstr "Loja"
+
+msgid "ショップへ"
+msgstr "Ir para a loja"
+
+msgid "占いグッズやパワーストーンなど、オンラインショップでお買い物できます。"
+msgstr ""
+"Compre artigos de adivinhação e pedras energéticas na nossa loja online."
+
+msgid "オンラインショップ"
+msgstr "Loja online"
+
+msgid "商品を検索..."
+msgstr "Pesquisar produtos..."
+
+msgid "検索"
+msgstr "Pesquisar"
+
+msgid "カート"
+msgstr "Carrinho"
+
+msgid "すべて"
+msgstr "Tudo"
+
+msgid "売り切れ"
+msgstr "Esgotado"
+
+msgid "在庫あり"
+msgstr "Em estoque"
+
+msgid "カートに追加"
+msgstr "Adicionar ao carrinho"
+
+msgid "商品が見つかりません"
+msgstr "Nenhum produto encontrado"
+
+msgid "ショッピングカート"
+msgstr "Carrinho de compras"
+
+msgid "商品"
+msgstr "Produto"
+
+msgid "単価"
+msgstr "Preço unitário"
+
+msgid "数量"
+msgstr "Quantidade"
+
+msgid "小計"
+msgstr "Subtotal"
+
+msgid "買い物を続ける"
+msgstr "Continuar comprando"
+
+msgid "合計"
+msgstr "Total"
+
+msgid "レジに進む"
+msgstr "Ir para o pagamento"
+
+msgid "カートは空です"
+msgstr "O carrinho está vazio"
+
+msgid "注文確認"
+msgstr "Confirmação do pedido"
+
+msgid "注文内容"
+msgstr "Detalhes do pedido"
+
+msgid "お届け先情報"
+msgstr "Informações de envio"
+
+msgid "お名前"
+msgstr "Nome"
+
+msgid "メールアドレス"
+msgstr "Endereço de e-mail"
+
+msgid "電話番号"
+msgstr "Número de telefone"
+
+msgid "住所"
+msgstr "Endereço"
+
+msgid "注文を確定する"
+msgstr "Confirmar pedido"
+
+msgid "カートに戻る"
+msgstr "Voltar ao carrinho"
+
+msgid "予約確認"
+msgstr "Confirmação de reserva"
+
+msgid "予約確認・チェックインQR"
+msgstr "Confirmação de reserva / QR de check-in"
+
+msgid "チェックインQRコード"
+msgstr "Código QR de check-in"
+
+msgid "来店時にこのQRコードをスタッフに提示してください"
+msgstr "Apresente este código QR à equipe ao chegar"
+
+msgid "予約番号"
+msgstr "Número da reserva"
+
+msgid "お客様名"
+msgstr "Nome do cliente"
+
+msgid "チェックイン"
+msgstr "Check-in"
+
+msgid "チェックイン済み"
+msgstr "Check-in realizado"
+
+msgid "未チェックイン"
+msgstr "Sem check-in"
+
+msgid "チェックインスキャン"
+msgstr "Leitura de check-in"
+
+msgid "お客様のQRコードをカメラでスキャンしてください。"
+msgstr "Escaneie o código QR do cliente com a câmera."
+
+msgid "手動入力"
+msgstr "Entrada manual"

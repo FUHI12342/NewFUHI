@@ -1227,6 +1227,12 @@ def process_payment(payment_response, request, orderId):
         schedule.is_temporary = False
         schedule.save(update_fields=["is_temporary"])
 
+        # QRコード生成
+        if not schedule.checkin_qr:
+            from booking.services.qr_service import generate_checkin_qr
+            qr_file = generate_checkin_qr(str(schedule.reservation_number))
+            schedule.checkin_qr.save(qr_file.name, qr_file, save=True)
+
         line_bot_api = LineBotApi(settings.LINE_ACCESS_TOKEN)
 
         # スタッフ通知
@@ -1842,3 +1848,277 @@ class TokushohoView(generic.TemplateView):
 # ===== Phase 5: Property Views (re-exports for URL routing) =====
 
 from booking.views_property import PropertyListView, PropertyDetailView  # noqa: E402, F401
+
+
+# ===== Round3: QR チェックイン =====
+
+class ReservationQRView(View):
+    """予約確認 + QRコード表示ページ"""
+    def get(self, request, reservation_number):
+        schedule = get_object_or_404(
+            Schedule,
+            reservation_number=reservation_number,
+            is_temporary=False,
+            is_cancelled=False,
+        )
+        return render(request, 'booking/reservation_qr.html', {'schedule': schedule})
+
+
+class CheckinScanView(LoginRequiredMixin, UserPassesTestMixin, View):
+    """スタッフ用チェックインスキャンページ"""
+    def test_func(self):
+        return self.request.user.is_staff
+
+    def get(self, request):
+        return render(request, 'booking/checkin_scan.html')
+
+
+class CheckinAPIView(APIView):
+    """チェックイン API (POST: reservation_number)"""
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        reservation_number = request.data.get('reservation_number', '').strip()
+        if not reservation_number:
+            return Response({'status': 'error', 'message': '予約番号が必要です'}, status=400)
+
+        try:
+            schedule = Schedule.objects.get(
+                reservation_number=reservation_number,
+                is_temporary=False,
+                is_cancelled=False,
+            )
+        except Schedule.DoesNotExist:
+            return Response({'status': 'error', 'message': '有効な予約が見つかりません'}, status=404)
+
+        if schedule.is_checked_in:
+            return Response({'status': 'error', 'message': 'すでにチェックイン済みです'})
+
+        schedule.is_checked_in = True
+        schedule.checked_in_at = timezone.now()
+        schedule.save(update_fields=['is_checked_in', 'checked_in_at'])
+
+        return Response({
+            'status': 'ok',
+            'message': f'{schedule.customer_name or "お客様"} のチェックインが完了しました',
+            'checked_in_at': schedule.checked_in_at.isoformat(),
+        })
+
+
+# ===== Round3: EC (eコマース) =====
+
+class ShopView(View):
+    """ショップページ（EC公開商品の一覧）"""
+    def get(self, request):
+        from django.utils.translation import get_language
+        lang = get_language() or 'ja'
+
+        products = Product.objects.filter(
+            is_active=True,
+            is_ec_visible=True,
+        ).select_related('category', 'store').prefetch_related('translations')
+
+        category_id = request.GET.get('category')
+        if category_id:
+            products = products.filter(category_id=category_id)
+
+        search_q = request.GET.get('q', '').strip()
+        if search_q:
+            products = products.filter(
+                Q(name__icontains=search_q) | Q(sku__icontains=search_q)
+            )
+
+        categories = Category.objects.filter(
+            products__is_active=True,
+            products__is_ec_visible=True,
+        ).distinct().order_by('sort_order', 'name')
+
+        product_list = [_product_display(p, lang) for p in products]
+
+        # Get cart count from session
+        cart = request.session.get('ec_cart', {})
+        cart_count = sum(item.get('qty', 0) for item in cart.values())
+
+        return render(request, 'booking/shop.html', {
+            'products': product_list,
+            'categories': categories,
+            'current_category': category_id,
+            'search_q': search_q,
+            'cart_count': cart_count,
+        })
+
+
+class CartView(View):
+    """カートページ"""
+    def get(self, request):
+        cart = request.session.get('ec_cart', {})
+        cart_items = []
+        total = 0
+        for product_id, item in cart.items():
+            subtotal = item['price'] * item['qty']
+            cart_items.append({
+                'product_id': product_id,
+                'name': item['name'],
+                'price': item['price'],
+                'qty': item['qty'],
+                'subtotal': subtotal,
+            })
+            total += subtotal
+
+        return render(request, 'booking/shop_cart.html', {
+            'cart_items': cart_items,
+            'total': total,
+        })
+
+
+class CartAddAPIView(APIView):
+    """カートに商品追加 API"""
+    def post(self, request):
+        product_id = str(request.data.get('product_id', ''))
+        qty = int(request.data.get('qty', 1))
+
+        try:
+            product = Product.objects.get(pk=product_id, is_active=True, is_ec_visible=True)
+        except Product.DoesNotExist:
+            return Response({'status': 'error', 'message': '商品が見つかりません'}, status=404)
+
+        if product.stock < qty:
+            return Response({'status': 'error', 'message': '在庫が不足しています'}, status=400)
+
+        cart = request.session.get('ec_cart', {})
+        if product_id in cart:
+            cart[product_id]['qty'] += qty
+        else:
+            from django.utils.translation import get_language
+            lang = get_language() or 'ja'
+            tr = product.translations.filter(lang=lang).first()
+            cart[product_id] = {
+                'name': tr.name if tr else product.name,
+                'price': product.price,
+                'qty': qty,
+            }
+        request.session['ec_cart'] = cart
+        cart_count = sum(item['qty'] for item in cart.values())
+        return Response({'status': 'ok', 'cart_count': cart_count})
+
+
+class CartUpdateAPIView(APIView):
+    """カート数量変更 API"""
+    def post(self, request):
+        product_id = str(request.data.get('product_id', ''))
+        qty = int(request.data.get('qty', 0))
+
+        cart = request.session.get('ec_cart', {})
+        if product_id not in cart:
+            return Response({'status': 'error', 'message': 'カートにない商品です'}, status=404)
+
+        if qty <= 0:
+            del cart[product_id]
+        else:
+            cart[product_id]['qty'] = qty
+        request.session['ec_cart'] = cart
+        cart_count = sum(item['qty'] for item in cart.values())
+        return Response({'status': 'ok', 'cart_count': cart_count})
+
+
+class CartRemoveAPIView(APIView):
+    """カートから商品削除 API"""
+    def post(self, request):
+        product_id = str(request.data.get('product_id', ''))
+
+        cart = request.session.get('ec_cart', {})
+        if product_id in cart:
+            del cart[product_id]
+        request.session['ec_cart'] = cart
+        cart_count = sum(item['qty'] for item in cart.values())
+        return Response({'status': 'ok', 'cart_count': cart_count})
+
+
+class ShopCheckoutView(View):
+    """チェックアウトページ"""
+    def get(self, request):
+        cart = request.session.get('ec_cart', {})
+        if not cart:
+            return redirect('booking:shop')
+
+        cart_items = []
+        total = 0
+        for product_id, item in cart.items():
+            subtotal = item['price'] * item['qty']
+            cart_items.append({
+                'product_id': product_id,
+                'name': item['name'],
+                'price': item['price'],
+                'qty': item['qty'],
+                'subtotal': subtotal,
+            })
+            total += subtotal
+
+        return render(request, 'booking/shop_checkout.html', {
+            'cart_items': cart_items,
+            'total': total,
+        })
+
+    def post(self, request):
+        cart = request.session.get('ec_cart', {})
+        if not cart:
+            return redirect('booking:shop')
+
+        customer_name = request.POST.get('customer_name', '').strip()
+        customer_email = request.POST.get('customer_email', '').strip()
+        customer_phone = request.POST.get('customer_phone', '').strip()
+        customer_address = request.POST.get('customer_address', '').strip()
+
+        if not customer_name or not customer_email:
+            messages.error(request, 'お名前とメールアドレスは必須です。')
+            return redirect('booking:shop_checkout')
+
+        with transaction.atomic():
+            # Determine store from first product
+            first_pid = list(cart.keys())[0]
+            try:
+                first_product = Product.objects.get(pk=first_pid)
+            except Product.DoesNotExist:
+                messages.error(request, '商品が見つかりません。')
+                return redirect('booking:shop_cart')
+
+            order = Order.objects.create(
+                store=first_product.store,
+                status=Order.STATUS_OPEN,
+                table_label=f'EC: {customer_name} / {customer_phone}',
+            )
+
+            for product_id, item in cart.items():
+                product = Product.objects.select_for_update().get(pk=product_id)
+                qty = item['qty']
+
+                if product.stock < qty:
+                    messages.error(request, f'{product.name} の在庫が不足しています。')
+                    return redirect('booking:shop_cart')
+
+                OrderItem.objects.create(
+                    order=order,
+                    product=product,
+                    qty=qty,
+                    unit_price=product.price,
+                )
+
+                # Deduct stock
+                apply_stock_movement(
+                    product=product,
+                    movement_type=StockMovement.TYPE_OUT,
+                    qty=qty,
+                )
+                StockMovement.objects.create(
+                    store=product.store,
+                    product=product,
+                    movement_type=StockMovement.TYPE_OUT,
+                    qty=qty,
+                    note=f'EC order #{order.id}',
+                )
+
+        # Clear cart
+        request.session['ec_cart'] = {}
+
+        messages.success(request, f'注文が完了しました。注文番号: {order.id}')
+        return redirect('booking:shop')

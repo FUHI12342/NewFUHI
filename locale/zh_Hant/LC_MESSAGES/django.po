@@ -467,3 +467,180 @@ msgstr "餐飲店儀表板"
 
 msgid "MQ-9 ガスセンサー"
 msgstr "MQ-9 瓦斯感測器"
+
+msgid "店舗情報"
+msgstr "店鋪資訊"
+
+msgid "ご予約"
+msgstr "預約"
+
+msgid "所属占い師"
+msgstr "所屬占卜師"
+
+msgid "ヘルプ"
+msgstr "幫助"
+
+msgid "管理画面"
+msgstr "管理後台"
+
+msgid "店舗一覧"
+msgstr "店鋪列表"
+
+msgid "お知らせ"
+msgstr "公告"
+
+msgid "更新日："
+msgstr "更新日期："
+
+msgid "お知らせはありません"
+msgstr "目前沒有公告"
+
+msgid "運営会社"
+msgstr "營運公司"
+
+msgid "メディア掲載情報"
+msgstr "媒體報導資訊"
+
+msgid "メニュー"
+msgstr "選單"
+
+msgid "スタッフ"
+msgstr "工作人員"
+
+msgid "マイページ"
+msgstr "我的頁面"
+
+msgid "外部リンク"
+msgstr "外部連結"
+
+msgid "プライバシーポリシー"
+msgstr "隱私權政策"
+
+msgid "特定商取引法に基づく表記"
+msgstr "特定商業交易法標示"
+
+msgid "ショップ"
+msgstr "商店"
+
+msgid "ショップへ"
+msgstr "前往商店"
+
+msgid "占いグッズやパワーストーンなど、オンラインショップでお買い物できます。"
+msgstr "可在線上商店購買占卜用品和能量石等商品。"
+
+msgid "オンラインショップ"
+msgstr "線上商店"
+
+msgid "商品を検索..."
+msgstr "搜尋商品..."
+
+msgid "検索"
+msgstr "搜尋"
+
+msgid "カート"
+msgstr "購物車"
+
+msgid "すべて"
+msgstr "全部"
+
+msgid "売り切れ"
+msgstr "售罄"
+
+msgid "在庫あり"
+msgstr "有庫存"
+
+msgid "カートに追加"
+msgstr "加入購物車"
+
+msgid "商品が見つかりません"
+msgstr "找不到商品"
+
+msgid "ショッピングカート"
+msgstr "購物車"
+
+msgid "商品"
+msgstr "商品"
+
+msgid "単価"
+msgstr "單價"
+
+msgid "数量"
+msgstr "數量"
+
+msgid "小計"
+msgstr "小計"
+
+msgid "買い物を続ける"
+msgstr "繼續購物"
+
+msgid "合計"
+msgstr "合計"
+
+msgid "レジに進む"
+msgstr "前往結帳"
+
+msgid "カートは空です"
+msgstr "購物車是空的"
+
+msgid "注文確認"
+msgstr "訂單確認"
+
+msgid "注文内容"
+msgstr "訂單內容"
+
+msgid "お届け先情報"
+msgstr "收件資訊"
+
+msgid "お名前"
+msgstr "姓名"
+
+msgid "メールアドレス"
+msgstr "電子郵件"
+
+msgid "電話番号"
+msgstr "電話號碼"
+
+msgid "住所"
+msgstr "地址"
+
+msgid "注文を確定する"
+msgstr "確認訂單"
+
+msgid "カートに戻る"
+msgstr "返回購物車"
+
+msgid "予約確認"
+msgstr "預約確認"
+
+msgid "予約確認・チェックインQR"
+msgstr "預約確認・報到QR碼"
+
+msgid "チェックインQRコード"
+msgstr "報到QR碼"
+
+msgid "来店時にこのQRコードをスタッフに提示してください"
+msgstr "來店時請向工作人員出示此QR碼"
+
+msgid "予約番号"
+msgstr "預約編號"
+
+msgid "お客様名"
+msgstr "顧客姓名"
+
+msgid "チェックイン"
+msgstr "報到"
+
+msgid "チェックイン済み"
+msgstr "已報到"
+
+msgid "未チェックイン"
+msgstr "未報到"
+
+msgid "チェックインスキャン"
+msgstr "報到掃描"
+
+msgid "お客様のQRコードをカメラでスキャンしてください。"
+msgstr "請使用相機掃描顧客的QR碼。"
+
+msgid "手動入力"
+msgstr "手動輸入"

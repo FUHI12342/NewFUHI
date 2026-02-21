@@ -1,0 +1,87 @@
+{% extends 'booking/base.html' %}
+{% load i18n %}
+{% load static %}
+
+{% block title %}{% trans "占いサロンチャンス　ご予約" %} | {{ block.super }}{% endblock %}
+
+{% block content %}
+
+<!-- Page Heading -->
+<h2 class="text-2xl md:text-3xl font-bold text-salon-dark mb-6 border-b-2 border-salon-brown pb-3">
+    {% trans "ご予約方法を選択してください" %}
+</h2>
+
+<!-- 4 Entry Cards -->
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+
+    <!-- Card 1: 店舗から選ぶ -->
+    <a href="{% url 'booking:store_list' %}"
+       class="block bg-white rounded-xl shadow-md hover:shadow-lg transition-all duration-300 overflow-hidden border border-gray-200 hover:border-salon-brown/50 group">
+        <div class="h-40 bg-gradient-to-br from-amber-100 to-amber-50 flex items-center justify-center">
+            <svg class="w-16 h-16 text-salon-brown group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
+            </svg>
+        </div>
+        <div class="p-5">
+            <h3 class="text-lg font-bold text-salon-dark mb-2">{% trans "店舗から選ぶ" %}</h3>
+            <p class="text-sm text-gray-600">{% trans "お近くの店舗を選んで、在籍する占い師の中から予約できます。" %}</p>
+        </div>
+        <div class="px-5 py-3 bg-gray-50 border-t text-right">
+            <span class="text-xs font-medium text-salon-brown">{% trans "店舗一覧へ" %} &rarr;</span>
+        </div>
+    </a>
+
+    <!-- Card 2: 占い師から選ぶ -->
+    <a href="{% url 'booking:all_fortune_tellers' %}"
+       class="block bg-white rounded-xl shadow-md hover:shadow-lg transition-all duration-300 overflow-hidden border border-gray-200 hover:border-salon-brown/50 group">
+        <div class="h-40 bg-gradient-to-br from-purple-100 to-purple-50 flex items-center justify-center">
+            <svg class="w-16 h-16 text-purple-600 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+            </svg>
+        </div>
+        <div class="p-5">
+            <h3 class="text-lg font-bold text-salon-dark mb-2">{% trans "占い師から選ぶ" %}</h3>
+            <p class="text-sm text-gray-600">{% trans "全店舗の占い師一覧から、お気に入りの占い師を見つけて予約できます。" %}</p>
+        </div>
+        <div class="px-5 py-3 bg-gray-50 border-t text-right">
+            <span class="text-xs font-medium text-salon-brown">{% trans "占い師一覧へ" %} &rarr;</span>
+        </div>
+    </a>
+
+    <!-- Card 3: 日付から選ぶ -->
+    <a href="{% url 'booking:date_first_calendar' %}"
+       class="block bg-white rounded-xl shadow-md hover:shadow-lg transition-all duration-300 overflow-hidden border border-gray-200 hover:border-salon-brown/50 group">
+        <div class="h-40 bg-gradient-to-br from-emerald-100 to-emerald-50 flex items-center justify-center">
+            <svg class="w-16 h-16 text-emerald-600 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+            </svg>
+        </div>
+        <div class="p-5">
+            <h3 class="text-lg font-bold text-salon-dark mb-2">{% trans "日付から選ぶ" %}</h3>
+            <p class="text-sm text-gray-600">{% trans "ご希望の日付を選んで、その日に空きのある占い師を探せます。" %}</p>
+        </div>
+        <div class="px-5 py-3 bg-gray-50 border-t text-right">
+            <span class="text-xs font-medium text-salon-brown">{% trans "カレンダーへ" %} &rarr;</span>
+        </div>
+    </a>
+
+    <!-- Card 4: ショップ -->
+    <a href="{% url 'booking:shop' %}"
+       class="block bg-white rounded-xl shadow-md hover:shadow-lg transition-all duration-300 overflow-hidden border border-gray-200 hover:border-salon-brown/50 group">
+        <div class="h-40 bg-gradient-to-br from-rose-100 to-rose-50 flex items-center justify-center">
+            <svg class="w-16 h-16 text-rose-600 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/>
+            </svg>
+        </div>
+        <div class="p-5">
+            <h3 class="text-lg font-bold text-salon-dark mb-2">{% trans "ショップ" %}</h3>
+            <p class="text-sm text-gray-600">{% trans "占いグッズやパワーストーンなど、オンラインショップでお買い物できます。" %}</p>
+        </div>
+        <div class="px-5 py-3 bg-gray-50 border-t text-right">
+            <span class="text-xs font-medium text-salon-brown">{% trans "ショップへ" %} &rarr;</span>
+        </div>
+    </a>
+
+</div>
+
+{% endblock %}

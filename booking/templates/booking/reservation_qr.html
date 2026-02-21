@@ -1,0 +1,57 @@
+{% extends 'booking/base.html' %}
+{% load i18n %}
+{% load static %}
+
+{% block title %}{% trans "予約確認" %} - {{ schedule.reservation_number }}{% endblock %}
+
+{% block content %}
+<div class="max-w-lg mx-auto">
+    <h2 class="text-2xl font-bold text-salon-dark mb-6 border-b-2 border-salon-brown pb-3">
+        {% trans "予約確認・チェックインQR" %}
+    </h2>
+
+    <div class="bg-white rounded-xl shadow-md p-6 border border-gray-200">
+        <!-- QR Code -->
+        {% if schedule.checkin_qr %}
+        <div class="text-center mb-6">
+            <img src="{{ schedule.checkin_qr.url }}" alt="{% trans 'チェックインQRコード' %}" class="mx-auto w-48 h-48">
+            <p class="text-sm text-gray-500 mt-2">{% trans "来店時にこのQRコードをスタッフに提示してください" %}</p>
+        </div>
+        {% endif %}
+
+        <!-- Reservation Details -->
+        <div class="space-y-3 border-t pt-4">
+            <div class="flex justify-between">
+                <span class="text-gray-500 text-sm">{% trans "予約番号" %}</span>
+                <span class="font-mono text-sm">{{ schedule.reservation_number }}</span>
+            </div>
+            <div class="flex justify-between">
+                <span class="text-gray-500 text-sm">{% trans "お客様名" %}</span>
+                <span class="text-sm">{{ schedule.customer_name|default:"-" }}</span>
+            </div>
+            <div class="flex justify-between">
+                <span class="text-gray-500 text-sm">{% trans "占い師" %}</span>
+                <span class="text-sm">{{ schedule.staff.name }}</span>
+            </div>
+            <div class="flex justify-between">
+                <span class="text-gray-500 text-sm">{% trans "日時" %}</span>
+                <span class="text-sm">{{ schedule.start|date:"Y/m/d H:i" }} ~ {{ schedule.end|date:"H:i" }}</span>
+            </div>
+            <div class="flex justify-between">
+                <span class="text-gray-500 text-sm">{% trans "料金" %}</span>
+                <span class="text-sm font-bold">&yen;{{ schedule.price|default:"0" }}</span>
+            </div>
+            <div class="flex justify-between">
+                <span class="text-gray-500 text-sm">{% trans "チェックイン" %}</span>
+                <span class="text-sm">
+                    {% if schedule.is_checked_in %}
+                    <span class="text-green-600 font-bold">{% trans "チェックイン済み" %}</span>
+                    {% else %}
+                    <span class="text-gray-400">{% trans "未チェックイン" %}</span>
+                    {% endif %}
+                </span>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

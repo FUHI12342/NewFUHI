@@ -9,6 +9,7 @@ verify_ssl = true
 django = "==2.2.13"
 pillow = "*"
 coverage = "*"
+qrcode = {extras = ["pil"], version = "*"}
 
 [requires]
 python_version = "3.7"

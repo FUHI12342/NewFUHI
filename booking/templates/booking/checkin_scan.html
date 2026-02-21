@@ -1,0 +1,114 @@
+{% extends 'booking/base.html' %}
+{% load i18n %}
+{% load static %}
+
+{% block title %}{% trans "チェックインスキャン" %}{% endblock %}
+
+{% block extra_css %}
+<style>
+#reader { width: 100%; max-width: 500px; margin: 0 auto; }
+#result-box { display: none; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="max-w-lg mx-auto">
+    <h2 class="text-2xl font-bold text-salon-dark mb-6 border-b-2 border-salon-brown pb-3">
+        {% trans "チェックインスキャン" %}
+    </h2>
+
+    <p class="text-sm text-gray-600 mb-4">{% trans "お客様のQRコードをカメラでスキャンしてください。" %}</p>
+
+    <div id="reader" class="mb-6 rounded-lg overflow-hidden border border-gray-300"></div>
+
+    <!-- Result -->
+    <div id="result-box" class="p-4 rounded-lg mb-4">
+        <p id="result-message" class="text-center font-bold"></p>
+    </div>
+
+    <!-- Manual input -->
+    <div class="bg-white rounded-xl shadow-md p-4 border border-gray-200">
+        <h3 class="text-sm font-bold mb-2">{% trans "手動入力" %}</h3>
+        <div class="flex gap-2">
+            <input type="text" id="manual-input" placeholder="{% trans '予約番号' %}"
+                   class="flex-1 border border-gray-300 rounded px-3 py-2 text-sm">
+            <button onclick="doCheckin(document.getElementById('manual-input').value)"
+                    class="bg-salon-brown text-white px-4 py-2 rounded text-sm hover:opacity-80 transition">
+                {% trans "チェックイン" %}
+            </button>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+<script>
+var csrfToken = '{{ csrf_token }}';
+var checkinUrl = '{% url "booking_api:checkin_api" %}';
+var isProcessing = false;
+
+function showResult(success, message) {
+    var box = document.getElementById('result-box');
+    var msg = document.getElementById('result-message');
+    box.style.display = 'block';
+    if (success) {
+        box.className = 'p-4 rounded-lg mb-4 bg-green-100 border border-green-300';
+        msg.className = 'text-center font-bold text-green-700';
+    } else {
+        box.className = 'p-4 rounded-lg mb-4 bg-red-100 border border-red-300';
+        msg.className = 'text-center font-bold text-red-700';
+    }
+    msg.textContent = message;
+    setTimeout(function() { box.style.display = 'none'; }, 5000);
+}
+
+function doCheckin(reservationNumber) {
+    if (!reservationNumber || isProcessing) return;
+    isProcessing = true;
+
+    fetch(checkinUrl, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': csrfToken,
+        },
+        body: JSON.stringify({ reservation_number: reservationNumber }),
+    })
+    .then(function(resp) { return resp.json(); })
+    .then(function(data) {
+        if (data.status === 'ok') {
+            showResult(true, data.message || 'チェックイン成功');
+        } else {
+            showResult(false, data.message || 'エラーが発生しました');
+        }
+    })
+    .catch(function(err) {
+        showResult(false, 'ネットワークエラー: ' + err.message);
+    })
+    .finally(function() {
+        isProcessing = false;
+    });
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    var html5QrCode = new Html5Qrcode("reader");
+    html5QrCode.start(
+        { facingMode: "environment" },
+        { fps: 10, qrbox: { width: 250, height: 250 } },
+        function(decodedText) {
+            if (!isProcessing) {
+                doCheckin(decodedText);
+            }
+        },
+        function(errorMessage) {
+            // ignore scan errors
+        }
+    ).catch(function(err) {
+        console.log('Camera start failed:', err);
+        document.getElementById('reader').innerHTML =
+            '<p class="text-center text-gray-500 p-4">カメラを利用できません。手動入力をご利用ください。</p>';
+    });
+});
+</script>
+{% endblock %}
