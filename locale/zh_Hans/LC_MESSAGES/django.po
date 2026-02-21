@@ -1,0 +1,470 @@
+# Simplified Chinese translations for PACKAGE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-02-21 18:29+0900\n"
+"PO-Revision-Date: 2026-02-21 12:00+0000\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: zh_Hans\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+msgid "占いサロンチャンス　オンライン予約ページ"
+msgstr "占卜沙龙Chance 在线预约页面"
+
+msgid ""
+"占いサロンチャンスのオンライン予約サイト。新宿・池袋の占い師に簡単予約。"
+msgstr "占卜沙龙Chance的在线预约网站。轻松预约新宿、池袋的占卜师。"
+
+msgid "ログアウト"
+msgstr "退出"
+
+msgid "ログイン"
+msgstr "登录"
+
+msgid "予約内容の確認"
+msgstr "确认预约内容"
+
+msgid "店舗"
+msgstr "店铺"
+
+msgid "占い師"
+msgstr "占卜师"
+
+msgid "先生"
+msgstr "老师"
+
+msgid "日時"
+msgstr "日期时间"
+
+msgid "年"
+msgstr "年"
+
+msgid "月"
+msgstr "月"
+
+msgid "日"
+msgstr "日"
+
+msgid "料金"
+msgstr "费用"
+
+msgid "円"
+msgstr "日元"
+
+msgid ""
+"予約ボタンを押すとLINE認証画面に移動します。認証後、決済リンクをLINEでお送り"
+"します。"
+msgstr ""
+"点击预约按钮后将跳转至LINE认证页面。认证完成后，我们将通过LINE发送支付链接。"
+
+msgid "LINEで予約手続きに進む"
+msgstr "通过LINE进行预约手续"
+
+msgid "予約カレンダー"
+msgstr "预约日历"
+
+msgid "前の週"
+msgstr "上一周"
+
+msgid "前週"
+msgstr "上周"
+
+msgid "次の週"
+msgstr "下一周"
+
+msgid "次週"
+msgstr "下周"
+
+msgid "予約したい日時をカレンダーから選択してください"
+msgstr "请从日历中选择您希望预约的日期和时间"
+
+msgid "空き"
+msgstr "空位"
+
+msgid "予約済み"
+msgstr "已预约"
+
+msgid "仮予約"
+msgstr "临时预约"
+
+msgid "受付終了"
+msgstr "已截止"
+
+msgid "祝"
+msgstr "节假日"
+
+msgid "仮予約中"
+msgstr "临时预约中"
+
+msgid "予約する"
+msgstr "预约"
+
+msgid "占い師一覧に戻る"
+msgstr "返回占卜师列表"
+
+msgid "ヘルプ・よくある質問"
+msgstr "帮助与常见问题"
+
+msgid "ご予約について"
+msgstr "关于预约"
+
+msgid "予約はどのように行いますか？"
+msgstr "如何进行预约？"
+
+msgid ""
+"トップページの「ご予約」から店舗を選び、ご希望の占い師のカレンダーから空き時"
+"間を選択してください。LINE認証後に予約が確定します。"
+msgstr ""
+"请从首页的「预约」选择店铺，然后从您心仪的占卜师日历中选择空闲时间。"
+"通过LINE认证后预约即可确认。"
+
+msgid "予約のキャンセルはできますか？"
+msgstr "可以取消预约吗？"
+
+msgid ""
+"はい。予約確定後にLINEで届くメッセージ内のリンクからキャンセルが可能です。"
+"キャンセル料はかかりません。"
+msgstr ""
+"可以。您可以通过预约确认后LINE收到的消息中的链接进行取消。"
+"无需支付取消费用。"
+
+msgid "予約の変更はできますか？"
+msgstr "可以更改预约吗？"
+
+msgid "現在の予約をキャンセルして、改めてご予約ください。"
+msgstr "请取消当前预约后重新预约。"
+
+msgid "当日予約はできますか？"
+msgstr "可以当天预约吗？"
+
+msgid "カレンダーに空きがあれば当日でもご予約いただけます。"
+msgstr "如果日历上有空位，当天也可以预约。"
+
+msgid "お支払いについて"
+msgstr "关于支付"
+
+msgid "支払い方法は？"
+msgstr "支付方式是什么？"
+
+msgid ""
+"オンライン決済（クレジットカード）をご利用いただけます。予約時にLINE経由で決"
+"済リンクをお送りします。"
+msgstr ""
+"可使用在线支付（信用卡）。预约时我们将通过LINE发送支付链接。"
+
+msgid "鑑定料金はいくらですか？"
+msgstr "鉴定费用是多少？"
+
+msgid ""
+"占い師により異なります。各占い師のプロフィールページに料金（1時間あたり）が記"
+"載されています。"
+msgstr ""
+"因占卜师而异。各占卜师的个人页面上标有费用（每小时）。"
+
+msgid "LINE連携について"
+msgstr "关于LINE关联"
+
+msgid "LINEアカウントは必要ですか？"
+msgstr "需要LINE账号吗？"
+
+msgid ""
+"はい。ご予約にはLINEログインが必要です。予約通知やタイマー機能もLINEを通じて"
+"お届けします。"
+msgstr ""
+"是的。预约需要LINE登录。预约通知和计时器功能也将通过LINE发送。"
+
+msgid "LINEの通知はどんな内容ですか？"
+msgstr "LINE通知的内容有哪些？"
+
+msgid "予約確定、キャンセル、鑑定タイマーのリンクなどをお送りします。"
+msgstr "我们将发送预约确认、取消、鉴定计时器链接等信息。"
+
+msgid "店舗について"
+msgstr "关于店铺"
+
+msgid "どの店舗がありますか？"
+msgstr "有哪些店铺？"
+
+msgid ""
+"現在、新宿・池袋に店舗を展開しています。「店舗情報」メニューから詳細をご確認"
+"ください。"
+msgstr ""
+"目前在新宿和池袋设有店铺。请从「店铺信息」菜单查看详情。"
+
+msgid "営業時間は？"
+msgstr "营业时间是？"
+
+msgid ""
+"各店舗の営業時間は店舗情報ページに記載されています。基本的に9:00〜17:00が鑑定"
+"可能時間です。"
+msgstr ""
+"各店铺的营业时间请参见店铺信息页面。基本鉴定时间为9:00～17:00。"
+
+msgid "スタッフの方へ"
+msgstr "致工作人员"
+
+msgid "マイページにアクセスするには？"
+msgstr "如何访问我的页面？"
+
+msgid ""
+"管理者から発行されたアカウントでログインし、ナビゲーションの「スタッフペー"
+"ジ」からアクセスしてください。"
+msgstr ""
+"请使用管理员发放的账号登录，然后从导航栏的「员工页面」进行访问。"
+
+msgid "シフト（休暇）の設定方法は？"
+msgstr "如何设置排班（休假）？"
+
+msgid ""
+"マイページ → カレンダー → 日付の「詳細」から、時間単位で休暇を設定できます。"
+"「全日休暇にする」で一日全体をブロックすることも可能です。"
+msgstr ""
+"从我的页面 → 日历 → 日期的「详情」，可按小时设置休假。"
+"也可通过「设为全天休假」来屏蔽整天。"
+
+msgid "予約の確認方法は？"
+msgstr "如何确认预约？"
+
+msgid ""
+"マイページのカレンダーで「○」が空き、「×」が予約済みです。詳細をクリックする"
+"と予約者情報を確認できます。"
+msgstr ""
+"在我的页面的日历中，「○」表示空位，「×」表示已预约。"
+"点击详情可查看预约者信息。"
+
+msgid "お問い合わせ"
+msgstr "联系我们"
+
+msgid ""
+"上記で解決しない場合は、各店舗までお電話いただくか、LINEの公式アカウントより"
+"お問い合わせください。"
+msgstr ""
+"如果以上内容未能解决您的问题，请致电各店铺或通过LINE官方账号联系我们。"
+
+msgid "IoT Sensor Dashboard"
+msgstr "IoT传感器仪表盘"
+
+msgid "Select Device"
+msgstr "选择设备"
+
+msgid "Loading devices..."
+msgstr "正在加载设备..."
+
+msgid "MQ-9 Gas"
+msgstr "MQ-9 气体"
+
+msgid "Light"
+msgstr "光照"
+
+msgid "Sound"
+msgstr "声音"
+
+msgid "PIR Motion"
+msgstr "PIR 人体感应"
+
+msgid "LINEログイン"
+msgstr "LINE登录"
+
+msgid "予約を確定するにはLINEアカウントでの認証が必要です。"
+msgstr "确认预约需要使用LINE账号进行认证。"
+
+msgid "LINEでログイン"
+msgstr "通过LINE登录"
+
+msgid "ログアウトしました"
+msgstr "已退出"
+
+msgid "ログインへ戻る"
+msgstr "返回登录"
+
+msgid "ログイン成功"
+msgstr "登录成功"
+
+#, python-format
+msgid "%(name)sさん、ようこそ！"
+msgstr "%(name)s，欢迎您！"
+
+msgid "決済リンクをLINEでお送りしました。LINEアプリをご確認ください。"
+msgstr "已通过LINE发送支付链接。请查看LINE应用。"
+
+msgid "IoTモニタリング"
+msgstr "IoT监控"
+
+msgid "物件一覧に戻る"
+msgstr "返回物业列表"
+
+msgid "オーナー"
+msgstr "业主"
+
+msgid "在室中"
+msgstr "在室"
+
+msgid "不在"
+msgstr "不在"
+
+msgid "デバイス状況"
+msgstr "设备状态"
+
+msgid "オンライン"
+msgstr "在线"
+
+msgid "オフライン"
+msgstr "离线"
+
+msgid "ガス(MQ-9)"
+msgstr "气体(MQ-9)"
+
+msgid "照度"
+msgstr "照度"
+
+msgid "音量"
+msgstr "音量"
+
+msgid "人感(PIR)"
+msgstr "人体感应(PIR)"
+
+msgid "検知"
+msgstr "检测到"
+
+msgid "なし"
+msgstr "无"
+
+msgid "登録デバイスはありません。"
+msgstr "没有已注册的设备。"
+
+msgid "アクティブアラート"
+msgstr "活跃警报"
+
+msgid "重要度"
+msgstr "重要程度"
+
+msgid "種別"
+msgstr "类别"
+
+msgid "メッセージ"
+msgstr "消息"
+
+msgid "発生日時"
+msgstr "发生时间"
+
+msgid "操作"
+msgstr "操作"
+
+msgid "危険"
+msgstr "危险"
+
+msgid "警告"
+msgstr "警告"
+
+msgid "情報"
+msgstr "信息"
+
+msgid "解決"
+msgstr "解决"
+
+msgid "アクティブなアラートはありません。"
+msgstr "没有活跃的警报。"
+
+msgid "解決済みアラート"
+msgstr "已解决的警报"
+
+msgid "解決済みアラートはありません。"
+msgstr "没有已解决的警报。"
+
+msgid "自動更新"
+msgstr "自动刷新"
+
+msgid "秒"
+msgstr "秒"
+
+msgid "最終更新"
+msgstr "最后更新"
+
+msgid "物件IoTモニタリング"
+msgstr "物业IoT监控"
+
+msgid "登録物件のデバイス状況とアラートを一覧で確認できます。"
+msgstr "可一览查看已注册物业的设备状态和警报。"
+
+msgid "デバイス"
+msgstr "设备"
+
+msgid "その他"
+msgstr "其他"
+
+msgid "アラートなし"
+msgstr "无警报"
+
+msgid "詳細を見る"
+msgstr "查看详情"
+
+msgid "登録されている物件はありません。"
+msgstr "没有已注册的物业。"
+
+msgid "店 在籍占い師"
+msgstr "店 在籍占卜师"
+
+msgid "ホーム"
+msgstr "首页"
+
+msgid "在籍占い師"
+msgstr "在籍占卜师"
+
+msgid "鑑定料"
+msgstr "鉴定费"
+
+msgid "円（１時間）"
+msgstr "日元（1小时）"
+
+msgid "予約カレンダーを見る"
+msgstr "查看预约日历"
+
+msgid "現在この店舗に占い師は在籍していません。"
+msgstr "目前该店铺没有在籍的占卜师。"
+
+msgid "占いサロン店舗一覧"
+msgstr "占卜沙龙店铺列表"
+
+msgid "店舗所在地"
+msgstr "店铺地址"
+
+msgid "営業時間"
+msgstr "营业时间"
+
+msgid "交通／最寄駅"
+msgstr "交通/最近车站"
+
+msgid "定休日"
+msgstr "固定休息日"
+
+msgid "占い師一覧を見る"
+msgstr "查看占卜师列表"
+
+msgid "まだ予約可能な店舗がありません。"
+msgstr "目前没有可预约的店铺。"
+
+msgid "鑑定タイマー"
+msgstr "鉴定计时器"
+
+msgid "Django site admin"
+msgstr "Django 站点管理"
+
+msgid "Home"
+msgstr "首页"
+
+msgid "デバッグパネル"
+msgstr "调试面板"
+
+msgid "飲食店ダッシュボード"
+msgstr "餐饮店仪表盘"
+
+msgid "MQ-9 ガスセンサー"
+msgstr "MQ-9 气体传感器"

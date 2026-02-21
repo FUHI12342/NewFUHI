@@ -1,0 +1,479 @@
+# Korean translations for the PACKAGE package.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-02-21 18:29+0900\n"
+"PO-Revision-Date: 2026-02-21 18:29+0900\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: Korean <LL@li.org>\n"
+"Language: ko\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+msgid "占いサロンチャンス　オンライン予約ページ"
+msgstr "점술 살롱 찬스 온라인 예약 페이지"
+
+msgid ""
+"占いサロンチャンスのオンライン予約サイト。新宿・池袋の占い師に簡単予約。"
+msgstr ""
+"점술 살롱 찬스 온라인 예약 사이트. 신주쿠·이케부쿠로 점술사에게 간편 예약."
+
+msgid "ログアウト"
+msgstr "로그아웃"
+
+msgid "ログイン"
+msgstr "로그인"
+
+msgid "予約内容の確認"
+msgstr "예약 내용 확인"
+
+msgid "店舗"
+msgstr "매장"
+
+msgid "占い師"
+msgstr "점술사"
+
+msgid "先生"
+msgstr "선생님"
+
+msgid "日時"
+msgstr "일시"
+
+msgid "年"
+msgstr "년"
+
+msgid "月"
+msgstr "월"
+
+msgid "日"
+msgstr "일"
+
+msgid "料金"
+msgstr "요금"
+
+msgid "円"
+msgstr "엔"
+
+msgid ""
+"予約ボタンを押すとLINE認証画面に移動します。認証後、決済リンクをLINEでお送り"
+"します。"
+msgstr ""
+"예약 버튼을 누르면 LINE 인증 화면으로 이동합니다. 인증 후 결제 링크를 LINE으로"
+" 보내드립니다."
+
+msgid "LINEで予約手続きに進む"
+msgstr "LINE으로 예약 절차 진행"
+
+msgid "予約カレンダー"
+msgstr "예약 캘린더"
+
+msgid "前の週"
+msgstr "이전 주"
+
+msgid "前週"
+msgstr "이전 주"
+
+msgid "次の週"
+msgstr "다음 주"
+
+msgid "次週"
+msgstr "다음 주"
+
+msgid "予約したい日時をカレンダーから選択してください"
+msgstr "예약하실 일시를 캘린더에서 선택해 주세요"
+
+msgid "空き"
+msgstr "가능"
+
+msgid "予約済み"
+msgstr "예약 완료"
+
+msgid "仮予約"
+msgstr "가예약"
+
+msgid "受付終了"
+msgstr "접수 종료"
+
+msgid "祝"
+msgstr "공휴일"
+
+msgid "仮予約中"
+msgstr "가예약 중"
+
+msgid "予約する"
+msgstr "예약하기"
+
+msgid "占い師一覧に戻る"
+msgstr "점술사 목록으로 돌아가기"
+
+msgid "ヘルプ・よくある質問"
+msgstr "도움말·자주 묻는 질문"
+
+msgid "ご予約について"
+msgstr "예약 관련"
+
+msgid "予約はどのように行いますか？"
+msgstr "예약은 어떻게 하나요?"
+
+msgid ""
+"トップページの「ご予約」から店舗を選び、ご希望の占い師のカレンダーから空き時"
+"間を選択してください。LINE認証後に予約が確定します。"
+msgstr ""
+"메인 페이지의 '예약'에서 매장을 선택하고, 원하시는 점술사의 캘린더에서 빈 시간"
+"을 선택해 주세요. LINE 인증 후 예약이 확정됩니다."
+
+msgid "予約のキャンセルはできますか？"
+msgstr "예약 취소가 가능한가요?"
+
+msgid ""
+"はい。予約確定後にLINEで届くメッセージ内のリンクからキャンセルが可能です。"
+"キャンセル料はかかりません。"
+msgstr ""
+"네. 예약 확정 후 LINE으로 받으신 메시지 내 링크를 통해 취소가 가능합니다. "
+"취소 수수료는 없습니다."
+
+msgid "予約の変更はできますか？"
+msgstr "예약 변경이 가능한가요?"
+
+msgid "現在の予約をキャンセルして、改めてご予約ください。"
+msgstr "현재 예약을 취소하신 후 다시 예약해 주세요."
+
+msgid "当日予約はできますか？"
+msgstr "당일 예약이 가능한가요?"
+
+msgid "カレンダーに空きがあれば当日でもご予約いただけます。"
+msgstr "캘린더에 빈 시간이 있으면 당일에도 예약하실 수 있습니다."
+
+msgid "お支払いについて"
+msgstr "결제 관련"
+
+msgid "支払い方法は？"
+msgstr "결제 방법은?"
+
+msgid ""
+"オンライン決済（クレジットカード）をご利用いただけます。予約時にLINE経由で決"
+"済リンクをお送りします。"
+msgstr ""
+"온라인 결제(신용카드)를 이용하실 수 있습니다. 예약 시 LINE을 통해 결제 링크를 "
+"보내드립니다."
+
+msgid "鑑定料金はいくらですか？"
+msgstr "감정 요금은 얼마인가요?"
+
+msgid ""
+"占い師により異なります。各占い師のプロフィールページに料金（1時間あたり）が記"
+"載されています。"
+msgstr ""
+"점술사에 따라 다릅니다. 각 점술사의 프로필 페이지에 요금(1시간당)이 기재되어 "
+"있습니다."
+
+msgid "LINE連携について"
+msgstr "LINE 연동 관련"
+
+msgid "LINEアカウントは必要ですか？"
+msgstr "LINE 계정이 필요한가요?"
+
+msgid ""
+"はい。ご予約にはLINEログインが必要です。予約通知やタイマー機能もLINEを通じて"
+"お届けします。"
+msgstr ""
+"네. 예약에는 LINE 로그인이 필요합니다. 예약 알림 및 타이머 기능도 LINE을 통해 "
+"제공됩니다."
+
+msgid "LINEの通知はどんな内容ですか？"
+msgstr "LINE 알림은 어떤 내용인가요?"
+
+msgid "予約確定、キャンセル、鑑定タイマーのリンクなどをお送りします。"
+msgstr "예약 확정, 취소, 감정 타이머 링크 등을 보내드립니다."
+
+msgid "店舗について"
+msgstr "매장 관련"
+
+msgid "どの店舗がありますか？"
+msgstr "어떤 매장이 있나요?"
+
+msgid ""
+"現在、新宿・池袋に店舗を展開しています。「店舗情報」メニューから詳細をご確認"
+"ください。"
+msgstr ""
+"현재 신주쿠·이케부쿠로에 매장을 운영하고 있습니다. '매장 정보' 메뉴에서 자세한"
+" 내용을 확인해 주세요."
+
+msgid "営業時間は？"
+msgstr "영업 시간은?"
+
+msgid ""
+"各店舗の営業時間は店舗情報ページに記載されています。基本的に9:00〜17:00が鑑定"
+"可能時間です。"
+msgstr ""
+"각 매장의 영업 시간은 매장 정보 페이지에 기재되어 있습니다. 기본적으로 "
+"9:00~17:00이 감정 가능 시간입니다."
+
+msgid "スタッフの方へ"
+msgstr "스태프 안내"
+
+msgid "マイページにアクセスするには？"
+msgstr "마이페이지에 접속하려면?"
+
+msgid ""
+"管理者から発行されたアカウントでログインし、ナビゲーションの「スタッフペー"
+"ジ」からアクセスしてください。"
+msgstr ""
+"관리자가 발급한 계정으로 로그인한 후 내비게이션의 '스태프 페이지'에서 접속해 "
+"주세요."
+
+msgid "シフト（休暇）の設定方法は？"
+msgstr "근무(휴가) 설정 방법은?"
+
+msgid ""
+"マイページ → カレンダー → 日付の「詳細」から、時間単位で休暇を設定できます。"
+"「全日休暇にする」で一日全体をブロックすることも可能です。"
+msgstr ""
+"마이페이지 → 캘린더 → 날짜의 '상세'에서 시간 단위로 휴가를 설정할 수 있습니다"
+". '종일 휴가로 설정'으로 하루 전체를 차단할 수도 있습니다."
+
+msgid "予約の確認方法は？"
+msgstr "예약 확인 방법은?"
+
+msgid ""
+"マイページのカレンダーで「○」が空き、「×」が予約済みです。詳細をクリックする"
+"と予約者情報を確認できます。"
+msgstr ""
+"마이페이지 캘린더에서 '○'이 가능, '×'이 예약 완료입니다. 상세를 클릭하면 예약자"
+" 정보를 확인할 수 있습니다."
+
+msgid "お問い合わせ"
+msgstr "문의하기"
+
+msgid ""
+"上記で解決しない場合は、各店舗までお電話いただくか、LINEの公式アカウントより"
+"お問い合わせください。"
+msgstr ""
+"위 내용으로 해결되지 않을 경우 각 매장으로 전화하시거나 LINE 공식 계정으로 "
+"문의해 주세요."
+
+msgid "IoT Sensor Dashboard"
+msgstr "IoT 센서 대시보드"
+
+msgid "Select Device"
+msgstr "기기 선택"
+
+msgid "Loading devices..."
+msgstr "기기 불러오는 중..."
+
+msgid "MQ-9 Gas"
+msgstr "MQ-9 가스"
+
+msgid "Light"
+msgstr "조도"
+
+msgid "Sound"
+msgstr "음량"
+
+msgid "PIR Motion"
+msgstr "PIR 동작 감지"
+
+msgid "LINEログイン"
+msgstr "LINE 로그인"
+
+msgid "予約を確定するにはLINEアカウントでの認証が必要です。"
+msgstr "예약을 확정하려면 LINE 계정 인증이 필요합니다."
+
+msgid "LINEでログイン"
+msgstr "LINE으로 로그인"
+
+msgid "ログアウトしました"
+msgstr "로그아웃되었습니다"
+
+msgid "ログインへ戻る"
+msgstr "로그인으로 돌아가기"
+
+msgid "ログイン成功"
+msgstr "로그인 성공"
+
+#, python-format
+msgid "%(name)sさん、ようこそ！"
+msgstr "%(name)s님, 환영합니다!"
+
+msgid "決済リンクをLINEでお送りしました。LINEアプリをご確認ください。"
+msgstr "결제 링크를 LINE으로 보내드렸습니다. LINE 앱을 확인해 주세요."
+
+msgid "IoTモニタリング"
+msgstr "IoT 모니터링"
+
+msgid "物件一覧に戻る"
+msgstr "물건 목록으로 돌아가기"
+
+msgid "オーナー"
+msgstr "소유자"
+
+msgid "在室中"
+msgstr "재실 중"
+
+msgid "不在"
+msgstr "부재"
+
+msgid "デバイス状況"
+msgstr "기기 상태"
+
+msgid "オンライン"
+msgstr "온라인"
+
+msgid "オフライン"
+msgstr "오프라인"
+
+msgid "ガス(MQ-9)"
+msgstr "가스(MQ-9)"
+
+msgid "照度"
+msgstr "조도"
+
+msgid "音量"
+msgstr "음량"
+
+msgid "人感(PIR)"
+msgstr "인체 감지(PIR)"
+
+msgid "検知"
+msgstr "감지"
+
+msgid "なし"
+msgstr "없음"
+
+msgid "登録デバイスはありません。"
+msgstr "등록된 기기가 없습니다."
+
+msgid "アクティブアラート"
+msgstr "활성 알림"
+
+msgid "重要度"
+msgstr "중요도"
+
+msgid "種別"
+msgstr "종류"
+
+msgid "メッセージ"
+msgstr "메시지"
+
+msgid "発生日時"
+msgstr "발생 일시"
+
+msgid "操作"
+msgstr "조작"
+
+msgid "危険"
+msgstr "위험"
+
+msgid "警告"
+msgstr "경고"
+
+msgid "情報"
+msgstr "정보"
+
+msgid "解決"
+msgstr "해결"
+
+msgid "アクティブなアラートはありません。"
+msgstr "활성 알림이 없습니다."
+
+msgid "解決済みアラート"
+msgstr "해결된 알림"
+
+msgid "解決済みアラートはありません。"
+msgstr "해결된 알림이 없습니다."
+
+msgid "自動更新"
+msgstr "자동 갱신"
+
+msgid "秒"
+msgstr "초"
+
+msgid "最終更新"
+msgstr "최종 갱신"
+
+msgid "物件IoTモニタリング"
+msgstr "물건 IoT 모니터링"
+
+msgid "登録物件のデバイス状況とアラートを一覧で確認できます。"
+msgstr "등록 물건의 기기 상태와 알림을 한눈에 확인할 수 있습니다."
+
+msgid "デバイス"
+msgstr "기기"
+
+msgid "その他"
+msgstr "기타"
+
+msgid "アラートなし"
+msgstr "알림 없음"
+
+msgid "詳細を見る"
+msgstr "상세 보기"
+
+msgid "登録されている物件はありません。"
+msgstr "등록된 물건이 없습니다."
+
+msgid "店 在籍占い師"
+msgstr "매장 소속 점술사"
+
+msgid "ホーム"
+msgstr "홈"
+
+msgid "在籍占い師"
+msgstr "소속 점술사"
+
+msgid "鑑定料"
+msgstr "감정료"
+
+msgid "円（１時間）"
+msgstr "엔 (1시간)"
+
+msgid "予約カレンダーを見る"
+msgstr "예약 캘린더 보기"
+
+msgid "現在この店舗に占い師は在籍していません。"
+msgstr "현재 이 매장에 소속된 점술사가 없습니다."
+
+msgid "占いサロン店舗一覧"
+msgstr "점술 살롱 매장 목록"
+
+msgid "店舗所在地"
+msgstr "매장 소재지"
+
+msgid "営業時間"
+msgstr "영업 시간"
+
+msgid "交通／最寄駅"
+msgstr "교통 / 가까운 역"
+
+msgid "定休日"
+msgstr "정기 휴일"
+
+msgid "占い師一覧を見る"
+msgstr "점술사 목록 보기"
+
+msgid "まだ予約可能な店舗がありません。"
+msgstr "아직 예약 가능한 매장이 없습니다."
+
+msgid "鑑定タイマー"
+msgstr "감정 타이머"
+
+msgid "Django site admin"
+msgstr "Django 사이트 관리"
+
+msgid "Home"
+msgstr "홈"
+
+msgid "デバッグパネル"
+msgstr "디버그 패널"
+
+msgid "飲食店ダッシュボード"
+msgstr "음식점 대시보드"
+
+msgid "MQ-9 ガスセンサー"
+msgstr "MQ-9 가스 센서"

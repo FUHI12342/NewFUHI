@@ -1,44 +1,77 @@
 {% extends 'booking/base.html' %}
+{% load i18n %}
 
 {% block content %}
 
-    <h1>{{ staff.store.name }}店 {{ staff.name }}</h1>
-    <p>{{ view.kwargs.year }}年{{ view.kwargs.month }}月{{ view.kwargs.day }}日の予約一覧</p>
-    
-    <table class="table table-bordered text-center" style="table-layout: fixed;width: 100%" border="1">
-        {% for hour, schedules in calendar.items %}
-            <tr style="font-size:12px">
-                <td>
-                    {{ hour }}:00
-                </td>
-                <td>
-                    {% if schedules %}
-                        {% for s in schedules %}
-                            <a href="{% url 'booking:my_page_schedule' s.pk %}">{{ s.name }}</a>
-                        {% endfor %}
-                    {% else %}
-                        <form action="{% url 'booking:my_page_holiday_add' staff.pk view.kwargs.year view.kwargs.month view.kwargs.day hour %}"
-                              method="POST">
-                            {% csrf_token %}
-                            <button type="submit">休暇にする</button>
-                        </form>
-                        
-                    {% endif %}
-                </td>
-            </tr>
-        {% endfor %}
+<!-- Page Heading -->
+<h1 class="text-2xl md:text-3xl font-bold text-salon-dark mb-2 border-b-2 border-salon-brown pb-3">
+    {{ staff.store.name }}店 {{ staff.name }}
+</h1>
 
-    </table>    
-                    {% if schedules %}
-                        {% for s in schedules %}
-                            <a href="{% url 'booking:my_page_schedule' s.pk %}">{{ s.name }}</a>
-                        {% endfor %}
-                    {% else %}
-                        <form action="{% url 'booking:my_page_day_add' staff.pk view.kwargs.year view.kwargs.month view.kwargs.day %}"
-                                method="POST">
-                            {% csrf_token %}
-                            <button type="submit">全日休暇にする</button>
-                        </form>
-                    {% endif %}
-            
+<!-- Date Display -->
+<p class="text-base text-gray-700 mb-6">
+    <span class="font-semibold text-salon-brown">{{ view.kwargs.year }}年{{ view.kwargs.month }}月{{ view.kwargs.day }}日</span>の予約一覧
+</p>
+
+<!-- Time Slot List -->
+<div class="bg-white rounded-xl shadow-md overflow-hidden divide-y divide-gray-100">
+    {% for hour, schedules in calendar.items %}
+    <div class="flex items-center px-5 py-4 gap-4">
+        <!-- Time Label -->
+        <div class="w-16 flex-shrink-0">
+            <span class="text-sm font-semibold text-salon-dark">{{ hour }}:00</span>
+        </div>
+
+        <!-- Content -->
+        <div class="flex-1">
+            {% if schedules %}
+                <div class="flex flex-wrap gap-2">
+                    {% for s in schedules %}
+                    <a href="{% url 'booking:my_page_schedule' s.pk %}"
+                       class="inline-flex items-center gap-1.5 bg-salon-beige text-salon-brown text-sm font-medium px-3 py-1.5 rounded-lg hover:bg-salon-brown hover:text-white transition-colors duration-200">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                  d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+                        </svg>
+                        {{ s.name }}
+                    </a>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <form action="{% url 'booking:my_page_holiday_add' staff.pk view.kwargs.year view.kwargs.month view.kwargs.day hour %}"
+                      method="POST">
+                    {% csrf_token %}
+                    <button type="submit"
+                            class="inline-flex items-center gap-1.5 text-sm font-medium text-gray-500 bg-gray-100 hover:bg-gray-200 px-3 py-1.5 rounded-lg transition-colors duration-200">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                  d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"/>
+                        </svg>
+                        休暇にする
+                    </button>
+                </form>
+            {% endif %}
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+<!-- Full-day Holiday Button -->
+{% if not has_any_schedule %}
+<div class="mt-6">
+    <form action="{% url 'booking:my_page_day_add' staff.pk view.kwargs.year view.kwargs.month view.kwargs.day %}"
+          method="POST">
+        {% csrf_token %}
+        <button type="submit"
+                class="w-full sm:w-auto inline-flex items-center justify-center gap-2 bg-salon-brown hover:bg-salon-dark text-white font-medium text-sm px-6 py-3 rounded-lg transition-colors duration-200 shadow-sm">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+            </svg>
+            全日休暇にする
+        </button>
+    </form>
+</div>
+{% endif %}
+
 {% endblock %}

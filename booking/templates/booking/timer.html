@@ -1,12 +1,20 @@
+{% extends 'booking/base.html' %}
+{% load i18n %}
 {% load static %}
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Timer</title>
-    <script src="/static/testApp/scripts.js"></script>
-</head>
-<body>
-    <h1>Timer</h1>
-    <p id="timer">{{ end_time }}</p>
-</body>
-</html>
+
+{% block title %}{% trans "鑑定タイマー" %} | {{ block.super }}{% endblock %}
+
+{% block content %}
+<section class="flex items-center justify-center py-12">
+    <div class="bg-white rounded-lg shadow-md border border-gray-200 p-8 md:p-12 text-center max-w-lg w-full">
+        <h2 class="text-2xl font-bold text-salon-brown mb-8">{% trans "鑑定タイマー" %}</h2>
+        <div class="bg-salon-beige rounded-lg p-6 md:p-8">
+            <p id="timer" class="font-mono text-5xl md:text-6xl text-salon-dark tracking-wider">{{ end_time }}</p>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'testApp/scripts.js' %}"></script>
+{% endblock %}

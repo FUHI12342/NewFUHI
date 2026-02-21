@@ -1,17 +1,30 @@
-<!DOCTYPE html>
-<html lang="ja">
+{% extends 'booking/base.html' %}
+{% load i18n %}
 
+{% block title %}{% trans "ログアウト" %} | {{ block.super }}{% endblock %}
 
-<head>
-<meta charset="UTF-8">
-<title>ユーザーフォーム</title>
-</head>
+{% block content %}
+<div class="max-w-md mx-auto mt-10 mb-10">
+    <div class="bg-white rounded-2xl shadow-lg border border-gray-100 p-8 text-center">
 
+        <!-- Logout Icon -->
+        <div class="mb-6">
+            <div class="w-16 h-16 mx-auto bg-salon-beige rounded-full flex items-center justify-center">
+                <svg class="w-9 h-9 text-salon-brown" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
+                </svg>
+            </div>
+        </div>
 
-<body>
-    <h1>ログアウトしました。</h1>
-    <p><a href="{% url 'booking:booking' %}">loginへ戻る</a></p>
-</body>
+        <!-- Heading -->
+        <h1 class="text-2xl font-bold text-salon-dark mb-6">{% trans "ログアウトしました" %}</h1>
 
+        <!-- Back to Login Button -->
+        <a href="{% url 'booking:login' %}"
+           class="block w-full bg-salon-brown hover:bg-salon-brown/80 text-white font-bold py-3.5 px-6 rounded-lg text-center transition-colors duration-200 shadow-md hover:shadow-lg">
+            {% trans "ログインへ戻る" %}
+        </a>
 
-</html>
+    </div>
+</div>
+{% endblock %}

@@ -1,65 +1,222 @@
 {% extends 'booking/base.html' %}
+{% load i18n %}
 {% load static %}
 
+{% block title %}{% trans "予約カレンダー" %} - {{ staff.name }}{% endblock %}
+
 {% block content %}
-    
-    <h2>予約カレンダー</h2>
-    <h3>店舗：新大久保店</h3>
-    <p>予約したい日時をカレンダーから選択してください</p>
-    {% if messages %}
-        <ul class="messages">
-            {% for message in messages %}
-            <li{% if message.tags %} class="{{ message.tags }}" style="color: red; font-weight: bold; font-size: 2em;"{% endif %}>{{ message }}</li>
-            {% endfor %}
-        </ul>
-    {% endif %}
-    
-    <p style="font-size: 20px;">
-        <strong class="color1">◆{{ start_day }} - {{ end_day }}</strong>(現在選択中の占い師：<strong class="color1">{{ staff.name }}</strong>)</p>
 
-    
-        <table class="table table-bordered text-center" style="table-layout: fixed;width: 100%" border="2">
-            
-            <tr>
-                <td><a href="{% url 'booking:calendar' staff.pk before.year before.month before.day %}">前週</a></td>
-                {% for day in days %}
-                    {% if day in public_holidays %}
-                        <th style="background-color: yellow">{{ day | date:"d(D)" }}</th>
-                    {% elif day.weekday == 5 %}
-                        <th style="color: blue;">{{ day | date:"d(D)" }}</th>
-                    {% elif day.weekday == 6 %}
-                        <th style="color: red;">{{ day | date:"d(D)" }}</th>
-                    {% else %}
-                        <th>{{ day | date:"d(D)" }}</th>
-                    {% endif %}
-                {% endfor %}
-                <td><a href="{% url 'booking:calendar' staff.pk next.year next.month next.day %}">次週</a></td>
-            </tr>
+<!-- ===== Messages ===== -->
+{% if messages %}
+<div class="mb-6 space-y-3">
+    {% for message in messages %}
+    <div class="rounded-lg border px-4 py-3 text-sm flex items-center gap-2
+        {% if message.tags == 'error' %}
+            bg-red-50 border-red-300 text-red-700
+        {% elif message.tags == 'warning' %}
+            bg-yellow-50 border-yellow-300 text-yellow-700
+        {% elif message.tags == 'success' %}
+            bg-green-50 border-green-300 text-green-700
+        {% else %}
+            bg-blue-50 border-blue-300 text-blue-700
+        {% endif %}
+    ">
+        {% if message.tags == 'error' %}
+            <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            </svg>
+        {% elif message.tags == 'success' %}
+            <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            </svg>
+        {% else %}
+            <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            </svg>
+        {% endif %}
+        <span>{{ message }}</span>
+    </div>
+    {% endfor %}
+</div>
+{% endif %}
 
-            {% for hour, schedules in calendar.items %}
-            <tr style="font-size:12px">
-                <td>
-                    {{ hour }}:00
-                </td>
-                {% for dt, book in schedules.items %}
-                    <td>
-                        {% if dt <= today %}
-                            -
-                        {% elif book == 'Booked' %}
-                            <a href="#" class="booked">予約済み</a>
-                        {% elif book == 'Temp' %}
-                            <a class="temporary">仮予約中</a>
-                        {% else %}
-                            <a href="{% url 'booking:prebooking' staff.pk dt.year dt.month dt.day hour %}" class="available">空き</a>
-                        {% endif %}
-                    </td>
-                {% endfor %}
-                <td>
-                    {{ hour }}:00
-                </td>
-            </tr>
-        {% endfor %}
-        </table>
+<!-- ===== Page Heading ===== -->
+<div class="mb-6">
+    <h2 class="text-2xl font-bold text-salon-dark mb-1">{% trans "予約カレンダー" %}</h2>
+    <p class="text-sm text-gray-500">
+        {{ staff.store.name }} &mdash;
+        {% trans "占い師" %}:
+        <span class="font-semibold text-salon-brown">{{ staff.name }}</span>
     </p>
-        
+</div>
+
+<!-- ===== Date Range & Navigation ===== -->
+<div class="flex items-center justify-between mb-5 bg-salon-beige rounded-lg px-4 py-3">
+    <!-- Previous week -->
+    <a href="{% url 'booking:calendar' staff.pk before.year before.month before.day %}"
+       class="inline-flex items-center gap-1 text-sm font-medium text-salon-brown hover:text-salon-dark transition"
+       title="{% trans '前の週' %}">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+        </svg>
+        <span class="hidden sm:inline">{% trans "前週" %}</span>
+    </a>
+
+    <!-- Date range display -->
+    <div class="text-center">
+        <span class="text-base sm:text-lg font-bold text-salon-dark">
+            {{ start_day|date:"Y/m/d" }} &ndash; {{ end_day|date:"Y/m/d" }}
+        </span>
+    </div>
+
+    <!-- Next week -->
+    <a href="{% url 'booking:calendar' staff.pk next.year next.month next.day %}"
+       class="inline-flex items-center gap-1 text-sm font-medium text-salon-brown hover:text-salon-dark transition"
+       title="{% trans '次の週' %}">
+        <span class="hidden sm:inline">{% trans "次週" %}</span>
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+        </svg>
+    </a>
+</div>
+
+<!-- ===== Hint ===== -->
+<p class="text-xs text-gray-400 mb-3">{% trans "予約したい日時をカレンダーから選択してください" %}</p>
+
+<!-- ===== Legend ===== -->
+<div class="flex flex-wrap items-center gap-3 mb-4 text-xs">
+    <span class="inline-flex items-center gap-1">
+        <span class="inline-block w-6 h-6 leading-6 text-center rounded bg-green-100 text-green-700 font-bold">&cir;</span>
+        {% trans "空き" %}
+    </span>
+    <span class="inline-flex items-center gap-1">
+        <span class="inline-block w-6 h-6 leading-6 text-center rounded bg-red-100 text-red-600 font-bold">&times;</span>
+        {% trans "予約済み" %}
+    </span>
+    <span class="inline-flex items-center gap-1">
+        <span class="inline-block w-6 h-6 leading-6 text-center rounded bg-yellow-100 text-yellow-700 font-bold">仮</span>
+        {% trans "仮予約" %}
+    </span>
+    <span class="inline-flex items-center gap-1">
+        <span class="inline-block w-6 h-6 leading-6 text-center rounded bg-gray-100 text-gray-300 font-bold">&ndash;</span>
+        {% trans "受付終了" %}
+    </span>
+</div>
+
+<!-- ===== Calendar Table ===== -->
+<div class="overflow-x-auto rounded-lg border border-gray-200 shadow-sm">
+    <table class="w-full text-center text-sm border-collapse min-w-[640px]">
+        <!-- ===== Header Row ===== -->
+        <thead>
+            <tr class="bg-salon-beige">
+                <!-- Previous week arrow cell -->
+                <th class="px-2 py-3 border-b border-gray-200 w-16">
+                    <a href="{% url 'booking:calendar' staff.pk before.year before.month before.day %}"
+                       class="text-salon-brown hover:text-salon-dark transition"
+                       title="{% trans '前の週' %}">
+                        <svg class="w-4 h-4 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+                        </svg>
+                    </a>
+                </th>
+
+                {% for day in days %}
+                <th class="px-1 py-3 border-b border-gray-200 font-semibold text-xs sm:text-sm
+                    {% if day in public_holidays %}
+                        bg-yellow-50 text-red-600
+                    {% elif day.weekday == 5 %}
+                        text-blue-600
+                    {% elif day.weekday == 6 %}
+                        text-red-600
+                    {% else %}
+                        text-salon-dark
+                    {% endif %}
+                ">
+                    <div>{{ day|date:"m/d" }}</div>
+                    <div class="text-[10px] sm:text-xs font-normal mt-0.5">{{ day|date:"D" }}</div>
+                    {% if day in public_holidays %}
+                        <span class="inline-block mt-0.5 bg-yellow-200 text-yellow-800 text-[9px] px-1 rounded">{% trans "祝" %}</span>
+                    {% endif %}
+                </th>
+                {% endfor %}
+
+                <!-- Next week arrow cell -->
+                <th class="px-2 py-3 border-b border-gray-200 w-16">
+                    <a href="{% url 'booking:calendar' staff.pk next.year next.month next.day %}"
+                       class="text-salon-brown hover:text-salon-dark transition"
+                       title="{% trans '次の週' %}">
+                        <svg class="w-4 h-4 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                        </svg>
+                    </a>
+                </th>
+            </tr>
+        </thead>
+
+        <!-- ===== Body Rows ===== -->
+        <tbody class="divide-y divide-gray-100">
+            {% for hour, schedules in calendar.items %}
+            <tr class="hover:bg-gray-50/50 transition-colors">
+                <!-- Time label (left) -->
+                <td class="px-2 py-2 text-xs font-medium text-gray-500 bg-gray-50 border-r border-gray-100 whitespace-nowrap">
+                    {{ hour }}:00
+                </td>
+
+                {% for dt, book in schedules.items %}
+                <td class="px-1 py-2 border-r border-gray-50">
+                    {% if dt <= today %}
+                        {# ---- Past slot ---- #}
+                        <span class="inline-block w-8 h-8 leading-8 rounded text-gray-300 text-base select-none">&ndash;</span>
+
+                    {% elif book == 'Booked' %}
+                        {# ---- Booked slot ---- #}
+                        <span class="inline-block w-8 h-8 leading-8 rounded bg-red-100 text-red-600 font-bold text-base select-none" title="{% trans '予約済み' %}">&times;</span>
+
+                    {% elif book == 'Temp' %}
+                        {# ---- Temporary reservation ---- #}
+                        <span class="inline-block w-8 h-8 leading-8 rounded bg-yellow-100 text-yellow-700 font-bold text-xs select-none" title="{% trans '仮予約中' %}">仮</span>
+
+                    {% else %}
+                        {# ---- Available slot ---- #}
+                        <a href="{% url 'booking:prebooking' staff.pk dt.year dt.month dt.day hour %}"
+                           class="inline-block w-8 h-8 leading-8 rounded bg-green-100 text-green-700 font-bold text-base hover:bg-green-200 hover:shadow transition"
+                           title="{{ dt|date:'Y/m/d' }} {{ hour }}:00 {% trans '予約する' %}">
+                            &cir;
+                        </a>
+                    {% endif %}
+                </td>
+                {% endfor %}
+
+                <!-- Time label (right) -->
+                <td class="px-2 py-2 text-xs font-medium text-gray-500 bg-gray-50 border-l border-gray-100 whitespace-nowrap">
+                    {{ hour }}:00
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<!-- ===== Bottom Navigation ===== -->
+<div class="flex items-center justify-between mt-6">
+    <a href="{% url 'booking:calendar' staff.pk before.year before.month before.day %}"
+       class="inline-flex items-center gap-1 text-sm font-medium text-salon-brown hover:text-salon-dark bg-salon-beige hover:bg-gray-200 px-4 py-2 rounded-lg transition">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+        </svg>
+        {% trans "前週" %}
+    </a>
+    <a href="{% url 'booking:staff_list' staff.store.pk %}"
+       class="text-sm text-gray-500 hover:text-salon-brown transition underline underline-offset-2">
+        {% trans "占い師一覧に戻る" %}
+    </a>
+    <a href="{% url 'booking:calendar' staff.pk next.year next.month next.day %}"
+       class="inline-flex items-center gap-1 text-sm font-medium text-salon-brown hover:text-salon-dark bg-salon-beige hover:bg-gray-200 px-4 py-2 rounded-lg transition">
+        {% trans "次週" %}
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+        </svg>
+    </a>
+</div>
+
 {% endblock %}

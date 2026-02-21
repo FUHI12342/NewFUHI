@@ -1,16 +1,116 @@
 {% extends 'booking/base.html' %}
+{% load i18n %}
+
+{% block extra_css %}
+<style>
+    /* Tailwind-style form widget styling */
+    .schedule-form input[type="text"],
+    .schedule-form input[type="number"],
+    .schedule-form input[type="email"],
+    .schedule-form input[type="url"],
+    .schedule-form input[type="date"],
+    .schedule-form input[type="time"],
+    .schedule-form input[type="datetime-local"],
+    .schedule-form textarea,
+    .schedule-form select {
+        width: 100%;
+        padding: 0.5rem 0.75rem;
+        border: 1px solid #d1d5db;
+        border-radius: 0.5rem;
+        font-size: 0.875rem;
+        line-height: 1.5;
+        color: #333333;
+        background-color: #ffffff;
+        transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+    }
+    .schedule-form input:focus,
+    .schedule-form textarea:focus,
+    .schedule-form select:focus {
+        outline: none;
+        border-color: #8c876c;
+        box-shadow: 0 0 0 3px rgba(140, 135, 108, 0.15);
+    }
+    .schedule-form label {
+        display: block;
+        font-size: 0.875rem;
+        font-weight: 600;
+        color: #333333;
+        margin-bottom: 0.25rem;
+    }
+    .schedule-form p {
+        margin-bottom: 1rem;
+    }
+    .schedule-form .helptext {
+        display: block;
+        font-size: 0.75rem;
+        color: #6b7280;
+        margin-top: 0.25rem;
+    }
+    .schedule-form .errorlist {
+        list-style: none;
+        padding: 0;
+        margin: 0.25rem 0 0 0;
+    }
+    .schedule-form .errorlist li {
+        font-size: 0.75rem;
+        color: #ef4444;
+    }
+    .schedule-form input[type="checkbox"] {
+        width: auto;
+        margin-right: 0.5rem;
+    }
+</style>
+{% endblock %}
 
 {% block content %}
 
-    <h1>{{ schedule.staff.store.name }}店 {{ schedule.staff.name }}</h1>
-    <form action="" method="POST">
-        {{ form.as_p }}
-        {% csrf_token %}
-        <button type="submit">送信</button>
-    </form>
-    <hr>
-    <form action="{% url 'booking:my_page_schedule_delete' schedule.pk %}" method="POST">
-        {% csrf_token %}
-        <button type="submit">削除</button>
-    </form>
+<!-- Page Heading -->
+<h1 class="text-2xl md:text-3xl font-bold text-salon-dark mb-6 border-b-2 border-salon-brown pb-3">
+    {{ schedule.staff.store.name }}店 {{ schedule.staff.name }}
+</h1>
+
+<!-- Edit Form Card -->
+<div class="bg-white rounded-xl shadow-md overflow-hidden mb-8">
+    <div class="bg-salon-beige px-5 py-3 border-b border-salon-brown/20">
+        <h2 class="text-lg font-bold text-salon-brown">予約内容</h2>
+    </div>
+    <div class="p-5 md:p-6">
+        <form action="" method="POST" class="schedule-form">
+            {% csrf_token %}
+            {{ form.as_p }}
+            <div class="mt-6">
+                <button type="submit"
+                        class="inline-flex items-center justify-center gap-2 bg-salon-brown hover:bg-salon-dark text-white font-medium text-sm px-8 py-2.5 rounded-lg transition-colors duration-200 shadow-sm">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                              d="M5 13l4 4L19 7"/>
+                    </svg>
+                    保存
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Danger Zone -->
+<div class="bg-white rounded-xl shadow-md overflow-hidden border border-red-200">
+    <div class="px-5 py-3 border-b border-red-200 bg-red-50">
+        <h2 class="text-lg font-bold text-red-700">Danger Zone</h2>
+    </div>
+    <div class="p-5 md:p-6">
+        <p class="text-sm text-gray-600 mb-4">この予約を削除します。この操作は取り消せません。</p>
+        <form action="{% url 'booking:my_page_schedule_delete' schedule.pk %}" method="POST">
+            {% csrf_token %}
+            <button type="submit"
+                    class="inline-flex items-center justify-center gap-2 bg-red-600 hover:bg-red-700 text-white font-medium text-sm px-6 py-2.5 rounded-lg transition-colors duration-200 shadow-sm">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                          d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                </svg>
+                削除
+            </button>
+        </form>
+    </div>
+</div>
+
 {% endblock %}

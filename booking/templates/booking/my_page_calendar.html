@@ -1,47 +1,90 @@
 {% extends 'booking/base.html' %}
+{% load i18n %}
 
 {% block content %}
 
-    <h1>{{ staff.store.name }}店 {{ staff.name }}</h1>
-    <p>{{ start_day }} - {{ end_day }}</p>
-    <table class="table table-bordered text-center" style="table-layout: fixed;width: 100%" border="1">
-        <tr>
-            <td><a href="{% url 'booking:my_page_calendar' staff.pk before.year before.month before.day %}">前週</a></td>
-            {% for day in days %}
-                {% if day in public_holidays %}
-                    <th style="background-color: yellow">{{ day | date:"d(D)" }}
-                {% elif day.weekday == 5 %}
-                    <th style="color: blue;">{{ day | date:"d(D)" }}
-                {% elif day.weekday == 6 %}
-                    <th style="color: red;">{{ day | date:"d(D)" }}
-                {% else %}
-                    <th>{{ day | date:"d(D)" }}
-                {% endif %}
-                <br><a href="{% url 'booking:my_page_day_detail' staff.pk day.year day.month day.day %}">詳細</a>
-            {% endfor %}
-            <td><a href="{% url 'booking:my_page_calendar' staff.pk next.year next.month next.day %}">次週</a></td>
-        </tr>
+<!-- Page Heading -->
+<h1 class="text-2xl md:text-3xl font-bold text-salon-dark mb-2 border-b-2 border-salon-brown pb-3">
+    {{ staff.store.name }}店 {{ staff.name }}
+</h1>
 
-        {% for hour, schedules in calendar.items %}
-            <tr style="font-size:12px">
-                <td>
-                    {{ hour }}:00
-                </td>
-                {% for dt, book in schedules.items %}
-                    <td>
+<!-- Date Range -->
+<p class="text-sm text-gray-600 mb-6">
+    <span class="font-semibold text-salon-brown">{{ start_day }} - {{ end_day }}</span>
+</p>
+
+<!-- Week Navigation -->
+<div class="flex items-center justify-between mb-4">
+    <a href="{% url 'booking:my_page_calendar' staff.pk before.year before.month before.day %}"
+       class="inline-flex items-center gap-1 text-sm font-medium text-salon-brown hover:text-salon-dark transition-colors duration-200">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+        </svg>
+        前週
+    </a>
+    <a href="{% url 'booking:my_page_calendar' staff.pk next.year next.month next.day %}"
+       class="inline-flex items-center gap-1 text-sm font-medium text-salon-brown hover:text-salon-dark transition-colors duration-200">
+        次週
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+        </svg>
+    </a>
+</div>
+
+<!-- Calendar Table -->
+<div class="bg-white rounded-xl shadow-md overflow-hidden">
+    <div class="overflow-x-auto">
+        <table class="w-full text-center text-sm border-collapse min-w-[640px]">
+            <thead>
+                <tr class="bg-salon-beige">
+                    <!-- Previous week (empty header cell) -->
+                    <th class="px-2 py-3 text-xs font-semibold text-salon-brown w-16">時間</th>
+                    {% for day in days %}
+                    <th class="px-1 py-2 text-xs font-semibold
+                        {% if day in public_holidays %} bg-yellow-100 text-salon-dark
+                        {% elif day.weekday == 5 %} text-blue-600
+                        {% elif day.weekday == 6 %} text-red-600
+                        {% else %} text-salon-dark
+                        {% endif %}">
+                        <div>{{ day|date:"d(D)" }}</div>
+                        <a href="{% url 'booking:my_page_day_detail' staff.pk day.year day.month day.day %}"
+                           class="inline-block mt-1 text-[10px] font-medium text-salon-brown hover:text-salon-dark underline decoration-salon-brown/40 hover:decoration-salon-dark transition">
+                            詳細
+                        </a>
+                    </th>
+                    {% endfor %}
+                    <th class="px-2 py-3 text-xs font-semibold text-salon-brown w-16">時間</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-100">
+                {% for hour, schedules in calendar.items %}
+                <tr class="hover:bg-gray-50/50 transition-colors duration-100">
+                    <!-- Left time column -->
+                    <td class="px-2 py-2 text-xs font-medium text-gray-500 whitespace-nowrap">
+                        {{ hour }}:00
+                    </td>
+                    {% for dt, book in schedules.items %}
+                    <td class="px-1 py-2">
                         {% if book %}
-                            ○
+                        <span class="inline-flex items-center justify-center w-7 h-7 rounded-full bg-green-100 text-green-700 text-xs font-bold">
+                            &#9675;
+                        </span>
                         {% else %}
-                            ×
+                        <span class="inline-flex items-center justify-center w-7 h-7 rounded-full bg-red-100 text-red-500 text-xs font-bold">
+                            &times;
+                        </span>
                         {% endif %}
                     </td>
-
+                    {% endfor %}
+                    <!-- Right time column -->
+                    <td class="px-2 py-2 text-xs font-medium text-gray-500 whitespace-nowrap">
+                        {{ hour }}:00
+                    </td>
+                </tr>
                 {% endfor %}
-                <td>
-                    {{ hour }}:00
-                </td>
-            </tr>
-        {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
 
-    </table>
 {% endblock %}

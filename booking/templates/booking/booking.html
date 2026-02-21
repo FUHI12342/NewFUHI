@@ -1,14 +1,59 @@
 {% extends 'booking/base.html' %}
+{% load i18n %}
 
 {% block content %}
-    <h1>{{ staff.store.name }}店 {{ staff.name }}</h1>
-    <p>{{ view.kwargs.year }}年{{ view.kwargs.month }}月{{ view.kwargs.day }}日 {{ view.kwargs.hour }}時に予約</p>
+<div class="max-w-lg mx-auto">
 
-    <form action="" method="POST">
-        {% csrf_token %}
-        {{ form.your_field.label_tag }} {{ form.your_field }}
-        <!-- 他のフィールドをここに追加します -->
-        <button type="submit">決済完了後、予約確定する</button>
-    </form>
+    <!-- Booking Confirmation Card -->
+    <div class="bg-white rounded-2xl shadow-lg p-6 sm:p-8">
 
+        <!-- Heading -->
+        <h1 class="text-xl sm:text-2xl font-bold text-salon-dark text-center mb-6">
+            {% trans "予約内容の確認" %}
+        </h1>
+
+        <!-- Booking Details -->
+        <div class="bg-salon-beige rounded-xl p-5 mb-6 space-y-4">
+
+            <div class="flex justify-between items-center border-b border-salon-brown/20 pb-3">
+                <span class="text-sm text-gray-500 font-medium">{% trans "店舗" %}</span>
+                <span class="text-sm font-bold text-salon-dark">{{ staff.store.name }}</span>
+            </div>
+
+            <div class="flex justify-between items-center border-b border-salon-brown/20 pb-3">
+                <span class="text-sm text-gray-500 font-medium">{% trans "占い師" %}</span>
+                <span class="text-sm font-bold text-salon-dark">{{ staff.name }} {% trans "先生" %}</span>
+            </div>
+
+            <div class="flex justify-between items-center border-b border-salon-brown/20 pb-3">
+                <span class="text-sm text-gray-500 font-medium">{% trans "日時" %}</span>
+                <span class="text-sm font-bold text-salon-dark">
+                    {{ view.kwargs.year }}{% trans "年" %}{{ view.kwargs.month }}{% trans "月" %}{{ view.kwargs.day }}{% trans "日" %} {{ view.kwargs.hour }}:00
+                </span>
+            </div>
+
+            <div class="flex justify-between items-center">
+                <span class="text-sm text-gray-500 font-medium">{% trans "料金" %}</span>
+                <span class="text-lg font-bold text-salon-brown">{{ staff.price }} {% trans "円" %}</span>
+            </div>
+
+        </div>
+
+        <!-- Explanation Text -->
+        <p class="text-sm text-gray-600 leading-relaxed text-center mb-6">
+            {% trans "予約ボタンを押すとLINE認証画面に移動します。認証後、決済リンクをLINEでお送りします。" %}
+        </p>
+
+        <!-- Form -->
+        <form action="" method="POST">
+            {% csrf_token %}
+            <button type="submit"
+                    class="w-full bg-salon-brown hover:bg-salon-brown/90 text-white font-bold py-3 px-6 rounded-lg transition duration-200 text-base">
+                {% trans "LINEで予約手続きに進む" %}
+            </button>
+        </form>
+
+    </div>
+
+</div>
 {% endblock %}

@@ -1,22 +1,68 @@
 {% extends 'booking/base.html' %}
+{% load i18n %}
 
 {% block content %}
-    <h1>{{ user.username }}のマイページ</h1>
-    <h2>在籍店舗</h2>
-    <ul>
-        {% for staff in staff_list %}
-            <li><a href="{% url 'booking:my_page_calendar' staff.pk %}">{{ staff }}</a></li>
-        {% empty %}
-            <li>まだ在籍店舗がありません。</li>
-        {% endfor %}
-    </ul>
 
-    <h2>直近の予約</h2>
-    <ul>
-        {% for schedule in schedule_list %}
-            <li><a href="{% url 'booking:my_page_schedule' schedule.pk %}">{{ schedule }}</a></li>
-        {% empty %}
-            <li>予約はありません。</li>
-        {% endfor %}
-    </ul>
+<!-- Page Heading -->
+<h1 class="text-2xl md:text-3xl font-bold text-salon-dark mb-6 border-b-2 border-salon-brown pb-3">
+    {{ user.username }}のマイページ
+</h1>
+
+<div class="space-y-8">
+
+    <!-- ===== 在籍店舗 Card ===== -->
+    <div class="bg-white rounded-xl shadow-md overflow-hidden">
+        <div class="bg-salon-beige px-5 py-3 border-b border-salon-brown/20">
+            <h2 class="text-lg font-bold text-salon-brown">在籍店舗</h2>
+        </div>
+        <div class="divide-y divide-gray-100">
+            {% for staff in staff_list %}
+            <a href="{% url 'booking:my_page_calendar' staff.pk %}"
+               class="block px-5 py-4 hover:bg-gray-50 transition-colors duration-150">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-base font-semibold text-salon-dark">{{ staff.store.name }}店</p>
+                        <p class="text-sm text-gray-500 mt-0.5">{{ staff.name }}</p>
+                    </div>
+                    <svg class="w-5 h-5 text-gray-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                    </svg>
+                </div>
+            </a>
+            {% empty %}
+            <div class="px-5 py-10 text-center">
+                <p class="text-gray-400 text-sm">まだ在籍店舗がありません。</p>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- ===== 直近の予約 Card ===== -->
+    <div class="bg-white rounded-xl shadow-md overflow-hidden">
+        <div class="bg-salon-beige px-5 py-3 border-b border-salon-brown/20">
+            <h2 class="text-lg font-bold text-salon-brown">直近の予約</h2>
+        </div>
+        <div class="divide-y divide-gray-100">
+            {% for schedule in schedule_list %}
+            <a href="{% url 'booking:my_page_schedule' schedule.pk %}"
+               class="block px-5 py-4 hover:bg-gray-50 transition-colors duration-150">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-base font-semibold text-salon-dark">{{ schedule }}</p>
+                    </div>
+                    <svg class="w-5 h-5 text-gray-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                    </svg>
+                </div>
+            </a>
+            {% empty %}
+            <div class="px-5 py-10 text-center">
+                <p class="text-gray-400 text-sm">予約はありません。</p>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+</div>
+
 {% endblock %}

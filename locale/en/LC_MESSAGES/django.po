@@ -1,0 +1,488 @@
+# English translations for Fortune Telling Salon Chance.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-02-21 18:29+0900\n"
+"PO-Revision-Date: 2026-02-21 18:30+0900\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: English <LL@li.org>\n"
+"Language: en\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+msgid "占いサロンチャンス　オンライン予約ページ"
+msgstr "Fortune Telling Salon Chance - Online Booking"
+
+msgid ""
+"占いサロンチャンスのオンライン予約サイト。新宿・池袋の占い師に簡単予約。"
+msgstr ""
+"Fortune Telling Salon Chance online booking. Easy booking for fortune "
+"tellers in Shinjuku & Ikebukuro."
+
+msgid "ログアウト"
+msgstr "Logout"
+
+msgid "ログイン"
+msgstr "Login"
+
+msgid "予約内容の確認"
+msgstr "Confirm Booking Details"
+
+msgid "店舗"
+msgstr "Store"
+
+msgid "占い師"
+msgstr "Fortune Teller"
+
+msgid "先生"
+msgstr " "
+
+msgid "日時"
+msgstr "Date & Time"
+
+msgid "年"
+msgstr "Year"
+
+msgid "月"
+msgstr "Month"
+
+msgid "日"
+msgstr "Day"
+
+msgid "料金"
+msgstr "Price"
+
+msgid "円"
+msgstr "Yen"
+
+msgid ""
+"予約ボタンを押すとLINE認証画面に移動します。認証後、決済リンクをLINEでお送り"
+"します。"
+msgstr ""
+"Pressing the booking button will redirect you to LINE authentication. After "
+"authentication, a payment link will be sent via LINE."
+
+msgid "LINEで予約手続きに進む"
+msgstr "Proceed to Booking via LINE"
+
+msgid "予約カレンダー"
+msgstr "Booking Calendar"
+
+msgid "前の週"
+msgstr "Previous Week"
+
+msgid "前週"
+msgstr "Prev Week"
+
+msgid "次の週"
+msgstr "Next Week"
+
+msgid "次週"
+msgstr "Next Week"
+
+msgid "予約したい日時をカレンダーから選択してください"
+msgstr "Please select your preferred date and time from the calendar"
+
+msgid "空き"
+msgstr "Available"
+
+msgid "予約済み"
+msgstr "Booked"
+
+msgid "仮予約"
+msgstr "Tentative"
+
+msgid "受付終了"
+msgstr "Closed"
+
+msgid "祝"
+msgstr "Holiday"
+
+msgid "仮予約中"
+msgstr "Tentatively Reserved"
+
+msgid "予約する"
+msgstr "Book Now"
+
+msgid "占い師一覧に戻る"
+msgstr "Back to Fortune Teller List"
+
+msgid "ヘルプ・よくある質問"
+msgstr "Help & FAQ"
+
+msgid "ご予約について"
+msgstr "About Reservations"
+
+msgid "予約はどのように行いますか？"
+msgstr "How do I make a reservation?"
+
+msgid ""
+"トップページの「ご予約」から店舗を選び、ご希望の占い師のカレンダーから空き時"
+"間を選択してください。LINE認証後に予約が確定します。"
+msgstr ""
+"Select a store from \"Reservations\" on the top page, then choose an "
+"available time slot from your preferred fortune teller's calendar. Your "
+"booking will be confirmed after LINE authentication."
+
+msgid "予約のキャンセルはできますか？"
+msgstr "Can I cancel a reservation?"
+
+msgid ""
+"はい。予約確定後にLINEで届くメッセージ内のリンクからキャンセルが可能です。"
+"キャンセル料はかかりません。"
+msgstr ""
+"Yes. You can cancel via the link in the LINE message you receive after your "
+"booking is confirmed. There is no cancellation fee."
+
+msgid "予約の変更はできますか？"
+msgstr "Can I change my reservation?"
+
+msgid "現在の予約をキャンセルして、改めてご予約ください。"
+msgstr "Please cancel your current reservation and make a new one."
+
+msgid "当日予約はできますか？"
+msgstr "Can I make a same-day reservation?"
+
+msgid "カレンダーに空きがあれば当日でもご予約いただけます。"
+msgstr ""
+"Yes, same-day reservations are available as long as there are open slots on "
+"the calendar."
+
+msgid "お支払いについて"
+msgstr "About Payment"
+
+msgid "支払い方法は？"
+msgstr "What payment methods are available?"
+
+msgid ""
+"オンライン決済（クレジットカード）をご利用いただけます。予約時にLINE経由で決"
+"済リンクをお送りします。"
+msgstr ""
+"Online payment (credit card) is available. A payment link will be sent to "
+"you via LINE when you make a reservation."
+
+msgid "鑑定料金はいくらですか？"
+msgstr "How much does a reading cost?"
+
+msgid ""
+"占い師により異なります。各占い師のプロフィールページに料金（1時間あたり）が記"
+"載されています。"
+msgstr ""
+"Prices vary by fortune teller. The rate (per hour) is listed on each fortune "
+"teller's profile page."
+
+msgid "LINE連携について"
+msgstr "About LINE Integration"
+
+msgid "LINEアカウントは必要ですか？"
+msgstr "Do I need a LINE account?"
+
+msgid ""
+"はい。ご予約にはLINEログインが必要です。予約通知やタイマー機能もLINEを通じて"
+"お届けします。"
+msgstr ""
+"Yes. LINE login is required to make a reservation. Booking notifications and "
+"timer features are also delivered through LINE."
+
+msgid "LINEの通知はどんな内容ですか？"
+msgstr "What kind of notifications will I receive on LINE?"
+
+msgid "予約確定、キャンセル、鑑定タイマーのリンクなどをお送りします。"
+msgstr ""
+"You will receive booking confirmations, cancellations, and reading timer "
+"links."
+
+msgid "店舗について"
+msgstr "About Our Stores"
+
+msgid "どの店舗がありますか？"
+msgstr "Which stores are available?"
+
+msgid ""
+"現在、新宿・池袋に店舗を展開しています。「店舗情報」メニューから詳細をご確認"
+"ください。"
+msgstr ""
+"We currently have stores in Shinjuku and Ikebukuro. Please check the \"Store "
+"Information\" menu for details."
+
+msgid "営業時間は？"
+msgstr "What are the business hours?"
+
+msgid ""
+"各店舗の営業時間は店舗情報ページに記載されています。基本的に9:00〜17:00が鑑定"
+"可能時間です。"
+msgstr ""
+"Business hours for each store are listed on the store information page. "
+"Readings are generally available from 9:00 to 17:00."
+
+msgid "スタッフの方へ"
+msgstr "For Staff"
+
+msgid "マイページにアクセスするには？"
+msgstr "How do I access My Page?"
+
+msgid ""
+"管理者から発行されたアカウントでログインし、ナビゲーションの「スタッフペー"
+"ジ」からアクセスしてください。"
+msgstr ""
+"Log in with the account issued by your administrator, then access it from "
+"\"Staff Page\" in the navigation menu."
+
+msgid "シフト（休暇）の設定方法は？"
+msgstr "How do I set my schedule (days off)?"
+
+msgid ""
+"マイページ → カレンダー → 日付の「詳細」から、時間単位で休暇を設定できます。"
+"「全日休暇にする」で一日全体をブロックすることも可能です。"
+msgstr ""
+"Go to My Page, then Calendar, then click \"Details\" on the date to set time "
+"off by the hour. You can also block an entire day by selecting \"Set as full "
+"day off.\""
+
+msgid "予約の確認方法は？"
+msgstr "How do I check reservations?"
+
+msgid ""
+"マイページのカレンダーで「○」が空き、「×」が予約済みです。詳細をクリックする"
+"と予約者情報を確認できます。"
+msgstr ""
+"On the My Page calendar, \"○\" indicates available and \"×\" indicates "
+"booked. Click on the details to view the customer's booking information."
+
+msgid "お問い合わせ"
+msgstr "Contact Us"
+
+msgid ""
+"上記で解決しない場合は、各店舗までお電話いただくか、LINEの公式アカウントより"
+"お問い合わせください。"
+msgstr ""
+"If the above does not resolve your issue, please call the store directly or "
+"contact us through our official LINE account."
+
+msgid "IoT Sensor Dashboard"
+msgstr "IoT Sensor Dashboard"
+
+msgid "Select Device"
+msgstr "Select Device"
+
+msgid "Loading devices..."
+msgstr "Loading devices..."
+
+msgid "MQ-9 Gas"
+msgstr "MQ-9 Gas"
+
+msgid "Light"
+msgstr "Light"
+
+msgid "Sound"
+msgstr "Sound"
+
+msgid "PIR Motion"
+msgstr "PIR Motion"
+
+msgid "LINEログイン"
+msgstr "LINE Login"
+
+msgid "予約を確定するにはLINEアカウントでの認証が必要です。"
+msgstr "LINE account authentication is required to confirm your booking."
+
+msgid "LINEでログイン"
+msgstr "Log in with LINE"
+
+msgid "ログアウトしました"
+msgstr "Logged Out"
+
+msgid "ログインへ戻る"
+msgstr "Return to Login"
+
+msgid "ログイン成功"
+msgstr "Login Successful"
+
+#, python-format
+msgid "%(name)sさん、ようこそ！"
+msgstr "Welcome, %(name)s!"
+
+msgid "決済リンクをLINEでお送りしました。LINEアプリをご確認ください。"
+msgstr ""
+"A payment link has been sent via LINE. Please check your LINE app."
+
+msgid "IoTモニタリング"
+msgstr "IoT Monitoring"
+
+msgid "物件一覧に戻る"
+msgstr "Back to Property List"
+
+msgid "オーナー"
+msgstr "Owner"
+
+msgid "在室中"
+msgstr "Occupied"
+
+msgid "不在"
+msgstr "Vacant"
+
+msgid "デバイス状況"
+msgstr "Device Status"
+
+msgid "オンライン"
+msgstr "Online"
+
+msgid "オフライン"
+msgstr "Offline"
+
+msgid "ガス(MQ-9)"
+msgstr "Gas (MQ-9)"
+
+msgid "照度"
+msgstr "Illuminance"
+
+msgid "音量"
+msgstr "Sound Level"
+
+msgid "人感(PIR)"
+msgstr "Motion (PIR)"
+
+msgid "検知"
+msgstr "Detected"
+
+msgid "なし"
+msgstr "None"
+
+msgid "登録デバイスはありません。"
+msgstr "No registered devices."
+
+msgid "アクティブアラート"
+msgstr "Active Alerts"
+
+msgid "重要度"
+msgstr "Severity"
+
+msgid "種別"
+msgstr "Type"
+
+msgid "メッセージ"
+msgstr "Message"
+
+msgid "発生日時"
+msgstr "Occurred"
+
+msgid "操作"
+msgstr "Actions"
+
+msgid "危険"
+msgstr "Critical"
+
+msgid "警告"
+msgstr "Warning"
+
+msgid "情報"
+msgstr "Info"
+
+msgid "解決"
+msgstr "Resolve"
+
+msgid "アクティブなアラートはありません。"
+msgstr "No active alerts."
+
+msgid "解決済みアラート"
+msgstr "Resolved Alerts"
+
+msgid "解決済みアラートはありません。"
+msgstr "No resolved alerts."
+
+msgid "自動更新"
+msgstr "Auto Refresh"
+
+msgid "秒"
+msgstr "sec"
+
+msgid "最終更新"
+msgstr "Last Updated"
+
+msgid "物件IoTモニタリング"
+msgstr "Property IoT Monitoring"
+
+msgid "登録物件のデバイス状況とアラートを一覧で確認できます。"
+msgstr ""
+"View device status and alerts for all registered properties at a glance."
+
+msgid "デバイス"
+msgstr "Devices"
+
+msgid "その他"
+msgstr "Other"
+
+msgid "アラートなし"
+msgstr "No Alerts"
+
+msgid "詳細を見る"
+msgstr "View Details"
+
+msgid "登録されている物件はありません。"
+msgstr "No registered properties."
+
+msgid "店 在籍占い師"
+msgstr "Store Fortune Tellers"
+
+msgid "ホーム"
+msgstr "Home"
+
+msgid "在籍占い師"
+msgstr "Fortune Tellers"
+
+msgid "鑑定料"
+msgstr "Reading Fee"
+
+msgid "円（１時間）"
+msgstr "Yen (1 hour)"
+
+msgid "予約カレンダーを見る"
+msgstr "View Booking Calendar"
+
+msgid "現在この店舗に占い師は在籍していません。"
+msgstr "There are currently no fortune tellers at this store."
+
+msgid "占いサロン店舗一覧"
+msgstr "Fortune Telling Salon Store List"
+
+msgid "店舗所在地"
+msgstr "Store Location"
+
+msgid "営業時間"
+msgstr "Business Hours"
+
+msgid "交通／最寄駅"
+msgstr "Access / Nearest Station"
+
+msgid "定休日"
+msgstr "Regular Holidays"
+
+msgid "占い師一覧を見る"
+msgstr "View Fortune Teller List"
+
+msgid "まだ予約可能な店舗がありません。"
+msgstr "No stores are currently available for booking."
+
+msgid "鑑定タイマー"
+msgstr "Reading Timer"
+
+msgid "Django site admin"
+msgstr "Django site admin"
+
+msgid "Home"
+msgstr "Home"
+
+msgid "デバッグパネル"
+msgstr "Debug Panel"
+
+msgid "飲食店ダッシュボード"
+msgstr "Restaurant Dashboard"
+
+msgid "MQ-9 ガスセンサー"
+msgstr "MQ-9 Gas Sensor"

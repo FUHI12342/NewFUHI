@@ -1,20 +1,44 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>
-        LINEログイン成功
-    </title>
-</head>
-<body>
+{% extends 'booking/base.html' %}
+{% load i18n %}
 
-    <h2> 
-        {{ profile.name }}さん、ログイン成功しました
-    </h2>
-    
-    <p>ユーザー名: {{ profile.name }}</p>
-    <p>プロフィール画像URL: <img src="{{ profile.picture }}" alt="Profile Picture"></p>
-    
+{% block title %}{% trans "ログイン成功" %} | {{ block.super }}{% endblock %}
 
-</body>
-</html>
+{% block content %}
+<div class="max-w-md mx-auto mt-10 mb-10">
+    <div class="bg-white rounded-2xl shadow-lg border border-gray-100 p-8 text-center">
+
+        <!-- Success Icon -->
+        <div class="mb-6">
+            <div class="w-16 h-16 mx-auto bg-green-100 rounded-full flex items-center justify-center">
+                <svg class="w-9 h-9 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
+                </svg>
+            </div>
+        </div>
+
+        <!-- Heading -->
+        <h1 class="text-2xl font-bold text-salon-dark mb-3">{% trans "ログイン成功" %}</h1>
+
+        <!-- Greeting -->
+        <p class="text-lg text-salon-dark mb-6">
+            {% blocktrans with name=profile.name %}{{ name }}さん、ようこそ！{% endblocktrans %}
+        </p>
+
+        <!-- Profile Picture -->
+        {% if profile.picture %}
+        <div class="mb-6">
+            <img src="{{ profile.picture }}" alt="{{ profile.name }}"
+                 class="w-20 h-20 rounded-full object-cover mx-auto border-2 border-salon-beige shadow">
+        </div>
+        {% endif %}
+
+        <!-- Info Message -->
+        <div class="bg-salon-beige rounded-lg p-4 mb-2">
+            <p class="text-sm text-salon-dark leading-relaxed">
+                {% trans "決済リンクをLINEでお送りしました。LINEアプリをご確認ください。" %}
+            </p>
+        </div>
+
+    </div>
+</div>
+{% endblock %}

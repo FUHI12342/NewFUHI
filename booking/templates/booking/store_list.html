@@ -1,50 +1,97 @@
 {% extends 'booking/base.html' %}
+{% load i18n %}
 {% load static %}
 
 {% block content %}
-<head>
-    <link rel="stylesheet" type="text/css" href="{% static 'testApp/box17.css' %}">
-    <link rel="stylesheet" type="text/css" href="{% static 'css/style.css' %}">
-</head>
 
-<section>
-<h2>占いサロン店舗一覧</h2>
+<!-- Page Heading -->
+<h2 class="text-2xl md:text-3xl font-bold text-salon-dark mb-6 border-b-2 border-salon-brown pb-3">
+    {% trans "占いサロン店舗一覧" %}
+</h2>
 
-    {% for store in store_list %}
+{% for store in store_list %}
 
-    <div class="list">
-        <p class="img"><a href="{% url 'booking:staff_list' store.pk %}"><img src="{{ store.get_thumbnail_url }}" alt="{{ store.name }}"></a></p>
-        <h4><a href="{% url 'booking:staff_list' store.pk %}">{{ store.name }}</a></h4>
-        
-        <p class="mb10">{{ store.description }}</p>
+<!-- Store Card -->
+<div class="bg-white rounded-xl shadow-md hover:shadow-lg transition-shadow duration-300 overflow-hidden mb-6">
+    <div class="flex flex-col md:flex-row">
 
-        <table class="c2">
-            <tr>
-            <th>店舗所在地</th>
-            <td>{{ store.address }}</td>
-            </tr>
-            <tr>
-            <th>営業時間</th>
-            <td>{{ store.business_hours }}</td>
-            </tr>
-            <tr>
-            <th>交通／最寄駅</th>
-            <td>{{ store.nearest_station }}</td>
-            </tr>
-            <tr>
-            <th>定休日</th>
-            <td>{{ store.regular_holiday }}</td>
-            </tr>
-            </table>
+        <!-- Thumbnail -->
+        <div class="md:w-64 md:flex-shrink-0">
+            <a href="{% url 'booking:staff_list' store.pk %}" class="block">
+                <img src="{{ store.get_thumbnail_url }}"
+                     alt="{{ store.name }}"
+                     class="w-full h-48 md:h-full object-cover">
+            </a>
+        </div>
 
-        <p class="name"><a href="{% url 'booking:staff_list' store.pk %}">{{ store.name }}</a></p>
+        <!-- Store Info -->
+        <div class="flex-1 p-5 md:p-6">
 
+            <!-- Store Name -->
+            <h3 class="text-xl md:text-2xl font-bold mb-2">
+                <a href="{% url 'booking:staff_list' store.pk %}"
+                   class="text-salon-brown hover:text-salon-dark transition-colors duration-200">
+                    {{ store.name }}
+                </a>
+            </h3>
+
+            <!-- Description -->
+            <p class="text-sm md:text-base text-gray-600 leading-relaxed mb-4">
+                {{ store.description }}
+            </p>
+
+            <!-- Store Details (dl/dt/dd grid) -->
+            <dl class="grid grid-cols-1 sm:grid-cols-[auto_1fr] gap-x-4 gap-y-2 text-sm mb-5">
+
+                <dt class="font-semibold text-salon-dark whitespace-nowrap">
+                    {% trans "店舗所在地" %}
+                </dt>
+                <dd class="text-gray-600">
+                    {{ store.address }}
+                </dd>
+
+                <dt class="font-semibold text-salon-dark whitespace-nowrap">
+                    {% trans "営業時間" %}
+                </dt>
+                <dd class="text-gray-600">
+                    {{ store.business_hours }}
+                </dd>
+
+                <dt class="font-semibold text-salon-dark whitespace-nowrap">
+                    {% trans "交通／最寄駅" %}
+                </dt>
+                <dd class="text-gray-600">
+                    {{ store.nearest_station }}
+                </dd>
+
+                <dt class="font-semibold text-salon-dark whitespace-nowrap">
+                    {% trans "定休日" %}
+                </dt>
+                <dd class="text-gray-600">
+                    {{ store.regular_holiday }}
+                </dd>
+
+            </dl>
+
+            <!-- CTA Button -->
+            <a href="{% url 'booking:staff_list' store.pk %}"
+               class="inline-block bg-salon-brown hover:bg-salon-dark text-white text-sm font-medium px-6 py-2.5 rounded-lg transition-colors duration-200">
+                {% trans "占い師一覧を見る" %}
+            </a>
+
+        </div>
     </div>
+</div>
 
-    {% empty %}
-        <p>まだ予約可能な店舗がありません。</p>
-    {% endfor %}
-    
-</section>
+{% empty %}
+
+<!-- Empty State -->
+<div class="bg-salon-beige rounded-xl p-10 text-center">
+    <p class="text-gray-500 text-base">
+        {% trans "まだ予約可能な店舗がありません。" %}
+    </p>
+</div>
+
+{% endfor %}
 
 {% endblock %}

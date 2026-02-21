@@ -1,0 +1,203 @@
+{% extends 'booking/base.html' %}
+{% load i18n %}
+
+{% block title %}{% trans "ヘルプ・よくある質問" %} | {{ block.super }}{% endblock %}
+
+{% block content %}
+<section>
+    <h2 class="text-2xl font-bold text-salon-dark mb-6">{% trans "ヘルプ・よくある質問" %}</h2>
+
+    <div class="space-y-4">
+
+        <!-- ご予約について -->
+        <div class="rounded-lg shadow-sm overflow-hidden border border-gray-200">
+            <div class="bg-salon-beige px-5 py-3">
+                <h3 class="text-lg font-bold text-salon-brown">{% trans "ご予約について" %}</h3>
+            </div>
+            <div class="divide-y divide-gray-100">
+                <details class="group">
+                    <summary class="flex items-center justify-between cursor-pointer px-5 py-4 hover:bg-gray-50 transition">
+                        <span class="font-bold text-salon-dark">Q. {% trans "予約はどのように行いますか？" %}</span>
+                        <span class="ml-4 flex-shrink-0 text-salon-brown transition-transform group-open:rotate-180">&#9660;</span>
+                    </summary>
+                    <div class="px-5 pb-4 pl-10 text-gray-700 leading-relaxed">
+                        A. {% trans "トップページの「ご予約」から店舗を選び、ご希望の占い師のカレンダーから空き時間を選択してください。LINE認証後に予約が確定します。" %}
+                    </div>
+                </details>
+
+                <details class="group">
+                    <summary class="flex items-center justify-between cursor-pointer px-5 py-4 hover:bg-gray-50 transition">
+                        <span class="font-bold text-salon-dark">Q. {% trans "予約のキャンセルはできますか？" %}</span>
+                        <span class="ml-4 flex-shrink-0 text-salon-brown transition-transform group-open:rotate-180">&#9660;</span>
+                    </summary>
+                    <div class="px-5 pb-4 pl-10 text-gray-700 leading-relaxed">
+                        A. {% trans "はい。予約確定後にLINEで届くメッセージ内のリンクからキャンセルが可能です。キャンセル料はかかりません。" %}
+                    </div>
+                </details>
+
+                <details class="group">
+                    <summary class="flex items-center justify-between cursor-pointer px-5 py-4 hover:bg-gray-50 transition">
+                        <span class="font-bold text-salon-dark">Q. {% trans "予約の変更はできますか？" %}</span>
+                        <span class="ml-4 flex-shrink-0 text-salon-brown transition-transform group-open:rotate-180">&#9660;</span>
+                    </summary>
+                    <div class="px-5 pb-4 pl-10 text-gray-700 leading-relaxed">
+                        A. {% trans "現在の予約をキャンセルして、改めてご予約ください。" %}
+                    </div>
+                </details>
+
+                <details class="group">
+                    <summary class="flex items-center justify-between cursor-pointer px-5 py-4 hover:bg-gray-50 transition">
+                        <span class="font-bold text-salon-dark">Q. {% trans "当日予約はできますか？" %}</span>
+                        <span class="ml-4 flex-shrink-0 text-salon-brown transition-transform group-open:rotate-180">&#9660;</span>
+                    </summary>
+                    <div class="px-5 pb-4 pl-10 text-gray-700 leading-relaxed">
+                        A. {% trans "カレンダーに空きがあれば当日でもご予約いただけます。" %}
+                    </div>
+                </details>
+            </div>
+        </div>
+
+        <!-- お支払いについて -->
+        <div class="rounded-lg shadow-sm overflow-hidden border border-gray-200">
+            <div class="bg-salon-beige px-5 py-3">
+                <h3 class="text-lg font-bold text-salon-brown">{% trans "お支払いについて" %}</h3>
+            </div>
+            <div class="divide-y divide-gray-100">
+                <details class="group">
+                    <summary class="flex items-center justify-between cursor-pointer px-5 py-4 hover:bg-gray-50 transition">
+                        <span class="font-bold text-salon-dark">Q. {% trans "支払い方法は？" %}</span>
+                        <span class="ml-4 flex-shrink-0 text-salon-brown transition-transform group-open:rotate-180">&#9660;</span>
+                    </summary>
+                    <div class="px-5 pb-4 pl-10 text-gray-700 leading-relaxed">
+                        A. {% trans "オンライン決済（クレジットカード）をご利用いただけます。予約時にLINE経由で決済リンクをお送りします。" %}
+                    </div>
+                </details>
+
+                <details class="group">
+                    <summary class="flex items-center justify-between cursor-pointer px-5 py-4 hover:bg-gray-50 transition">
+                        <span class="font-bold text-salon-dark">Q. {% trans "鑑定料金はいくらですか？" %}</span>
+                        <span class="ml-4 flex-shrink-0 text-salon-brown transition-transform group-open:rotate-180">&#9660;</span>
+                    </summary>
+                    <div class="px-5 pb-4 pl-10 text-gray-700 leading-relaxed">
+                        A. {% trans "占い師により異なります。各占い師のプロフィールページに料金（1時間あたり）が記載されています。" %}
+                    </div>
+                </details>
+            </div>
+        </div>
+
+        <!-- LINE連携について -->
+        <div class="rounded-lg shadow-sm overflow-hidden border border-gray-200">
+            <div class="bg-salon-beige px-5 py-3">
+                <h3 class="text-lg font-bold text-salon-brown">{% trans "LINE連携について" %}</h3>
+            </div>
+            <div class="divide-y divide-gray-100">
+                <details class="group">
+                    <summary class="flex items-center justify-between cursor-pointer px-5 py-4 hover:bg-gray-50 transition">
+                        <span class="font-bold text-salon-dark">Q. {% trans "LINEアカウントは必要ですか？" %}</span>
+                        <span class="ml-4 flex-shrink-0 text-salon-brown transition-transform group-open:rotate-180">&#9660;</span>
+                    </summary>
+                    <div class="px-5 pb-4 pl-10 text-gray-700 leading-relaxed">
+                        A. {% trans "はい。ご予約にはLINEログインが必要です。予約通知やタイマー機能もLINEを通じてお届けします。" %}
+                    </div>
+                </details>
+
+                <details class="group">
+                    <summary class="flex items-center justify-between cursor-pointer px-5 py-4 hover:bg-gray-50 transition">
+                        <span class="font-bold text-salon-dark">Q. {% trans "LINEの通知はどんな内容ですか？" %}</span>
+                        <span class="ml-4 flex-shrink-0 text-salon-brown transition-transform group-open:rotate-180">&#9660;</span>
+                    </summary>
+                    <div class="px-5 pb-4 pl-10 text-gray-700 leading-relaxed">
+                        A. {% trans "予約確定、キャンセル、鑑定タイマーのリンクなどをお送りします。" %}
+                    </div>
+                </details>
+            </div>
+        </div>
+
+        <!-- 店舗について -->
+        <div class="rounded-lg shadow-sm overflow-hidden border border-gray-200">
+            <div class="bg-salon-beige px-5 py-3">
+                <h3 class="text-lg font-bold text-salon-brown">{% trans "店舗について" %}</h3>
+            </div>
+            <div class="divide-y divide-gray-100">
+                <details class="group">
+                    <summary class="flex items-center justify-between cursor-pointer px-5 py-4 hover:bg-gray-50 transition">
+                        <span class="font-bold text-salon-dark">Q. {% trans "どの店舗がありますか？" %}</span>
+                        <span class="ml-4 flex-shrink-0 text-salon-brown transition-transform group-open:rotate-180">&#9660;</span>
+                    </summary>
+                    <div class="px-5 pb-4 pl-10 text-gray-700 leading-relaxed">
+                        A. {% trans "現在、新宿・池袋に店舗を展開しています。「店舗情報」メニューから詳細をご確認ください。" %}
+                    </div>
+                </details>
+
+                <details class="group">
+                    <summary class="flex items-center justify-between cursor-pointer px-5 py-4 hover:bg-gray-50 transition">
+                        <span class="font-bold text-salon-dark">Q. {% trans "営業時間は？" %}</span>
+                        <span class="ml-4 flex-shrink-0 text-salon-brown transition-transform group-open:rotate-180">&#9660;</span>
+                    </summary>
+                    <div class="px-5 pb-4 pl-10 text-gray-700 leading-relaxed">
+                        A. {% trans "各店舗の営業時間は店舗情報ページに記載されています。基本的に9:00〜17:00が鑑定可能時間です。" %}
+                    </div>
+                </details>
+            </div>
+        </div>
+
+        <!-- スタッフの方へ -->
+        <div class="rounded-lg shadow-sm overflow-hidden border border-gray-200">
+            <div class="bg-salon-beige px-5 py-3">
+                <h3 class="text-lg font-bold text-salon-brown">{% trans "スタッフの方へ" %}</h3>
+            </div>
+            <div class="divide-y divide-gray-100">
+                <details class="group">
+                    <summary class="flex items-center justify-between cursor-pointer px-5 py-4 hover:bg-gray-50 transition">
+                        <span class="font-bold text-salon-dark">Q. {% trans "マイページにアクセスするには？" %}</span>
+                        <span class="ml-4 flex-shrink-0 text-salon-brown transition-transform group-open:rotate-180">&#9660;</span>
+                    </summary>
+                    <div class="px-5 pb-4 pl-10 text-gray-700 leading-relaxed">
+                        A. {% trans "管理者から発行されたアカウントでログインし、ナビゲーションの「スタッフページ」からアクセスしてください。" %}
+                    </div>
+                </details>
+
+                <details class="group">
+                    <summary class="flex items-center justify-between cursor-pointer px-5 py-4 hover:bg-gray-50 transition">
+                        <span class="font-bold text-salon-dark">Q. {% trans "シフト（休暇）の設定方法は？" %}</span>
+                        <span class="ml-4 flex-shrink-0 text-salon-brown transition-transform group-open:rotate-180">&#9660;</span>
+                    </summary>
+                    <div class="px-5 pb-4 pl-10 text-gray-700 leading-relaxed">
+                        A. {% trans "マイページ → カレンダー → 日付の「詳細」から、時間単位で休暇を設定できます。「全日休暇にする」で一日全体をブロックすることも可能です。" %}
+                    </div>
+                </details>
+
+                <details class="group">
+                    <summary class="flex items-center justify-between cursor-pointer px-5 py-4 hover:bg-gray-50 transition">
+                        <span class="font-bold text-salon-dark">Q. {% trans "予約の確認方法は？" %}</span>
+                        <span class="ml-4 flex-shrink-0 text-salon-brown transition-transform group-open:rotate-180">&#9660;</span>
+                    </summary>
+                    <div class="px-5 pb-4 pl-10 text-gray-700 leading-relaxed">
+                        A. {% trans "マイページのカレンダーで「○」が空き、「×」が予約済みです。詳細をクリックすると予約者情報を確認できます。" %}
+                    </div>
+                </details>
+            </div>
+        </div>
+
+        <!-- お問い合わせ -->
+        <div class="rounded-lg shadow-sm overflow-hidden border border-gray-200">
+            <div class="bg-salon-beige px-5 py-3">
+                <h3 class="text-lg font-bold text-salon-brown">{% trans "お問い合わせ" %}</h3>
+            </div>
+            <div class="px-5 py-4">
+                <p class="text-gray-700 leading-relaxed">
+                    {% trans "上記で解決しない場合は、各店舗までお電話いただくか、LINEの公式アカウントよりお問い合わせください。" %}
+                </p>
+                {% if company %}
+                <div class="mt-4 bg-gray-50 rounded-md p-4 text-sm text-gray-700 leading-relaxed">
+                    <p class="font-bold mb-1">{{ company.name }}</p>
+                    <p>{{ company.address }}</p>
+                    <p>TEL: {{ company.tel }}</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+    </div>
+</section>
+{% endblock %}

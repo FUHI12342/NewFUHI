@@ -1,0 +1,494 @@
+# Spanish translations for the fortune-telling salon reservation system.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-02-21 18:29+0900\n"
+"PO-Revision-Date: 2026-02-21 18:29+0900\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: Spanish <LL@li.org>\n"
+"Language: es\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=3; plural=n == 1 ? 0 : n != 0 && n % 1000000 == 0 ? "
+"1 : 2;\n"
+msgid "占いサロンチャンス　オンライン予約ページ"
+msgstr "Salón de Adivinación Chance - Página de reservas en línea"
+
+msgid ""
+"占いサロンチャンスのオンライン予約サイト。新宿・池袋の占い師に簡単予約。"
+msgstr ""
+"Sitio de reservas en línea del Salón de Adivinación Chance. Reserve "
+"fácilmente con adivinos en Shinjuku e Ikebukuro."
+
+msgid "ログアウト"
+msgstr "Cerrar sesión"
+
+msgid "ログイン"
+msgstr "Iniciar sesión"
+
+msgid "予約内容の確認"
+msgstr "Confirmación de la reserva"
+
+msgid "店舗"
+msgstr "Tienda"
+
+msgid "占い師"
+msgstr "Adivino/a"
+
+msgid "先生"
+msgstr "Maestro/a"
+
+msgid "日時"
+msgstr "Fecha y hora"
+
+msgid "年"
+msgstr "Año"
+
+msgid "月"
+msgstr "Mes"
+
+msgid "日"
+msgstr "Día"
+
+msgid "料金"
+msgstr "Tarifa"
+
+msgid "円"
+msgstr "yenes"
+
+msgid ""
+"予約ボタンを押すとLINE認証画面に移動します。認証後、決済リンクをLINEでお送り"
+"します。"
+msgstr ""
+"Al pulsar el botón de reserva, será redirigido a la pantalla de "
+"autenticación de LINE. Después de la autenticación, le enviaremos el enlace "
+"de pago por LINE."
+
+msgid "LINEで予約手続きに進む"
+msgstr "Proceder a la reserva con LINE"
+
+msgid "予約カレンダー"
+msgstr "Calendario de reservas"
+
+msgid "前の週"
+msgstr "Semana anterior"
+
+msgid "前週"
+msgstr "Sem. anterior"
+
+msgid "次の週"
+msgstr "Semana siguiente"
+
+msgid "次週"
+msgstr "Sem. siguiente"
+
+msgid "予約したい日時をカレンダーから選択してください"
+msgstr "Seleccione la fecha y hora deseada en el calendario"
+
+msgid "空き"
+msgstr "Disponible"
+
+msgid "予約済み"
+msgstr "Reservado"
+
+msgid "仮予約"
+msgstr "Reserva provisional"
+
+msgid "受付終了"
+msgstr "Recepción cerrada"
+
+msgid "祝"
+msgstr "Festivo"
+
+msgid "仮予約中"
+msgstr "Reserva provisional en curso"
+
+msgid "予約する"
+msgstr "Reservar"
+
+msgid "占い師一覧に戻る"
+msgstr "Volver a la lista de adivinos"
+
+msgid "ヘルプ・よくある質問"
+msgstr "Ayuda y preguntas frecuentes"
+
+msgid "ご予約について"
+msgstr "Sobre las reservas"
+
+msgid "予約はどのように行いますか？"
+msgstr "¿Cómo se hace una reserva?"
+
+msgid ""
+"トップページの「ご予約」から店舗を選び、ご希望の占い師のカレンダーから空き時"
+"間を選択してください。LINE認証後に予約が確定します。"
+msgstr ""
+"Seleccione una tienda desde \"Reservas\" en la página principal y elija un "
+"horario disponible en el calendario de su adivino/a preferido/a. La reserva "
+"se confirma después de la autenticación con LINE."
+
+msgid "予約のキャンセルはできますか？"
+msgstr "¿Se puede cancelar una reserva?"
+
+msgid ""
+"はい。予約確定後にLINEで届くメッセージ内のリンクからキャンセルが可能です。"
+"キャンセル料はかかりません。"
+msgstr ""
+"Sí. Puede cancelar desde el enlace en el mensaje de LINE recibido tras "
+"confirmar la reserva. No se cobra tarifa de cancelación."
+
+msgid "予約の変更はできますか？"
+msgstr "¿Se puede modificar una reserva?"
+
+msgid "現在の予約をキャンセルして、改めてご予約ください。"
+msgstr "Cancele la reserva actual y realice una nueva reserva."
+
+msgid "当日予約はできますか？"
+msgstr "¿Se puede reservar para el mismo día?"
+
+msgid "カレンダーに空きがあれば当日でもご予約いただけます。"
+msgstr ""
+"Si hay disponibilidad en el calendario, puede reservar incluso para el mismo "
+"día."
+
+msgid "お支払いについて"
+msgstr "Sobre el pago"
+
+msgid "支払い方法は？"
+msgstr "¿Cuáles son los métodos de pago?"
+
+msgid ""
+"オンライン決済（クレジットカード）をご利用いただけます。予約時にLINE経由で決"
+"済リンクをお送りします。"
+msgstr ""
+"Puede utilizar el pago en línea (tarjeta de crédito). Le enviaremos el "
+"enlace de pago a través de LINE al momento de la reserva."
+
+msgid "鑑定料金はいくらですか？"
+msgstr "¿Cuánto cuesta una sesión de adivinación?"
+
+msgid ""
+"占い師により異なります。各占い師のプロフィールページに料金（1時間あたり）が記"
+"載されています。"
+msgstr ""
+"Varía según el/la adivino/a. La tarifa (por hora) está indicada en la "
+"página de perfil de cada adivino/a."
+
+msgid "LINE連携について"
+msgstr "Sobre la integración con LINE"
+
+msgid "LINEアカウントは必要ですか？"
+msgstr "¿Es necesaria una cuenta de LINE?"
+
+msgid ""
+"はい。ご予約にはLINEログインが必要です。予約通知やタイマー機能もLINEを通じて"
+"お届けします。"
+msgstr ""
+"Sí. Se requiere iniciar sesión con LINE para realizar una reserva. Las "
+"notificaciones de reserva y la función de temporizador también se envían a "
+"través de LINE."
+
+msgid "LINEの通知はどんな内容ですか？"
+msgstr "¿Qué tipo de notificaciones se envían por LINE?"
+
+msgid "予約確定、キャンセル、鑑定タイマーのリンクなどをお送りします。"
+msgstr ""
+"Le enviaremos confirmaciones de reserva, cancelaciones, enlaces del "
+"temporizador de sesión, entre otros."
+
+msgid "店舗について"
+msgstr "Sobre las tiendas"
+
+msgid "どの店舗がありますか？"
+msgstr "¿Qué tiendas hay disponibles?"
+
+msgid ""
+"現在、新宿・池袋に店舗を展開しています。「店舗情報」メニューから詳細をご確認"
+"ください。"
+msgstr ""
+"Actualmente tenemos tiendas en Shinjuku e Ikebukuro. Consulte los detalles "
+"desde el menú \"Información de tiendas\"."
+
+msgid "営業時間は？"
+msgstr "¿Cuál es el horario de atención?"
+
+msgid ""
+"各店舗の営業時間は店舗情報ページに記載されています。基本的に9:00〜17:00が鑑定"
+"可能時間です。"
+msgstr ""
+"El horario de cada tienda está indicado en la página de información de "
+"tiendas. Generalmente, el horario de sesiones es de 9:00 a 17:00."
+
+msgid "スタッフの方へ"
+msgstr "Para el personal"
+
+msgid "マイページにアクセスするには？"
+msgstr "¿Cómo acceder a mi página?"
+
+msgid ""
+"管理者から発行されたアカウントでログインし、ナビゲーションの「スタッフペー"
+"ジ」からアクセスしてください。"
+msgstr ""
+"Inicie sesión con la cuenta proporcionada por el administrador y acceda "
+"desde \"Página del personal\" en la navegación."
+
+msgid "シフト（休暇）の設定方法は？"
+msgstr "¿Cómo configurar turnos (vacaciones)?"
+
+msgid ""
+"マイページ → カレンダー → 日付の「詳細」から、時間単位で休暇を設定できます。"
+"「全日休暇にする」で一日全体をブロックすることも可能です。"
+msgstr ""
+"Desde Mi página -> Calendario -> \"Detalles\" de la fecha, puede configurar "
+"vacaciones por horas. También puede bloquear el día completo con \"Establecer "
+"vacaciones para todo el día\"."
+
+msgid "予約の確認方法は？"
+msgstr "¿Cómo verificar las reservas?"
+
+msgid ""
+"マイページのカレンダーで「○」が空き、「×」が予約済みです。詳細をクリックする"
+"と予約者情報を確認できます。"
+msgstr ""
+"En el calendario de Mi página, \"○\" indica disponible y \"×\" indica "
+"reservado. Haga clic en los detalles para ver la información del cliente."
+
+msgid "お問い合わせ"
+msgstr "Contacto"
+
+msgid ""
+"上記で解決しない場合は、各店舗までお電話いただくか、LINEの公式アカウントより"
+"お問い合わせください。"
+msgstr ""
+"Si lo anterior no resuelve su consulta, llame a la tienda correspondiente o "
+"contáctenos a través de la cuenta oficial de LINE."
+
+msgid "IoT Sensor Dashboard"
+msgstr "Panel de sensores IoT"
+
+msgid "Select Device"
+msgstr "Seleccionar dispositivo"
+
+msgid "Loading devices..."
+msgstr "Cargando dispositivos..."
+
+msgid "MQ-9 Gas"
+msgstr "Gas MQ-9"
+
+msgid "Light"
+msgstr "Luz"
+
+msgid "Sound"
+msgstr "Sonido"
+
+msgid "PIR Motion"
+msgstr "Movimiento PIR"
+
+msgid "LINEログイン"
+msgstr "Iniciar sesión con LINE"
+
+msgid "予約を確定するにはLINEアカウントでの認証が必要です。"
+msgstr ""
+"Se requiere autenticación con una cuenta de LINE para confirmar la reserva."
+
+msgid "LINEでログイン"
+msgstr "Iniciar sesión con LINE"
+
+msgid "ログアウトしました"
+msgstr "Sesión cerrada"
+
+msgid "ログインへ戻る"
+msgstr "Volver al inicio de sesión"
+
+msgid "ログイン成功"
+msgstr "Inicio de sesión exitoso"
+
+#, python-format
+msgid "%(name)sさん、ようこそ！"
+msgstr "¡Bienvenido/a, %(name)s!"
+
+msgid "決済リンクをLINEでお送りしました。LINEアプリをご確認ください。"
+msgstr ""
+"Se ha enviado el enlace de pago por LINE. Por favor, revise la aplicación "
+"LINE."
+
+msgid "IoTモニタリング"
+msgstr "Monitoreo IoT"
+
+msgid "物件一覧に戻る"
+msgstr "Volver a la lista de propiedades"
+
+msgid "オーナー"
+msgstr "Propietario"
+
+msgid "在室中"
+msgstr "Presente"
+
+msgid "不在"
+msgstr "Ausente"
+
+msgid "デバイス状況"
+msgstr "Estado del dispositivo"
+
+msgid "オンライン"
+msgstr "En línea"
+
+msgid "オフライン"
+msgstr "Fuera de línea"
+
+msgid "ガス(MQ-9)"
+msgstr "Gas (MQ-9)"
+
+msgid "照度"
+msgstr "Iluminación"
+
+msgid "音量"
+msgstr "Volumen"
+
+msgid "人感(PIR)"
+msgstr "Presencia (PIR)"
+
+msgid "検知"
+msgstr "Detectado"
+
+msgid "なし"
+msgstr "Ninguno"
+
+msgid "登録デバイスはありません。"
+msgstr "No hay dispositivos registrados."
+
+msgid "アクティブアラート"
+msgstr "Alertas activas"
+
+msgid "重要度"
+msgstr "Gravedad"
+
+msgid "種別"
+msgstr "Tipo"
+
+msgid "メッセージ"
+msgstr "Mensaje"
+
+msgid "発生日時"
+msgstr "Fecha y hora del evento"
+
+msgid "操作"
+msgstr "Operación"
+
+msgid "危険"
+msgstr "Peligro"
+
+msgid "警告"
+msgstr "Advertencia"
+
+msgid "情報"
+msgstr "Información"
+
+msgid "解決"
+msgstr "Resolver"
+
+msgid "アクティブなアラートはありません。"
+msgstr "No hay alertas activas."
+
+msgid "解決済みアラート"
+msgstr "Alertas resueltas"
+
+msgid "解決済みアラートはありません。"
+msgstr "No hay alertas resueltas."
+
+msgid "自動更新"
+msgstr "Actualización automática"
+
+msgid "秒"
+msgstr "segundos"
+
+msgid "最終更新"
+msgstr "Última actualización"
+
+msgid "物件IoTモニタリング"
+msgstr "Monitoreo IoT de propiedades"
+
+msgid "登録物件のデバイス状況とアラートを一覧で確認できます。"
+msgstr ""
+"Puede consultar el estado de los dispositivos y las alertas de las "
+"propiedades registradas."
+
+msgid "デバイス"
+msgstr "Dispositivo"
+
+msgid "その他"
+msgstr "Otros"
+
+msgid "アラートなし"
+msgstr "Sin alertas"
+
+msgid "詳細を見る"
+msgstr "Ver detalles"
+
+msgid "登録されている物件はありません。"
+msgstr "No hay propiedades registradas."
+
+msgid "店 在籍占い師"
+msgstr "Adivinos de la tienda"
+
+msgid "ホーム"
+msgstr "Inicio"
+
+msgid "在籍占い師"
+msgstr "Adivinos en plantilla"
+
+msgid "鑑定料"
+msgstr "Tarifa de sesión"
+
+msgid "円（１時間）"
+msgstr "yenes (1 hora)"
+
+msgid "予約カレンダーを見る"
+msgstr "Ver calendario de reservas"
+
+msgid "現在この店舗に占い師は在籍していません。"
+msgstr "Actualmente no hay adivinos en esta tienda."
+
+msgid "占いサロン店舗一覧"
+msgstr "Lista de tiendas del Salón de Adivinación"
+
+msgid "店舗所在地"
+msgstr "Ubicación de la tienda"
+
+msgid "営業時間"
+msgstr "Horario de atención"
+
+msgid "交通／最寄駅"
+msgstr "Acceso / Estación más cercana"
+
+msgid "定休日"
+msgstr "Días de descanso"
+
+msgid "占い師一覧を見る"
+msgstr "Ver lista de adivinos"
+
+msgid "まだ予約可能な店舗がありません。"
+msgstr "Todavía no hay tiendas disponibles para reservar."
+
+msgid "鑑定タイマー"
+msgstr "Temporizador de sesión"
+
+msgid "Django site admin"
+msgstr "Administración del sitio Django"
+
+msgid "Home"
+msgstr "Inicio"
+
+msgid "デバッグパネル"
+msgstr "Panel de depuración"
+
+msgid "飲食店ダッシュボード"
+msgstr "Panel de control del restaurante"
+
+msgid "MQ-9 ガスセンサー"
+msgstr "Sensor de gas MQ-9"

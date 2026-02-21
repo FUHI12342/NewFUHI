@@ -180,8 +180,8 @@ class UserList(generics.ListAPIView):
     permission_classes = [IsAdminUser]
 
 
-class Index(generic.TemplateView):
-    template_name = 'booking/index.html'
+class Index(generic.RedirectView):
+    pattern_name = 'booking:store_list'
 
 
 class HelpView(generic.TemplateView):
@@ -807,8 +807,10 @@ class MyPageDayDetail(OnlyStaffMixin, generic.TemplateView):
             if booking_hour in calendar:
                 calendar[booking_hour].append(schedule)
 
+        has_any_schedule = any(schedules for schedules in calendar.values())
         context['calendar'] = calendar
         context['staff'] = staff
+        context['has_any_schedule'] = has_any_schedule
         return context
 
 
