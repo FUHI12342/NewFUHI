@@ -56,13 +56,14 @@ class ScheduleAdmin(admin.ModelAdmin):
         'staff',
         'is_temporary',
         'is_cancelled',
+        'is_checked_in',
         'price',
         'has_line_user',
     )
     search_fields = ('customer_name', 'hashed_id', 'reservation_number', 'line_user_hash')
     ordering = ('-start',)
-    list_filter = ('is_temporary', 'is_cancelled', 'staff__store')
-    readonly_fields = ('reservation_number', 'line_user_hash', 'line_user_enc')
+    list_filter = ('is_temporary', 'is_cancelled', 'is_checked_in', 'staff__store')
+    readonly_fields = ('reservation_number', 'line_user_hash', 'line_user_enc', 'checkin_qr', 'checked_in_at')
 
 
 
@@ -319,17 +320,24 @@ class ProductAdmin(admin.ModelAdmin):
         'stock',
         'low_stock_threshold',
         'is_active',
+        'is_ec_visible',
         'is_sold_out',
         'last_low_stock_notified_at',
     )
-    list_filter = ('store', 'category', 'is_active')
+    list_filter = ('store', 'category', 'is_active', 'is_ec_visible')
     search_fields = ('sku', 'name', 'store__name')
-    list_editable = ('price', 'stock', 'low_stock_threshold', 'is_active')
+    list_editable = ('price', 'stock', 'low_stock_threshold', 'is_active', 'is_ec_visible')
     inlines = [ProductTranslationInline]
     autocomplete_fields = ('category',)
     ordering = ('store', 'category', 'name')
 
-    actions = ['clear_low_stock_notification', 'stock_in', 'stock_out', 'stock_adjust_zero']
+    def is_sold_out(self, obj):
+        return obj.stock <= 0
+    is_sold_out.short_description = '売り切れ'
+    is_sold_out.boolean = True
+
+    actions = ['clear_low_stock_notification', 'stock_in', 'stock_out', 'stock_adjust_zero',
+               'enable_ec_visibility', 'disable_ec_visibility']
 
     @admin.action(description='閾値通知フラグを解除（last_low_stock_notified_at を空にする）')
     def clear_low_stock_notification(self, request, queryset):
@@ -397,6 +405,16 @@ class ProductAdmin(admin.ModelAdmin):
             product.save()
             count += 1
         self.message_user(request, f'{count} 件の商品の在庫を0に調整しました。')
+
+    @admin.action(description='EC公開をONにする')
+    def enable_ec_visibility(self, request, queryset):
+        count = queryset.update(is_ec_visible=True)
+        self.message_user(request, f'{count} 件の商品をEC公開にしました。')
+
+    @admin.action(description='EC公開をOFFにする')
+    def disable_ec_visibility(self, request, queryset):
+        count = queryset.update(is_ec_visible=False)
+        self.message_user(request, f'{count} 件の商品のEC公開を解除しました。')
 
 
 # ==============================

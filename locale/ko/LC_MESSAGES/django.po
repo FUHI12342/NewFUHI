@@ -477,3 +477,180 @@ msgstr "음식점 대시보드"
 
 msgid "MQ-9 ガスセンサー"
 msgstr "MQ-9 가스 센서"
+
+msgid "店舗情報"
+msgstr "매장 정보"
+
+msgid "ご予約"
+msgstr "예약"
+
+msgid "所属占い師"
+msgstr "소속 점술사"
+
+msgid "ヘルプ"
+msgstr "도움말"
+
+msgid "管理画面"
+msgstr "관리 화면"
+
+msgid "店舗一覧"
+msgstr "매장 목록"
+
+msgid "お知らせ"
+msgstr "공지사항"
+
+msgid "更新日："
+msgstr "업데이트:"
+
+msgid "お知らせはありません"
+msgstr "공지사항이 없습니다"
+
+msgid "運営会社"
+msgstr "운영 회사"
+
+msgid "メディア掲載情報"
+msgstr "미디어 게재 정보"
+
+msgid "メニュー"
+msgstr "메뉴"
+
+msgid "スタッフ"
+msgstr "스태프"
+
+msgid "マイページ"
+msgstr "마이페이지"
+
+msgid "外部リンク"
+msgstr "외부 링크"
+
+msgid "プライバシーポリシー"
+msgstr "개인정보 처리방침"
+
+msgid "特定商取引法に基づく表記"
+msgstr "특정상거래법에 의한 표기"
+
+msgid "ショップ"
+msgstr "쇼핑"
+
+msgid "ショップへ"
+msgstr "쇼핑으로 이동"
+
+msgid "占いグッズやパワーストーンなど、オンラインショップでお買い物できます。"
+msgstr "점술 용품이나 파워스톤 등을 온라인 쇼핑몰에서 구매하실 수 있습니다."
+
+msgid "オンラインショップ"
+msgstr "온라인 쇼핑몰"
+
+msgid "商品を検索..."
+msgstr "상품 검색..."
+
+msgid "検索"
+msgstr "검색"
+
+msgid "カート"
+msgstr "장바구니"
+
+msgid "すべて"
+msgstr "전체"
+
+msgid "売り切れ"
+msgstr "품절"
+
+msgid "在庫あり"
+msgstr "재고 있음"
+
+msgid "カートに追加"
+msgstr "장바구니에 추가"
+
+msgid "商品が見つかりません"
+msgstr "상품을 찾을 수 없습니다"
+
+msgid "ショッピングカート"
+msgstr "장바구니"
+
+msgid "商品"
+msgstr "상품"
+
+msgid "単価"
+msgstr "단가"
+
+msgid "数量"
+msgstr "수량"
+
+msgid "小計"
+msgstr "소계"
+
+msgid "買い物を続ける"
+msgstr "쇼핑 계속하기"
+
+msgid "合計"
+msgstr "합계"
+
+msgid "レジに進む"
+msgstr "결제로 이동"
+
+msgid "カートは空です"
+msgstr "장바구니가 비어 있습니다"
+
+msgid "注文確認"
+msgstr "주문 확인"
+
+msgid "注文内容"
+msgstr "주문 내용"
+
+msgid "お届け先情報"
+msgstr "배송지 정보"
+
+msgid "お名前"
+msgstr "이름"
+
+msgid "メールアドレス"
+msgstr "이메일 주소"
+
+msgid "電話番号"
+msgstr "전화번호"
+
+msgid "住所"
+msgstr "주소"
+
+msgid "注文を確定する"
+msgstr "주문 확정"
+
+msgid "カートに戻る"
+msgstr "장바구니로 돌아가기"
+
+msgid "予約確認"
+msgstr "예약 확인"
+
+msgid "予約確認・チェックインQR"
+msgstr "예약 확인・체크인 QR"
+
+msgid "チェックインQRコード"
+msgstr "체크인 QR 코드"
+
+msgid "来店時にこのQRコードをスタッフに提示してください"
+msgstr "방문 시 이 QR 코드를 스태프에게 보여주세요"
+
+msgid "予約番号"
+msgstr "예약 번호"
+
+msgid "お客様名"
+msgstr "고객명"
+
+msgid "チェックイン"
+msgstr "체크인"
+
+msgid "チェックイン済み"
+msgstr "체크인 완료"
+
+msgid "未チェックイン"
+msgstr "미체크인"
+
+msgid "チェックインスキャン"
+msgstr "체크인 스캔"
+
+msgid "お客様のQRコードをカメラでスキャンしてください。"
+msgstr "고객의 QR 코드를 카메라로 스캔해 주세요."
+
+msgid "手動入力"
+msgstr "수동 입력"

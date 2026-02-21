@@ -163,6 +163,11 @@ class Schedule(models.Model):
     email_verified = models.BooleanField('メール認証済み', default=False)
     payment_url = models.URLField('決済URL', blank=True, null=True)
 
+    # QRチェックイン
+    checkin_qr = models.ImageField('チェックインQR', upload_to='checkin_qr/', blank=True, null=True)
+    is_checked_in = models.BooleanField('チェックイン済み', default=False)
+    checked_in_at = models.DateTimeField('チェックイン日時', blank=True, null=True)
+
     class Meta:
         app_label = 'booking'
         verbose_name = '予約確定済みのスケジュール'
@@ -460,7 +465,7 @@ class Product(models.Model):
         related_name='products'
     )
 
-    sku = models.CharField('SKU', max_length=64, db_index=True)
+    sku = models.CharField('商品コード', max_length=64, db_index=True)
     name = models.CharField('商品名(デフォルト)', max_length=200)
     description = models.TextField('説明(デフォルト)', blank=True, default='')
 
@@ -472,6 +477,8 @@ class Product(models.Model):
     last_low_stock_notified_at = models.DateTimeField('閾値通知済み(最後)', null=True, blank=True)
 
     is_active = models.BooleanField('公開', default=True)
+    is_ec_visible = models.BooleanField('EC公開', default=False, db_index=True,
+        help_text='チェックするとオンラインショップに表示されます')
 
     # 代替提案用の簡易スコア（どれを使うかはUI側で選べる）
     popularity = models.IntegerField('人気スコア', default=0)

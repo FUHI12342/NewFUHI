@@ -28,7 +28,7 @@ GROUP_MAP = {
     '予約管理': ['schedule'],
     'シフト管理': ['shiftperiod', 'shiftrequest', 'shiftassignment'],
     'スタッフ管理': ['staff', 'store', 'storescheduleconfig'],
-    '在庫管理': ['category', 'product', 'stockmovement'],
+    '在庫管理': ['category', 'product'],
     '注文管理': ['order'],
     'IoT管理': ['iotdevice'],
     '物件管理': ['property'],
@@ -60,7 +60,7 @@ class RoleBasedAdminSite(AdminSite):
             allowed_models = [
                 'schedule', 'order', 'staff', 'store',
                 'iotdevice', 'category', 'product', 'producttranslation',
-                'stockmovement', 'property', 'propertydevice',
+                'property', 'propertydevice',
                 'systemconfig',
                 # シフト管理
                 'shiftperiod', 'shiftrequest', 'shiftassignment',
@@ -69,7 +69,7 @@ class RoleBasedAdminSite(AdminSite):
         elif role == 'staff':
             allowed_models = [
                 'schedule', 'order', 'staff',
-                'iotdevice', 'product', 'stockmovement',
+                'iotdevice', 'product',
                 # スタッフはシフト希望のみ
                 'shiftrequest',
             ]

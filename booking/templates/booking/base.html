@@ -72,20 +72,21 @@ tailwind.config = {
 <nav class="bg-salon-brown text-white hidden md:block sticky top-0 z-50 shadow">
     <div class="max-w-7xl mx-auto px-4">
         <ul class="flex items-center gap-0">
-            <li><a href="{% url 'booking:booking_top' %}" class="block px-4 py-3 hover:bg-white/20 transition text-sm font-medium">ホーム</a></li>
+            <li><a href="{% url 'booking:booking_top' %}" class="block px-4 py-3 hover:bg-white/20 transition text-sm font-medium">{% trans "ホーム" %}</a></li>
             <li class="relative group">
-                <a href="{% url 'booking:booking_top' %}" class="block px-4 py-3 hover:bg-white/20 transition text-sm font-medium">店舗情報 ▾</a>
+                <a href="{% url 'booking:booking_top' %}" class="block px-4 py-3 hover:bg-white/20 transition text-sm font-medium">{% trans "店舗情報" %} ▾</a>
                 <ul class="absolute left-0 top-full bg-salon-brown min-w-[180px] shadow-lg rounded-b hidden group-hover:block z-50">
                     {% for store in stores %}
                     <li><a href="{% url 'booking:staff_list' store.pk %}" class="block px-4 py-2 hover:bg-white/20 transition text-sm">{{ store.name }}</a></li>
                     {% endfor %}
                 </ul>
             </li>
-            <li><a href="{% url 'booking:booking_top' %}" class="block px-4 py-3 hover:bg-white/20 transition text-sm font-medium">ご予約</a></li>
-            <li><a href="{% url 'booking:all_fortune_tellers' %}" class="block px-4 py-3 hover:bg-white/20 transition text-sm font-medium">所属占い師</a></li>
-            <li><a href="{% url 'booking:help' %}" class="block px-4 py-3 hover:bg-white/20 transition text-sm font-medium">ヘルプ</a></li>
+            <li><a href="{% url 'booking:booking_top' %}" class="block px-4 py-3 hover:bg-white/20 transition text-sm font-medium">{% trans "ご予約" %}</a></li>
+            <li><a href="{% url 'booking:all_fortune_tellers' %}" class="block px-4 py-3 hover:bg-white/20 transition text-sm font-medium">{% trans "所属占い師" %}</a></li>
+            <li><a href="{% url 'booking:help' %}" class="block px-4 py-3 hover:bg-white/20 transition text-sm font-medium">{% trans "ヘルプ" %}</a></li>
+            <li><a href="{% url 'booking:shop' %}" class="block px-4 py-3 hover:bg-white/20 transition text-sm font-medium">{% trans "ショップ" %}</a></li>
             {% if user.is_staff %}
-            <li><a href="{% url 'admin:index' %}" class="block px-4 py-3 hover:bg-white/20 transition text-sm font-medium">管理画面</a></li>
+            <li><a href="{% url 'admin:index' %}" class="block px-4 py-3 hover:bg-white/20 transition text-sm font-medium">{% trans "管理画面" %}</a></li>
             {% endif %}
         </ul>
     </div>
@@ -94,13 +95,14 @@ tailwind.config = {
 <!-- ===== NAVIGATION (Mobile) ===== -->
 <nav id="mobile-menu" class="hidden md:hidden bg-salon-brown text-white shadow-lg">
     <ul class="divide-y divide-white/20">
-        <li><a href="{% url 'booking:booking_top' %}" class="block px-6 py-3 hover:bg-white/10">ホーム</a></li>
-        <li><a href="{% url 'booking:booking_top' %}" class="block px-6 py-3 hover:bg-white/10">店舗一覧</a></li>
-        <li><a href="{% url 'booking:booking_top' %}" class="block px-6 py-3 hover:bg-white/10">ご予約</a></li>
-        <li><a href="{% url 'booking:all_fortune_tellers' %}" class="block px-6 py-3 hover:bg-white/10">所属占い師</a></li>
-        <li><a href="{% url 'booking:help' %}" class="block px-6 py-3 hover:bg-white/10">ヘルプ</a></li>
+        <li><a href="{% url 'booking:booking_top' %}" class="block px-6 py-3 hover:bg-white/10">{% trans "ホーム" %}</a></li>
+        <li><a href="{% url 'booking:booking_top' %}" class="block px-6 py-3 hover:bg-white/10">{% trans "店舗一覧" %}</a></li>
+        <li><a href="{% url 'booking:booking_top' %}" class="block px-6 py-3 hover:bg-white/10">{% trans "ご予約" %}</a></li>
+        <li><a href="{% url 'booking:all_fortune_tellers' %}" class="block px-6 py-3 hover:bg-white/10">{% trans "所属占い師" %}</a></li>
+        <li><a href="{% url 'booking:help' %}" class="block px-6 py-3 hover:bg-white/10">{% trans "ヘルプ" %}</a></li>
+        <li><a href="{% url 'booking:shop' %}" class="block px-6 py-3 hover:bg-white/10">{% trans "ショップ" %}</a></li>
         {% if user.is_staff %}
-        <li><a href="{% url 'admin:index' %}" class="block px-6 py-3 hover:bg-white/10">管理画面</a></li>
+        <li><a href="{% url 'admin:index' %}" class="block px-6 py-3 hover:bg-white/10">{% trans "管理画面" %}</a></li>
         {% endif %}
     </ul>
 </nav>
@@ -119,21 +121,21 @@ tailwind.config = {
 
             <!-- お知らせ -->
             <div class="bg-salon-beige rounded-lg p-4">
-                <h3 class="text-base font-bold text-salon-brown border-b border-salon-brown/30 pb-2 mb-3">お知らせ</h3>
+                <h3 class="text-base font-bold text-salon-brown border-b border-salon-brown/30 pb-2 mb-3">{% trans "お知らせ" %}</h3>
                 {% for notice in notices %}
                 <a href="{{ notice.link }}" class="block mb-3 hover:opacity-80 transition">
                     <p class="text-sm font-medium">◆{{ notice.title }}</p>
-                    <p class="text-xs text-gray-500">更新日：{{ notice.updated_at }}</p>
+                    <p class="text-xs text-gray-500">{% trans "更新日：" %}{{ notice.updated_at }}</p>
                 </a>
                 {% empty %}
-                <p class="text-sm text-gray-400">お知らせはありません</p>
+                <p class="text-sm text-gray-400">{% trans "お知らせはありません" %}</p>
                 {% endfor %}
             </div>
 
             <!-- 運営会社 -->
             {% if company %}
             <div class="bg-salon-beige rounded-lg p-4">
-                <h3 class="text-base font-bold text-salon-brown border-b border-salon-brown/30 pb-2 mb-3">運営会社</h3>
+                <h3 class="text-base font-bold text-salon-brown border-b border-salon-brown/30 pb-2 mb-3">{% trans "運営会社" %}</h3>
                 <p class="text-sm leading-relaxed">
                     {{ company.name }}<br>
                     {{ company.address }}<br>
@@ -145,7 +147,7 @@ tailwind.config = {
             <!-- メディア掲載情報 -->
             {% if medias %}
             <div class="bg-salon-beige rounded-lg p-4">
-                <h3 class="text-base font-bold text-salon-brown border-b border-salon-brown/30 pb-2 mb-3">メディア掲載情報</h3>
+                <h3 class="text-base font-bold text-salon-brown border-b border-salon-brown/30 pb-2 mb-3">{% trans "メディア掲載情報" %}</h3>
                 {% for media in medias %}
                 <a href="{{ media.link }}" target="_blank" rel="noopener noreferrer" class="flex items-start gap-2 mb-3 hover:opacity-80 transition">
                     <img src="https://www.google.com/s2/favicons?domain={{ media.link }}" alt="" class="w-5 h-5 mt-0.5 flex-shrink-0">
@@ -167,18 +169,18 @@ tailwind.config = {
     <div class="max-w-7xl mx-auto px-4 py-8">
         <div class="grid grid-cols-2 md:grid-cols-4 gap-6 text-sm">
             <div>
-                <h4 class="font-bold mb-3">メニュー</h4>
+                <h4 class="font-bold mb-3">{% trans "メニュー" %}</h4>
                 <ul class="space-y-1.5">
-                    <li><a href="{% url 'booking:booking_top' %}" class="hover:underline opacity-80 hover:opacity-100">ホーム</a></li>
-                    <li><a href="{% url 'booking:booking_top' %}" class="hover:underline opacity-80 hover:opacity-100">ご予約</a></li>
-                    <li><a href="{% url 'booking:help' %}" class="hover:underline opacity-80 hover:opacity-100">ヘルプ</a></li>
+                    <li><a href="{% url 'booking:booking_top' %}" class="hover:underline opacity-80 hover:opacity-100">{% trans "ホーム" %}</a></li>
+                    <li><a href="{% url 'booking:booking_top' %}" class="hover:underline opacity-80 hover:opacity-100">{% trans "ご予約" %}</a></li>
+                    <li><a href="{% url 'booking:help' %}" class="hover:underline opacity-80 hover:opacity-100">{% trans "ヘルプ" %}</a></li>
                 </ul>
             </div>
             <div>
-                <h4 class="font-bold mb-3">スタッフ</h4>
+                <h4 class="font-bold mb-3">{% trans "スタッフ" %}</h4>
                 <ul class="space-y-1.5">
                     {% if user.is_authenticated %}
-                    <li><a href="{% url 'booking:my_page' %}" class="hover:underline opacity-80 hover:opacity-100">マイページ</a></li>
+                    <li><a href="{% url 'booking:my_page' %}" class="hover:underline opacity-80 hover:opacity-100">{% trans "マイページ" %}</a></li>
                     <li>
                         <a href="#" onclick="event.preventDefault(); document.getElementById('ftr-logout-form').submit();" class="hover:underline opacity-80 hover:opacity-100">ログアウト</a>
                         <form id="ftr-logout-form" action="{% url 'booking:logout' %}" method="post" class="hidden">{% csrf_token %}</form>
@@ -189,17 +191,17 @@ tailwind.config = {
                 </ul>
             </div>
             <div>
-                <h4 class="font-bold mb-3">外部リンク</h4>
+                <h4 class="font-bold mb-3">{% trans "外部リンク" %}</h4>
                 <ul class="space-y-1.5">
                     <li><a href="https://www.senjutsu.jp/" target="_blank" rel="noopener noreferrer" class="hover:underline opacity-80 hover:opacity-100">大久保占い研究室</a></li>
                     <li><a href="https://www.senjutsu.jp/forums/forum/uranai" target="_blank" rel="noopener noreferrer" class="hover:underline opacity-80 hover:opacity-100">占い掲示板</a></li>
                 </ul>
             </div>
             <div>
-                <h4 class="font-bold mb-3">その他</h4>
+                <h4 class="font-bold mb-3">{% trans "その他" %}</h4>
                 <ul class="space-y-1.5">
-                    <li><a href="{% url 'booking:privacy_policy' %}" class="hover:underline opacity-80 hover:opacity-100">プライバシーポリシー</a></li>
-                    <li><a href="{% url 'booking:tokushoho' %}" class="hover:underline opacity-80 hover:opacity-100">特定商取引法に基づく表記</a></li>
+                    <li><a href="{% url 'booking:privacy_policy' %}" class="hover:underline opacity-80 hover:opacity-100">{% trans "プライバシーポリシー" %}</a></li>
+                    <li><a href="{% url 'booking:tokushoho' %}" class="hover:underline opacity-80 hover:opacity-100">{% trans "特定商取引法に基づく表記" %}</a></li>
                 </ul>
             </div>
         </div>

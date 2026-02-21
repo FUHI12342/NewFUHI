@@ -1,0 +1,109 @@
+{% extends 'booking/base.html' %}
+{% load i18n %}
+{% load static %}
+
+{% block title %}{% trans "カート" %} | {{ block.super }}{% endblock %}
+
+{% block content %}
+<h2 class="text-2xl font-bold text-salon-dark mb-6 border-b-2 border-salon-brown pb-3">
+    {% trans "ショッピングカート" %}
+</h2>
+
+{% if cart_items %}
+<div class="bg-white rounded-xl shadow-md border border-gray-200 overflow-hidden mb-6">
+    <table class="w-full">
+        <thead class="bg-gray-50 border-b">
+            <tr>
+                <th class="text-left px-4 py-3 text-sm font-medium text-gray-500">{% trans "商品" %}</th>
+                <th class="text-center px-4 py-3 text-sm font-medium text-gray-500">{% trans "単価" %}</th>
+                <th class="text-center px-4 py-3 text-sm font-medium text-gray-500">{% trans "数量" %}</th>
+                <th class="text-right px-4 py-3 text-sm font-medium text-gray-500">{% trans "小計" %}</th>
+                <th class="w-10"></th>
+            </tr>
+        </thead>
+        <tbody class="divide-y">
+            {% for item in cart_items %}
+            <tr id="cart-row-{{ item.product_id }}">
+                <td class="px-4 py-3 text-sm font-medium">{{ item.name }}</td>
+                <td class="px-4 py-3 text-sm text-center">&yen;{{ item.price }}</td>
+                <td class="px-4 py-3 text-center">
+                    <div class="flex items-center justify-center gap-1">
+                        <button onclick="updateQty('{{ item.product_id }}', {{ item.qty }} - 1)"
+                                class="w-7 h-7 bg-gray-200 rounded text-sm hover:bg-gray-300 transition">-</button>
+                        <span class="w-8 text-center text-sm" id="qty-{{ item.product_id }}">{{ item.qty }}</span>
+                        <button onclick="updateQty('{{ item.product_id }}', {{ item.qty }} + 1)"
+                                class="w-7 h-7 bg-gray-200 rounded text-sm hover:bg-gray-300 transition">+</button>
+                    </div>
+                </td>
+                <td class="px-4 py-3 text-sm text-right font-bold">&yen;{{ item.subtotal }}</td>
+                <td class="px-4 py-3 text-center">
+                    <button onclick="removeItem('{{ item.product_id }}')" class="text-red-400 hover:text-red-600 transition text-lg">&times;</button>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<div class="flex flex-col sm:flex-row items-center justify-between gap-4">
+    <a href="{% url 'booking:shop' %}" class="text-sm text-salon-brown hover:underline">&larr; {% trans "買い物を続ける" %}</a>
+    <div class="flex items-center gap-4">
+        <span class="text-lg font-bold">{% trans "合計" %}: <span class="text-salon-brown">&yen;{{ total }}</span></span>
+        <a href="{% url 'booking:shop_checkout' %}" class="bg-rose-500 text-white px-6 py-3 rounded-lg text-sm font-bold hover:bg-rose-600 transition">
+            {% trans "レジに進む" %}
+        </a>
+    </div>
+</div>
+
+{% else %}
+<div class="text-center py-16 text-gray-400">
+    <svg class="w-16 h-16 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 100 4 2 2 0 000-4z"/>
+    </svg>
+    <p class="mb-4">{% trans "カートは空です" %}</p>
+    <a href="{% url 'booking:shop' %}" class="bg-salon-brown text-white px-6 py-2 rounded-lg text-sm hover:opacity-80 transition">
+        {% trans "ショップへ" %}
+    </a>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+var csrfToken = '{{ csrf_token }}';
+var cartUpdateUrl = '{% url "booking_api:cart_update_api" %}';
+var cartRemoveUrl = '{% url "booking_api:cart_remove_api" %}';
+
+function updateQty(productId, newQty) {
+    fetch(cartUpdateUrl, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': csrfToken,
+        },
+        body: JSON.stringify({ product_id: productId, qty: newQty }),
+    })
+    .then(function(resp) { return resp.json(); })
+    .then(function(data) {
+        if (data.status === 'ok') { location.reload(); }
+        else { alert(data.message || 'エラー'); }
+    });
+}
+
+function removeItem(productId) {
+    fetch(cartRemoveUrl, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': csrfToken,
+        },
+        body: JSON.stringify({ product_id: productId }),
+    })
+    .then(function(resp) { return resp.json(); })
+    .then(function(data) {
+        if (data.status === 'ok') { location.reload(); }
+        else { alert(data.message || 'エラー'); }
+    });
+}
+</script>
+{% endblock %}

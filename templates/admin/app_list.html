@@ -1,0 +1,86 @@
+{% load i18n %}
+
+{% for app in app_list %}
+<div class="app-module module">
+    <h2 style="cursor:pointer;user-select:none;" onclick="toggleGroup(this)" data-group="{{ app.name }}">
+        <span class="collapse-icon" style="display:inline-block;transition:transform 0.2s;">&#x1F53B;</span> {{ app.name }}
+    </h2>
+    <table class="group-content">
+        {% for model in app.models %}
+        <tr class="model-{{ model.object_name|lower }}">
+            {% if model.admin_url %}
+            <th scope="row"><a href="{{ model.admin_url }}">{{ model.name }}</a></th>
+            {% else %}
+            <th scope="row">{{ model.name }}</th>
+            {% endif %}
+
+            {% if model.add_url %}
+            <td><a href="{{ model.add_url }}" class="addlink">{% trans 'Add' %}</a></td>
+            {% else %}
+            <td>&nbsp;</td>
+            {% endif %}
+
+            {% if model.admin_url and show_changelinks %}
+            <td><a href="{{ model.admin_url }}" class="changelink">{% trans 'Change' %}</a></td>
+            {% elif model.admin_url %}
+            <td><a href="{{ model.admin_url }}" class="viewlink">{% trans 'View' %}</a></td>
+            {% else %}
+            <td>&nbsp;</td>
+            {% endif %}
+        </tr>
+        {% endfor %}
+    </table>
+</div>
+{% endfor %}
+
+<script>
+(function() {
+    var STORAGE_KEY = 'admin_collapsed_groups';
+
+    function getCollapsed() {
+        try {
+            return JSON.parse(localStorage.getItem(STORAGE_KEY)) || {};
+        } catch(e) {
+            return {};
+        }
+    }
+
+    function saveCollapsed(collapsed) {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(collapsed));
+    }
+
+    window.toggleGroup = function(h2) {
+        var groupName = h2.getAttribute('data-group');
+        var table = h2.nextElementSibling;
+        var icon = h2.querySelector('.collapse-icon');
+        var collapsed = getCollapsed();
+
+        if (table.style.display === 'none') {
+            table.style.display = '';
+            icon.style.transform = 'rotate(0deg)';
+            delete collapsed[groupName];
+        } else {
+            table.style.display = 'none';
+            icon.style.transform = 'rotate(-90deg)';
+            collapsed[groupName] = true;
+        }
+        saveCollapsed(collapsed);
+    };
+
+    // Restore state on load
+    document.addEventListener('DOMContentLoaded', function() {
+        var collapsed = getCollapsed();
+        var headers = document.querySelectorAll('.app-module h2[data-group]');
+        for (var i = 0; i < headers.length; i++) {
+            var h2 = headers[i];
+            var groupName = h2.getAttribute('data-group');
+            if (collapsed[groupName]) {
+                var table = h2.nextElementSibling;
+                var icon = h2.querySelector('.collapse-icon');
+                if (table) table.style.display = 'none';
+                if (icon) icon.style.transform = 'rotate(-90deg)';
+            }
+        }
+    });
+})();
+</script>

@@ -486,3 +486,181 @@ msgstr "Restaurant Dashboard"
 
 msgid "MQ-9 ガスセンサー"
 msgstr "MQ-9 Gas Sensor"
+
+msgid "店舗情報"
+msgstr "Store Info"
+
+msgid "ご予約"
+msgstr "Reservations"
+
+msgid "所属占い師"
+msgstr "Fortune Tellers"
+
+msgid "ヘルプ"
+msgstr "Help"
+
+msgid "管理画面"
+msgstr "Admin"
+
+msgid "店舗一覧"
+msgstr "Store List"
+
+msgid "お知らせ"
+msgstr "News"
+
+msgid "更新日："
+msgstr "Updated:"
+
+msgid "お知らせはありません"
+msgstr "No news"
+
+msgid "運営会社"
+msgstr "Company"
+
+msgid "メディア掲載情報"
+msgstr "Media Coverage"
+
+msgid "メニュー"
+msgstr "Menu"
+
+msgid "スタッフ"
+msgstr "Staff"
+
+msgid "マイページ"
+msgstr "My Page"
+
+msgid "外部リンク"
+msgstr "External Links"
+
+msgid "プライバシーポリシー"
+msgstr "Privacy Policy"
+
+msgid "特定商取引法に基づく表記"
+msgstr "Act on Specified Commercial Transactions"
+
+msgid "ショップ"
+msgstr "Shop"
+
+msgid "ショップへ"
+msgstr "Go to Shop"
+
+msgid "占いグッズやパワーストーンなど、オンラインショップでお買い物できます。"
+msgstr ""
+"Shop for fortune-telling goods and power stones at our online shop."
+
+msgid "オンラインショップ"
+msgstr "Online Shop"
+
+msgid "商品を検索..."
+msgstr "Search products..."
+
+msgid "検索"
+msgstr "Search"
+
+msgid "カート"
+msgstr "Cart"
+
+msgid "すべて"
+msgstr "All"
+
+msgid "売り切れ"
+msgstr "Sold Out"
+
+msgid "在庫あり"
+msgstr "In Stock"
+
+msgid "カートに追加"
+msgstr "Add to Cart"
+
+msgid "商品が見つかりません"
+msgstr "No products found"
+
+msgid "ショッピングカート"
+msgstr "Shopping Cart"
+
+msgid "商品"
+msgstr "Product"
+
+msgid "単価"
+msgstr "Unit Price"
+
+msgid "数量"
+msgstr "Quantity"
+
+msgid "小計"
+msgstr "Subtotal"
+
+msgid "買い物を続ける"
+msgstr "Continue Shopping"
+
+msgid "合計"
+msgstr "Total"
+
+msgid "レジに進む"
+msgstr "Proceed to Checkout"
+
+msgid "カートは空です"
+msgstr "Cart is empty"
+
+msgid "注文確認"
+msgstr "Order Confirmation"
+
+msgid "注文内容"
+msgstr "Order Details"
+
+msgid "お届け先情報"
+msgstr "Shipping Information"
+
+msgid "お名前"
+msgstr "Name"
+
+msgid "メールアドレス"
+msgstr "Email Address"
+
+msgid "電話番号"
+msgstr "Phone Number"
+
+msgid "住所"
+msgstr "Address"
+
+msgid "注文を確定する"
+msgstr "Confirm Order"
+
+msgid "カートに戻る"
+msgstr "Back to Cart"
+
+msgid "予約確認"
+msgstr "Reservation Confirmation"
+
+msgid "予約確認・チェックインQR"
+msgstr "Reservation Confirmation / Check-in QR"
+
+msgid "チェックインQRコード"
+msgstr "Check-in QR Code"
+
+msgid "来店時にこのQRコードをスタッフに提示してください"
+msgstr "Please show this QR code to staff upon arrival"
+
+msgid "予約番号"
+msgstr "Reservation Number"
+
+msgid "お客様名"
+msgstr "Customer Name"
+
+msgid "チェックイン"
+msgstr "Check-in"
+
+msgid "チェックイン済み"
+msgstr "Checked In"
+
+msgid "未チェックイン"
+msgstr "Not Checked In"
+
+msgid "チェックインスキャン"
+msgstr "Check-in Scan"
+
+msgid "お客様のQRコードをカメラでスキャンしてください。"
+msgstr "Please scan the customer's QR code with the camera."
+
+msgid "手動入力"
+msgstr "Manual Input"

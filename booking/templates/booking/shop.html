@@ -1,0 +1,119 @@
+{% extends 'booking/base.html' %}
+{% load i18n %}
+{% load static %}
+
+{% block title %}{% trans "ショップ" %} | {{ block.super }}{% endblock %}
+
+{% block content %}
+<h2 class="text-2xl md:text-3xl font-bold text-salon-dark mb-6 border-b-2 border-salon-brown pb-3">
+    {% trans "オンラインショップ" %}
+</h2>
+
+<!-- Search + Cart -->
+<div class="flex flex-col sm:flex-row gap-3 mb-6">
+    <form method="get" action="{% url 'booking:shop' %}" class="flex-1 flex gap-2">
+        {% if current_category %}
+        <input type="hidden" name="category" value="{{ current_category }}">
+        {% endif %}
+        <input type="text" name="q" value="{{ search_q }}" placeholder="{% trans '商品を検索...' %}"
+               class="flex-1 border border-gray-300 rounded-lg px-4 py-2 text-sm focus:border-salon-brown focus:outline-none">
+        <button type="submit" class="bg-salon-brown text-white px-4 py-2 rounded-lg text-sm hover:opacity-80 transition">
+            {% trans "検索" %}
+        </button>
+    </form>
+    <a href="{% url 'booking:shop_cart' %}" class="relative inline-flex items-center gap-2 bg-rose-500 text-white px-4 py-2 rounded-lg text-sm hover:bg-rose-600 transition">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 100 4 2 2 0 000-4z"/>
+        </svg>
+        {% trans "カート" %}
+        <span id="cart-badge" class="absolute -top-2 -right-2 bg-white text-rose-500 text-xs font-bold w-5 h-5 rounded-full flex items-center justify-center {% if cart_count == 0 %}hidden{% endif %}">{{ cart_count }}</span>
+    </a>
+</div>
+
+<!-- Category Filter -->
+{% if categories %}
+<div class="flex flex-wrap gap-2 mb-6">
+    <a href="{% url 'booking:shop' %}{% if search_q %}?q={{ search_q }}{% endif %}"
+       class="px-3 py-1.5 rounded-full text-sm border transition {% if not current_category %}bg-salon-brown text-white border-salon-brown{% else %}bg-white text-gray-600 border-gray-300 hover:border-salon-brown{% endif %}">
+        {% trans "すべて" %}
+    </a>
+    {% for cat in categories %}
+    <a href="{% url 'booking:shop' %}?category={{ cat.id }}{% if search_q %}&q={{ search_q }}{% endif %}"
+       class="px-3 py-1.5 rounded-full text-sm border transition {% if current_category == cat.id|stringformat:'d' %}bg-salon-brown text-white border-salon-brown{% else %}bg-white text-gray-600 border-gray-300 hover:border-salon-brown{% endif %}">
+        {{ cat.name }}
+    </a>
+    {% endfor %}
+</div>
+{% endif %}
+
+<!-- Product Grid -->
+{% if products %}
+<div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+    {% for product in products %}
+    <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden hover:shadow-md transition">
+        <div class="h-32 bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center">
+            <svg class="w-12 h-12 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/>
+            </svg>
+        </div>
+        <div class="p-3">
+            <h3 class="text-sm font-bold text-salon-dark truncate" title="{{ product.name }}">{{ product.name }}</h3>
+            <p class="text-xs text-gray-500 mt-1">{{ product.sku }}</p>
+            <div class="flex items-center justify-between mt-2">
+                <span class="text-lg font-bold text-salon-brown">&yen;{{ product.price }}</span>
+                {% if product.is_sold_out %}
+                <span class="text-xs text-red-500 font-bold">{% trans "売り切れ" %}</span>
+                {% else %}
+                <span class="text-xs text-green-600">{% trans "在庫あり" %}</span>
+                {% endif %}
+            </div>
+            {% if not product.is_sold_out %}
+            <button onclick="addToCart({{ product.id }})" data-product-id="{{ product.id }}"
+                    class="w-full mt-3 bg-salon-brown text-white text-sm py-2 rounded-lg hover:opacity-80 transition">
+                {% trans "カートに追加" %}
+            </button>
+            {% endif %}
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% else %}
+<div class="text-center py-16 text-gray-400">
+    <svg class="w-16 h-16 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/>
+    </svg>
+    <p>{% trans "商品が見つかりません" %}</p>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+var csrfToken = '{{ csrf_token }}';
+var cartAddUrl = '{% url "booking_api:cart_add_api" %}';
+
+function addToCart(productId) {
+    fetch(cartAddUrl, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': csrfToken,
+        },
+        body: JSON.stringify({ product_id: productId, qty: 1 }),
+    })
+    .then(function(resp) { return resp.json(); })
+    .then(function(data) {
+        if (data.status === 'ok') {
+            var badge = document.getElementById('cart-badge');
+            badge.textContent = data.cart_count;
+            badge.classList.remove('hidden');
+        } else {
+            alert(data.message || 'エラーが発生しました');
+        }
+    })
+    .catch(function(err) {
+        alert('ネットワークエラー: ' + err.message);
+    });
+}
+</script>
+{% endblock %}

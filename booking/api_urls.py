@@ -13,6 +13,7 @@ from .views_restaurant_dashboard import (
     ShiftSummaryAPIView,
 )
 from .views_property import PropertyStatusAPIView, PropertyAlertResolveAPIView
+from .views import CheckinAPIView, CartAddAPIView, CartUpdateAPIView, CartRemoveAPIView
 
 app_name = 'booking_api'
 
@@ -56,4 +57,12 @@ urlpatterns = [
     # Property APIs
     path('properties/<int:pk>/status/', PropertyStatusAPIView.as_view(), name='property_status_api'),
     path('alerts/<int:pk>/resolve/', PropertyAlertResolveAPIView.as_view(), name='alert_resolve_api'),
+
+    # Round3: QR Checkin API
+    path('checkin/', CheckinAPIView.as_view(), name='checkin_api'),
+
+    # Round3: EC Cart APIs
+    path('shop/cart/add/', CartAddAPIView.as_view(), name='cart_add_api'),
+    path('shop/cart/update/', CartUpdateAPIView.as_view(), name='cart_update_api'),
+    path('shop/cart/remove/', CartRemoveAPIView.as_view(), name='cart_remove_api'),
 ]

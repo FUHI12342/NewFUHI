@@ -21,6 +21,12 @@ from .views import (
     TokushohoView,
     StaffShiftCalendarView,
     StaffShiftSubmitView,
+    # Round3: QR + EC
+    ReservationQRView,
+    CheckinScanView,
+    ShopView,
+    CartView,
+    ShopCheckoutView,
 )
 
 
@@ -132,4 +138,13 @@ urlpatterns = [
     # Property monitoring
     path('properties/', views.PropertyListView.as_view(), name='property_list'),
     path('properties/<int:pk>/', views.PropertyDetailView.as_view(), name='property_detail'),
+
+    # Round3: QR Checkin
+    path('reservation/<str:reservation_number>/qr/', ReservationQRView.as_view(), name='reservation_qr'),
+    path('checkin/', CheckinScanView.as_view(), name='checkin_scan'),
+
+    # Round3: EC Shop
+    path('shop/', ShopView.as_view(), name='shop'),
+    path('shop/cart/', CartView.as_view(), name='shop_cart'),
+    path('shop/checkout/', ShopCheckoutView.as_view(), name='shop_checkout'),
 ]
