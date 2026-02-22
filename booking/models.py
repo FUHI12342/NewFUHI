@@ -1123,6 +1123,221 @@ class ExternalLink(models.Model):
 # 管理画面メニュー権限設定
 # ==============================
 
+# ==============================
+# 給与管理・勤怠管理
+# ==============================
+
+class EmploymentContract(models.Model):
+    """雇用契約（Staff 1:1）"""
+    EMPLOYMENT_TYPE_CHOICES = [
+        ('full_time', '正社員'),
+        ('part_time', 'パート・アルバイト'),
+        ('contract', '契約社員'),
+    ]
+    PAY_TYPE_CHOICES = [
+        ('hourly', '時給'),
+        ('monthly', '月給'),
+    ]
+
+    staff = models.OneToOneField(
+        Staff, verbose_name='スタッフ', on_delete=models.CASCADE, related_name='employment_contract',
+    )
+    employment_type = models.CharField('雇用形態', max_length=20, choices=EMPLOYMENT_TYPE_CHOICES, default='part_time')
+    pay_type = models.CharField('給与形態', max_length=10, choices=PAY_TYPE_CHOICES, default='hourly')
+    hourly_rate = models.IntegerField('時給（円）', default=0, help_text='時給制の場合に設定')
+    monthly_salary = models.IntegerField('月給（円）', default=0, help_text='月給制の場合に設定')
+
+    commute_allowance = models.IntegerField('通勤手当（円/月）', default=0)
+    housing_allowance = models.IntegerField('住宅手当（円/月）', default=0)
+    family_allowance = models.IntegerField('家族手当（円/月）', default=0)
+
+    standard_monthly_remuneration = models.IntegerField(
+        '標準報酬月額（円）', default=0,
+        help_text='社会保険料計算の基準額。4〜6月の平均報酬から算定。',
+    )
+    resident_tax_monthly = models.IntegerField('住民税月額（円）', default=0, help_text='特別徴収の月額')
+
+    birth_date = models.DateField('生年月日', null=True, blank=True, help_text='介護保険適用判定に使用（40歳以上）')
+    contract_start = models.DateField('契約開始日', null=True, blank=True)
+    contract_end = models.DateField('契約終了日', null=True, blank=True)
+    is_active = models.BooleanField('有効', default=True)
+
+    class Meta:
+        app_label = 'booking'
+        verbose_name = '雇用契約'
+        verbose_name_plural = '雇用契約'
+
+    def __str__(self):
+        return f'{self.staff.name} ({self.get_employment_type_display()} / {self.get_pay_type_display()})'
+
+
+class WorkAttendance(models.Model):
+    """勤怠記録"""
+    SOURCE_CHOICES = [
+        ('shift', 'シフトから自動生成'),
+        ('manual', '手動入力'),
+        ('corrected', '修正済み'),
+    ]
+
+    staff = models.ForeignKey(Staff, verbose_name='スタッフ', on_delete=models.CASCADE, related_name='attendances')
+    date = models.DateField('日付', db_index=True)
+    clock_in = models.TimeField('出勤時刻', null=True, blank=True)
+    clock_out = models.TimeField('退勤時刻', null=True, blank=True)
+
+    regular_minutes = models.IntegerField('通常勤務（分）', default=0)
+    overtime_minutes = models.IntegerField('残業（分）', default=0)
+    late_night_minutes = models.IntegerField('深夜勤務（分）', default=0)
+    holiday_minutes = models.IntegerField('休日勤務（分）', default=0)
+    break_minutes = models.IntegerField('休憩（分）', default=0)
+
+    source = models.CharField('データソース', max_length=20, choices=SOURCE_CHOICES, default='shift')
+    source_assignment = models.ForeignKey(
+        ShiftAssignment, verbose_name='元シフト', on_delete=models.SET_NULL,
+        null=True, blank=True, related_name='derived_attendances',
+    )
+
+    class Meta:
+        app_label = 'booking'
+        verbose_name = '勤怠記録'
+        verbose_name_plural = '勤怠記録'
+        unique_together = ('staff', 'date')
+        indexes = [
+            models.Index(fields=['staff', 'date']),
+            models.Index(fields=['date']),
+        ]
+
+    def __str__(self):
+        return f'{self.staff.name} {self.date} ({self.get_source_display()})'
+
+    @property
+    def total_work_minutes(self):
+        return self.regular_minutes + self.overtime_minutes + self.late_night_minutes + self.holiday_minutes
+
+
+class PayrollPeriod(models.Model):
+    """給与計算期間"""
+    STATUS_CHOICES = [
+        ('draft', '下書き'),
+        ('calculating', '計算中'),
+        ('confirmed', '確定'),
+        ('paid', '支払済'),
+    ]
+
+    store = models.ForeignKey(Store, verbose_name='店舗', on_delete=models.CASCADE, related_name='payroll_periods')
+    year_month = models.CharField('対象年月', max_length=7, help_text='YYYY-MM形式')
+    period_start = models.DateField('計算期間開始')
+    period_end = models.DateField('計算期間終了')
+    status = models.CharField('状態', max_length=20, choices=STATUS_CHOICES, default='draft')
+    payment_date = models.DateField('支給日', null=True, blank=True)
+    created_at = models.DateTimeField('作成日時', auto_now_add=True)
+    updated_at = models.DateTimeField('更新日時', auto_now=True)
+
+    class Meta:
+        app_label = 'booking'
+        verbose_name = '給与計算期間'
+        verbose_name_plural = '給与計算期間'
+        unique_together = ('store', 'year_month')
+
+    def __str__(self):
+        return f'{self.store.name} {self.year_month} ({self.get_status_display()})'
+
+
+class PayrollEntry(models.Model):
+    """個人別給与明細"""
+    period = models.ForeignKey(PayrollPeriod, verbose_name='給与期間', on_delete=models.CASCADE, related_name='entries')
+    staff = models.ForeignKey(Staff, verbose_name='スタッフ', on_delete=models.CASCADE, related_name='payroll_entries')
+    contract = models.ForeignKey(
+        EmploymentContract, verbose_name='雇用契約', on_delete=models.SET_NULL,
+        null=True, blank=True, related_name='payroll_entries',
+    )
+
+    total_work_days = models.IntegerField('出勤日数', default=0)
+    total_regular_hours = models.DecimalField('通常勤務時間', max_digits=6, decimal_places=2, default=0)
+    total_overtime_hours = models.DecimalField('残業時間', max_digits=6, decimal_places=2, default=0)
+    total_late_night_hours = models.DecimalField('深夜勤務時間', max_digits=6, decimal_places=2, default=0)
+    total_holiday_hours = models.DecimalField('休日勤務時間', max_digits=6, decimal_places=2, default=0)
+
+    base_pay = models.IntegerField('基本給', default=0)
+    overtime_pay = models.IntegerField('残業手当', default=0)
+    late_night_pay = models.IntegerField('深夜手当', default=0)
+    holiday_pay = models.IntegerField('休日手当', default=0)
+    allowances = models.IntegerField('各種手当合計', default=0, help_text='通勤+住宅+家族手当')
+
+    gross_pay = models.IntegerField('総支給額', default=0)
+    total_deductions = models.IntegerField('控除合計', default=0)
+    net_pay = models.IntegerField('差引支給額', default=0)
+
+    created_at = models.DateTimeField('作成日時', auto_now_add=True)
+    updated_at = models.DateTimeField('更新日時', auto_now=True)
+
+    class Meta:
+        app_label = 'booking'
+        verbose_name = '給与明細'
+        verbose_name_plural = '給与明細'
+        unique_together = ('period', 'staff')
+
+    def __str__(self):
+        return f'{self.staff.name} {self.period.year_month} 総支給:{self.gross_pay:,}円'
+
+
+class PayrollDeduction(models.Model):
+    """控除明細行"""
+    DEDUCTION_TYPE_CHOICES = [
+        ('income_tax', '所得税（源泉徴収）'),
+        ('resident_tax', '住民税'),
+        ('pension', '厚生年金'),
+        ('health_insurance', '健康保険'),
+        ('employment_insurance', '雇用保険'),
+        ('long_term_care', '介護保険'),
+        ('workers_comp', '労災保険'),
+        ('other', 'その他'),
+    ]
+
+    entry = models.ForeignKey(PayrollEntry, verbose_name='給与明細', on_delete=models.CASCADE, related_name='deductions')
+    deduction_type = models.CharField('控除種別', max_length=30, choices=DEDUCTION_TYPE_CHOICES)
+    amount = models.IntegerField('金額', default=0)
+    is_employer_only = models.BooleanField('事業主負担のみ', default=False, help_text='労災保険等、従業員控除なし')
+
+    class Meta:
+        app_label = 'booking'
+        verbose_name = '控除明細'
+        verbose_name_plural = '控除明細'
+
+    def __str__(self):
+        label = self.get_deduction_type_display()
+        return f'{label}: {self.amount:,}円'
+
+
+class SalaryStructure(models.Model):
+    """給与体系（Store 1:1）— 社会保険料率・割増率"""
+    store = models.OneToOneField(Store, verbose_name='店舗', on_delete=models.CASCADE, related_name='salary_structure')
+
+    # 社会保険料率（従業員負担分、%表記→小数で格納）
+    pension_rate = models.DecimalField('厚生年金料率(%)', max_digits=5, decimal_places=3, default=9.150,
+        help_text='従業員負担分 例: 9.150')
+    health_insurance_rate = models.DecimalField('健康保険料率(%)', max_digits=5, decimal_places=3, default=5.000,
+        help_text='従業員負担分 例: 5.000（協会けんぽ東京支部）')
+    employment_insurance_rate = models.DecimalField('雇用保険料率(%)', max_digits=5, decimal_places=3, default=0.600,
+        help_text='従業員負担分 例: 0.600')
+    long_term_care_rate = models.DecimalField('介護保険料率(%)', max_digits=5, decimal_places=3, default=0.820,
+        help_text='40歳以上のみ適用 例: 0.820')
+    workers_comp_rate = models.DecimalField('労災保険料率(%)', max_digits=5, decimal_places=3, default=0.300,
+        help_text='事業主全額負担（記録用） 例: 0.300')
+
+    # 割増率
+    overtime_multiplier = models.DecimalField('残業割増率', max_digits=4, decimal_places=2, default=1.25)
+    late_night_multiplier = models.DecimalField('深夜割増率', max_digits=4, decimal_places=2, default=1.35)
+    holiday_multiplier = models.DecimalField('休日割増率', max_digits=4, decimal_places=2, default=1.50)
+
+    class Meta:
+        app_label = 'booking'
+        verbose_name = '給与体系'
+        verbose_name_plural = '給与体系'
+
+    def __str__(self):
+        return f'{self.store.name} 給与体系'
+
+
 class AdminMenuConfig(models.Model):
     """ロールごとの管理画面サイドバー表示メニュー設定"""
     ROLE_CHOICES = [

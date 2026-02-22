@@ -47,6 +47,12 @@ urlpatterns += i18n_patterns(
         name="admin_iot_device_debug",
     ),
     path(
+        "admin/dashboard/sales/",
+        custom_site.admin_view(RestaurantDashboardView.as_view()),
+        name="admin_sales_dashboard",
+    ),
+    # 旧パス維持（後方互換）
+    path(
         "admin/dashboard/restaurant/",
         custom_site.admin_view(RestaurantDashboardView.as_view()),
         name="admin_restaurant_dashboard",

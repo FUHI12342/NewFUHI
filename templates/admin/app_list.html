@@ -1,13 +1,51 @@
 {% load i18n %}
 
+{% comment %}
+GROUP_ICONS: SVG icons for sidebar group labels
+{% endcomment %}
+
 {% for app in app_list %}
-<div class="app-module module">
-    <h2 style="cursor:pointer;user-select:none;" onclick="toggleGroup(this)" data-group="{{ app.name }}">
-        <span class="collapse-icon" style="display:inline-block;transition:transform 0.2s;">&#x1F53B;</span> {{ app.name }}
+<div class="app-module module tw-app-module" draggable="true" data-group="{{ app.name }}">
+    <h2 class="tw-group-header" style="cursor:grab;user-select:none;" data-group="{{ app.name }}">
+        <span class="drag-handle" title="ドラッグして並べ替え" style="cursor:grab;margin-right:4px;opacity:0.4;font-size:10px;">&#x2630;</span>
+        <!-- Group SVG Icon -->
+        <span class="tw-group-icon">
+        {% if app.name == '予約管理' %}
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+        {% elif app.name == 'シフト管理' %}
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        {% elif app.name == 'スタッフ管理' %}
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        {% elif app.name == '給与管理' %}
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+        {% elif app.name == '勤怠管理' %}
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1" ry="1"/><path d="M9 14l2 2 4-4"/></svg>
+        {% elif app.name == '在庫管理' %}
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
+        {% elif app.name == '注文管理' %}
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
+        {% elif app.name == 'IoT管理' %}
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="16" height="16" rx="2" ry="2"/><rect x="9" y="9" width="6" height="6"/><line x1="9" y1="1" x2="9" y2="4"/><line x1="15" y1="1" x2="15" y2="4"/><line x1="9" y1="20" x2="9" y2="23"/><line x1="15" y1="20" x2="15" y2="23"/><line x1="20" y1="9" x2="23" y2="9"/><line x1="20" y1="14" x2="23" y2="14"/><line x1="1" y1="9" x2="4" y2="9"/><line x1="1" y1="14" x2="4" y2="14"/></svg>
+        {% elif app.name == '物件管理' %}
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+        {% elif app.name == '予約ページ情報' %}
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+        {% elif app.name == 'ページ設定' %}
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+        {% elif app.name == 'システム' %}
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+        {% elif app.name == 'ユーザーアカウント管理' %}
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+        {% else %}
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        {% endif %}
+        </span>
+        <span class="collapse-icon" style="display:inline-block;transition:transform 0.2s;font-size:10px;opacity:0.5;">&#x25BC;</span>
+        <span class="group-label">{{ app.name }}</span>
     </h2>
-    <table class="group-content">
+    <table class="group-content tw-group-table">
         {% for model in app.models %}
-        <tr class="model-{{ model.object_name|lower }}">
+        <tr class="model-{{ model.object_name|lower }} tw-model-row" draggable="true" data-model="{{ model.object_name|lower }}" data-group="{{ app.name }}">
             {% if model.admin_url %}
             <th scope="row"><a href="{{ model.admin_url }}">{{ model.name }}</a></th>
             {% else %}
@@ -33,25 +71,159 @@
 </div>
 {% endfor %}
 
+<style>
+/* Tailwind-inspired module styles */
+.tw-app-module {
+    background: #fff;
+    border: 1px solid var(--gray-200, #e5e7eb);
+    border-radius: 12px;
+    margin-bottom: 12px;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+    overflow: hidden;
+    transition: transform 0.15s, box-shadow 0.15s;
+}
+.tw-app-module:hover {
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+}
+
+.tw-group-header {
+    display: flex !important;
+    align-items: center;
+    gap: 6px;
+    padding: 10px 14px !important;
+    font-size: 13px !important;
+    font-weight: 600 !important;
+    color: #fff !important;
+    background: var(--brand-primary, #465fff) !important;
+    border-radius: 0 !important;
+    margin: 0 !important;
+}
+.tw-group-icon {
+    display: inline-flex;
+    align-items: center;
+    opacity: 0.9;
+}
+.tw-group-icon svg {
+    stroke: #fff;
+}
+
+.tw-group-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+.tw-model-row {
+    border-bottom: 1px solid var(--gray-100, #f3f4f6);
+    transition: background 0.1s;
+}
+.tw-model-row:last-child {
+    border-bottom: none;
+}
+.tw-model-row:hover {
+    background: var(--gray-50, #f9fafb);
+}
+.tw-model-row th {
+    padding: 8px 14px;
+    font-weight: 500;
+    font-size: 13px;
+}
+.tw-model-row td {
+    padding: 8px 10px;
+    font-size: 12px;
+}
+.tw-model-row a.addlink,
+.tw-model-row a.changelink,
+.tw-model-row a.viewlink {
+    font-size: 12px;
+    padding: 2px 8px;
+    border-radius: 4px;
+    text-decoration: none;
+}
+.tw-model-row a.addlink:hover,
+.tw-model-row a.changelink:hover,
+.tw-model-row a.viewlink:hover {
+    background: var(--gray-100, #f3f4f6);
+}
+
+/* Drag & Drop */
+.app-module.dragging {
+    opacity: 0.5;
+    transform: scale(0.98);
+    box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+}
+.app-module.drag-over {
+    border-top: 3px solid var(--brand-primary, #465fff);
+    margin-top: -3px;
+}
+.app-module h2 .drag-handle:hover {
+    opacity: 1 !important;
+}
+
+/* Model row drag */
+.group-content tr.dragging {
+    opacity: 0.4;
+    background: #eef2ff;
+}
+.group-content tr.model-drag-over {
+    border-top: 2px solid var(--brand-primary, #465fff);
+}
+
+/* Edit bar */
+.sidebar-edit-bar {
+    display: flex;
+    gap: 6px;
+    padding: 8px 12px;
+    margin-bottom: 12px;
+    background: #fff;
+    border: 1px solid var(--gray-200, #e5e7eb);
+    border-radius: 10px;
+    align-items: center;
+    font-size: 12px;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+}
+.sidebar-edit-bar button {
+    padding: 4px 12px;
+    border: 1px solid var(--gray-200, #e5e7eb);
+    border-radius: 6px;
+    background: #fff;
+    cursor: pointer;
+    font-size: 12px;
+    transition: background 0.15s;
+}
+.sidebar-edit-bar button:hover {
+    background: var(--gray-50, #f9fafb);
+}
+.sidebar-edit-bar button.active {
+    background: var(--brand-primary, #465fff);
+    color: #fff;
+    border-color: var(--brand-primary, #465fff);
+}
+.sidebar-edit-bar .edit-label {
+    color: var(--gray-500, #6b7280);
+    margin-right: auto;
+}
+</style>
+
 <script>
 (function() {
-    var STORAGE_KEY = 'admin_collapsed_groups';
+    var COLLAPSED_KEY = 'admin_collapsed_groups';
+    var ORDER_KEY = 'admin_group_order';
+    var ITEM_ORDER_KEY = 'admin_item_order';
 
+    // ======== 折りたたみ ========
     function getCollapsed() {
-        try {
-            return JSON.parse(localStorage.getItem(STORAGE_KEY)) || {};
-        } catch(e) {
-            return {};
-        }
+        try { return JSON.parse(localStorage.getItem(COLLAPSED_KEY)) || {}; }
+        catch(e) { return {}; }
     }
-
     function saveCollapsed(collapsed) {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(collapsed));
+        localStorage.setItem(COLLAPSED_KEY, JSON.stringify(collapsed));
     }
 
     window.toggleGroup = function(h2) {
         var groupName = h2.getAttribute('data-group');
         var table = h2.nextElementSibling;
+        while (table && !table.classList.contains('group-content')) {
+            table = table.nextElementSibling;
+        }
         var icon = h2.querySelector('.collapse-icon');
         var collapsed = getCollapsed();
 
@@ -67,20 +239,283 @@
         saveCollapsed(collapsed);
     };
 
-    // Restore state on load
+    // ======== グループ並び順 ========
+    function getGroupOrder() {
+        try { return JSON.parse(localStorage.getItem(ORDER_KEY)) || null; }
+        catch(e) { return null; }
+    }
+    function saveGroupOrder(order) {
+        localStorage.setItem(ORDER_KEY, JSON.stringify(order));
+    }
+
+    function applyGroupOrder() {
+        var order = getGroupOrder();
+        if (!order) return;
+        var modules = document.querySelectorAll('.app-module[data-group]');
+        if (modules.length === 0) return;
+        var parent = modules[0].parentNode;
+
+        var moduleMap = {};
+        modules.forEach(function(m) {
+            moduleMap[m.getAttribute('data-group')] = m;
+        });
+
+        var fragment = document.createDocumentFragment();
+        var placed = new Set();
+        order.forEach(function(name) {
+            if (moduleMap[name]) {
+                fragment.appendChild(moduleMap[name]);
+                placed.add(name);
+            }
+        });
+        modules.forEach(function(m) {
+            var name = m.getAttribute('data-group');
+            if (!placed.has(name)) {
+                fragment.appendChild(m);
+            }
+        });
+
+        var scripts = parent.querySelectorAll('script, style');
+        parent.innerHTML = '';
+        parent.appendChild(fragment);
+        scripts.forEach(function(s) { parent.appendChild(s); });
+    }
+
+    // ======== アイテム並び順 ========
+    function getItemOrder() {
+        try { return JSON.parse(localStorage.getItem(ITEM_ORDER_KEY)) || {}; }
+        catch(e) { return {}; }
+    }
+    function saveItemOrder(order) {
+        localStorage.setItem(ITEM_ORDER_KEY, JSON.stringify(order));
+    }
+
+    function applyItemOrder() {
+        var itemOrder = getItemOrder();
+        document.querySelectorAll('.app-module[data-group]').forEach(function(mod) {
+            var groupName = mod.getAttribute('data-group');
+            var order = itemOrder[groupName];
+            if (!order) return;
+            var table = mod.querySelector('.group-content');
+            if (!table) return;
+            var rows = {};
+            table.querySelectorAll('tr[data-model]').forEach(function(tr) {
+                rows[tr.getAttribute('data-model')] = tr;
+            });
+            var placed = new Set();
+            order.forEach(function(modelKey) {
+                if (rows[modelKey]) {
+                    table.appendChild(rows[modelKey]);
+                    placed.add(modelKey);
+                }
+            });
+            Object.keys(rows).forEach(function(key) {
+                if (!placed.has(key)) {
+                    table.appendChild(rows[key]);
+                }
+            });
+        });
+    }
+
+    // ======== グループ D&D ========
+    function setupGroupDragDrop() {
+        var modules = document.querySelectorAll('.app-module[data-group]');
+        var draggedModule = null;
+
+        modules.forEach(function(mod) {
+            mod.addEventListener('dragstart', function(e) {
+                if (e.target !== mod) return;
+                draggedModule = mod;
+                mod.classList.add('dragging');
+                e.dataTransfer.effectAllowed = 'move';
+                e.dataTransfer.setData('text/plain', mod.getAttribute('data-group'));
+            });
+
+            mod.addEventListener('dragend', function() {
+                mod.classList.remove('dragging');
+                document.querySelectorAll('.app-module.drag-over').forEach(function(m) {
+                    m.classList.remove('drag-over');
+                });
+                draggedModule = null;
+                var newOrder = [];
+                document.querySelectorAll('.app-module[data-group]').forEach(function(m) {
+                    newOrder.push(m.getAttribute('data-group'));
+                });
+                saveGroupOrder(newOrder);
+            });
+
+            mod.addEventListener('dragover', function(e) {
+                if (!draggedModule || draggedModule === mod) return;
+                if (e.dataTransfer.types.indexOf('text/model') >= 0) return;
+                e.preventDefault();
+                e.dataTransfer.dropEffect = 'move';
+                mod.classList.add('drag-over');
+            });
+
+            mod.addEventListener('dragleave', function() {
+                mod.classList.remove('drag-over');
+            });
+
+            mod.addEventListener('drop', function(e) {
+                if (!draggedModule || draggedModule === mod) return;
+                e.preventDefault();
+                mod.classList.remove('drag-over');
+                var parent = mod.parentNode;
+                var rect = mod.getBoundingClientRect();
+                var midY = rect.top + rect.height / 2;
+                if (e.clientY < midY) {
+                    parent.insertBefore(draggedModule, mod);
+                } else {
+                    parent.insertBefore(draggedModule, mod.nextSibling);
+                }
+            });
+        });
+    }
+
+    // ======== モデル行 D&D ========
+    function setupItemDragDrop() {
+        document.querySelectorAll('.group-content tr[data-model]').forEach(function(tr) {
+            tr.addEventListener('dragstart', function(e) {
+                e.stopPropagation();
+                tr.classList.add('dragging');
+                e.dataTransfer.effectAllowed = 'move';
+                e.dataTransfer.setData('text/model', tr.getAttribute('data-model'));
+                e.dataTransfer.setData('text/source-group', tr.getAttribute('data-group'));
+            });
+
+            tr.addEventListener('dragend', function() {
+                tr.classList.remove('dragging');
+                document.querySelectorAll('tr.model-drag-over').forEach(function(r) {
+                    r.classList.remove('model-drag-over');
+                });
+                var itemOrder = {};
+                document.querySelectorAll('.app-module[data-group]').forEach(function(mod) {
+                    var groupName = mod.getAttribute('data-group');
+                    var order = [];
+                    mod.querySelectorAll('tr[data-model]').forEach(function(r) {
+                        order.push(r.getAttribute('data-model'));
+                    });
+                    itemOrder[groupName] = order;
+                });
+                saveItemOrder(itemOrder);
+            });
+
+            tr.addEventListener('dragover', function(e) {
+                if (e.dataTransfer.types.indexOf('text/model') < 0) return;
+                e.preventDefault();
+                e.stopPropagation();
+                e.dataTransfer.dropEffect = 'move';
+                tr.classList.add('model-drag-over');
+            });
+
+            tr.addEventListener('dragleave', function() {
+                tr.classList.remove('model-drag-over');
+            });
+
+            tr.addEventListener('drop', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                tr.classList.remove('model-drag-over');
+                var draggedModel = e.dataTransfer.getData('text/model');
+                var draggedRow = document.querySelector('tr[data-model="' + draggedModel + '"]');
+                if (!draggedRow || draggedRow === tr) return;
+                var table = tr.closest('table');
+                var rect = tr.getBoundingClientRect();
+                var midY = rect.top + rect.height / 2;
+                if (e.clientY < midY) {
+                    table.insertBefore(draggedRow, tr);
+                } else {
+                    table.insertBefore(draggedRow, tr.nextSibling);
+                }
+            });
+        });
+    }
+
+    // ======== 編集バー ========
+    function createEditBar() {
+        var modules = document.querySelectorAll('.app-module[data-group]');
+        if (modules.length === 0) return;
+        var parent = modules[0].parentNode;
+
+        var bar = document.createElement('div');
+        bar.className = 'sidebar-edit-bar';
+
+        var label = document.createElement('span');
+        label.className = 'edit-label';
+        label.textContent = '\u30e1\u30cb\u30e5\u30fc\u64cd\u4f5c:';
+        bar.appendChild(label);
+
+        var expandBtn = document.createElement('button');
+        expandBtn.type = 'button';
+        expandBtn.textContent = '\u5168\u5c55\u958b';
+        expandBtn.addEventListener('click', function() {
+            document.querySelectorAll('.app-module[data-group]').forEach(function(m) {
+                var table = m.querySelector('.group-content');
+                var icon = m.querySelector('.collapse-icon');
+                if (table) table.style.display = '';
+                if (icon) icon.style.transform = 'rotate(0deg)';
+            });
+            saveCollapsed({});
+        });
+        bar.appendChild(expandBtn);
+
+        var collapseBtn = document.createElement('button');
+        collapseBtn.type = 'button';
+        collapseBtn.textContent = '\u5168\u6298\u308a\u305f\u305f\u307f';
+        collapseBtn.addEventListener('click', function() {
+            var collapsed = {};
+            document.querySelectorAll('.app-module[data-group]').forEach(function(m) {
+                var name = m.getAttribute('data-group');
+                var table = m.querySelector('.group-content');
+                var icon = m.querySelector('.collapse-icon');
+                if (table) table.style.display = 'none';
+                if (icon) icon.style.transform = 'rotate(-90deg)';
+                collapsed[name] = true;
+            });
+            saveCollapsed(collapsed);
+        });
+        bar.appendChild(collapseBtn);
+
+        var resetBtn = document.createElement('button');
+        resetBtn.type = 'button';
+        resetBtn.textContent = '\u4e26\u3073\u9806\u30ea\u30bb\u30c3\u30c8';
+        resetBtn.addEventListener('click', function() {
+            localStorage.removeItem(ORDER_KEY);
+            localStorage.removeItem(ITEM_ORDER_KEY);
+            location.reload();
+        });
+        bar.appendChild(resetBtn);
+
+        parent.insertBefore(bar, parent.firstChild);
+    }
+
+    // ======== 初期化 ========
     document.addEventListener('DOMContentLoaded', function() {
+        applyGroupOrder();
+        applyItemOrder();
+
         var collapsed = getCollapsed();
         var headers = document.querySelectorAll('.app-module h2[data-group]');
-        for (var i = 0; i < headers.length; i++) {
-            var h2 = headers[i];
+        headers.forEach(function(h2) {
             var groupName = h2.getAttribute('data-group');
             if (collapsed[groupName]) {
                 var table = h2.nextElementSibling;
+                while (table && !table.classList.contains('group-content')) {
+                    table = table.nextElementSibling;
+                }
                 var icon = h2.querySelector('.collapse-icon');
                 if (table) table.style.display = 'none';
                 if (icon) icon.style.transform = 'rotate(-90deg)';
             }
-        }
+            h2.addEventListener('click', function(e) {
+                if (e.target.classList.contains('drag-handle')) return;
+                toggleGroup(h2);
+            });
+        });
+
+        setupGroupDragDrop();
+        setupItemDragDrop();
+        createEditBar();
     });
 })();
 </script>

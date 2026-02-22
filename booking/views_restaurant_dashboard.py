@@ -35,7 +35,7 @@ class RestaurantDashboardView(TemplateView):
 
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
-        ctx['title'] = '飲食店ダッシュボード'
+        ctx['title'] = '売り上げダッシュボード'
         ctx['has_permission'] = True
         return ctx
 

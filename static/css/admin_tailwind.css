@@ -1,0 +1,206 @@
+/*
+ * admin_tailwind.css
+ * Django admin Tailwind-inspired style overrides
+ * Brand color system via CSS custom properties (set in base_site.html)
+ */
+
+/* ==============================
+   Global Reset & Typography
+   ============================== */
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    background: var(--gray-50, #f9fafb);
+}
+
+/* ==============================
+   Dashboard Cards
+   ============================== */
+.dashboard #content-main {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 16px;
+}
+
+@media (min-width: 768px) {
+    .dashboard #content-main {
+        grid-template-columns: 1fr 300px;
+    }
+}
+
+/* ==============================
+   Module Cards
+   ============================== */
+.module {
+    border: 1px solid var(--gray-200, #e5e7eb);
+    border-radius: 12px;
+    background: #fff;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+    overflow: hidden;
+}
+
+.module h2,
+.module caption {
+    font-size: 13px;
+    font-weight: 600;
+    padding: 10px 16px;
+    margin: 0;
+}
+
+/* ==============================
+   Tables
+   ============================== */
+table {
+    border-collapse: collapse;
+    width: 100%;
+}
+
+/* ==============================
+   Status Badges
+   ============================== */
+.tw-badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 9999px;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.025em;
+}
+.tw-badge-success {
+    background: rgba(18, 183, 106, 0.1);
+    color: #12b76a;
+}
+.tw-badge-error {
+    background: rgba(240, 68, 56, 0.1);
+    color: #f04438;
+}
+.tw-badge-warning {
+    background: rgba(247, 144, 9, 0.1);
+    color: #f79009;
+}
+.tw-badge-info {
+    background: rgba(70, 95, 255, 0.1);
+    color: #465fff;
+}
+
+/* ==============================
+   Buttons
+   ============================== */
+.button, input[type="submit"], button.default, .submit-row input {
+    font-family: inherit;
+    font-weight: 500;
+    transition: all 0.15s ease;
+}
+
+a.button {
+    border-radius: 8px;
+    padding: 8px 16px;
+    font-size: 13px;
+    text-decoration: none;
+}
+
+/* ==============================
+   Messages
+   ============================== */
+.messagelist li {
+    border-radius: 8px;
+    margin-bottom: 8px;
+    padding: 10px 16px;
+    font-size: 13px;
+}
+.messagelist li.success {
+    background: rgba(18, 183, 106, 0.08);
+    border-left: 4px solid #12b76a;
+    color: #065f46;
+}
+.messagelist li.error {
+    background: rgba(240, 68, 56, 0.08);
+    border-left: 4px solid #f04438;
+    color: #991b1b;
+}
+.messagelist li.warning {
+    background: rgba(247, 144, 9, 0.08);
+    border-left: 4px solid #f79009;
+    color: #92400e;
+}
+.messagelist li.info {
+    background: rgba(70, 95, 255, 0.08);
+    border-left: 4px solid #465fff;
+    color: #1e40af;
+}
+
+/* ==============================
+   Object Tools (top-right action links)
+   ============================== */
+.object-tools li a {
+    border-radius: 6px !important;
+    padding: 6px 14px !important;
+    font-size: 12px !important;
+    font-weight: 500;
+    transition: opacity 0.15s;
+}
+.object-tools li a:hover {
+    opacity: 0.85;
+}
+
+/* ==============================
+   Recent Actions
+   ============================== */
+#recent-actions-module {
+    border-radius: 12px;
+    overflow: hidden;
+}
+#recent-actions-module h2 {
+    background: var(--gray-100, #f3f4f6) !important;
+    color: var(--gray-700, #374151) !important;
+}
+#recent-actions-module li {
+    padding: 8px 14px;
+    font-size: 13px;
+    border-bottom: 1px solid var(--gray-100, #f3f4f6);
+}
+#recent-actions-module li:last-child {
+    border-bottom: none;
+}
+
+/* ==============================
+   Login Page
+   ============================== */
+body.login #container {
+    background: var(--gray-50, #f9fafb);
+}
+body.login #content {
+    background: #fff;
+    border: 1px solid var(--gray-200, #e5e7eb);
+    border-radius: 16px;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.06);
+    padding: 32px;
+}
+body.login #header {
+    border-radius: 16px 16px 0 0;
+}
+
+/* ==============================
+   Calendar & Date Widgets
+   ============================== */
+.calendarbox {
+    border-radius: 8px;
+    border: 1px solid var(--gray-200, #e5e7eb);
+    box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+}
+
+/* ==============================
+   Responsive Tweaks
+   ============================== */
+@media (max-width: 767px) {
+    #header {
+        padding: 10px 16px !important;
+    }
+    #content {
+        padding: 16px !important;
+    }
+    #site-name a {
+        font-size: 15px !important;
+    }
+}
