@@ -686,9 +686,6 @@ msgstr ""
 msgid "センサーモニタ"
 msgstr "Monitor de Sensores"
 
-msgid "デバッグパネル"
-msgstr "Painel de Depuração"
-
 msgid "システム状態とログ監視"
 msgstr "Status do sistema e monitoramento de logs"
 
@@ -700,9 +697,6 @@ msgstr "Tendências de vendas e estatísticas de reservas"
 
 msgid "IoTセンサーリアルタイム監視"
 msgstr "Monitoramento em tempo real de sensores IoT"
-
-msgid "デバイス"
-msgstr "Dispositivo"
 
 msgid "表示件数"
 msgstr "Itens exibidos"
@@ -724,3 +718,40 @@ msgstr "Valor MQ-9"
 
 msgid "データがありません。"
 msgstr "Nenhum dado disponível."
+
+#: Phase2 batch2: Cartões da página principal + administração
+msgid "占いサロンチャンス　ご予約"
+msgstr "Salão de Adivinhação Chance - Reservas"
+
+msgid "ご予約方法を選択してください"
+msgstr "Selecione o método de reserva"
+
+msgid "店舗から選ぶ"
+msgstr "Buscar por loja"
+
+msgid "お近くの店舗を選んで、在籍する占い師の中から予約できます。"
+msgstr "Escolha uma loja próxima e reserve com um de nossos adivinhos."
+
+msgid "店舗一覧へ"
+msgstr "Ver lojas"
+
+msgid "占い師から選ぶ"
+msgstr "Buscar por adivinho"
+
+msgid "全店舗の占い師一覧から、お気に入りの占い師を見つけて予約できます。"
+msgstr "Explore adivinhos de todas as lojas e reserve com seu favorito."
+
+msgid "占い師一覧へ"
+msgstr "Ver adivinhos"
+
+msgid "日付から選ぶ"
+msgstr "Buscar por data"
+
+msgid "ご希望の日付を選んで、その日に空きのある占い師を探せます。"
+msgstr "Selecione a data desejada para encontrar adivinhos disponíveis."
+
+msgid "カレンダーへ"
+msgstr "Ver calendário"
+
+msgid "最近行った操作"
+msgstr "Ações recentes"

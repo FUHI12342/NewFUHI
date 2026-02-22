@@ -18,7 +18,7 @@
 {{ block.super }}
 <form action="{% url 'set_language' %}" method="post" style="display:inline;margin-left:10px;">
     {% csrf_token %}
-    <input type="hidden" name="next" value="{{ request.path }}">
+    <input type="hidden" name="next" value="/admin/">
     <select name="language" onchange="this.form.submit()" class="tw-lang-select">
         {% for lang_code, lang_name in available_languages %}
         <option value="{{ lang_code }}" {% if lang_code == current_language %}selected{% endif %}>{{ lang_name }}</option>

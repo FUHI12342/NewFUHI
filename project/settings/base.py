@@ -141,7 +141,7 @@ DEFAULT_AUTO_FIELD = "django.db.models.AutoField"
 
 # Auth redirects
 LOGIN_URL = "booking:login"
-LOGIN_REDIRECT_URL = "booking:store_list"
+LOGIN_REDIRECT_URL = "booking:login_redirect"
 LOGOUT_REDIRECT_URL = "booking:login"
 
 # Public holidays (preserved from original settings)

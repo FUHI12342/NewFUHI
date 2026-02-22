@@ -741,8 +741,8 @@ custom_site.register(HomepageCustomBlock, HomepageCustomBlockAdmin)
 # Round 4.5: ヒーローバナー / バナー広告 / 外部リンク
 # ==============================
 class HeroBannerAdmin(admin.ModelAdmin):
-    list_display = ('title', 'sort_order', 'is_active', 'link_url', 'updated_at')
-    list_editable = ('sort_order', 'is_active')
+    list_display = ('title', 'sort_order', 'is_active', 'image_position', 'link_url', 'updated_at')
+    list_editable = ('sort_order', 'is_active', 'image_position')
     search_fields = ('title',)
 
 

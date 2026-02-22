@@ -1054,8 +1054,24 @@ class HomepageCustomBlock(models.Model):
 
 class HeroBanner(models.Model):
     """ヒーローバナースライダー"""
+    IMAGE_POSITION_CHOICES = [
+        ('center', '中央'),
+        ('top', '上'),
+        ('bottom', '下'),
+        ('left', '左'),
+        ('right', '右'),
+        ('top left', '左上'),
+        ('top right', '右上'),
+        ('bottom left', '左下'),
+        ('bottom right', '右下'),
+    ]
     title = models.CharField('タイトル', max_length=200)
     image = models.ImageField('バナー画像', upload_to='hero_banners/')
+    image_position = models.CharField(
+        '画像表示位置', max_length=20,
+        choices=IMAGE_POSITION_CHOICES, default='center',
+        help_text='バナー内で画像のどの部分を表示するかを指定します',
+    )
     link_url = models.URLField('リンクURL', blank=True, default='')
     sort_order = models.IntegerField('並び順', default=0)
     is_active = models.BooleanField('公開', default=True)

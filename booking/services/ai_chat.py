@@ -1,5 +1,6 @@
 # booking/services/ai_chat.py
-"""AI Chat services using Claude API with RAG knowledge bases."""
+"""AI Chat services using Google Gemini API with RAG knowledge bases."""
+import json
 import logging
 import os
 
@@ -9,6 +10,8 @@ logger = logging.getLogger(__name__)
 
 # Cache for knowledge file contents
 _knowledge_cache = {}
+
+GEMINI_API_KEY = 'AIzaSyA9v0lQ9bZHW-vsYFt-pBOqmV0w6WTYQlw'
 
 
 def _load_knowledge(file_path):
@@ -27,17 +30,62 @@ def _load_knowledge(file_path):
         return ''
 
 
-def _get_client():
-    """Get Anthropic client, or None if not configured."""
-    api_key = getattr(settings, 'ANTHROPIC_API_KEY', '') or os.getenv('ANTHROPIC_API_KEY', '')
+def _call_gemini(system_prompt, knowledge, user_message, conversation_history=None):
+    """Call Google Gemini API."""
+    import urllib.request
+
+    api_key = getattr(settings, 'GEMINI_API_KEY', '') or GEMINI_API_KEY
     if not api_key:
-        return None
+        return 'AI チャットは現在利用できません。API キーが設定されていません。'
+
+    url = f'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key={api_key}'
+
+    # Build conversation contents
+    contents = []
+
+    # Add conversation history
+    if conversation_history:
+        for msg in conversation_history[-10:]:
+            role = 'user' if msg.get('role') == 'user' else 'model'
+            contents.append({
+                'role': role,
+                'parts': [{'text': msg.get('content', '')}],
+            })
+
+    # Add current user message with knowledge context
+    full_user_message = f"{system_prompt}\n\n---\nナレッジベース:\n{knowledge}\n\n---\nユーザーの質問: {user_message}"
+    contents.append({
+        'role': 'user',
+        'parts': [{'text': full_user_message}],
+    })
+
+    payload = json.dumps({
+        'contents': contents,
+        'generationConfig': {
+            'maxOutputTokens': 1024,
+            'temperature': 0.7,
+        },
+    }).encode('utf-8')
+
+    req = urllib.request.Request(
+        url,
+        data=payload,
+        headers={'Content-Type': 'application/json'},
+        method='POST',
+    )
+
     try:
-        import anthropic
-        return anthropic.Anthropic(api_key=api_key)
-    except ImportError:
-        logger.warning('anthropic package not installed')
-        return None
+        with urllib.request.urlopen(req, timeout=30) as resp:
+            data = json.loads(resp.read().decode('utf-8'))
+        candidates = data.get('candidates', [])
+        if candidates:
+            parts = candidates[0].get('content', {}).get('parts', [])
+            if parts:
+                return parts[0].get('text', 'レスポンスが空でした。')
+        return 'レスポンスを取得できませんでした。'
+    except Exception as e:
+        logger.error('Gemini API error: %s', e)
+        return 'エラーが発生しました。しばらく経ってからお試しください。'
 
 
 class AdminChatService:
@@ -51,33 +99,8 @@ class AdminChatService:
     )
 
     def get_response(self, user_message, conversation_history=None):
-        client = _get_client()
-        if not client:
-            return 'AI チャットは現在利用できません。ANTHROPIC_API_KEY が設定されていません。'
-
         knowledge = _load_knowledge(self.KNOWLEDGE_FILE)
-
-        messages = []
-        if conversation_history:
-            for msg in conversation_history[-10:]:  # Last 10 messages
-                messages.append({
-                    'role': msg.get('role', 'user'),
-                    'content': msg.get('content', ''),
-                })
-
-        messages.append({'role': 'user', 'content': user_message})
-
-        try:
-            response = client.messages.create(
-                model='claude-haiku-4-5-20251001',
-                max_tokens=1024,
-                system=f"{self.SYSTEM_PROMPT}\n\n---\nナレッジベース:\n{knowledge}",
-                messages=messages,
-            )
-            return response.content[0].text
-        except Exception as e:
-            logger.error('AI chat error: %s', e)
-            return 'エラーが発生しました。しばらく経ってからお試しください。'
+        return _call_gemini(self.SYSTEM_PROMPT, knowledge, user_message, conversation_history)
 
 
 class GuideChatService:
@@ -91,30 +114,5 @@ class GuideChatService:
     )
 
     def get_response(self, user_message, conversation_history=None):
-        client = _get_client()
-        if not client:
-            return 'AI チャットは現在利用できません。'
-
         knowledge = _load_knowledge(self.KNOWLEDGE_FILE)
-
-        messages = []
-        if conversation_history:
-            for msg in conversation_history[-10:]:
-                messages.append({
-                    'role': msg.get('role', 'user'),
-                    'content': msg.get('content', ''),
-                })
-
-        messages.append({'role': 'user', 'content': user_message})
-
-        try:
-            response = client.messages.create(
-                model='claude-haiku-4-5-20251001',
-                max_tokens=1024,
-                system=f"{self.SYSTEM_PROMPT}\n\n---\nナレッジベース:\n{knowledge}",
-                messages=messages,
-            )
-            return response.content[0].text
-        except Exception as e:
-            logger.error('Guide chat error: %s', e)
-            return 'エラーが発生しました。しばらく経ってからお試しください。'
+        return _call_gemini(self.SYSTEM_PROMPT, knowledge, user_message, conversation_history)

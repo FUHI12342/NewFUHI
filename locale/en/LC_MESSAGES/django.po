@@ -681,9 +681,6 @@ msgstr ""
 msgid "センサーモニタ"
 msgstr "Sensor Monitor"
 
-msgid "デバッグパネル"
-msgstr "Debug Panel"
-
 msgid "システム状態とログ監視"
 msgstr "System status and log monitoring"
 
@@ -695,9 +692,6 @@ msgstr "Sales trends and reservation stats"
 
 msgid "IoTセンサーリアルタイム監視"
 msgstr "IoT sensor real-time monitoring"
-
-msgid "デバイス"
-msgstr "Device"
 
 msgid "表示件数"
 msgstr "Items shown"
@@ -719,3 +713,40 @@ msgstr "MQ-9 Value"
 
 msgid "データがありません。"
 msgstr "No data available."
+
+#: Phase2 batch2: Top page cards + admin
+msgid "占いサロンチャンス　ご予約"
+msgstr "Fortune Telling Salon Chance - Booking"
+
+msgid "ご予約方法を選択してください"
+msgstr "Please select your booking method"
+
+msgid "店舗から選ぶ"
+msgstr "Search by Store"
+
+msgid "お近くの店舗を選んで、在籍する占い師の中から予約できます。"
+msgstr "Choose a nearby store and book with one of our fortune tellers."
+
+msgid "店舗一覧へ"
+msgstr "View Stores"
+
+msgid "占い師から選ぶ"
+msgstr "Search by Fortune Teller"
+
+msgid "全店舗の占い師一覧から、お気に入りの占い師を見つけて予約できます。"
+msgstr "Browse fortune tellers across all stores and book your favorite."
+
+msgid "占い師一覧へ"
+msgstr "View Fortune Tellers"
+
+msgid "日付から選ぶ"
+msgstr "Search by Date"
+
+msgid "ご希望の日付を選んで、その日に空きのある占い師を探せます。"
+msgstr "Select your preferred date to find available fortune tellers."
+
+msgid "カレンダーへ"
+msgstr "View Calendar"
+
+msgid "最近行った操作"
+msgstr "Recent Actions"

@@ -7,20 +7,17 @@
 {% block extra_css %}
 {% if hero_banners %}
 <style>
-/* Hero Banner Slider (CSS-only autoplay) */
+/* Hero Banner Slider */
 .hero-slider {
     position: relative;
     width: 100%;
     overflow: hidden;
     border-radius: 12px;
     margin-bottom: 24px;
-    aspect-ratio: 21 / 9;
     background: #f3f4f6;
 }
 .hero-slider__track {
     display: flex;
-    width: {{ hero_banners|length }}00%;
-    animation: hero-slide {{ hero_banners|length }}0s infinite;
 }
 .hero-slider__slide {
     width: 100%;
@@ -29,8 +26,13 @@
 }
 .hero-slider__slide img {
     width: 100%;
-    height: 100%;
+    height: 320px;
     object-fit: cover;
+}
+@media (max-width: 768px) {
+    .hero-slider__slide img {
+        height: 200px;
+    }
 }
 .hero-slider__slide-title {
     position: absolute;
@@ -43,19 +45,6 @@
     font-weight: 600;
     font-size: 14px;
 }
-@keyframes hero-slide {
-    {% widthratio 100 hero_banners|length 1 as pct %}
-    {% for banner in hero_banners %}
-    {% widthratio forloop.counter0 1 1 as idx %}
-    {{ forloop.counter0|add:"0" }}%, {{ forloop.counter0 }}0% { transform: translateX(-{{ forloop.counter0 }}00%); }
-    {% endfor %}
-}
-/* Fallback: simple fade if CSS animation doesn't work perfectly */
-@media (prefers-reduced-motion: reduce) {
-    .hero-slider__track {
-        animation: none;
-    }
-}
 </style>
 {% endif %}
 {% endblock %}
@@ -65,16 +54,20 @@
 <!-- Hero Banner Slider -->
 {% if site_settings.show_hero_banner and hero_banners %}
 <div class="hero-slider">
-    <div class="hero-slider__track" style="animation: none;" id="heroTrack">
+    <div class="hero-slider__track" id="heroTrack">
         {% for banner in hero_banners %}
         <div class="hero-slider__slide">
             {% if banner.link_url %}
             <a href="{{ banner.link_url }}">
-                <img src="{{ banner.image.url }}" alt="{{ banner.title }}" loading="{% if forloop.first %}eager{% else %}lazy{% endif %}">
+                <img src="{{ banner.image.url }}" alt="{{ banner.title }}"
+                     style="object-position: {{ banner.image_position }};"
+                     loading="{% if forloop.first %}eager{% else %}lazy{% endif %}">
                 {% if banner.title %}<div class="hero-slider__slide-title">{{ banner.title }}</div>{% endif %}
             </a>
             {% else %}
-            <img src="{{ banner.image.url }}" alt="{{ banner.title }}" loading="{% if forloop.first %}eager{% else %}lazy{% endif %}">
+            <img src="{{ banner.image.url }}" alt="{{ banner.title }}"
+                 style="object-position: {{ banner.image_position }};"
+                 loading="{% if forloop.first %}eager{% else %}lazy{% endif %}">
             {% if banner.title %}<div class="hero-slider__slide-title">{{ banner.title }}</div>{% endif %}
             {% endif %}
         </div>

@@ -662,9 +662,6 @@ msgstr "件"
 msgid "センサーモニタ"
 msgstr "传感器监控"
 
-msgid "デバッグパネル"
-msgstr "调试面板"
-
 msgid "システム状態とログ監視"
 msgstr "系统状态与日志监控"
 
@@ -676,9 +673,6 @@ msgstr "销售趋势与预约统计"
 
 msgid "IoTセンサーリアルタイム監視"
 msgstr "IoT传感器实时监控"
-
-msgid "デバイス"
-msgstr "设备"
 
 msgid "表示件数"
 msgstr "显示条数"
@@ -700,3 +694,40 @@ msgstr "MQ-9 数值"
 
 msgid "データがありません。"
 msgstr "没有数据。"
+
+#: Phase2 batch2: 首页卡片 + 管理页面
+msgid "占いサロンチャンス　ご予約"
+msgstr "占卜沙龙Chance 预约"
+
+msgid "ご予約方法を選択してください"
+msgstr "请选择预约方式"
+
+msgid "店舗から選ぶ"
+msgstr "按店铺搜索"
+
+msgid "お近くの店舗を選んで、在籍する占い師の中から予約できます。"
+msgstr "选择附近的店铺，从在籍占卜师中进行预约。"
+
+msgid "店舗一覧へ"
+msgstr "前往店铺列表"
+
+msgid "占い師から選ぶ"
+msgstr "按占卜师搜索"
+
+msgid "全店舗の占い師一覧から、お気に入りの占い師を見つけて予約できます。"
+msgstr "从所有店铺的占卜师列表中找到喜欢的占卜师并进行预约。"
+
+msgid "占い師一覧へ"
+msgstr "前往占卜师列表"
+
+msgid "日付から選ぶ"
+msgstr "按日期搜索"
+
+msgid "ご希望の日付を選んで、その日に空きのある占い師を探せます。"
+msgstr "选择您希望的日期，查找当天有空的占卜师。"
+
+msgid "カレンダーへ"
+msgstr "前往日历"
+
+msgid "最近行った操作"
+msgstr "最近的操作"
