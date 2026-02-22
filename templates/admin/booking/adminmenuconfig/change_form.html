@@ -1,0 +1,139 @@
+{% extends "admin/change_form.html" %}
+{% load i18n %}
+
+{% block extrajs %}
+{{ block.super }}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    var groupMap = {{ group_map_json|safe }};
+
+    // チェックボックスのコンテナを見つける
+    var fieldWidget = document.querySelector('.field-allowed_models ul');
+    if (!fieldWidget) return;
+
+    // 全チェックボックスを収集
+    var checkboxItems = {};
+    var allItems = fieldWidget.querySelectorAll('li');
+    allItems.forEach(function(li) {
+        var input = li.querySelector('input[type="checkbox"]');
+        if (input) {
+            checkboxItems[input.value] = li;
+        }
+    });
+
+    // 新しいコンテナを作成
+    var container = document.createElement('div');
+    container.id = 'grouped-models';
+    container.style.cssText = 'margin: 0;';
+
+    var usedKeys = new Set();
+
+    Object.keys(groupMap).forEach(function(groupName) {
+        var modelKeys = groupMap[groupName];
+        var groupItems = [];
+        modelKeys.forEach(function(key) {
+            if (checkboxItems[key]) {
+                groupItems.push(checkboxItems[key]);
+                usedKeys.add(key);
+            }
+        });
+
+        if (groupItems.length === 0) return;
+
+        // グループセクション
+        var section = document.createElement('fieldset');
+        section.style.cssText = 'border: 1px solid #ddd; border-radius: 4px; padding: 10px 15px; margin: 8px 0;';
+
+        // ヘッダー（グループ名 + 全選択/全解除 + 折りたたみ）
+        var legend = document.createElement('legend');
+        legend.style.cssText = 'font-weight: bold; font-size: 14px; padding: 0 8px; cursor: pointer; user-select: none;';
+
+        var toggleArrow = document.createElement('span');
+        toggleArrow.textContent = '\u25BC ';
+        toggleArrow.style.fontSize = '10px';
+        legend.appendChild(toggleArrow);
+        legend.appendChild(document.createTextNode(groupName + ' '));
+
+        // 全選択リンク
+        var selectAll = document.createElement('a');
+        selectAll.href = '#';
+        selectAll.textContent = '\u5168\u9078\u629e';
+        selectAll.style.cssText = 'font-size: 11px; font-weight: normal; margin-left: 8px; color: #417690;';
+        selectAll.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            groupItems.forEach(function(li) {
+                var cb = li.querySelector('input[type="checkbox"]');
+                if (cb) cb.checked = true;
+            });
+        });
+        legend.appendChild(selectAll);
+
+        // 全解除リンク
+        var deselectAll = document.createElement('a');
+        deselectAll.href = '#';
+        deselectAll.textContent = '\u5168\u89e3\u9664';
+        deselectAll.style.cssText = 'font-size: 11px; font-weight: normal; margin-left: 6px; color: #ba2121;';
+        deselectAll.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            groupItems.forEach(function(li) {
+                var cb = li.querySelector('input[type="checkbox"]');
+                if (cb) cb.checked = false;
+            });
+        });
+        legend.appendChild(deselectAll);
+
+        section.appendChild(legend);
+
+        // チェックボックスリスト
+        var ul = document.createElement('ul');
+        ul.style.cssText = 'list-style: none; padding: 0; margin: 5px 0 0 0; columns: 2; column-gap: 20px;';
+        groupItems.forEach(function(li) {
+            li.style.cssText = 'break-inside: avoid; padding: 2px 0;';
+            ul.appendChild(li);
+        });
+        section.appendChild(ul);
+
+        // 折りたたみ機能
+        legend.addEventListener('click', function(e) {
+            if (e.target.tagName === 'A') return;
+            var isHidden = ul.style.display === 'none';
+            ul.style.display = isHidden ? '' : 'none';
+            selectAll.style.display = isHidden ? '' : 'none';
+            deselectAll.style.display = isHidden ? '' : 'none';
+            toggleArrow.textContent = isHidden ? '\u25BC ' : '\u25B6 ';
+        });
+
+        container.appendChild(section);
+    });
+
+    // その他（GROUP_MAP に含まれないモデル）
+    var otherItems = [];
+    Object.keys(checkboxItems).forEach(function(key) {
+        if (!usedKeys.has(key)) {
+            otherItems.push(checkboxItems[key]);
+        }
+    });
+    if (otherItems.length > 0) {
+        var otherSection = document.createElement('fieldset');
+        otherSection.style.cssText = 'border: 1px solid #ddd; border-radius: 4px; padding: 10px 15px; margin: 8px 0;';
+        var otherLegend = document.createElement('legend');
+        otherLegend.style.cssText = 'font-weight: bold; font-size: 14px; padding: 0 8px;';
+        otherLegend.textContent = '\u305d\u306e\u4ed6';
+        otherSection.appendChild(otherLegend);
+        var otherUl = document.createElement('ul');
+        otherUl.style.cssText = 'list-style: none; padding: 0; margin: 5px 0 0 0; columns: 2;';
+        otherItems.forEach(function(li) {
+            li.style.cssText = 'break-inside: avoid; padding: 2px 0;';
+            otherUl.appendChild(li);
+        });
+        otherSection.appendChild(otherUl);
+        container.appendChild(otherSection);
+    }
+
+    // 元のリストを置換
+    fieldWidget.parentNode.replaceChild(container, fieldWidget);
+});
+</script>
+{% endblock %}

@@ -2,6 +2,7 @@ from django.contrib import admin
 from django.contrib.admin.sites import AdminSite
 from .models import Staff
 import logging
+import time
 
 logger = logging.getLogger(__name__)
 
@@ -33,12 +34,81 @@ GROUP_MAP = {
     'IoT管理': ['iotdevice'],
     '物件管理': ['property'],
     '予約ページ情報': ['company', 'notice', 'media'],
-    'システム': ['systemconfig', 'admintheme', 'dashboardlayout'],
+    'ページ設定': ['sitesettings', 'homepagecustomblock', 'herobanner', 'bannerad', 'externallink'],
+    'システム': ['systemconfig', 'admintheme', 'dashboardlayout', 'adminmenuconfig'],
     'ユーザーアカウント管理': ['user', 'group'],
 }
 
 # グループの表示順序
 GROUP_ORDER = list(GROUP_MAP.keys())
+
+
+# ==============================
+# デフォルト許可モデル定数（DB未設定時のフォールバック）
+# None = 全モデル表示
+# ==============================
+DEFAULT_ALLOWED_MODELS = {
+    'developer': None,  # 全モデル表示
+    'owner': None,      # 全モデル表示
+    'manager': [
+        'schedule', 'order', 'staff', 'store',
+        'iotdevice', 'category', 'product', 'producttranslation',
+        'property', 'propertydevice',
+        'systemconfig',
+        'shiftperiod', 'shiftrequest', 'shiftassignment',
+        'storescheduleconfig', 'admintheme',
+        'sitesettings', 'homepagecustomblock',
+        'herobanner', 'bannerad', 'externallink',
+    ],
+    'staff': [
+        'schedule', 'order', 'staff',
+        'iotdevice', 'product',
+        'shiftrequest',
+    ],
+}
+
+
+# ==============================
+# メニュー設定キャッシュ（5分TTL）
+# ==============================
+_menu_config_cache = {}
+_menu_config_cache_time = 0.0
+_MENU_CACHE_TTL = 300  # 5分
+
+
+def _refresh_menu_config_cache():
+    """AdminMenuConfig を読み込みキャッシュを更新する（lazy import で循環回避）"""
+    global _menu_config_cache, _menu_config_cache_time
+    try:
+        from .models import AdminMenuConfig
+        configs = AdminMenuConfig.objects.all()
+        _menu_config_cache = {c.role: c.allowed_models for c in configs}
+    except Exception:
+        _menu_config_cache = {}
+    _menu_config_cache_time = time.time()
+
+
+def invalidate_menu_config_cache():
+    """admin 保存時にキャッシュを即時無効化する"""
+    global _menu_config_cache, _menu_config_cache_time
+    _menu_config_cache = {}
+    _menu_config_cache_time = 0.0
+
+
+def _get_allowed_models_for_role(role):
+    """ロールに対応する許可モデルリストを返す。DB設定優先、未設定時はデフォルト。"""
+    global _menu_config_cache_time
+    now = time.time()
+    if now - _menu_config_cache_time > _MENU_CACHE_TTL:
+        _refresh_menu_config_cache()
+
+    if role in _menu_config_cache:
+        db_value = _menu_config_cache[role]
+        if isinstance(db_value, list) and len(db_value) > 0:
+            return db_value
+        # DB行はあるが空リスト → デフォルトにフォールバック
+
+    return DEFAULT_ALLOWED_MODELS.get(role)
 
 
 class RoleBasedAdminSite(AdminSite):
@@ -50,45 +120,29 @@ class RoleBasedAdminSite(AdminSite):
             role, app_label,
         )
 
-        if role in ('superuser', 'developer', 'owner'):
-            raw = super().get_app_list(request, app_label)
+        raw = super().get_app_list(request, app_label)
+
+        # superuser は常に全モデル表示
+        if role == 'superuser':
             return self._regroup_apps(raw)
 
-        app_list = super().get_app_list(request, app_label)
+        # それ以外は _get_allowed_models_for_role() で判定
+        allowed = _get_allowed_models_for_role(role)
 
-        if role == 'manager':
-            allowed_models = [
-                'schedule', 'order', 'staff', 'store',
-                'iotdevice', 'category', 'product', 'producttranslation',
-                'property', 'propertydevice',
-                'systemconfig',
-                # シフト管理
-                'shiftperiod', 'shiftrequest', 'shiftassignment',
-                'storescheduleconfig', 'admintheme',
-            ]
-        elif role == 'staff':
-            allowed_models = [
-                'schedule', 'order', 'staff',
-                'iotdevice', 'product',
-                # スタッフはシフト希望のみ
-                'shiftrequest',
-            ]
-        else:
-            allowed_models = ['schedule', 'order']
+        # None = 全モデル表示（developer / owner のデフォルト）
+        if allowed is None:
+            return self._regroup_apps(raw)
 
+        # リストでフィルタ
         filtered = []
-        for app in app_list:
-            models = [m for m in app['models'] if m['object_name'].lower() in allowed_models]
+        for app in raw:
+            models = [m for m in app['models'] if m['object_name'].lower() in allowed]
             if models:
                 app_copy = app.copy()
                 app_copy['models'] = models
                 filtered.append(app_copy)
 
-        # manager/staff もグループ化
-        if role in ('manager', 'staff'):
-            return self._regroup_apps(filtered)
-
-        return filtered
+        return self._regroup_apps(filtered)
 
     def _regroup_apps(self, raw_app_list):
         """フラットなモデルリストを仮想アプリグループに再構成"""

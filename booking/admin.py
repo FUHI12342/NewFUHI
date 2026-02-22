@@ -32,6 +32,12 @@ from .models import (
     ShiftRequest,
     ShiftAssignment,
     AdminTheme,
+    SiteSettings,
+    HomepageCustomBlock,
+    HeroBanner,
+    BannerAd,
+    ExternalLink,
+    AdminMenuConfig,
 )
 
 
@@ -676,5 +682,144 @@ class ShiftAssignmentAdmin(admin.ModelAdmin):
 custom_site.register(ShiftPeriod, ShiftPeriodAdmin)
 custom_site.register(ShiftRequest, ShiftRequestAdmin)
 custom_site.register(ShiftAssignment, ShiftAssignmentAdmin)
+
+
+# ==============================
+# Round 4: ページ設定 (CMS)
+# ==============================
+class SiteSettingsAdmin(admin.ModelAdmin):
+    """シングルトン設定 — 一覧は常にpk=1へリダイレクト"""
+    fieldsets = (
+        ('基本設定', {'fields': ('site_name',)}),
+        ('ホームページカード表示', {'fields': (
+            'show_card_store', 'show_card_fortune_teller',
+            'show_card_calendar', 'show_card_shop',
+        )}),
+        ('ヒーローバナー / ランキング', {'fields': (
+            'show_hero_banner', 'show_ranking', 'ranking_limit',
+        )}),
+        ('サイドバー表示', {'fields': (
+            'show_sidebar_notice', 'show_sidebar_company',
+            'show_sidebar_media', 'show_sidebar_social',
+            'show_sidebar_external_links',
+        )}),
+        ('SNS連携', {'fields': ('twitter_url', 'instagram_url', 'instagram_embed_html')}),
+    )
+
+    def has_add_permission(self, request):
+        return not SiteSettings.objects.exists()
+
+    def has_delete_permission(self, request, obj=None):
+        return False
+
+    def changelist_view(self, request, extra_context=None):
+        obj = SiteSettings.load()
+        from django.shortcuts import redirect
+        return redirect(f'/admin/booking/sitesettings/{obj.pk}/change/')
+
+
+custom_site.register(SiteSettings, SiteSettingsAdmin)
+
+
+class HomepageCustomBlockAdmin(admin.ModelAdmin):
+    list_display = ('title', 'position', 'sort_order', 'is_active', 'updated_at')
+    list_filter = ('position', 'is_active')
+    list_editable = ('sort_order', 'is_active')
+    search_fields = ('title',)
+
+
+custom_site.register(HomepageCustomBlock, HomepageCustomBlockAdmin)
+
+
+# ==============================
+# Round 4.5: ヒーローバナー / バナー広告 / 外部リンク
+# ==============================
+class HeroBannerAdmin(admin.ModelAdmin):
+    list_display = ('title', 'sort_order', 'is_active', 'link_url', 'updated_at')
+    list_editable = ('sort_order', 'is_active')
+    search_fields = ('title',)
+
+
+class BannerAdAdmin(admin.ModelAdmin):
+    list_display = ('title', 'position', 'sort_order', 'is_active', 'link_url', 'updated_at')
+    list_editable = ('sort_order', 'is_active')
+    list_filter = ('position', 'is_active')
+    search_fields = ('title',)
+
+
+class ExternalLinkAdmin(admin.ModelAdmin):
+    list_display = ('title', 'url', 'sort_order', 'is_active', 'open_in_new_tab')
+    list_editable = ('sort_order', 'is_active', 'open_in_new_tab')
+    search_fields = ('title', 'url')
+
+
+custom_site.register(HeroBanner, HeroBannerAdmin)
+custom_site.register(BannerAd, BannerAdAdmin)
+custom_site.register(ExternalLink, ExternalLinkAdmin)
+
+
+# ==============================
+# メニュー権限設定 (superuser のみ)
+# ==============================
+from .forms import AdminMenuConfigForm
+from .admin_site import GROUP_MAP, invalidate_menu_config_cache
+
+
+class AdminMenuConfigAdmin(admin.ModelAdmin):
+    form = AdminMenuConfigForm
+    list_display = ('role', 'get_role_display', 'model_count', 'updated_at', 'updated_by')
+    readonly_fields = ('updated_at', 'updated_by')
+    change_form_template = 'admin/booking/adminmenuconfig/change_form.html'
+
+    def get_role_display(self, obj):
+        return obj.get_role_display()
+    get_role_display.short_description = 'ロール名'
+
+    def model_count(self, obj):
+        if isinstance(obj.allowed_models, list):
+            return len(obj.allowed_models)
+        return 0
+    model_count.short_description = '許可モデル数'
+
+    def has_module_permission(self, request):
+        return request.user.is_superuser
+
+    def has_view_permission(self, request, obj=None):
+        return request.user.is_superuser
+
+    def has_add_permission(self, request):
+        return request.user.is_superuser
+
+    def has_change_permission(self, request, obj=None):
+        return request.user.is_superuser
+
+    def has_delete_permission(self, request, obj=None):
+        return request.user.is_superuser
+
+    def save_model(self, request, obj, form, change):
+        obj.updated_by = request.user
+        obj.allowed_models = form.cleaned_data.get('allowed_models', [])
+        super().save_model(request, obj, form, change)
+        invalidate_menu_config_cache()
+
+    def delete_model(self, request, obj):
+        super().delete_model(request, obj)
+        invalidate_menu_config_cache()
+
+    def _get_group_map_json(self):
+        return json.dumps(GROUP_MAP, ensure_ascii=False)
+
+    def change_view(self, request, object_id, form_url='', extra_context=None):
+        extra_context = extra_context or {}
+        extra_context['group_map_json'] = self._get_group_map_json()
+        return super().change_view(request, object_id, form_url, extra_context)
+
+    def add_view(self, request, form_url='', extra_context=None):
+        extra_context = extra_context or {}
+        extra_context['group_map_json'] = self._get_group_map_json()
+        return super().add_view(request, form_url, extra_context)
+
+
+custom_site.register(AdminMenuConfig, AdminMenuConfigAdmin)
 
 print("booking.admin loaded")

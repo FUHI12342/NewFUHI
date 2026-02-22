@@ -967,3 +967,181 @@ class AdminTheme(models.Model):
 
     def __str__(self):
         return f"{self.store.name} テーマ"
+
+
+# ==============================
+# Round 4: ホームページCMS
+# ==============================
+
+class SiteSettings(models.Model):
+    """サイト全体の設定 (シングルトン)"""
+    site_name = models.CharField('サイト名', max_length=200, default='占いサロンチャンス')
+
+    # ホームページカードON/OFF
+    show_card_store = models.BooleanField('店舗カード表示', default=True)
+    show_card_fortune_teller = models.BooleanField('占い師カード表示', default=True)
+    show_card_calendar = models.BooleanField('カレンダーカード表示', default=True)
+    show_card_shop = models.BooleanField('ショップカード表示', default=True)
+
+    # サイドバーON/OFF
+    show_sidebar_notice = models.BooleanField('お知らせ表示', default=True)
+    show_sidebar_company = models.BooleanField('運営会社表示', default=True)
+    show_sidebar_media = models.BooleanField('メディア掲載表示', default=True)
+    show_sidebar_social = models.BooleanField('SNSフィード表示', default=False)
+
+    # SNS連携URL
+    twitter_url = models.URLField('X(Twitter) URL', blank=True, default='',
+        help_text='例: https://twitter.com/youraccount')
+    instagram_url = models.URLField('Instagram URL', blank=True, default='',
+        help_text='例: https://www.instagram.com/youraccount')
+
+    # ヒーローバナー
+    show_hero_banner = models.BooleanField('ヒーローバナー表示', default=True)
+
+    # 予約ランキング
+    show_ranking = models.BooleanField('予約ランキング表示', default=True)
+    ranking_limit = models.IntegerField('ランキング表示件数', default=5)
+
+    # 外部リンク
+    show_sidebar_external_links = models.BooleanField('外部リンク表示', default=True)
+
+    # Instagram埋め込みHTML
+    instagram_embed_html = models.TextField('Instagram埋め込みHTML', blank=True, default='',
+        help_text='Instagramの投稿埋め込みHTMLを貼り付けてください')
+
+    class Meta:
+        app_label = 'booking'
+        verbose_name = 'サイト設定'
+        verbose_name_plural = 'サイト設定'
+
+    def __str__(self):
+        return self.site_name
+
+    def save(self, *args, **kwargs):
+        self.pk = 1
+        super().save(*args, **kwargs)
+
+    @classmethod
+    def load(cls):
+        obj, _ = cls.objects.get_or_create(pk=1)
+        return obj
+
+
+class HomepageCustomBlock(models.Model):
+    """WordPress風カスタムHTMLブロック"""
+    POSITION_CHOICES = [
+        ('above_cards', 'カードの上'),
+        ('below_cards', 'カードの下'),
+        ('sidebar', 'サイドバー'),
+    ]
+    title = models.CharField('タイトル', max_length=200)
+    content = models.TextField('HTML内容', help_text='HTMLを直接記述できます')
+    position = models.CharField('表示位置', max_length=20, choices=POSITION_CHOICES, default='below_cards')
+    sort_order = models.IntegerField('並び順', default=0)
+    is_active = models.BooleanField('公開', default=True)
+    created_at = models.DateTimeField('作成日時', auto_now_add=True)
+    updated_at = models.DateTimeField('更新日時', auto_now=True)
+
+    class Meta:
+        app_label = 'booking'
+        verbose_name = 'カスタムブロック'
+        verbose_name_plural = 'カスタムブロック'
+        ordering = ['position', 'sort_order']
+
+    def __str__(self):
+        return f'{self.title} ({self.get_position_display()})'
+
+
+class HeroBanner(models.Model):
+    """ヒーローバナースライダー"""
+    title = models.CharField('タイトル', max_length=200)
+    image = models.ImageField('バナー画像', upload_to='hero_banners/')
+    link_url = models.URLField('リンクURL', blank=True, default='')
+    sort_order = models.IntegerField('並び順', default=0)
+    is_active = models.BooleanField('公開', default=True)
+    created_at = models.DateTimeField('作成日時', auto_now_add=True)
+    updated_at = models.DateTimeField('更新日時', auto_now=True)
+
+    class Meta:
+        app_label = 'booking'
+        ordering = ['sort_order']
+        verbose_name = 'ヒーローバナー'
+        verbose_name_plural = 'ヒーローバナー'
+
+    def __str__(self):
+        return self.title
+
+
+class BannerAd(models.Model):
+    """バナー広告"""
+    POSITION_CHOICES = [
+        ('after_hero', 'ヒーローバナーの後'),
+        ('after_cards', 'カードの後'),
+        ('after_ranking', 'ランキングの後'),
+        ('after_campaign', 'キャンペーンの後'),
+        ('sidebar', 'サイドバー'),
+    ]
+    title = models.CharField('タイトル', max_length=200)
+    image = models.ImageField('バナー画像', upload_to='banner_ads/')
+    link_url = models.URLField('リンクURL', blank=True, default='')
+    position = models.CharField('表示位置', max_length=20, choices=POSITION_CHOICES, default='after_hero')
+    sort_order = models.IntegerField('並び順', default=0)
+    is_active = models.BooleanField('公開', default=True)
+    created_at = models.DateTimeField('作成日時', auto_now_add=True)
+    updated_at = models.DateTimeField('更新日時', auto_now=True)
+
+    class Meta:
+        app_label = 'booking'
+        ordering = ['position', 'sort_order']
+        verbose_name = 'バナー広告'
+        verbose_name_plural = 'バナー広告'
+
+    def __str__(self):
+        return f'{self.title} ({self.get_position_display()})'
+
+
+class ExternalLink(models.Model):
+    """外部リンク"""
+    title = models.CharField('タイトル', max_length=200)
+    url = models.URLField('URL')
+    description = models.TextField('説明', blank=True, default='')
+    sort_order = models.IntegerField('並び順', default=0)
+    is_active = models.BooleanField('公開', default=True)
+    open_in_new_tab = models.BooleanField('新しいタブで開く', default=True)
+
+    class Meta:
+        app_label = 'booking'
+        ordering = ['sort_order']
+        verbose_name = '外部リンク'
+        verbose_name_plural = '外部リンク'
+
+    def __str__(self):
+        return self.title
+
+
+# ==============================
+# 管理画面メニュー権限設定
+# ==============================
+
+class AdminMenuConfig(models.Model):
+    """ロールごとの管理画面サイドバー表示メニュー設定"""
+    ROLE_CHOICES = [
+        ('developer', '開発者'),
+        ('owner', 'オーナー'),
+        ('manager', '店長'),
+        ('staff', 'スタッフ'),
+    ]
+    role = models.CharField('ロール', max_length=20, choices=ROLE_CHOICES, unique=True,
+        help_text='superuserは常に全モデルを表示するため設定不要')
+    allowed_models = models.JSONField('表示許可モデル', default=list)
+    updated_at = models.DateTimeField('更新日時', auto_now=True)
+    updated_by = models.ForeignKey('auth.User', verbose_name='更新者',
+        on_delete=models.SET_NULL, null=True, blank=True)
+
+    class Meta:
+        app_label = 'booking'
+        verbose_name = 'メニュー権限設定'
+        verbose_name_plural = 'メニュー権限設定'
+
+    def __str__(self):
+        return f'{self.get_role_display()} メニュー設定'
