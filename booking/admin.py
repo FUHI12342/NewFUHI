@@ -577,7 +577,8 @@ custom_site.register(IoTDevice, IoTDeviceAdmin)
 custom_site.register(Category, CategoryAdmin)
 custom_site.register(Product, ProductAdmin)
 custom_site.register(Order, OrderAdmin)
-custom_site.register(StockMovement, StockMovementAdmin)
+# StockMovement (入出庫履歴) は管理画面から削除
+# custom_site.register(StockMovement, StockMovementAdmin)
 
 # User/Group も
 from django.contrib.auth.models import User, Group

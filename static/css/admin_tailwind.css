@@ -18,23 +18,9 @@ body {
    Dashboard Layout
    ============================== */
 .dashboard #content-main {
-    display: grid;
-    grid-template-columns: 1fr 280px;
-    gap: 20px;
     max-width: 1200px;
     margin: 0 auto;
-}
-
-@media (max-width: 900px) {
-    .dashboard #content-main {
-        grid-template-columns: 1fr;
-    }
-}
-
-/* App list area: 3-column grid */
-.dashboard #content-main > .app-list-container,
-.dashboard #content-main > :first-child:not(.admin-recent-wrapper) {
-    grid-column: 1;
+    position: relative;
 }
 
 /* ==============================
@@ -153,62 +139,6 @@ a.button {
 }
 
 /* ==============================
-   Recent Actions (right column, collapsible)
-   ============================== */
-.admin-recent-wrapper {
-    grid-column: 2;
-    grid-row: 1 / 99;
-}
-
-@media (max-width: 900px) {
-    .admin-recent-wrapper {
-        grid-column: 1;
-        grid-row: auto;
-    }
-}
-
-.admin-recent-toggle {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    width: 100%;
-    padding: 10px 14px;
-    background: var(--gray-100, #f3f4f6);
-    border: 1px solid var(--gray-200, #e5e7eb);
-    border-radius: 12px 12px 0 0;
-    cursor: pointer;
-    font-size: 13px;
-    font-weight: 600;
-    color: var(--gray-700, #374151);
-    transition: background 0.15s;
-}
-.admin-recent-toggle:hover {
-    background: var(--gray-200, #e5e7eb);
-}
-.admin-recent-toggle svg {
-    transition: transform 0.2s;
-    flex-shrink: 0;
-}
-
-#recent-actions-module {
-    border-radius: 0 0 12px 12px;
-    overflow: hidden;
-}
-#recent-actions-module h2 {
-    background: var(--gray-100, #f3f4f6) !important;
-    color: var(--gray-700, #374151) !important;
-    display: none;
-}
-#recent-actions-module li {
-    padding: 8px 14px;
-    font-size: 13px;
-    border-bottom: 1px solid var(--gray-100, #f3f4f6);
-}
-#recent-actions-module li:last-child {
-    border-bottom: none;
-}
-
-/* ==============================
    Admin Top Bar (横一列ダッシュボードリンク)
    ============================== */
 .admin-topbar {
@@ -246,20 +176,19 @@ a.button {
 }
 
 /* ==============================
-   Menu Operations Bar (centered, thin)
+   Menu Operations Bar (thin, spans 3-col width)
    ============================== */
 .sidebar-edit-bar {
     display: flex;
     gap: 6px;
     padding: 6px 12px;
-    margin: 0 auto 16px;
+    margin: 0 0 12px 0;
     background: #fff;
     border: 1px solid var(--gray-200, #e5e7eb);
     border-radius: 8px;
     align-items: center;
     font-size: 12px;
     box-shadow: 0 1px 2px rgba(0,0,0,0.04);
-    max-width: 1200px;
     justify-content: center;
 }
 .sidebar-edit-bar button {
@@ -288,27 +217,132 @@ a.button {
 /* ==============================
    App List: 3 Column Grid
    ============================== */
-.dashboard #content-main > :first-child {
+.admin-app-grid {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
     gap: 12px;
     align-content: start;
 }
 
+/* Edit bar spans full width */
+.admin-app-grid > .sidebar-edit-bar {
+    grid-column: 1 / -1;
+    margin-bottom: 0;
+}
+/* Remove module margin-bottom inside grid (gap handles spacing) */
+.admin-app-grid > .app-module {
+    margin-bottom: 0;
+}
+
 @media (max-width: 1100px) {
-    .dashboard #content-main > :first-child {
+    .admin-app-grid {
         grid-template-columns: repeat(2, 1fr);
     }
 }
 @media (max-width: 700px) {
-    .dashboard #content-main > :first-child {
+    .admin-app-grid {
         grid-template-columns: 1fr;
     }
 }
 
-/* Edit bar spans full width of the 3-column grid */
-.dashboard #content-main > :first-child > .sidebar-edit-bar {
-    grid-column: 1 / -1;
+/* ==============================
+   Recent Actions — Right-edge Drawer
+   ============================== */
+.admin-recent-drawer {
+    position: fixed;
+    top: 0;
+    right: 0;
+    height: 100vh;
+    z-index: 1000;
+    display: flex;
+    transition: transform 0.3s ease;
+}
+.admin-recent-drawer.collapsed {
+    transform: translateX(300px);
+}
+/* When collapsed, only panel (300px) slides off-screen; tab stays visible */
+
+/* Tab on the left side of drawer */
+.admin-recent-tab {
+    display: flex;
+    align-items: center;
+    writing-mode: vertical-rl;
+    text-orientation: mixed;
+    padding: 16px 8px;
+    background: var(--gray-700, #374151);
+    color: #fff;
+    border-radius: 8px 0 0 8px;
+    cursor: pointer;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    user-select: none;
+    white-space: nowrap;
+    flex-shrink: 0;
+    transition: background 0.15s;
+    box-shadow: -2px 0 8px rgba(0,0,0,0.1);
+}
+.admin-recent-tab:hover {
+    background: var(--gray-600, #4b5563);
+}
+.admin-recent-tab svg {
+    margin-bottom: 6px;
+    transition: transform 0.2s;
+}
+.admin-recent-drawer.collapsed .admin-recent-tab svg {
+    transform: rotate(180deg);
+}
+
+/* Panel content */
+.admin-recent-panel {
+    width: 300px;
+    flex-shrink: 0;
+    background: #fff;
+    border-left: 1px solid var(--gray-200, #e5e7eb);
+    box-shadow: -4px 0 16px rgba(0,0,0,0.08);
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+}
+.admin-recent-panel-header {
+    padding: 14px 16px;
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--gray-800, #1f2937);
+    border-bottom: 1px solid var(--gray-200, #e5e7eb);
+    background: var(--gray-50, #f9fafb);
+    flex-shrink: 0;
+}
+.admin-recent-panel-body {
+    flex: 1;
+    overflow-y: auto;
+}
+.admin-recent-panel-body li {
+    padding: 10px 16px;
+    font-size: 13px;
+    border-bottom: 1px solid var(--gray-100, #f3f4f6);
+}
+.admin-recent-panel-body li:last-child {
+    border-bottom: none;
+}
+
+/* Hide original recent-actions-module styling */
+#recent-actions-module {
+    border-radius: 0;
+    border: none;
+    box-shadow: none;
+}
+#recent-actions-module h2 {
+    display: none;
+}
+
+@media (max-width: 767px) {
+    .admin-recent-panel {
+        width: 260px;
+    }
+    .admin-recent-drawer.collapsed {
+        transform: translateX(260px);
+    }
 }
 
 /* ==============================

@@ -32,38 +32,76 @@
 
 {{ block.super }}
 
-<!-- ===== 最近行った操作を右カラムに移動 + 折りたたみ ===== -->
+<!-- ===== 3列グリッド + 最近行った操作 右端ドロワー ===== -->
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+    // === 1. App list を 3列グリッドにする ===
+    var contentMain = document.getElementById('content-main');
+    if (contentMain) {
+        contentMain.classList.add('admin-app-grid');
+    }
+
+    // === 2. 最近行った操作 → 右端スライドドロワー ===
     var recentModule = document.getElementById('recent-actions-module');
     if (!recentModule) return;
 
-    // Wrap in collapsible container
-    var wrapper = document.createElement('div');
-    wrapper.className = 'admin-recent-wrapper';
-
-    var toggle = document.createElement('button');
-    toggle.type = 'button';
-    toggle.className = 'admin-recent-toggle';
-    toggle.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg> <span>{% trans "最近行った操作" %}</span>';
-
-    var isCollapsed = localStorage.getItem('admin_recent_collapsed') === 'true';
-
-    toggle.addEventListener('click', function() {
-        isCollapsed = !isCollapsed;
-        recentModule.style.display = isCollapsed ? 'none' : '';
-        toggle.querySelector('svg').style.transform = isCollapsed ? 'rotate(-90deg)' : '';
-        localStorage.setItem('admin_recent_collapsed', isCollapsed);
-    });
-
-    recentModule.parentNode.insertBefore(wrapper, recentModule);
-    wrapper.appendChild(toggle);
-    wrapper.appendChild(recentModule);
-
-    if (isCollapsed) {
-        recentModule.style.display = 'none';
-        toggle.querySelector('svg').style.transform = 'rotate(-90deg)';
+    // 元の #content-related を非表示
+    var contentRelated = document.getElementById('content-related');
+    if (contentRelated) {
+        contentRelated.style.display = 'none';
     }
+
+    // ドロワー構造を作成
+    var drawer = document.createElement('div');
+    drawer.className = 'admin-recent-drawer';
+
+    // タブ（縦書きラベル、ドロワー左端に配置）
+    var tab = document.createElement('div');
+    tab.className = 'admin-recent-tab';
+    tab.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>' +
+        '{% trans "最近行った操作" %}';
+
+    // パネル（コンテンツエリア）
+    var panel = document.createElement('div');
+    panel.className = 'admin-recent-panel';
+
+    var panelHeader = document.createElement('div');
+    panelHeader.className = 'admin-recent-panel-header';
+    panelHeader.textContent = '{% trans "最近行った操作" %}';
+
+    var panelBody = document.createElement('div');
+    panelBody.className = 'admin-recent-panel-body';
+
+    // 既存のアクションリストをパネルに移動
+    var actionList = recentModule.querySelector('ul');
+    if (actionList) {
+        panelBody.appendChild(actionList);
+    } else {
+        Array.from(recentModule.children).forEach(function(child) {
+            if (child.tagName !== 'H2') {
+                panelBody.appendChild(child.cloneNode(true));
+            }
+        });
+    }
+
+    panel.appendChild(panelHeader);
+    panel.appendChild(panelBody);
+    drawer.appendChild(tab);
+    drawer.appendChild(panel);
+    document.body.appendChild(drawer);
+
+    // 折りたたみ状態を復元（デフォルトは折りたたみ）
+    var isCollapsed = localStorage.getItem('admin_recent_drawer') !== 'open';
+    if (isCollapsed) {
+        drawer.classList.add('collapsed');
+    }
+
+    // タブクリックでトグル
+    tab.addEventListener('click', function() {
+        drawer.classList.toggle('collapsed');
+        localStorage.setItem('admin_recent_drawer',
+            drawer.classList.contains('collapsed') ? 'collapsed' : 'open');
+    });
 });
 </script>
 {% endblock %}
