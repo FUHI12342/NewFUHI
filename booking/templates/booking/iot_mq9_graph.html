@@ -1,5 +1,5 @@
 {% extends "admin/base_site.html" %}
-{% load static %}
+{% load i18n static %}
 
 {% block extrahead %}
   {{ block.super }}
@@ -12,7 +12,7 @@
     .mq9-chart-wrap-inner {
       position: relative;
       width: 100%;
-      max-height: 320px;
+      aspect-ratio: 16 / 7;
     }
     .mq9-meta {
       font-size: 0.9rem;
@@ -39,21 +39,21 @@
 
 {% block content %}
 <div id="content-main">
-  <h1>MQ-9 ガス濃度グラフ</h1>
+  <h1>{% trans "センサーモニタ" %}</h1>
 
   <p class="mq9-meta">
-    デバイス: {{ device_external_id|default:"すべて" }} /
-    表示件数: {{ labels|length }} 件（古い→新しい 最大500件）
+    {% trans "デバイス" %}: {{ device_external_id|default:"すべて" }} /
+    {% trans "表示件数" %}: {{ labels|length }} {% trans "件" %}
   </p>
 
   <form method="get" style="margin-bottom: 1rem;">
-    <label for="device">デバイスID:</label>
+    <label for="device">{% trans "デバイスID" %}:</label>
     <input type="text"
            id="device"
            name="device"
            value="{{ device_external_id|default_if_none:'' }}"
            style="min-width: 120px;">
-    <button type="submit" class="button">更新</button>
+    <button type="submit" class="button">{% trans "更新" %}</button>
   </form>
 
   <div class="mq9-chart-wrap">
@@ -62,23 +62,22 @@
     </div>
   </div>
 
-  <h2>ライブデータ（最新 → 古い順）</h2>
+  <h2>{% trans "ライブデータ" %}</h2>
   <table class="mq9-table">
     <thead>
       <tr>
-        <th>時刻</th>
-        <th>MQ-9 値</th>
+        <th>{% trans "時刻" %}</th>
+        <th>{% trans "MQ-9 値" %}</th>
       </tr>
     </thead>
     <tbody>
-      {# labels_values は Python 側ですでに「最新が先頭」にしてある #}
       {% for ts, val in labels_values %}
         <tr>
           <td>{{ ts }}</td>
           <td>{{ val }}</td>
         </tr>
       {% empty %}
-        <tr><td colspan="2">データがありません。</td></tr>
+        <tr><td colspan="2">{% trans "データがありません。" %}</td></tr>
       {% endfor %}
     </tbody>
   </table>
@@ -104,7 +103,7 @@
         },
         options: {
           responsive: true,
-          maintainAspectRatio: false,
+          maintainAspectRatio: true,
           scales: {
             x: {
               ticks: {

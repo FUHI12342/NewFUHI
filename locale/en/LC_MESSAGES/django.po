@@ -664,3 +664,58 @@ msgstr "Please scan the customer's QR code with the camera."
 
 msgid "手動入力"
 msgstr "Manual Input"
+
+#: Phase2: Top page / Admin improvements
+msgid "SNS"
+msgstr "SNS"
+
+msgid "人気占い師ランキング"
+msgstr "Popular Fortune Teller Ranking"
+
+msgid "予約数"
+msgstr "Reservations"
+
+msgid "件"
+msgstr ""
+
+msgid "センサーモニタ"
+msgstr "Sensor Monitor"
+
+msgid "デバッグパネル"
+msgstr "Debug Panel"
+
+msgid "システム状態とログ監視"
+msgstr "System status and log monitoring"
+
+msgid "売り上げダッシュボード"
+msgstr "Sales Dashboard"
+
+msgid "売上推移と予約統計"
+msgstr "Sales trends and reservation stats"
+
+msgid "IoTセンサーリアルタイム監視"
+msgstr "IoT sensor real-time monitoring"
+
+msgid "デバイス"
+msgstr "Device"
+
+msgid "表示件数"
+msgstr "Items shown"
+
+msgid "デバイスID"
+msgstr "Device ID"
+
+msgid "更新"
+msgstr "Update"
+
+msgid "ライブデータ"
+msgstr "Live Data"
+
+msgid "時刻"
+msgstr "Time"
+
+msgid "MQ-9 値"
+msgstr "MQ-9 Value"
+
+msgid "データがありません。"
+msgstr "No data available."

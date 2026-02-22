@@ -644,3 +644,58 @@ msgstr "請使用相機掃描顧客的QR碼。"
 
 msgid "手動入力"
 msgstr "手動輸入"
+
+#: Phase2: 首頁/管理頁面改善
+msgid "SNS"
+msgstr "社群媒體"
+
+msgid "人気占い師ランキング"
+msgstr "人氣占卜師排行榜"
+
+msgid "予約数"
+msgstr "預約數"
+
+msgid "件"
+msgstr "件"
+
+msgid "センサーモニタ"
+msgstr "感測器監控"
+
+msgid "デバッグパネル"
+msgstr "除錯面板"
+
+msgid "システム状態とログ監視"
+msgstr "系統狀態與日誌監控"
+
+msgid "売り上げダッシュボード"
+msgstr "銷售儀表板"
+
+msgid "売上推移と予約統計"
+msgstr "銷售趨勢與預約統計"
+
+msgid "IoTセンサーリアルタイム監視"
+msgstr "IoT感測器即時監控"
+
+msgid "デバイス"
+msgstr "裝置"
+
+msgid "表示件数"
+msgstr "顯示筆數"
+
+msgid "デバイスID"
+msgstr "裝置ID"
+
+msgid "更新"
+msgstr "更新"
+
+msgid "ライブデータ"
+msgstr "即時資料"
+
+msgid "時刻"
+msgstr "時間"
+
+msgid "MQ-9 値"
+msgstr "MQ-9 數值"
+
+msgid "データがありません。"
+msgstr "沒有資料。"

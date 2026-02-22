@@ -27,6 +27,11 @@
 </form>
 {% endblock %}
 
+{% block extrahead %}
+{{ block.super }}
+<script src="{% static 'js/admin_chat_widget.js' %}" defer></script>
+{% endblock %}
+
 {% block extrastyle %}
 {{ block.super }}
 <!-- Tailwind CSS CDN -->

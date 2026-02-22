@@ -14,6 +14,7 @@ from .views_restaurant_dashboard import (
 )
 from .views_property import PropertyStatusAPIView, PropertyAlertResolveAPIView
 from .views import CheckinAPIView, CartAddAPIView, CartUpdateAPIView, CartRemoveAPIView
+from .views_chat import AdminChatAPIView, GuideChatAPIView
 
 app_name = 'booking_api'
 
@@ -65,4 +66,8 @@ urlpatterns = [
     path('shop/cart/add/', CartAddAPIView.as_view(), name='cart_add_api'),
     path('shop/cart/update/', CartUpdateAPIView.as_view(), name='cart_update_api'),
     path('shop/cart/remove/', CartRemoveAPIView.as_view(), name='cart_remove_api'),
+
+    # AI Chat APIs
+    path('chat/admin/', AdminChatAPIView.as_view(), name='api_admin_chat'),
+    path('chat/guide/', GuideChatAPIView.as_view(), name='api_guide_chat'),
 ]

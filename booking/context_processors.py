@@ -2,7 +2,7 @@
 from django.conf import settings
 from django.utils.translation import get_language
 
-from .models import Store, Company, Notice, Media
+from .models import Store, Company, Notice, Media, SiteSettings
 
 
 def global_context(request):
@@ -14,7 +14,24 @@ def global_context(request):
         'medias': Media.objects.order_by('-created_at')[:5],
         'current_language': get_language() or settings.LANGUAGE_CODE,
         'available_languages': settings.LANGUAGES,
+        'site_settings': SiteSettings.load(),
     }
+
+
+def admin_user_flags(request):
+    """管理画面用のユーザー権限フラグを注入"""
+    if not request.path.startswith('/admin/'):
+        return {}
+    is_dev = False
+    if hasattr(request, 'user') and request.user.is_authenticated:
+        if request.user.is_superuser:
+            is_dev = True
+        else:
+            try:
+                is_dev = request.user.staff.is_developer
+            except Exception:
+                pass
+    return {'is_developer_or_superuser': is_dev}
 
 
 def admin_theme(request):

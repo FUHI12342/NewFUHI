@@ -65,6 +65,9 @@ from booking.models import (
     StoreScheduleConfig,
     ShiftPeriod,
     ShiftRequest,
+    # ===== Round4: CMS =====
+    SiteSettings,
+    HeroBanner,
 )
 from .forms import StaffForm
 from linebot import LineBotApi
@@ -649,6 +652,32 @@ class BookingTopPage(generic.TemplateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['stores'] = Store.objects.all().order_by('name')
+
+        # SiteSettings
+        site_settings = SiteSettings.load()
+        context['site_settings'] = site_settings
+
+        # ヒーローバナー
+        if site_settings.show_hero_banner:
+            context['hero_banners'] = HeroBanner.objects.filter(is_active=True).order_by('sort_order')
+
+        # 予約ランキング（直近30日の予約数上位）
+        if site_settings.show_ranking:
+            from django.db.models import Count
+            from datetime import timedelta
+            since = timezone.now() - timedelta(days=30)
+            context['ranking'] = (
+                Staff.objects.filter(
+                    schedule__start__gte=since,
+                    schedule__is_cancelled=False,
+                    schedule__is_temporary=False,
+                    staff_type='fortune_teller',
+                )
+                .annotate(reservation_count=Count('schedule'))
+                .order_by('-reservation_count')
+                [:site_settings.ranking_limit]
+            )
+
         return context
 
 

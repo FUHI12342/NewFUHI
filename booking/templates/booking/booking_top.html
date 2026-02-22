@@ -4,7 +4,100 @@
 
 {% block title %}{% trans "占いサロンチャンス　ご予約" %} | {{ block.super }}{% endblock %}
 
+{% block extra_css %}
+{% if hero_banners %}
+<style>
+/* Hero Banner Slider (CSS-only autoplay) */
+.hero-slider {
+    position: relative;
+    width: 100%;
+    overflow: hidden;
+    border-radius: 12px;
+    margin-bottom: 24px;
+    aspect-ratio: 21 / 9;
+    background: #f3f4f6;
+}
+.hero-slider__track {
+    display: flex;
+    width: {{ hero_banners|length }}00%;
+    animation: hero-slide {{ hero_banners|length }}0s infinite;
+}
+.hero-slider__slide {
+    width: 100%;
+    flex-shrink: 0;
+    position: relative;
+}
+.hero-slider__slide img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+.hero-slider__slide-title {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    padding: 12px 16px;
+    background: linear-gradient(transparent, rgba(0,0,0,0.6));
+    color: #fff;
+    font-weight: 600;
+    font-size: 14px;
+}
+@keyframes hero-slide {
+    {% widthratio 100 hero_banners|length 1 as pct %}
+    {% for banner in hero_banners %}
+    {% widthratio forloop.counter0 1 1 as idx %}
+    {{ forloop.counter0|add:"0" }}%, {{ forloop.counter0 }}0% { transform: translateX(-{{ forloop.counter0 }}00%); }
+    {% endfor %}
+}
+/* Fallback: simple fade if CSS animation doesn't work perfectly */
+@media (prefers-reduced-motion: reduce) {
+    .hero-slider__track {
+        animation: none;
+    }
+}
+</style>
+{% endif %}
+{% endblock %}
+
 {% block content %}
+
+<!-- Hero Banner Slider -->
+{% if site_settings.show_hero_banner and hero_banners %}
+<div class="hero-slider">
+    <div class="hero-slider__track" style="animation: none;" id="heroTrack">
+        {% for banner in hero_banners %}
+        <div class="hero-slider__slide">
+            {% if banner.link_url %}
+            <a href="{{ banner.link_url }}">
+                <img src="{{ banner.image.url }}" alt="{{ banner.title }}" loading="{% if forloop.first %}eager{% else %}lazy{% endif %}">
+                {% if banner.title %}<div class="hero-slider__slide-title">{{ banner.title }}</div>{% endif %}
+            </a>
+            {% else %}
+            <img src="{{ banner.image.url }}" alt="{{ banner.title }}" loading="{% if forloop.first %}eager{% else %}lazy{% endif %}">
+            {% if banner.title %}<div class="hero-slider__slide-title">{{ banner.title }}</div>{% endif %}
+            {% endif %}
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% if hero_banners|length > 1 %}
+<script>
+(function() {
+    var track = document.getElementById('heroTrack');
+    if (!track) return;
+    var slides = track.children;
+    var total = slides.length;
+    var current = 0;
+    setInterval(function() {
+        current = (current + 1) % total;
+        track.style.transition = 'transform 0.6s ease';
+        track.style.transform = 'translateX(-' + (current * 100) + '%)';
+    }, 5000);
+})();
+</script>
+{% endif %}
+{% endif %}
 
 <!-- Page Heading -->
 <h2 class="text-2xl md:text-3xl font-bold text-salon-dark mb-6 border-b-2 border-salon-brown pb-3">
@@ -83,5 +176,41 @@
     </a>
 
 </div>
+
+<!-- Ranking Section -->
+{% if site_settings.show_ranking and ranking %}
+<div class="mb-8">
+    <h2 class="text-xl md:text-2xl font-bold text-salon-dark mb-4 border-b-2 border-salon-brown pb-3">
+        {% trans "人気占い師ランキング" %}
+    </h2>
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        {% for staff in ranking %}
+        <div class="flex items-center gap-4 bg-white rounded-xl shadow-sm border border-gray-200 p-4 hover:shadow-md transition">
+            <div class="flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center font-bold text-white
+                {% if forloop.counter == 1 %}bg-yellow-500
+                {% elif forloop.counter == 2 %}bg-gray-400
+                {% elif forloop.counter == 3 %}bg-amber-700
+                {% else %}bg-salon-brown{% endif %}">
+                {{ forloop.counter }}
+            </div>
+            {% if staff.thumbnail %}
+            <img src="{{ staff.thumbnail.url }}" alt="{{ staff.name }}" class="w-12 h-12 rounded-full object-cover flex-shrink-0">
+            {% else %}
+            <div class="w-12 h-12 rounded-full bg-purple-100 flex items-center justify-center flex-shrink-0">
+                <svg class="w-6 h-6 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+                </svg>
+            </div>
+            {% endif %}
+            <div class="min-w-0 flex-1">
+                <p class="font-bold text-salon-dark truncate">{{ staff.name }}</p>
+                <p class="text-xs text-gray-500">{{ staff.store.name }}</p>
+                <p class="text-xs text-salon-brown">{% trans "予約数" %}: {{ staff.reservation_count }}{% trans "件" %}</p>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
 
 {% endblock %}

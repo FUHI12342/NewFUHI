@@ -669,3 +669,58 @@ msgstr "Escaneie o código QR do cliente com a câmera."
 
 msgid "手動入力"
 msgstr "Entrada manual"
+
+#: Phase2: Melhorias na página principal e painel administrativo
+msgid "SNS"
+msgstr "Redes Sociais"
+
+msgid "人気占い師ランキング"
+msgstr "Ranking de adivinhos populares"
+
+msgid "予約数"
+msgstr "Reservas"
+
+msgid "件"
+msgstr ""
+
+msgid "センサーモニタ"
+msgstr "Monitor de Sensores"
+
+msgid "デバッグパネル"
+msgstr "Painel de Depuração"
+
+msgid "システム状態とログ監視"
+msgstr "Status do sistema e monitoramento de logs"
+
+msgid "売り上げダッシュボード"
+msgstr "Painel de Vendas"
+
+msgid "売上推移と予約統計"
+msgstr "Tendências de vendas e estatísticas de reservas"
+
+msgid "IoTセンサーリアルタイム監視"
+msgstr "Monitoramento em tempo real de sensores IoT"
+
+msgid "デバイス"
+msgstr "Dispositivo"
+
+msgid "表示件数"
+msgstr "Itens exibidos"
+
+msgid "デバイスID"
+msgstr "ID do dispositivo"
+
+msgid "更新"
+msgstr "Atualizar"
+
+msgid "ライブデータ"
+msgstr "Dados ao vivo"
+
+msgid "時刻"
+msgstr "Hora"
+
+msgid "MQ-9 値"
+msgstr "Valor MQ-9"
+
+msgid "データがありません。"
+msgstr "Nenhum dado disponível."

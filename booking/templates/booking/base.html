@@ -144,6 +144,22 @@ tailwind.config = {
             </div>
             {% endif %}
 
+            <!-- SNSフィード -->
+            {% if site_settings.show_sidebar_social and site_settings.twitter_url %}
+            <div class="bg-salon-beige rounded-lg p-4">
+                <h3 class="text-base font-bold text-salon-brown border-b border-salon-brown/30 pb-2 mb-3">
+                    {% trans "SNS" %}
+                </h3>
+                <a class="twitter-timeline"
+                   data-height="400"
+                   data-theme="light"
+                   href="{{ site_settings.twitter_url }}">
+                    Tweets
+                </a>
+                <script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
+            </div>
+            {% endif %}
+
             <!-- メディア掲載情報 -->
             {% if medias %}
             <div class="bg-salon-beige rounded-lg p-4">
@@ -210,6 +226,9 @@ tailwind.config = {
         </div>
     </div>
 </footer>
+
+<!-- AI ガイドチャットウィジェット -->
+<script src="{% static 'js/guide_chat_widget.js' %}" defer></script>
 
 <!-- スクロールトップボタン -->
 <button onclick="window.scrollTo({top:0,behavior:'smooth'})"

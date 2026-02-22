@@ -645,3 +645,58 @@ msgstr "请使用摄像头扫描顾客的二维码。"
 
 msgid "手動入力"
 msgstr "手动输入"
+
+#: Phase2: 首页/管理页面改善
+msgid "SNS"
+msgstr "社交媒体"
+
+msgid "人気占い師ランキング"
+msgstr "人气占卜师排行榜"
+
+msgid "予約数"
+msgstr "预约数"
+
+msgid "件"
+msgstr "件"
+
+msgid "センサーモニタ"
+msgstr "传感器监控"
+
+msgid "デバッグパネル"
+msgstr "调试面板"
+
+msgid "システム状態とログ監視"
+msgstr "系统状态与日志监控"
+
+msgid "売り上げダッシュボード"
+msgstr "销售仪表板"
+
+msgid "売上推移と予約統計"
+msgstr "销售趋势与预约统计"
+
+msgid "IoTセンサーリアルタイム監視"
+msgstr "IoT传感器实时监控"
+
+msgid "デバイス"
+msgstr "设备"
+
+msgid "表示件数"
+msgstr "显示条数"
+
+msgid "デバイスID"
+msgstr "设备ID"
+
+msgid "更新"
+msgstr "更新"
+
+msgid "ライブデータ"
+msgstr "实时数据"
+
+msgid "時刻"
+msgstr "时间"
+
+msgid "MQ-9 値"
+msgstr "MQ-9 数值"
+
+msgid "データがありません。"
+msgstr "没有数据。"

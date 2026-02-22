@@ -11,14 +11,33 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 
+from django.http import HttpResponseForbidden
+
 from .models import IoTDevice, IoTEvent, SystemConfig
 
 logger = logging.getLogger(__name__)
 
 
+def _is_developer_or_superuser(user):
+    """Check if user is superuser or has developer flag."""
+    if not user.is_authenticated:
+        return False
+    if user.is_superuser:
+        return True
+    try:
+        return user.staff.is_developer
+    except Exception:
+        return False
+
+
 class AdminDebugPanelView(TemplateView):
     """Admin debug panel — superuser/developer only."""
     template_name = 'admin/booking/debug_panel.html'
+
+    def dispatch(self, request, *args, **kwargs):
+        if not _is_developer_or_superuser(request.user):
+            return HttpResponseForbidden('開発者権限が必要です')
+        return super().dispatch(request, *args, **kwargs)
 
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
@@ -141,6 +160,11 @@ class LogLevelControlAPIView(APIView):
 class IoTDeviceDebugView(TemplateView):
     """Individual IoT device debug view."""
     template_name = 'admin/booking/iot_device_debug.html'
+
+    def dispatch(self, request, *args, **kwargs):
+        if not _is_developer_or_superuser(request.user):
+            return HttpResponseForbidden('開発者権限が必要です')
+        return super().dispatch(request, *args, **kwargs)
 
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)

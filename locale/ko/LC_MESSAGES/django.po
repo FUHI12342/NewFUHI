@@ -654,3 +654,58 @@ msgstr "고객의 QR 코드를 카메라로 스캔해 주세요."
 
 msgid "手動入力"
 msgstr "수동 입력"
+
+#: Phase2: 메인페이지/관리화면 개선
+msgid "SNS"
+msgstr "SNS"
+
+msgid "人気占い師ランキング"
+msgstr "인기 점술사 랭킹"
+
+msgid "予約数"
+msgstr "예약 수"
+
+msgid "件"
+msgstr "건"
+
+msgid "センサーモニタ"
+msgstr "센서 모니터"
+
+msgid "デバッグパネル"
+msgstr "디버그 패널"
+
+msgid "システム状態とログ監視"
+msgstr "시스템 상태 및 로그 모니터링"
+
+msgid "売り上げダッシュボード"
+msgstr "매출 대시보드"
+
+msgid "売上推移と予約統計"
+msgstr "매출 추이 및 예약 통계"
+
+msgid "IoTセンサーリアルタイム監視"
+msgstr "IoT 센서 실시간 모니터링"
+
+msgid "デバイス"
+msgstr "디바이스"
+
+msgid "表示件数"
+msgstr "표시 건수"
+
+msgid "デバイスID"
+msgstr "디바이스 ID"
+
+msgid "更新"
+msgstr "업데이트"
+
+msgid "ライブデータ"
+msgstr "실시간 데이터"
+
+msgid "時刻"
+msgstr "시각"
+
+msgid "MQ-9 値"
+msgstr "MQ-9 값"
+
+msgid "データがありません。"
+msgstr "데이터가 없습니다."

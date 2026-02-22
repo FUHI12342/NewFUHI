@@ -3,6 +3,10 @@
 
 {% block extrastyle %}
 {{ block.super }}
+<!-- Flatpickr CSS -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+<!-- Leaflet CSS -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9/dist/leaflet.css">
 <style>
 /* Tailwind-inspired change form styles */
 
@@ -176,5 +180,120 @@ input[type="radio"] {
     align-items: center;
     gap: 4px;
 }
+
+/* Leaflet map widget */
+.leaflet-map-widget {
+    height: 250px;
+    width: 100%;
+    border-radius: 8px;
+    margin-top: 8px;
+    border: 1px solid var(--gray-200, #e5e7eb);
+}
+
+/* Flatpickr overrides */
+.flatpickr-calendar {
+    border-radius: 12px !important;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.15) !important;
+}
 </style>
+{% endblock %}
+
+{% block content %}
+{{ block.super }}
+
+<!-- Flatpickr JS -->
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+<script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/ja.js"></script>
+<!-- Leaflet JS -->
+<script src="https://unpkg.com/leaflet@1.9/dist/leaflet.js"></script>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // ===== Flatpickr: Date fields =====
+    var dateFields = document.querySelectorAll('input.vDateField, input[type="date"]');
+    dateFields.forEach(function(el) {
+        flatpickr(el, {
+            locale: 'ja',
+            dateFormat: 'Y-m-d',
+            allowInput: true,
+        });
+    });
+
+    // ===== Flatpickr: Time fields =====
+    var timeFields = document.querySelectorAll('input.vTimeField, input[type="time"]');
+    timeFields.forEach(function(el) {
+        flatpickr(el, {
+            locale: 'ja',
+            enableTime: true,
+            noCalendar: true,
+            dateFormat: 'H:i',
+            time_24hr: true,
+            allowInput: true,
+        });
+    });
+
+    // ===== Leaflet: Address fields =====
+    var addressInputs = document.querySelectorAll('input[name*="address"]');
+    addressInputs.forEach(function(input) {
+        // Skip if already has a map
+        if (input.dataset.mapAttached) return;
+        input.dataset.mapAttached = 'true';
+
+        // Create map container
+        var mapDiv = document.createElement('div');
+        mapDiv.className = 'leaflet-map-widget';
+        mapDiv.id = 'map-' + input.name;
+        input.parentNode.insertBefore(mapDiv, input.nextSibling);
+
+        // Initialize Leaflet map (default: Tokyo)
+        var map = L.map(mapDiv.id).setView([35.6895, 139.6917], 13);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; OpenStreetMap contributors',
+            maxZoom: 19,
+        }).addTo(map);
+
+        var marker = L.marker([35.6895, 139.6917], { draggable: true }).addTo(map);
+
+        // Reverse geocode on marker drag
+        function reverseGeocode(lat, lng) {
+            fetch('https://nominatim.openstreetmap.org/reverse?format=json&lat=' + lat + '&lon=' + lng + '&accept-language=ja')
+                .then(function(res) { return res.json(); })
+                .then(function(data) {
+                    if (data.display_name) {
+                        input.value = data.display_name;
+                    }
+                })
+                .catch(function() {});
+        }
+
+        marker.on('dragend', function(e) {
+            var pos = e.target.getLatLng();
+            reverseGeocode(pos.lat, pos.lng);
+        });
+
+        map.on('click', function(e) {
+            marker.setLatLng(e.latlng);
+            reverseGeocode(e.latlng.lat, e.latlng.lng);
+        });
+
+        // If address field has a value, geocode it to set map position
+        if (input.value.trim()) {
+            fetch('https://nominatim.openstreetmap.org/search?format=json&q=' + encodeURIComponent(input.value) + '&limit=1&accept-language=ja')
+                .then(function(res) { return res.json(); })
+                .then(function(data) {
+                    if (data.length > 0) {
+                        var lat = parseFloat(data[0].lat);
+                        var lon = parseFloat(data[0].lon);
+                        map.setView([lat, lon], 16);
+                        marker.setLatLng([lat, lon]);
+                    }
+                })
+                .catch(function() {});
+        }
+
+        // Fix map rendering when container becomes visible
+        setTimeout(function() { map.invalidateSize(); }, 200);
+    });
+});
+</script>
 {% endblock %}

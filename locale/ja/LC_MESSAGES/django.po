@@ -193,3 +193,58 @@ msgstr "お客様のQRコードをカメラでスキャンしてください。"
 
 msgid "手動入力"
 msgstr "手動入力"
+
+#: Phase2: トップページ・管理画面改善
+msgid "SNS"
+msgstr "SNS"
+
+msgid "人気占い師ランキング"
+msgstr "人気占い師ランキング"
+
+msgid "予約数"
+msgstr "予約数"
+
+msgid "件"
+msgstr "件"
+
+msgid "センサーモニタ"
+msgstr "センサーモニタ"
+
+msgid "デバッグパネル"
+msgstr "デバッグパネル"
+
+msgid "システム状態とログ監視"
+msgstr "システム状態とログ監視"
+
+msgid "売り上げダッシュボード"
+msgstr "売り上げダッシュボード"
+
+msgid "売上推移と予約統計"
+msgstr "売上推移と予約統計"
+
+msgid "IoTセンサーリアルタイム監視"
+msgstr "IoTセンサーリアルタイム監視"
+
+msgid "デバイス"
+msgstr "デバイス"
+
+msgid "表示件数"
+msgstr "表示件数"
+
+msgid "デバイスID"
+msgstr "デバイスID"
+
+msgid "更新"
+msgstr "更新"
+
+msgid "ライブデータ"
+msgstr "ライブデータ"
+
+msgid "時刻"
+msgstr "時刻"
+
+msgid "MQ-9 値"
+msgstr "MQ-9 値"
+
+msgid "データがありません。"
+msgstr "データがありません。"

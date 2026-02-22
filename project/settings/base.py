@@ -93,6 +93,7 @@ TEMPLATES = [
                 "django.contrib.messages.context_processors.messages",
                 "django.template.context_processors.i18n",
                 "booking.context_processors.global_context",
+                "booking.context_processors.admin_user_flags",
                 "social_django.context_processors.backends",
                 "social_django.context_processors.login_redirect",
             ],

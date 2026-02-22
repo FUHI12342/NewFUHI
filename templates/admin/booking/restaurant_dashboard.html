@@ -14,7 +14,7 @@
   #content { max-width: 100%; padding: 0; }
   #content > h1 { padding: 0 1rem; }
   .dashboard-wrap { padding: 0 1rem 2rem; }
-  canvas { max-height: 400px; }
+  /* canvas max-height removed to prevent graph clipping */
 
   /* ===== Dark mode via CSS variables ===== */
   :root {
@@ -53,7 +53,7 @@
 
   /* gridstack overrides */
   .grid-stack { min-height: 600px; }
-  .grid-stack-item-content { overflow: hidden; }
+  .grid-stack-item-content { overflow: auto; }
   .gs-item-content { height: 100%; }
 
   /* toolbar */

@@ -191,6 +191,56 @@ body.login #header {
 }
 
 /* ==============================
+   Admin Dashboard Grid
+   ============================== */
+.admin-dashboard-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 16px;
+    margin-bottom: 24px;
+}
+.admin-dashboard-card {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 16px 20px;
+    color: white;
+    text-decoration: none;
+    border-radius: 12px;
+    font-weight: 600;
+    font-size: 14px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.08);
+    transition: transform 0.15s, box-shadow 0.15s;
+}
+.admin-dashboard-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    color: white;
+    text-decoration: none;
+}
+.admin-dashboard-card__title {
+    display: block;
+    font-size: 14px;
+    font-weight: 600;
+}
+.admin-dashboard-card__desc {
+    display: block;
+    font-size: 11px;
+    opacity: 0.85;
+    font-weight: 400;
+    margin-top: 2px;
+}
+.admin-dashboard-card--debug {
+    background: var(--brand-primary, #465fff);
+}
+.admin-dashboard-card--sales {
+    background: linear-gradient(135deg, #465fff, #6366f1);
+}
+.admin-dashboard-card--sensor {
+    background: #12b76a;
+}
+
+/* ==============================
    Responsive Tweaks
    ============================== */
 @media (max-width: 767px) {
