@@ -2,19 +2,31 @@
 {% load i18n %}
 
 {% block content %}
-<!-- Dashboard Links -->
+<!-- Dashboard KPI Links -->
 {% if user.is_superuser or user.is_staff %}
-<div style="margin-bottom: 20px; display: flex; gap: 12px; flex-wrap: wrap;">
+<div style="margin-bottom:24px;display:flex;gap:12px;flex-wrap:wrap;">
     <a href="{% url 'admin_debug_panel' %}"
-       style="display: inline-block; padding: 12px 20px; background: #417690; color: white; text-decoration: none; border-radius: 6px; font-weight: bold;">
+       style="display:inline-flex;align-items:center;gap:8px;padding:12px 20px;background:var(--brand-primary,#465fff);color:white;text-decoration:none;border-radius:10px;font-weight:600;font-size:14px;box-shadow:0 1px 2px rgba(0,0,0,0.05);transition:opacity 0.15s;"
+       onmouseover="this.style.opacity='0.9'" onmouseout="this.style.opacity='1'">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 20V10"/><path d="M18 20V4"/><path d="M6 20v-4"/>
+        </svg>
         {% trans "デバッグパネル" %}
     </a>
-    <a href="{% url 'admin_restaurant_dashboard' %}"
-       style="display: inline-block; padding: 12px 20px; background: #79aec8; color: white; text-decoration: none; border-radius: 6px; font-weight: bold;">
-        {% trans "飲食店ダッシュボード" %}
+    <a href="{% url 'admin_sales_dashboard' %}"
+       style="display:inline-flex;align-items:center;gap:8px;padding:12px 20px;background:linear-gradient(135deg,#465fff,#6366f1);color:white;text-decoration:none;border-radius:10px;font-weight:600;font-size:14px;box-shadow:0 1px 2px rgba(0,0,0,0.05);transition:opacity 0.15s;"
+       onmouseover="this.style.opacity='0.9'" onmouseout="this.style.opacity='1'">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+        </svg>
+        {% trans "売り上げダッシュボード" %}
     </a>
     <a href="{% url 'admin_iot_mq9' %}"
-       style="display: inline-block; padding: 12px 20px; background: #609b5b; color: white; text-decoration: none; border-radius: 6px; font-weight: bold;">
+       style="display:inline-flex;align-items:center;gap:8px;padding:12px 20px;background:#12b76a;color:white;text-decoration:none;border-radius:10px;font-weight:600;font-size:14px;box-shadow:0 1px 2px rgba(0,0,0,0.05);transition:opacity 0.15s;"
+       onmouseover="this.style.opacity='0.9'" onmouseout="this.style.opacity='1'">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M22 12h-4l-3 9L9 3l-3 9H2"/>
+        </svg>
         {% trans "MQ-9 ガスセンサー" %}
     </a>
 </div>

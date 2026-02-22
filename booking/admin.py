@@ -38,6 +38,12 @@ from .models import (
     BannerAd,
     ExternalLink,
     AdminMenuConfig,
+    EmploymentContract,
+    WorkAttendance,
+    PayrollPeriod,
+    PayrollEntry,
+    PayrollDeduction,
+    SalaryStructure,
 )
 
 
@@ -821,5 +827,181 @@ class AdminMenuConfigAdmin(admin.ModelAdmin):
 
 
 custom_site.register(AdminMenuConfig, AdminMenuConfigAdmin)
+
+
+# ==============================
+# 給与管理・勤怠管理
+# ==============================
+class EmploymentContractAdmin(admin.ModelAdmin):
+    list_display = ('staff', 'employment_type', 'pay_type', 'hourly_rate', 'monthly_salary',
+                    'standard_monthly_remuneration', 'is_active')
+    list_filter = ('employment_type', 'pay_type', 'is_active', 'staff__store')
+    search_fields = ('staff__name', 'staff__store__name')
+    autocomplete_fields = ('staff',)
+
+    def get_queryset(self, request):
+        qs = super().get_queryset(request)
+        if _is_owner_or_super(request):
+            return qs
+        try:
+            staff = request.user.staff
+            if staff.is_store_manager:
+                return qs.filter(staff__store=staff.store)
+            return qs.none()
+        except Staff.DoesNotExist:
+            return qs.none()
+
+
+class WorkAttendanceAdmin(admin.ModelAdmin):
+    list_display = ('staff', 'date', 'clock_in', 'clock_out', 'regular_minutes',
+                    'overtime_minutes', 'late_night_minutes', 'holiday_minutes',
+                    'break_minutes', 'source')
+    list_filter = ('source', 'staff__store', 'date')
+    search_fields = ('staff__name',)
+    date_hierarchy = 'date'
+    autocomplete_fields = ('staff',)
+
+    actions = ['derive_from_shifts']
+
+    @admin.action(description='確定シフトから勤怠データを自動生成')
+    def derive_from_shifts(self, request, queryset):
+        from booking.services.attendance_service import derive_attendance_from_shifts
+        # Get unique stores from selected attendances, or use user's store
+        if request.user.is_superuser:
+            from booking.models import Store
+            stores = Store.objects.all()
+        else:
+            try:
+                stores = [request.user.staff.store]
+            except Staff.DoesNotExist:
+                self.message_user(request, 'スタッフ情報が見つかりません。', messages.ERROR)
+                return
+
+        from datetime import date, timedelta
+        today = date.today()
+        month_start = today.replace(day=1)
+        if today.month == 12:
+            month_end = today.replace(year=today.year + 1, month=1, day=1) - timedelta(days=1)
+        else:
+            month_end = today.replace(month=today.month + 1, day=1) - timedelta(days=1)
+
+        total = 0
+        for store in stores:
+            count = derive_attendance_from_shifts(store, month_start, month_end)
+            total += count
+        self.message_user(request, f'{total} 件の勤怠レコードを生成しました。')
+
+    def get_queryset(self, request):
+        qs = super().get_queryset(request)
+        if _is_owner_or_super(request):
+            return qs
+        try:
+            staff = request.user.staff
+            if staff.is_store_manager:
+                return qs.filter(staff__store=staff.store)
+            return qs.none()
+        except Staff.DoesNotExist:
+            return qs.none()
+
+
+class PayrollDeductionInline(admin.TabularInline):
+    model = PayrollDeduction
+    extra = 0
+    readonly_fields = ('deduction_type', 'amount', 'is_employer_only')
+
+
+class PayrollEntryAdmin(admin.ModelAdmin):
+    list_display = ('staff', 'period', 'total_work_days', 'gross_pay', 'total_deductions', 'net_pay')
+    list_filter = ('period__store', 'period__year_month')
+    search_fields = ('staff__name',)
+    readonly_fields = ('created_at', 'updated_at')
+    inlines = [PayrollDeductionInline]
+
+    def get_queryset(self, request):
+        qs = super().get_queryset(request)
+        if _is_owner_or_super(request):
+            return qs
+        try:
+            staff = request.user.staff
+            if staff.is_store_manager:
+                return qs.filter(period__store=staff.store)
+            return qs.none()
+        except Staff.DoesNotExist:
+            return qs.none()
+
+
+class PayrollEntryInline(admin.TabularInline):
+    model = PayrollEntry
+    extra = 0
+    readonly_fields = ('staff', 'gross_pay', 'total_deductions', 'net_pay', 'total_work_days')
+    fields = ('staff', 'total_work_days', 'gross_pay', 'total_deductions', 'net_pay')
+    max_num = 0  # read-only inline
+
+
+class PayrollPeriodAdmin(admin.ModelAdmin):
+    list_display = ('store', 'year_month', 'period_start', 'period_end', 'status', 'payment_date')
+    list_filter = ('store', 'status')
+    search_fields = ('store__name', 'year_month')
+    readonly_fields = ('created_at', 'updated_at')
+    inlines = [PayrollEntryInline]
+
+    actions = ['run_payroll_calculation', 'export_zengin_csv', 'mark_as_paid']
+
+    @admin.action(description='給与計算を実行')
+    def run_payroll_calculation(self, request, queryset):
+        from booking.services.payroll_calculator import calculate_payroll_for_period
+        total = 0
+        for period in queryset.filter(status__in=['draft', 'confirmed']):
+            entries = calculate_payroll_for_period(period)
+            total += len(entries)
+        self.message_user(request, f'{total} 件の給与明細を計算しました。')
+
+    @admin.action(description='全銀フォーマットCSVダウンロード')
+    def export_zengin_csv(self, request, queryset):
+        from booking.services.zengin_export import generate_zengin_csv
+        from django.http import HttpResponse
+
+        if queryset.count() != 1:
+            self.message_user(request, 'CSVエクスポートは1件ずつ選択してください。', messages.ERROR)
+            return
+
+        period = queryset.first()
+        csv_content = generate_zengin_csv(period)
+
+        response = HttpResponse(csv_content, content_type='text/csv; charset=shift_jis')
+        filename = f'zengin_{period.store.name}_{period.year_month}.csv'
+        response['Content-Disposition'] = f'attachment; filename="{filename}"'
+        return response
+
+    @admin.action(description='支払済みにする')
+    def mark_as_paid(self, request, queryset):
+        count = queryset.filter(status='confirmed').update(status='paid')
+        self.message_user(request, f'{count} 件の給与期間を支払済みにしました。')
+
+    def get_queryset(self, request):
+        qs = super().get_queryset(request)
+        if _is_owner_or_super(request):
+            return qs
+        try:
+            staff = request.user.staff
+            if staff.is_store_manager:
+                return qs.filter(store=staff.store)
+            return qs.none()
+        except Staff.DoesNotExist:
+            return qs.none()
+
+
+class SalaryStructureAdmin(admin.ModelAdmin):
+    list_display = ('store', 'pension_rate', 'health_insurance_rate', 'employment_insurance_rate',
+                    'overtime_multiplier', 'late_night_multiplier', 'holiday_multiplier')
+    search_fields = ('store__name',)
+
+
+custom_site.register(EmploymentContract, EmploymentContractAdmin)
+custom_site.register(WorkAttendance, WorkAttendanceAdmin)
+custom_site.register(PayrollPeriod, PayrollPeriodAdmin)
+custom_site.register(PayrollEntry, PayrollEntryAdmin)
+custom_site.register(SalaryStructure, SalaryStructureAdmin)
+
 
 print("booking.admin loaded")

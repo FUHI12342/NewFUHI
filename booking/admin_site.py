@@ -29,6 +29,8 @@ GROUP_MAP = {
     '予約管理': ['schedule'],
     'シフト管理': ['shiftperiod', 'shiftrequest', 'shiftassignment'],
     'スタッフ管理': ['staff', 'store', 'storescheduleconfig'],
+    '給与管理': ['payrollperiod', 'payrollentry', 'employmentcontract', 'salarystructure'],
+    '勤怠管理': ['workattendance'],
     '在庫管理': ['category', 'product'],
     '注文管理': ['order'],
     'IoT管理': ['iotdevice'],
@@ -59,6 +61,8 @@ DEFAULT_ALLOWED_MODELS = {
         'storescheduleconfig', 'admintheme',
         'sitesettings', 'homepagecustomblock',
         'herobanner', 'bannerad', 'externallink',
+        'payrollperiod', 'payrollentry', 'employmentcontract',
+        'salarystructure', 'workattendance',
     ],
     'staff': [
         'schedule', 'order', 'staff',

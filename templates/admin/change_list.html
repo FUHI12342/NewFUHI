@@ -1,0 +1,168 @@
+{% extends "admin/change_list.html" %}
+{% load i18n %}
+
+{% block extrastyle %}
+{{ block.super }}
+<style>
+/* Tailwind-inspired change list styles */
+#changelist {
+    background: #fff;
+    border: 1px solid var(--gray-200, #e5e7eb);
+    border-radius: 12px;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+    overflow: hidden;
+}
+
+#changelist .actions {
+    padding: 12px 16px;
+    background: var(--gray-50, #f9fafb);
+    border-bottom: 1px solid var(--gray-200, #e5e7eb);
+}
+#changelist .actions select {
+    padding: 6px 10px;
+    border: 1px solid var(--gray-300, #d1d5db);
+    border-radius: 6px;
+    font-size: 13px;
+    background: #fff;
+}
+#changelist .actions button {
+    padding: 6px 14px;
+    background: var(--brand-primary, #465fff);
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    font-size: 13px;
+    cursor: pointer;
+    transition: opacity 0.15s;
+}
+#changelist .actions button:hover {
+    opacity: 0.9;
+}
+
+/* Result list table */
+#result_list {
+    border-collapse: collapse;
+    width: 100%;
+}
+#result_list thead th {
+    background: var(--gray-100, #f3f4f6) !important;
+    border-bottom: 1px solid var(--gray-200, #e5e7eb);
+    padding: 10px 12px !important;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--gray-600, #4b5563);
+    text-transform: uppercase;
+    letter-spacing: 0.025em;
+}
+#result_list thead th a {
+    color: var(--gray-600, #4b5563) !important;
+    text-decoration: none;
+}
+#result_list thead th a:hover {
+    color: var(--brand-primary, #465fff) !important;
+}
+#result_list tbody td {
+    padding: 10px 12px !important;
+    font-size: 13px;
+    border-bottom: 1px solid var(--gray-100, #f3f4f6);
+    color: var(--gray-700, #374151);
+}
+#result_list tbody tr:hover td {
+    background: var(--gray-50, #f9fafb);
+}
+#result_list tbody tr:last-child td {
+    border-bottom: none;
+}
+
+/* Boolean icons */
+#result_list td img[src*="icon-yes"],
+#result_list td .inline-true {
+    filter: hue-rotate(100deg) saturate(1.5);
+}
+
+/* Pagination */
+.paginator {
+    padding: 12px 16px;
+    font-size: 13px;
+    color: var(--gray-500, #6b7280);
+    border-top: 1px solid var(--gray-200, #e5e7eb);
+}
+.paginator a {
+    color: var(--brand-primary, #465fff);
+    text-decoration: none;
+    padding: 4px 8px;
+    border-radius: 4px;
+}
+.paginator a:hover {
+    background: var(--gray-100, #f3f4f6);
+}
+
+/* Filter sidebar */
+#changelist-filter {
+    background: #fff;
+    border: 1px solid var(--gray-200, #e5e7eb);
+    border-radius: 12px;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+    padding: 0;
+    overflow: hidden;
+}
+#changelist-filter h2 {
+    background: var(--gray-100, #f3f4f6) !important;
+    color: var(--gray-700, #374151) !important;
+    padding: 10px 14px !important;
+    font-size: 13px !important;
+    font-weight: 600;
+    margin: 0;
+}
+#changelist-filter h3 {
+    padding: 8px 14px 4px;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--gray-600, #4b5563);
+    border-top: 1px solid var(--gray-100, #f3f4f6);
+}
+#changelist-filter li {
+    padding: 2px 14px;
+}
+#changelist-filter a {
+    font-size: 13px;
+    color: var(--gray-600, #4b5563);
+    text-decoration: none;
+}
+#changelist-filter li.selected a {
+    color: var(--brand-primary, #465fff);
+    font-weight: 600;
+}
+
+/* Search bar */
+#changelist-search {
+    padding: 12px 16px;
+    background: var(--gray-50, #f9fafb);
+    border-bottom: 1px solid var(--gray-200, #e5e7eb);
+}
+#changelist-search #searchbar {
+    padding: 8px 12px;
+    border: 1px solid var(--gray-300, #d1d5db);
+    border-radius: 8px;
+    font-size: 13px;
+    width: 300px;
+    transition: border-color 0.15s;
+}
+#changelist-search #searchbar:focus {
+    border-color: var(--brand-primary, #465fff);
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(70, 95, 255, 0.1);
+}
+#changelist-search input[type="submit"] {
+    padding: 8px 16px;
+    border-radius: 8px;
+    font-size: 13px;
+}
+
+/* Date hierarchy */
+.xfull .date-hierarchy {
+    padding: 8px 16px;
+    font-size: 13px;
+}
+</style>
+{% endblock %}
