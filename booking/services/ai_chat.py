@@ -11,8 +11,6 @@ logger = logging.getLogger(__name__)
 # Cache for knowledge file contents
 _knowledge_cache = {}
 
-GEMINI_API_KEY = 'AIzaSyA9v0lQ9bZHW-vsYFt-pBOqmV0w6WTYQlw'
-
 
 def _load_knowledge(file_path):
     """Load and cache a knowledge text file."""
@@ -31,11 +29,14 @@ def _load_knowledge(file_path):
 
 
 def _call_gemini(system_prompt, knowledge, user_message, conversation_history=None):
-    """Call Google Gemini API."""
+    """Call Google Gemini API with retry for transient errors."""
+    import time
+    import urllib.error
     import urllib.request
 
-    api_key = getattr(settings, 'GEMINI_API_KEY', '') or GEMINI_API_KEY
+    api_key = getattr(settings, 'GEMINI_API_KEY', '')
     if not api_key:
+        logger.error('GEMINI_API_KEY is not configured in settings / .env')
         return 'AI チャットは現在利用できません。API キーが設定されていません。'
 
     url = f'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key={api_key}'
@@ -74,18 +75,29 @@ def _call_gemini(system_prompt, knowledge, user_message, conversation_history=No
         method='POST',
     )
 
-    try:
-        with urllib.request.urlopen(req, timeout=30) as resp:
-            data = json.loads(resp.read().decode('utf-8'))
-        candidates = data.get('candidates', [])
-        if candidates:
-            parts = candidates[0].get('content', {}).get('parts', [])
-            if parts:
-                return parts[0].get('text', 'レスポンスが空でした。')
-        return 'レスポンスを取得できませんでした。'
-    except Exception as e:
-        logger.error('Gemini API error: %s', e)
-        return 'エラーが発生しました。しばらく経ってからお試しください。'
+    max_retries = 2
+    for attempt in range(max_retries + 1):
+        try:
+            with urllib.request.urlopen(req, timeout=30) as resp:
+                data = json.loads(resp.read().decode('utf-8'))
+            candidates = data.get('candidates', [])
+            if candidates:
+                parts = candidates[0].get('content', {}).get('parts', [])
+                if parts:
+                    return parts[0].get('text', 'レスポンスが空でした。')
+            return 'レスポンスを取得できませんでした。'
+        except urllib.error.HTTPError as e:
+            logger.error('Gemini API HTTP %s: %s (attempt %d/%d)',
+                         e.code, e.reason, attempt + 1, max_retries + 1)
+            if e.code == 429 and attempt < max_retries:
+                time.sleep(2 ** attempt)
+                continue
+            if e.code == 403:
+                return 'AI チャットは現在利用できません。API キーを確認してください。'
+            return 'エラーが発生しました。しばらく経ってからお試しください。'
+        except Exception as e:
+            logger.error('Gemini API error: %s', e)
+            return 'エラーが発生しました。しばらく経ってからお試しください。'
 
 
 class AdminChatService:

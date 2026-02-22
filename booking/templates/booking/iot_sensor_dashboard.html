@@ -88,6 +88,39 @@
     border-color: #4f46e5;
     color: #fff;
   }
+  .sensor-desc {
+    font-size: 0.8rem;
+    color: #9ca3af;
+    margin-top: 0.25rem;
+    font-weight: 400;
+    line-height: 1.4;
+  }
+  .sensor-tab-bar {
+    display: flex;
+    gap: 4px;
+    margin-bottom: 1rem;
+    flex-wrap: wrap;
+  }
+  .sensor-tab {
+    padding: 0.5rem 1.2rem;
+    border-radius: 0.5rem;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    cursor: pointer;
+    border: 1px solid #374151;
+    background: transparent;
+    color: #9ca3af;
+    transition: all 0.2s;
+  }
+  .sensor-tab:hover { background: #1f2937; }
+  .sensor-tab.active {
+    background: #4f46e5;
+    color: #fff;
+    border-color: #4f46e5;
+  }
+  .tab-icon { margin-right: 4px; }
+  .sensor-panel { display: none; }
+  .sensor-panel.active { display: block; }
   .status-dot {
     display: inline-block;
     width: 8px;
@@ -129,53 +162,84 @@
     </div>
   </div>
 
-  <!-- 2x2 Grid -->
-  <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+  <!-- Sensor Tabs -->
+  <div class="sensor-tab-bar">
+    <button class="sensor-tab active" data-sensor="mq9" onclick="switchSensor('mq9')">
+      <span class="tab-icon" style="color:#f97316;">&#9679;</span> MQ-9 Gas
+    </button>
+    <button class="sensor-tab" data-sensor="light" onclick="switchSensor('light')">
+      <span class="tab-icon" style="color:#facc15;">&#9679;</span> Light
+    </button>
+    <button class="sensor-tab" data-sensor="sound" onclick="switchSensor('sound')">
+      <span class="tab-icon" style="color:#34d399;">&#9679;</span> Sound
+    </button>
+    <button class="sensor-tab" data-sensor="pir" onclick="switchSensor('pir')">
+      <span class="tab-icon" style="color:#60a5fa;">&#9679;</span> PIR Motion
+    </button>
+  </div>
 
-    <!-- MQ-9 Gas -->
-    <div class="sensor-card">
+  <!-- MQ-9 Gas -->
+  <div class="sensor-panel active" id="panel-mq9">
+    <div class="sensor-card" style="height:100%;">
       <div class="sensor-card-header">
-        <span class="sensor-name">{% trans "MQ-9 Gas" %}</span>
+        <div>
+          <span class="sensor-name">{% trans "MQ-9 Gas" %}</span>
+          <p class="sensor-desc">{% trans "一酸化炭素(CO)・可燃性ガスの検知。値が高いほどガス濃度が高く、閾値超過でアラート通知。" %}</p>
+        </div>
         <span class="sensor-value mq9" id="val-mq9">--</span>
       </div>
-      <div class="sensor-card-body">
+      <div class="sensor-card-body" style="min-height:calc(100vh - 340px);">
         <canvas id="chart-mq9"></canvas>
       </div>
     </div>
+  </div>
 
-    <!-- Light -->
-    <div class="sensor-card">
+  <!-- Light -->
+  <div class="sensor-panel" id="panel-light">
+    <div class="sensor-card" style="height:100%;">
       <div class="sensor-card-header">
-        <span class="sensor-name">{% trans "Light" %}</span>
+        <div>
+          <span class="sensor-name">{% trans "Light" %}</span>
+          <p class="sensor-desc">{% trans "照度センサー。室内の明るさをリアルタイム計測。営業時間外の異常な明るさ変化を検知可能。" %}</p>
+        </div>
         <span class="sensor-value light" id="val-light">--</span>
       </div>
-      <div class="sensor-card-body">
+      <div class="sensor-card-body" style="min-height:calc(100vh - 340px);">
         <canvas id="chart-light"></canvas>
       </div>
     </div>
+  </div>
 
-    <!-- Sound -->
-    <div class="sensor-card">
+  <!-- Sound -->
+  <div class="sensor-panel" id="panel-sound">
+    <div class="sensor-card" style="height:100%;">
       <div class="sensor-card-header">
-        <span class="sensor-name">{% trans "Sound" %}</span>
+        <div>
+          <span class="sensor-name">{% trans "Sound" %}</span>
+          <p class="sensor-desc">{% trans "音量レベルの計測。店舗内の環境音を監視し、異常な騒音や静寂を検知。" %}</p>
+        </div>
         <span class="sensor-value sound" id="val-sound">--</span>
       </div>
-      <div class="sensor-card-body">
+      <div class="sensor-card-body" style="min-height:calc(100vh - 340px);">
         <canvas id="chart-sound"></canvas>
       </div>
     </div>
+  </div>
 
-    <!-- PIR Motion -->
-    <div class="sensor-card">
+  <!-- PIR Motion -->
+  <div class="sensor-panel" id="panel-pir">
+    <div class="sensor-card" style="height:100%;">
       <div class="sensor-card-header">
-        <span class="sensor-name">{% trans "PIR Motion" %}</span>
+        <div>
+          <span class="sensor-name">{% trans "PIR Motion" %}</span>
+          <p class="sensor-desc">{% trans "人感（赤外線動体検知）センサー。人の出入りや在室状況をイベント数で表示。" %}</p>
+        </div>
         <span class="sensor-value pir" id="val-pir">--</span>
       </div>
-      <div class="sensor-card-body">
+      <div class="sensor-card-body" style="min-height:calc(100vh - 340px);">
         <canvas id="chart-pir"></canvas>
       </div>
     </div>
-
   </div>
 </div>
 {% endblock %}
@@ -186,6 +250,18 @@
 <script>
 (function() {
   'use strict';
+
+  // ── Sensor tab switching ────────────────────────────────
+  window.switchSensor = function(sensorName) {
+    document.querySelectorAll('.sensor-panel').forEach(function(el) {
+      el.classList.remove('active');
+    });
+    document.querySelectorAll('.sensor-tab').forEach(function(el) {
+      el.classList.remove('active');
+    });
+    document.getElementById('panel-' + sensorName).classList.add('active');
+    document.querySelector('[data-sensor="' + sensorName + '"]').classList.add('active');
+  };
 
   // ── State ──────────────────────────────────────────────
   let currentRange  = '1h';

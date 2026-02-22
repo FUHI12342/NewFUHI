@@ -109,6 +109,9 @@ PAYMENT_API_URL = env_required("PAYMENT_API_URL")
 WEBHOOK_URL_BASE = env_required("WEBHOOK_URL_BASE")
 CANCEL_URL = env_required("CANCEL_URL")
 
+# Gemini AI Chat
+GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "")
+
 # Email settings
 DEFAULT_FROM_EMAIL = os.getenv("DEFAULT_FROM_EMAIL", "no-reply@newfuhi.com")
 EMAIL_HOST = env_required("EMAIL_HOST")

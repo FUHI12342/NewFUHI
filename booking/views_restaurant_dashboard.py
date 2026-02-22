@@ -83,8 +83,6 @@ class DashboardLayoutAPIView(APIView):
 
 class ReservationStatsAPIView(APIView):
     """GET /api/dashboard/reservations/ — reservation statistics."""
-    authentication_classes = []
-    permission_classes = []
 
     def get(self, request):
         if not request.user.is_authenticated:
@@ -135,8 +133,6 @@ class ReservationStatsAPIView(APIView):
 
 class SalesStatsAPIView(APIView):
     """GET /api/dashboard/sales/?period=daily — sales statistics."""
-    authentication_classes = []
-    permission_classes = []
 
     TRUNC_MAP = {
         'daily': TruncDate,
@@ -187,8 +183,6 @@ class SalesStatsAPIView(APIView):
 
 class StaffPerformanceAPIView(APIView):
     """GET /api/dashboard/staff-performance/ — staff metrics."""
-    authentication_classes = []
-    permission_classes = []
 
     def get(self, request):
         if not request.user.is_authenticated:
@@ -222,8 +216,6 @@ class StaffPerformanceAPIView(APIView):
 
 class ShiftSummaryAPIView(APIView):
     """GET /api/dashboard/shift-summary/ — shift statistics for dashboard."""
-    authentication_classes = []
-    permission_classes = []
 
     def get(self, request):
         if not request.user.is_authenticated:
