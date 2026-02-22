@@ -120,6 +120,7 @@ tailwind.config = {
         <aside class="w-full lg:w-72 flex-shrink-0 space-y-6">
 
             <!-- お知らせ -->
+            {% if site_settings.show_sidebar_notice %}
             <div class="bg-salon-beige rounded-lg p-4">
                 <h3 class="text-base font-bold text-salon-brown border-b border-salon-brown/30 pb-2 mb-3">{% trans "お知らせ" %}</h3>
                 {% for notice in notices %}
@@ -131,9 +132,10 @@ tailwind.config = {
                 <p class="text-sm text-gray-400">{% trans "お知らせはありません" %}</p>
                 {% endfor %}
             </div>
+            {% endif %}
 
             <!-- 運営会社 -->
-            {% if company %}
+            {% if site_settings.show_sidebar_company and company %}
             <div class="bg-salon-beige rounded-lg p-4">
                 <h3 class="text-base font-bold text-salon-brown border-b border-salon-brown/30 pb-2 mb-3">{% trans "運営会社" %}</h3>
                 <p class="text-sm leading-relaxed">
@@ -192,7 +194,7 @@ tailwind.config = {
             {% endif %}
 
             <!-- メディア掲載情報 -->
-            {% if medias %}
+            {% if site_settings.show_sidebar_media and medias %}
             <div class="bg-salon-beige rounded-lg p-4">
                 <h3 class="text-base font-bold text-salon-brown border-b border-salon-brown/30 pb-2 mb-3">{% trans "メディア掲載情報" %}</h3>
                 {% for media in medias %}
@@ -201,6 +203,25 @@ tailwind.config = {
                     <div>
                         <p class="text-sm font-medium leading-tight">{{ media.title }}{% if forloop.first %} <span class="inline-block bg-red-500 text-white text-[10px] px-1.5 py-0.5 rounded">NEW</span>{% endif %}</p>
                         <p class="text-xs text-gray-500 mt-0.5">{{ media.description }}</p>
+                    </div>
+                </a>
+                {% endfor %}
+            </div>
+            {% endif %}
+
+            <!-- 外部リンク -->
+            {% if site_settings.show_sidebar_external_links and external_links %}
+            <div class="bg-salon-beige rounded-lg p-4">
+                <h3 class="text-base font-bold text-salon-brown border-b border-salon-brown/30 pb-2 mb-3">{% trans "外部リンク" %}</h3>
+                {% for link in external_links %}
+                <a href="{{ link.url }}" {% if link.open_in_new_tab %}target="_blank" rel="noopener noreferrer"{% endif %}
+                   class="flex items-start gap-2 mb-3 hover:opacity-80 transition">
+                    <img src="https://www.google.com/s2/favicons?domain={{ link.url }}" alt="" class="w-5 h-5 mt-0.5 flex-shrink-0">
+                    <div>
+                        <p class="text-sm font-medium leading-tight">{{ link.title }}</p>
+                        {% if link.description %}
+                        <p class="text-xs text-gray-500 mt-0.5">{{ link.description }}</p>
+                        {% endif %}
                     </div>
                 </a>
                 {% endfor %}

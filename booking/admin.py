@@ -83,8 +83,9 @@ class ScheduleAdmin(admin.ModelAdmin):
 # スタッフ / 店舗
 # ==============================
 class StaffAdmin(admin.ModelAdmin):
-    list_display = ('name', 'store', 'staff_type', 'is_store_manager', 'is_owner', 'display_thumbnail')
-    list_filter = ('store', 'staff_type', 'is_store_manager', 'is_owner')
+    list_display = ('name', 'store', 'staff_type', 'is_store_manager', 'is_owner', 'is_recommended', 'display_thumbnail')
+    list_filter = ('store', 'staff_type', 'is_store_manager', 'is_owner', 'is_recommended')
+    list_editable = ('is_recommended',)
     search_fields = ('name', 'store__name')
 
     def display_thumbnail(self, obj):
@@ -151,7 +152,8 @@ class AdminThemeInline(admin.StackedInline):
 
 
 class StoreAdmin(admin.ModelAdmin):
-    list_display = ('name', 'address', 'nearest_station', 'business_hours', 'regular_holiday', 'default_language')
+    list_display = ('name', 'address', 'nearest_station', 'business_hours', 'regular_holiday', 'default_language', 'is_recommended')
+    list_editable = ('is_recommended',)
     search_fields = ('name', 'address', 'nearest_station')
     inlines = [StoreScheduleConfigInline, AdminThemeInline]
 
@@ -742,9 +744,13 @@ custom_site.register(HomepageCustomBlock, HomepageCustomBlockAdmin)
 # Round 4.5: ヒーローバナー / バナー広告 / 外部リンク
 # ==============================
 class HeroBannerAdmin(admin.ModelAdmin):
-    list_display = ('title', 'sort_order', 'is_active', 'image_position', 'link_url', 'updated_at')
-    list_editable = ('sort_order', 'is_active', 'image_position')
+    list_display = ('title', 'sort_order', 'is_active', 'image_position', 'link_type', 'updated_at')
+    list_editable = ('sort_order', 'is_active', 'image_position', 'link_type')
     search_fields = ('title',)
+    fieldsets = (
+        (None, {'fields': ('title', 'image', 'image_position', 'sort_order', 'is_active')}),
+        ('リンク設定', {'fields': ('link_type', 'linked_store', 'linked_staff', 'link_url')}),
+    )
 
 
 class BannerAdAdmin(admin.ModelAdmin):

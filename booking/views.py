@@ -678,6 +678,27 @@ class BookingTopPage(generic.TemplateView):
                 [:site_settings.ranking_limit]
             )
 
+            # 人気店舗ランキング（直近30日の予約数でStore集計）
+            context['store_ranking'] = (
+                Store.objects.filter(
+                    staff__schedule__start__gte=since,
+                    staff__schedule__is_cancelled=False,
+                    staff__schedule__is_temporary=False,
+                )
+                .annotate(reservation_count=Count('staff__schedule'))
+                .order_by('-reservation_count')
+                [:site_settings.ranking_limit]
+            )
+
+            # おすすめ（is_recommended=True の占い師＋店舗）
+            context['recommended_staff'] = Staff.objects.filter(
+                is_recommended=True, staff_type='fortune_teller',
+            ).select_related('store')[:site_settings.ranking_limit]
+
+            context['recommended_stores'] = Store.objects.filter(
+                is_recommended=True,
+            )[:site_settings.ranking_limit]
+
         return context
 
 

@@ -1,5 +1,6 @@
 from django.contrib import admin
 from django.contrib.admin.sites import AdminSite
+from django.urls import reverse
 from .models import Staff
 import logging
 import time
@@ -124,13 +125,20 @@ class RoleBasedAdminSite(AdminSite):
             role, app_label,
         )
 
-        raw = super().get_app_list(request, app_label)
-
-        # superuser は常に全モデル表示
+        # superuser は Django 標準の権限システムで全モデル表示
         if role == 'superuser':
+            raw = super().get_app_list(request, app_label)
             return self._regroup_apps(raw)
 
-        # それ以外は _get_allowed_models_for_role() で判定
+        # 未認証 / Staff なしユーザー
+        if role == 'none':
+            return []
+
+        # role-based ユーザー (developer/owner/manager/staff):
+        # Django の権限システムを迂回し、レジストリから全モデルを取得。
+        # 表示制御は独自のロールベースフィルタで行う。
+        raw = self._build_full_app_list(app_label)
+
         allowed = _get_allowed_models_for_role(role)
 
         # None = 全モデル表示（developer / owner のデフォルト）
@@ -147,6 +155,38 @@ class RoleBasedAdminSite(AdminSite):
                 filtered.append(app_copy)
 
         return self._regroup_apps(filtered)
+
+    def _build_full_app_list(self, app_label=None):
+        """レジストリから全モデルのリストを構築（Django の権限チェックを迂回）"""
+        app_dict = {}
+        for model, model_admin in self._registry.items():
+            lbl = model._meta.app_label
+            if app_label and lbl != app_label:
+                continue
+            info = (self.name, lbl, model._meta.model_name)
+            model_dict = {
+                'model': model,
+                'name': str(model._meta.verbose_name_plural),
+                'object_name': model._meta.object_name,
+                'perms': {'add': True, 'change': True, 'delete': True, 'view': True},
+                'admin_url': reverse('%s:%s_%s_changelist' % info),
+                'add_url': reverse('%s:%s_%s_add' % info),
+                'view_only': False,
+            }
+            if lbl in app_dict:
+                app_dict[lbl]['models'].append(model_dict)
+            else:
+                app_dict[lbl] = {
+                    'name': lbl.title(),
+                    'app_label': lbl,
+                    'app_url': reverse('%s:app_list' % self.name, kwargs={'app_label': lbl}),
+                    'has_module_perms': True,
+                    'models': [model_dict],
+                }
+        app_list = sorted(app_dict.values(), key=lambda x: x['name'].lower())
+        for app in app_list:
+            app['models'].sort(key=lambda x: x['name'])
+        return app_list
 
     def _regroup_apps(self, raw_app_list):
         """フラットなモデルリストを仮想アプリグループに再構成"""

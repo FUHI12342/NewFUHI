@@ -61,6 +61,7 @@ class Store(models.Model):
     nearest_station = models.CharField('最寄り駅', max_length=255, default='')
     regular_holiday = models.CharField('定休日', max_length=255, default='')
     description = models.TextField('店舗情報', default='', blank=True)
+    is_recommended = models.BooleanField('おすすめ', default=False)
 
     # 追加（多言語）：店舗の既定言語（任意）
     default_language = models.CharField(
@@ -105,6 +106,8 @@ class Staff(models.Model):
         default='fortune_teller',
         db_index=True,
     )
+
+    is_recommended = models.BooleanField('おすすめ', default=False)
 
     # 追加：仕入れ通知の送信先（店長だけ）
     is_store_manager = models.BooleanField('店長', default=False)
@@ -1065,12 +1068,30 @@ class HeroBanner(models.Model):
         ('bottom left', '左下'),
         ('bottom right', '右下'),
     ]
+    LINK_TYPE_CHOICES = [
+        ('none', 'リンクなし'),
+        ('store', '店舗'),
+        ('staff', '占い師'),
+        ('url', 'カスタムURL'),
+    ]
     title = models.CharField('タイトル', max_length=200)
     image = models.ImageField('バナー画像', upload_to='hero_banners/')
     image_position = models.CharField(
         '画像表示位置', max_length=20,
         choices=IMAGE_POSITION_CHOICES, default='center',
         help_text='バナー内で画像のどの部分を表示するかを指定します',
+    )
+    link_type = models.CharField(
+        'リンク種別', max_length=10,
+        choices=LINK_TYPE_CHOICES, default='none',
+    )
+    linked_store = models.ForeignKey(
+        'Store', verbose_name='リンク先店舗',
+        null=True, blank=True, on_delete=models.SET_NULL,
+    )
+    linked_staff = models.ForeignKey(
+        'Staff', verbose_name='リンク先占い師',
+        null=True, blank=True, on_delete=models.SET_NULL,
     )
     link_url = models.URLField('リンクURL', blank=True, default='')
     sort_order = models.IntegerField('並び順', default=0)
@@ -1086,6 +1107,16 @@ class HeroBanner(models.Model):
 
     def __str__(self):
         return self.title
+
+    def get_link_url(self):
+        """link_type に応じたリンク先URLを返す"""
+        if self.link_type == 'store' and self.linked_store_id:
+            return f'/booking/store/{self.linked_store_id}/staffs/'
+        elif self.link_type == 'staff' and self.linked_staff_id:
+            return f'/booking/staff/{self.linked_staff_id}/calendar/'
+        elif self.link_type == 'url' and self.link_url:
+            return self.link_url
+        return ''
 
 
 class BannerAd(models.Model):
