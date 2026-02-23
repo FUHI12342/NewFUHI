@@ -79,6 +79,25 @@ class SensorDataAPIView(APIView):
         return Response({'labels': labels, 'values': values})
 
 
+class PIRStatusAPIView(APIView):
+    """GET /api/iot/sensors/pir-status/ — real-time PIR active status."""
+    authentication_classes = []
+    permission_classes = []
+
+    def get(self, request):
+        device_id = request.GET.get('device_id')
+        if not device_id:
+            return Response({'detail': 'device_id required'}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Check for PIR triggered within last 60 seconds
+        recent = IoTEvent.objects.filter(
+            device_id=device_id,
+            pir_triggered=True,
+            created_at__gte=timezone.now() - timedelta(seconds=60),
+        ).exists()
+        return Response({'active': recent})
+
+
 class PIREventsAPIView(APIView):
     """GET /api/iot/sensors/pir-events/ — PIR motion events bucketed by hour."""
     authentication_classes = []

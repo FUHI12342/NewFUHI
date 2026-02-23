@@ -3,8 +3,9 @@
 from django.urls import path
 
 from . import views
+from .views import IRSendAPIView
 from .views_debug import AdminDebugPanelAPIView, LogLevelControlAPIView
-from .views_dashboard import SensorDataAPIView, PIREventsAPIView
+from .views_dashboard import SensorDataAPIView, PIREventsAPIView, PIRStatusAPIView
 from .views_restaurant_dashboard import (
     DashboardLayoutAPIView,
     ReservationStatsAPIView,
@@ -47,6 +48,10 @@ urlpatterns = [
     # Sensor Dashboard APIs
     path('iot/sensors/data/', SensorDataAPIView.as_view(), name='sensor_data_api'),
     path('iot/sensors/pir-events/', PIREventsAPIView.as_view(), name='pir_events_api'),
+    path('iot/sensors/pir-status/', PIRStatusAPIView.as_view(), name='pir_status_api'),
+
+    # IR Smart Hub APIs
+    path('iot/ir/send/', IRSendAPIView.as_view(), name='ir_send_api'),
 
     # Restaurant Dashboard APIs
     path('dashboard/layout/', DashboardLayoutAPIView.as_view(), name='dashboard_layout_api'),

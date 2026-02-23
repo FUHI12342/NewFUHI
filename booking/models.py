@@ -353,9 +353,16 @@ class IoTDevice(models.Model):
     mq9_threshold = models.FloatField('MQ-9閾値', null=True, blank=True)
     alert_enabled = models.BooleanField('ガス検知アラート有効', default=False)
     alert_email = models.EmailField('アラート送信メール', blank=True)
+    alert_line_user_id = models.CharField(
+        'アラートLINE通知先ID', max_length=255, blank=True, default='',
+        help_text='閾値超過時にLINE通知を送信するユーザーID'
+    )
 
     wifi_ssid = models.CharField('Wi-Fi SSID', max_length=64, blank=True)
     wifi_password_enc = models.CharField('Wi-Fi パスワード（暗号化）', max_length=512, blank=True)
+    pending_ir_command = models.TextField('保留中IRコマンド', blank=True, default='',
+        help_text='デバイスが次回config取得時に実行するIRコマンド（JSON）'
+    )
 
     @staticmethod
     def _get_iot_fernet():
@@ -435,6 +442,26 @@ class IoTEvent(models.Model):
 
     def __str__(self):
         return f'{self.device} @ {self.created_at}'
+
+
+class IRCode(models.Model):
+    """学習済みIRリモコンコード"""
+    device = models.ForeignKey(IoTDevice, verbose_name='デバイス', on_delete=models.CASCADE, related_name='ir_codes')
+    name = models.CharField('名前', max_length=100)
+    protocol = models.CharField('プロトコル', max_length=20, default='NEC')
+    code = models.CharField('コード', max_length=20)
+    address = models.CharField('アドレス', max_length=20, blank=True, default='')
+    command = models.CharField('コマンド', max_length=20, blank=True, default='')
+    raw_data = models.TextField('RAWデータ', blank=True, default='')
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        app_label = 'booking'
+        verbose_name = 'IRコード'
+        verbose_name_plural = 'IRコード'
+
+    def __str__(self):
+        return f'{self.device.name} / {self.name}'
 
 
 # ==============================

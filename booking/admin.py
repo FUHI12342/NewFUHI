@@ -17,6 +17,7 @@ from .models import (
     Media,
     IoTDevice,
     IoTEvent,
+    IRCode,
     Category,
     Product,
     ProductTranslation,
@@ -222,6 +223,7 @@ class IoTDeviceAdmin(admin.ModelAdmin):
         'mq9_threshold',
         'alert_enabled',
         'alert_email',
+        'alert_line_user_id',
         'wifi_ssid',
     )
     list_filter = ('device_type', 'is_active', 'store', 'alert_enabled')
@@ -255,6 +257,29 @@ class IoTEventAdmin(admin.ModelAdmin):
         return " / ".join(parts) if parts else "-"
 
     sensor_summary.short_description = "センサー要約"
+
+
+class IRCodeAdmin(admin.ModelAdmin):
+    list_display = ('name', 'device', 'protocol', 'code', 'created_at')
+    list_filter = ('device', 'protocol')
+    search_fields = ('name', 'device__name', 'code')
+    readonly_fields = ('created_at',)
+    actions = ['send_ir_code']
+
+    @admin.action(description='IRコードを送信')
+    def send_ir_code(self, request, queryset):
+        import json as _json
+        count = 0
+        for ir_code in queryset:
+            device = ir_code.device
+            device.pending_ir_command = _json.dumps({
+                'action': 'send_ir',
+                'code': ir_code.code,
+                'protocol': ir_code.protocol,
+            })
+            device.save(update_fields=['pending_ir_command'])
+            count += 1
+        self.message_user(request, f'{count} 件のIRコード送信をキューしました。')
 
 
 # ==============================
@@ -576,6 +601,7 @@ custom_site.register(Notice, NoticeAdmin)
 custom_site.register(Company, CompanyAdmin)
 custom_site.register(Media, MediaAdmin)
 custom_site.register(IoTDevice, IoTDeviceAdmin)
+custom_site.register(IRCode, IRCodeAdmin)
 custom_site.register(Category, CategoryAdmin)
 custom_site.register(Product, ProductAdmin)
 custom_site.register(Order, OrderAdmin)

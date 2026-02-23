@@ -52,6 +52,7 @@ from booking.models import (
     UserSerializer,
     IoTDevice,
     IoTEvent,
+    IRCode,
     Media,
     # ===== 追加: 在庫 / 注文 / 入庫QR / 多言語 =====
     Category,
@@ -349,9 +350,46 @@ class IoTEventAPIView(APIView):
         device.last_seen_at = timezone.now()
         device.save(update_fields=["last_seen_at"])
 
+        # MQ-9 alarm: LINE push notification
+        if event_type == "mq9_alarm" and device.alert_enabled and device.alert_line_user_id:
+            try:
+                line_bot_api = LineBotApi(settings.LINE_ACCESS_TOKEN)
+                from linebot.models import TextSendMessage
+                mq9_val = mq9_value or 'N/A'
+                threshold = device.mq9_threshold or 500
+                line_bot_api.push_message(
+                    device.alert_line_user_id,
+                    TextSendMessage(
+                        text=(
+                            f'\u26a0\ufe0f ガス検知アラート\n'
+                            f'デバイス: {device.name}\n'
+                            f'MQ-9値: {mq9_val} (閾値: {threshold})\n'
+                            f'店舗: {device.store.name}'
+                        )
+                    )
+                )
+            except Exception as line_err:
+                logger.warning(f"LINE push failed for device {device.external_id}: {line_err}")
+
+        # IR learned: auto-save IRCode
+        if event_type == "ir_learned":
+            try:
+                payload_data = json.loads(evt.payload) if evt.payload else {}
+                IRCode.objects.create(
+                    device=device,
+                    name=f'学習コード {timezone.now():%Y%m%d_%H%M%S}',
+                    protocol=str(payload_data.get('protocol', 'UNKNOWN')),
+                    code=str(payload_data.get('code', '')),
+                    address=str(payload_data.get('address', '')),
+                    command=str(payload_data.get('command', '')),
+                    raw_data=json.dumps(payload_data.get('raw_sample', [])),
+                )
+            except Exception as ir_err:
+                logger.warning(f"IRCode auto-save failed for device {device.external_id}: {ir_err}")
+
         return Response({
-            "id": evt.id, 
-            "device": device.external_id, 
+            "id": evt.id,
+            "device": device.external_id,
             "event_type": evt.event_type
         }, status=status.HTTP_201_CREATED)
 
@@ -386,12 +424,46 @@ class IoTConfigAPIView(APIView):
         # Wi-Fiパスワードは暗号化されたものを復号して返す
         wifi_password = device.get_wifi_password() or ''
 
-        return Response({
+        response_data = {
             'device': device.external_id,
             'wifi': {'ssid': device.wifi_ssid, 'password': wifi_password},
             'mq9_threshold': int(mq9_threshold),
             'alert_enabled': device.alert_enabled,
+        }
+
+        # Include pending IR command if queued
+        if device.pending_ir_command:
+            try:
+                response_data['ir_command'] = json.loads(device.pending_ir_command)
+            except (json.JSONDecodeError, ValueError):
+                pass
+            device.pending_ir_command = ''
+            device.save(update_fields=['pending_ir_command'])
+
+        return Response(response_data)
+
+
+class IRSendAPIView(APIView):
+    """POST /api/iot/ir/send/ — queue IR code for device transmission."""
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        ir_code_id = request.data.get('ir_code_id')
+        if not ir_code_id:
+            return Response({'detail': 'ir_code_id is required'}, status=status.HTTP_400_BAD_REQUEST)
+        try:
+            ir_code = IRCode.objects.select_related('device').get(pk=ir_code_id)
+        except IRCode.DoesNotExist:
+            return Response({'detail': 'IRCode not found'}, status=status.HTTP_404_NOT_FOUND)
+
+        device = ir_code.device
+        device.pending_ir_command = json.dumps({
+            'action': 'send_ir',
+            'code': ir_code.code,
+            'protocol': ir_code.protocol,
         })
+        device.save(update_fields=['pending_ir_command'])
+        return Response({'status': 'queued', 'device': device.external_id, 'ir_code': ir_code.name})
 
 
 class IoTMQ9GraphView(LoginRequiredMixin, generic.TemplateView):

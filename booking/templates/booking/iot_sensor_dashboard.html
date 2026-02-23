@@ -134,6 +134,38 @@
     0%, 100% { opacity: 1; }
     50% { opacity: 0.4; }
   }
+  .pir-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.25rem 0.75rem;
+    border-radius: 9999px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    transition: all 0.3s;
+  }
+  .pir-badge.active {
+    background-color: rgba(239,68,68,0.2);
+    color: #ef4444;
+    border: 1px solid rgba(239,68,68,0.4);
+  }
+  .pir-badge.inactive {
+    background-color: rgba(156,163,175,0.15);
+    color: #9ca3af;
+    border: 1px solid rgba(156,163,175,0.3);
+  }
+  .pir-badge-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+  }
+  .pir-badge.active .pir-badge-dot {
+    background-color: #ef4444;
+    animation: pulse-dot 1s ease-in-out infinite;
+  }
+  .pir-badge.inactive .pir-badge-dot {
+    background-color: #6b7280;
+  }
 </style>
 {% endblock %}
 
@@ -231,7 +263,13 @@
     <div class="sensor-card" style="height:100%;">
       <div class="sensor-card-header">
         <div>
-          <span class="sensor-name">{% trans "PIR Motion" %}</span>
+          <div style="display:flex; align-items:center; gap:0.75rem; flex-wrap:wrap;">
+            <span class="sensor-name">{% trans "PIR Motion" %}</span>
+            <span class="pir-badge inactive" id="pir-status-badge">
+              <span class="pir-badge-dot"></span>
+              <span id="pir-status-text">{% trans "静止中" %}</span>
+            </span>
+          </div>
           <p class="sensor-desc">{% trans "人感（赤外線動体検知）センサー。人の出入りや在室状況をイベント数で表示。" %}</p>
         </div>
         <span class="sensor-value pir" id="val-pir">--</span>
@@ -479,6 +517,22 @@
     }).catch(function() {
       document.getElementById('val-pir').textContent = '--';
     });
+
+    // PIR real-time status badge
+    if (currentDevice) {
+      fetchJSON('/api/iot/sensors/pir-status/?device_id=' + encodeURIComponent(currentDevice))
+        .then(function(d) {
+          var badge = document.getElementById('pir-status-badge');
+          var text = document.getElementById('pir-status-text');
+          if (d.active) {
+            badge.className = 'pir-badge active';
+            text.textContent = '人感センサー反応中';
+          } else {
+            badge.className = 'pir-badge inactive';
+            text.textContent = '静止中';
+          }
+        }).catch(function() {});
+    }
 
     // Timestamp
     var now = new Date();
