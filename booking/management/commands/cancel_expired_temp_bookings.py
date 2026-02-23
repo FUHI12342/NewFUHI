@@ -6,6 +6,7 @@ cron で毎分実行:
 from datetime import timedelta
 
 from django.core.management.base import BaseCommand
+from django.db.models import Q
 from django.utils import timezone
 
 from booking.models import Schedule
@@ -19,8 +20,10 @@ class Command(BaseCommand):
         expired = Schedule.objects.filter(
             is_temporary=True,
             is_cancelled=False,
-            temporary_booked_at__lt=cutoff,
-            temporary_booked_at__isnull=False,
+        ).filter(
+            # temporary_booked_at がある場合はそれで判定、NULLの場合は start で判定
+            Q(temporary_booked_at__lt=cutoff, temporary_booked_at__isnull=False)
+            | Q(temporary_booked_at__isnull=True, start__lt=cutoff)
         )
         count = expired.count()
         if count:
