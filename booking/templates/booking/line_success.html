@@ -32,14 +32,24 @@
         </div>
         {% endif %}
 
-        <!-- Info Message -->
-        <div class="bg-salon-beige rounded-lg p-4 mb-6">
+        <!-- Info Message (mobile) -->
+        <div class="bg-salon-beige rounded-lg p-4 mb-6" id="line-info-mobile">
             <p class="text-sm text-salon-dark leading-relaxed">
-                {% trans "決済リンクをLINEでお送りしました。LINEアプリを開いています..." %}
+                {% trans "決済リンクをLINEでお送りしました。" %}
+            </p>
+            <p class="text-sm text-salon-dark leading-relaxed mt-1" id="countdown-text">
+                {% trans "自動でリダイレクトします..." %} <span id="countdown" class="font-bold text-salon-brown">3</span>{% trans "秒" %}
             </p>
         </div>
 
-        <!-- LINE Open Button (fallback) -->
+        <!-- Info Message (desktop) -->
+        <div class="bg-salon-beige rounded-lg p-4 mb-6 hidden" id="line-info-desktop">
+            <p class="text-sm text-salon-dark leading-relaxed">
+                {% trans "決済リンクをLINEでお送りしました。LINEアプリをご確認ください。" %}
+            </p>
+        </div>
+
+        <!-- LINE Open Button (mobile only, fallback) -->
         <a href="https://line.me/R/" id="open-line-btn"
            class="inline-flex items-center gap-2 bg-[#06C755] hover:bg-[#05b34c] text-white font-bold py-3 px-6 rounded-full transition shadow-md">
             <svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
@@ -52,9 +62,34 @@
 </div>
 
 <script>
-// 3秒後に自動でLINEアプリを開く
-setTimeout(function() {
-    window.location.href = 'https://line.me/R/';
-}, 3000);
+(function() {
+    var isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+    var mobileInfo = document.getElementById('line-info-mobile');
+    var desktopInfo = document.getElementById('line-info-desktop');
+    var lineBtn = document.getElementById('open-line-btn');
+    var countdownEl = document.getElementById('countdown');
+
+    if (isMobile) {
+        // モバイル: カウントダウン表示 → 自動リダイレクト
+        mobileInfo.classList.remove('hidden');
+        desktopInfo.classList.add('hidden');
+        lineBtn.style.display = '';
+
+        var seconds = 3;
+        var timer = setInterval(function() {
+            seconds--;
+            countdownEl.textContent = seconds;
+            if (seconds <= 0) {
+                clearInterval(timer);
+                window.location.href = 'https://line.me/R/';
+            }
+        }, 1000);
+    } else {
+        // デスクトップ: リダイレクトなし、メッセージのみ
+        mobileInfo.classList.add('hidden');
+        desktopInfo.classList.remove('hidden');
+        lineBtn.style.display = 'none';
+    }
+})();
 </script>
 {% endblock %}
