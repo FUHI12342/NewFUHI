@@ -224,7 +224,6 @@
 
 <script>
 // Fix prebooking links to include proper hour/minute from slot_label
-// Django の {% url %} でベースパスを取得（i18n prefix を正しく処理）
 var prebookingBase = "{% url 'booking:prebooking' staff.pk 1111 11 11 11 %}".split('/prebooking/')[0] + '/prebooking/';
 document.querySelectorAll('a[data-hour]').forEach(function(a) {
     var parts = a.dataset.hour.split(':');
