@@ -539,6 +539,7 @@ class LineCallbackView(View):
                 hashed_id=hashed_id,
                 staff_id=temporary_booking['staff_id'],
                 is_temporary=True,
+                temporary_booked_at=timezone.now(),
             )
             schedule.save()
 
@@ -554,13 +555,15 @@ class LineCallbackView(View):
             payment_api_url = settings.PAYMENT_API_URL
             headers = {
                 'Authorization': 'Bearer ' + settings.PAYMENT_API_KEY,
-                'Content-Type': 'application/json'
+                'Content-Type': 'application/json',
+                'Accept': 'application/json',
+                'X-CoineyPayge-Version': '2016-10-25',
             }
             reservation_number = schedule.reservation_number
             webhook_url = f"{settings.WEBHOOK_URL_BASE}{reservation_number}/"
 
             data = {
-                "amount": schedule.price,
+                "amount": int(schedule.price),
                 "currency": "jpy",
                 "locale": "ja_JP",
                 "cancelUrl": settings.CANCEL_URL,
@@ -1034,12 +1037,14 @@ class EmailVerifyView(View):
         headers = {
             'Authorization': 'Bearer ' + settings.PAYMENT_API_KEY,
             'Content-Type': 'application/json',
+            'Accept': 'application/json',
+            'X-CoineyPayge-Version': '2016-10-25',
         }
         reservation_number = schedule.reservation_number
         webhook_url = f"{settings.WEBHOOK_URL_BASE}{reservation_number}/"
 
         data = {
-            "amount": schedule.price,
+            "amount": int(schedule.price),
             "currency": "jpy",
             "locale": "ja_JP",
             "cancelUrl": settings.CANCEL_URL,
