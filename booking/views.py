@@ -488,8 +488,8 @@ class LineCallbackView(View):
         response_post = requests.post(uri_access_token, headers=headers, data=data_params)
 
         if response_post.status_code != 200:
-            print('トークンの取得に失敗しました: ', response_post.status_code, response_post.text)
-            return HttpResponse('トークンの取得に失敗しました')
+            logger.error('LINE token exchange failed: %s %s', response_post.status_code, response_post.text)
+            return HttpResponse(f'トークンの取得に失敗しました (LINE API: {response_post.status_code} {response_post.text})')
 
         line_id_token = json.loads(response_post.text)["id_token"]
 
