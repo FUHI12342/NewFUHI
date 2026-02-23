@@ -75,7 +75,7 @@ class ScheduleAdmin(admin.ModelAdmin):
     )
     search_fields = ('customer_name', 'hashed_id', 'reservation_number', 'line_user_hash')
     ordering = ('-start',)
-    list_filter = ('is_temporary', 'is_cancelled', 'is_checked_in', 'staff__store')
+
     readonly_fields = ('reservation_number', 'line_user_hash', 'line_user_enc', 'checkin_qr', 'checked_in_at')
 
 
@@ -85,7 +85,7 @@ class ScheduleAdmin(admin.ModelAdmin):
 # ==============================
 class StaffAdmin(admin.ModelAdmin):
     list_display = ('name', 'store', 'staff_type', 'is_store_manager', 'is_owner', 'is_recommended', 'display_thumbnail')
-    list_filter = ('store', 'staff_type', 'is_store_manager', 'is_owner', 'is_recommended')
+
     list_editable = ('is_recommended',)
     search_fields = ('name', 'store__name')
 
@@ -226,7 +226,7 @@ class IoTDeviceAdmin(admin.ModelAdmin):
         'alert_line_user_id',
         'wifi_ssid',
     )
-    list_filter = ('device_type', 'is_active', 'store', 'alert_enabled')
+
     search_fields = ('name', 'external_id', 'store__name')
     readonly_fields = ('last_seen_at',)
     inlines = [IoTEventInline]
@@ -234,7 +234,7 @@ class IoTDeviceAdmin(admin.ModelAdmin):
 
 class IoTEventAdmin(admin.ModelAdmin):
     list_display = ('created_at', 'event_type', 'mq9_value', 'device', 'sensor_summary')
-    list_filter = ('event_type', 'device__store')
+
     search_fields = ('device__name', 'device__external_id')
     date_hierarchy = 'created_at'
     ordering = ('-created_at',)
@@ -261,7 +261,7 @@ class IoTEventAdmin(admin.ModelAdmin):
 
 class IRCodeAdmin(admin.ModelAdmin):
     list_display = ('name', 'device', 'protocol', 'code', 'created_at')
-    list_filter = ('device', 'protocol')
+
     search_fields = ('name', 'device__name', 'code')
     readonly_fields = ('created_at',)
     actions = ['send_ir_code']
@@ -292,7 +292,6 @@ class ProductTranslationInline(admin.TabularInline):
 
 class CategoryAdmin(admin.ModelAdmin):
     list_display = ('store', 'name', 'sort_order')
-    list_filter = ('store',)
     search_fields = ('name', 'store__name')
     list_editable = ('sort_order',)
 
@@ -363,7 +362,7 @@ class ProductAdmin(admin.ModelAdmin):
         'is_sold_out',
         'last_low_stock_notified_at',
     )
-    list_filter = ('store', 'category', 'is_active', 'is_ec_visible')
+
     search_fields = ('sku', 'name', 'store__name')
     list_editable = ('price', 'stock', 'low_stock_threshold', 'is_active', 'is_ec_visible')
     inlines = [ProductTranslationInline]
@@ -468,7 +467,6 @@ class OrderItemInline(admin.TabularInline):
 
 class OrderAdmin(admin.ModelAdmin):
     list_display = ('id', 'store', 'status', 'table_label', 'schedule', 'created_at', 'updated_at')
-    list_filter = ('store', 'status')
     search_fields = ('id', 'store__name', 'table_label', 'customer_line_user_hash')
     inlines = [OrderItemInline]
     readonly_fields = ('created_at', 'updated_at')
@@ -487,7 +485,7 @@ class OrderAdmin(admin.ModelAdmin):
 
 class OrderItemAdmin(admin.ModelAdmin):
     list_display = ('id', 'order', 'product', 'qty', 'unit_price', 'status', 'created_at')
-    list_filter = ('status', 'order__store')
+
     search_fields = ('order__id', 'product__sku', 'product__name')
     date_hierarchy = 'created_at'
     autocomplete_fields = ('order', 'product')
@@ -508,7 +506,7 @@ class OrderItemAdmin(admin.ModelAdmin):
 # ==============================
 class StockMovementAdmin(admin.ModelAdmin):
     list_display = ('created_at', 'store', 'product', 'movement_type', 'qty', 'by_staff', 'note')
-    list_filter = ('store', 'movement_type')
+
     search_fields = ('product__sku', 'product__name', 'note', 'store__name')
     readonly_fields = ('created_at',)
     date_hierarchy = 'created_at'
@@ -640,7 +638,7 @@ class PropertyAlertInline(admin.TabularInline):
 
 class PropertyAdmin(admin.ModelAdmin):
     list_display = ('name', 'address', 'property_type', 'owner_name', 'store', 'is_active')
-    list_filter = ('property_type', 'is_active', 'store')
+
     search_fields = ('name', 'address', 'owner_name')
     inlines = [PropertyDeviceInline, PropertyAlertInline]
 
@@ -665,7 +663,6 @@ class ShiftAssignmentInline(admin.TabularInline):
 
 class ShiftPeriodAdmin(admin.ModelAdmin):
     list_display = ('store', 'year_month', 'deadline', 'status', 'created_by')
-    list_filter = ('store', 'status')
     inlines = [ShiftRequestInline, ShiftAssignmentInline]
     actions = ['run_auto_schedule', 'approve_and_sync']
 
@@ -692,7 +689,7 @@ class ShiftPeriodAdmin(admin.ModelAdmin):
 
 class ShiftRequestAdmin(admin.ModelAdmin):
     list_display = ('period', 'staff', 'date', 'start_hour', 'end_hour', 'preference')
-    list_filter = ('period__store', 'preference')
+
     search_fields = ('staff__name',)
 
     def get_queryset(self, request):
@@ -710,7 +707,7 @@ class ShiftRequestAdmin(admin.ModelAdmin):
 
 class ShiftAssignmentAdmin(admin.ModelAdmin):
     list_display = ('period', 'staff', 'date', 'start_hour', 'end_hour', 'is_synced')
-    list_filter = ('period__store', 'is_synced')
+
     search_fields = ('staff__name',)
 
 
@@ -763,7 +760,6 @@ custom_site.register(SiteSettings, SiteSettingsAdmin)
 
 class HomepageCustomBlockAdmin(admin.ModelAdmin):
     list_display = ('title', 'position', 'sort_order', 'is_active', 'updated_at')
-    list_filter = ('position', 'is_active')
     list_editable = ('sort_order', 'is_active')
     search_fields = ('title',)
 
@@ -787,7 +783,6 @@ class HeroBannerAdmin(admin.ModelAdmin):
 class BannerAdAdmin(admin.ModelAdmin):
     list_display = ('title', 'position', 'sort_order', 'is_active', 'link_url', 'updated_at')
     list_editable = ('sort_order', 'is_active')
-    list_filter = ('position', 'is_active')
     search_fields = ('title',)
 
 
@@ -873,7 +868,7 @@ custom_site.register(AdminMenuConfig, AdminMenuConfigAdmin)
 class EmploymentContractAdmin(admin.ModelAdmin):
     list_display = ('staff', 'employment_type', 'pay_type', 'hourly_rate', 'monthly_salary',
                     'standard_monthly_remuneration', 'is_active')
-    list_filter = ('employment_type', 'pay_type', 'is_active', 'staff__store')
+
     search_fields = ('staff__name', 'staff__store__name')
     autocomplete_fields = ('staff',)
 
@@ -894,7 +889,7 @@ class WorkAttendanceAdmin(admin.ModelAdmin):
     list_display = ('staff', 'date', 'clock_in', 'clock_out', 'regular_minutes',
                     'overtime_minutes', 'late_night_minutes', 'holiday_minutes',
                     'break_minutes', 'source')
-    list_filter = ('source', 'staff__store', 'date')
+
     search_fields = ('staff__name',)
     date_hierarchy = 'date'
     autocomplete_fields = ('staff',)
@@ -950,7 +945,7 @@ class PayrollDeductionInline(admin.TabularInline):
 
 class PayrollEntryAdmin(admin.ModelAdmin):
     list_display = ('staff', 'period', 'total_work_days', 'gross_pay', 'total_deductions', 'net_pay')
-    list_filter = ('period__store', 'period__year_month')
+
     search_fields = ('staff__name',)
     readonly_fields = ('created_at', 'updated_at')
     inlines = [PayrollDeductionInline]
@@ -978,7 +973,6 @@ class PayrollEntryInline(admin.TabularInline):
 
 class PayrollPeriodAdmin(admin.ModelAdmin):
     list_display = ('store', 'year_month', 'period_start', 'period_end', 'status', 'payment_date')
-    list_filter = ('store', 'status')
     search_fields = ('store__name', 'year_month')
     readonly_fields = ('created_at', 'updated_at')
     inlines = [PayrollEntryInline]

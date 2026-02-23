@@ -676,6 +676,27 @@ class LineCallbackView(View):
                 # 無料予約（price=0）: 決済不要、直接確定
                 schedule.is_temporary = False
                 schedule.save(update_fields=['is_temporary'])
+
+                # キャスト（スタッフ）通知
+                staff_line_id = schedule.staff.line_id
+                if staff_line_id:
+                    local_tz = pytz.timezone('Asia/Tokyo')
+                    local_time = schedule.start.astimezone(local_tz)
+                    staff_message = (
+                        f'予約が確定しました。\n'
+                        f'予約者: {schedule.customer_name or "Unknown"}\n'
+                        f'日時: {local_time.strftime("%Y/%m/%d %H:%M")}\n'
+                        f'店舗: {schedule.staff.store.name}\n'
+                        f'予約番号: {reservation_number}'
+                    )
+                    try:
+                        line_bot_api.push_message(
+                            staff_line_id,
+                            TextSendMessage(text=staff_message)
+                        )
+                    except LineBotApiError as e:
+                        logger.error('スタッフ通知エラー（無料予約）: %s', e)
+
                 line_bot_api.push_message(
                     user_id,
                     TextSendMessage(
@@ -1384,9 +1405,12 @@ def process_payment(payment_response, request, orderId):
         if staff_line_account_id:
             local_tz = pytz.timezone('Asia/Tokyo')
             local_time = schedule.start.astimezone(local_tz)
-            message_text = '予約が完了しました。予約者: {}, 日時: {}'.format(
-                schedule.customer_name or 'Unknown',
-                local_time
+            message_text = (
+                f'予約が確定しました。\n'
+                f'予約者: {schedule.customer_name or "Unknown"}\n'
+                f'日時: {local_time.strftime("%Y/%m/%d %H:%M")}\n'
+                f'店舗: {schedule.staff.store.name}\n'
+                f'予約番号: {schedule.reservation_number}'
             )
             try:
                 line_bot_api.push_message(staff_line_account_id, TextSendMessage(text=message_text))

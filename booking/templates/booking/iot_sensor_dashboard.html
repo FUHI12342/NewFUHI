@@ -545,26 +545,28 @@
       var devices = d.devices || d || [];
       deviceSelect.innerHTML = '';
 
-      var allOpt = document.createElement('option');
-      allOpt.value = '';
-      allOpt.textContent = 'All Devices';
-      deviceSelect.appendChild(allOpt);
-
-      if (Array.isArray(devices)) {
-        devices.forEach(function(dev) {
-          var opt = document.createElement('option');
-          if (typeof dev === 'object') {
-            opt.value = dev.id || dev.device_id || '';
-            opt.textContent = dev.name || dev.device_id || dev.id || 'Device';
-          } else {
-            opt.value = dev;
-            opt.textContent = dev;
-          }
-          deviceSelect.appendChild(opt);
-        });
+      if (!Array.isArray(devices) || devices.length === 0) {
+        deviceSelect.innerHTML = '<option value="">デバイスが登録されていません。管理画面からIoTデバイスを追加してください。</option>';
+        return;
       }
+
+      devices.forEach(function(dev) {
+        var opt = document.createElement('option');
+        if (typeof dev === 'object') {
+          opt.value = dev.id || dev.device_id || '';
+          opt.textContent = (dev.name || 'Device') + ' (' + (dev.external_id || dev.id || dev.device_id || '') + ')';
+        } else {
+          opt.value = dev;
+          opt.textContent = dev;
+        }
+        deviceSelect.appendChild(opt);
+      });
+
+      // 最初のデバイスを自動選択
+      currentDevice = deviceSelect.value;
+      startPolling();
     }).catch(function() {
-      deviceSelect.innerHTML = '<option value="">No devices found</option>';
+      deviceSelect.innerHTML = '<option value="">デバイスが登録されていません。管理画面からIoTデバイスを追加してください。</option>';
     });
   }
 
