@@ -1,0 +1,52 @@
+{% extends 'booking/base.html' %}
+{% load i18n %}
+
+{% block title %}{% trans "決済URLを送信しました" %} | {{ block.super }}{% endblock %}
+
+{% block content %}
+
+<div class="max-w-lg mx-auto text-center py-10">
+
+    {% if payment_url_sent %}
+    <!-- Success -->
+    <div class="bg-emerald-50 rounded-full w-20 h-20 flex items-center justify-center mx-auto mb-6">
+        <svg class="w-10 h-10 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+        </svg>
+    </div>
+
+    <h1 class="text-2xl font-bold text-salon-dark mb-4">{% trans "決済URLをメールで送信しました" %}</h1>
+
+    <p class="text-gray-600 mb-2">
+        {{ customer_name }}{% trans "様" %}<br>
+        {% trans "以下のメールアドレスに決済URLを送信しました。" %}
+    </p>
+    <p class="font-medium text-salon-dark mb-6">{{ customer_email }}</p>
+
+    <div class="bg-amber-50 border border-amber-200 rounded-lg p-4 mb-6 text-left">
+        <p class="text-amber-800 text-sm font-medium mb-1">{% trans "ご注意" %}</p>
+        <p class="text-amber-700 text-sm">
+            {% trans "15分以内にお支払いがない場合、仮予約は自動キャンセルされます。メールをご確認の上、お早めにお支払いください。" %}
+        </p>
+    </div>
+
+    {% else %}
+    <!-- Error -->
+    <div class="bg-rose-50 rounded-full w-20 h-20 flex items-center justify-center mx-auto mb-6">
+        <svg class="w-10 h-10 text-rose-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+        </svg>
+    </div>
+
+    <h1 class="text-2xl font-bold text-salon-dark mb-4">{% trans "決済URLの取得に失敗しました" %}</h1>
+    <p class="text-gray-600 mb-6">{% trans "申し訳ございません。しばらくしてからもう一度お試しください。" %}</p>
+    {% endif %}
+
+    <a href="{% url 'booking:booking_top' %}"
+       class="inline-block bg-salon-brown hover:bg-salon-dark text-white font-medium px-6 py-2.5 rounded-lg transition">
+        {% trans "トップに戻る" %}
+    </a>
+
+</div>
+
+{% endblock %}

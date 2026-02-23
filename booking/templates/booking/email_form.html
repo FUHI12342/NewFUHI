@@ -1,0 +1,71 @@
+{% extends 'booking/base.html' %}
+{% load i18n %}
+
+{% block title %}{% trans "メールで予約" %} | {{ block.super }}{% endblock %}
+
+{% block content %}
+
+<!-- Breadcrumb -->
+<nav class="mb-6">
+    <ol class="flex items-center text-sm text-gray-500 gap-1.5">
+        <li>
+            <a href="{% url 'booking:booking_top' %}" class="hover:text-salon-brown transition">{% trans "ホーム" %}</a>
+        </li>
+        <li class="text-gray-300">&gt;</li>
+        <li>
+            <a href="{% url 'booking:channel_choice' %}" class="hover:text-salon-brown transition">{% trans "予約方法" %}</a>
+        </li>
+        <li class="text-gray-300">&gt;</li>
+        <li class="text-salon-brown font-medium">{% trans "メール認証" %}</li>
+    </ol>
+</nav>
+
+<h1 class="text-2xl font-bold text-salon-dark mb-6">{% trans "メールアドレスとお名前を入力してください" %}</h1>
+
+{% if messages %}
+<div class="mb-4">
+    {% for message in messages %}
+    <div class="bg-rose-50 border border-rose-200 rounded-lg p-3 text-rose-700 text-sm">{{ message }}</div>
+    {% endfor %}
+</div>
+{% endif %}
+
+{% if booking %}
+<div class="bg-salon-beige rounded-lg p-4 mb-6 text-sm">
+    <span class="font-medium text-salon-brown">{% trans "予約" %}:</span>
+    {{ booking.staff_name }} / {{ booking.start }} / {{ booking.price }}{% trans "円" %}
+</div>
+{% endif %}
+
+<form method="post" class="max-w-md">
+    {% csrf_token %}
+
+    <div class="mb-4">
+        <label for="id_customer_name" class="block text-sm font-medium text-salon-dark mb-1">{% trans "お名前" %}</label>
+        <input type="text" name="customer_name" id="id_customer_name"
+               value="{{ form.customer_name.value|default:'' }}"
+               required maxlength="255"
+               class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-salon-brown/50 focus:border-salon-brown outline-none">
+        {% if form.customer_name.errors %}
+        <p class="text-rose-500 text-xs mt-1">{{ form.customer_name.errors.0 }}</p>
+        {% endif %}
+    </div>
+
+    <div class="mb-6">
+        <label for="id_customer_email" class="block text-sm font-medium text-salon-dark mb-1">{% trans "メールアドレス" %}</label>
+        <input type="email" name="customer_email" id="id_customer_email"
+               value="{{ form.customer_email.value|default:'' }}"
+               required
+               class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-salon-brown/50 focus:border-salon-brown outline-none">
+        {% if form.customer_email.errors %}
+        <p class="text-rose-500 text-xs mt-1">{{ form.customer_email.errors.0 }}</p>
+        {% endif %}
+    </div>
+
+    <button type="submit"
+            class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-2.5 rounded-lg transition">
+        {% trans "認証コードを送信" %}
+    </button>
+</form>
+
+{% endblock %}

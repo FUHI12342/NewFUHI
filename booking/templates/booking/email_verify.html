@@ -1,0 +1,57 @@
+{% extends 'booking/base.html' %}
+{% load i18n %}
+
+{% block title %}{% trans "認証コード入力" %} | {{ block.super }}{% endblock %}
+
+{% block content %}
+
+<!-- Breadcrumb -->
+<nav class="mb-6">
+    <ol class="flex items-center text-sm text-gray-500 gap-1.5">
+        <li>
+            <a href="{% url 'booking:booking_top' %}" class="hover:text-salon-brown transition">{% trans "ホーム" %}</a>
+        </li>
+        <li class="text-gray-300">&gt;</li>
+        <li>
+            <a href="{% url 'booking:channel_choice' %}" class="hover:text-salon-brown transition">{% trans "予約方法" %}</a>
+        </li>
+        <li class="text-gray-300">&gt;</li>
+        <li class="text-salon-brown font-medium">{% trans "認証コード入力" %}</li>
+    </ol>
+</nav>
+
+<h1 class="text-2xl font-bold text-salon-dark mb-4">{% trans "認証コードを入力してください" %}</h1>
+<p class="text-sm text-gray-600 mb-6">
+    {% trans "以下のメールアドレスに6桁の認証コードを送信しました。" %}<br>
+    <span class="font-medium text-salon-dark">{{ email }}</span>
+</p>
+
+{% if messages %}
+<div class="mb-4">
+    {% for message in messages %}
+    <div class="bg-rose-50 border border-rose-200 rounded-lg p-3 text-rose-700 text-sm">{{ message }}</div>
+    {% endfor %}
+</div>
+{% endif %}
+
+<form method="post" class="max-w-sm">
+    {% csrf_token %}
+
+    <div class="mb-6">
+        <label for="otp" class="block text-sm font-medium text-salon-dark mb-1">{% trans "認証コード（6桁）" %}</label>
+        <input type="text" name="otp" id="otp"
+               required maxlength="6" pattern="[0-9]{6}" inputmode="numeric"
+               autocomplete="one-time-code"
+               class="w-full text-center text-2xl tracking-[0.5em] border border-gray-300 rounded-lg px-3 py-3 focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 outline-none"
+               placeholder="000000">
+    </div>
+
+    <button type="submit"
+            class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-2.5 rounded-lg transition">
+        {% trans "認証して予約を確定" %}
+    </button>
+</form>
+
+<p class="text-xs text-gray-400 mt-4">{% trans "認証コードの有効期限は10分です。届かない場合は迷惑メールフォルダもご確認ください。" %}</p>
+
+{% endblock %}

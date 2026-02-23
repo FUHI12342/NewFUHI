@@ -1,0 +1,69 @@
+{% extends 'booking/base.html' %}
+{% load i18n %}
+{% load static %}
+
+{% block title %}{% trans "予約方法の選択" %} | {{ block.super }}{% endblock %}
+
+{% block content %}
+
+<!-- Breadcrumb -->
+<nav class="mb-6">
+    <ol class="flex items-center text-sm text-gray-500 gap-1.5">
+        <li>
+            <a href="{% url 'booking:booking_top' %}" class="hover:text-salon-brown transition">{% trans "ホーム" %}</a>
+        </li>
+        <li class="text-gray-300">&gt;</li>
+        <li class="text-salon-brown font-medium">{% trans "予約方法の選択" %}</li>
+    </ol>
+</nav>
+
+<h1 class="text-2xl font-bold text-salon-dark mb-6">{% trans "予約方法を選択してください" %}</h1>
+
+{% if booking %}
+<!-- Booking Summary -->
+<div class="bg-salon-beige rounded-lg p-4 mb-6">
+    <h3 class="font-bold text-salon-brown mb-2">{% trans "予約概要" %}</h3>
+    <dl class="grid grid-cols-[auto_1fr] gap-x-4 gap-y-1 text-sm">
+        <dt class="font-medium text-salon-dark">{% trans "占い師" %}</dt>
+        <dd class="text-gray-600">{{ booking.staff_name }}</dd>
+        <dt class="font-medium text-salon-dark">{% trans "日時" %}</dt>
+        <dd class="text-gray-600">{{ booking.start }}</dd>
+        <dt class="font-medium text-salon-dark">{% trans "料金" %}</dt>
+        <dd class="text-gray-600">{{ booking.price }} {% trans "円" %}</dd>
+    </dl>
+    <p class="text-xs text-rose-500 mt-2">{% trans "※ 15分以内にお支払いがない場合、仮予約は自動キャンセルされます。" %}</p>
+</div>
+
+<!-- Channel Buttons -->
+<div class="grid grid-cols-1 sm:grid-cols-2 gap-4 max-w-lg">
+
+    <!-- LINE -->
+    <a href="{% url 'booking:line_enter' %}"
+       class="flex flex-col items-center bg-[#06C755] hover:bg-[#05b04d] text-white rounded-xl p-6 shadow-md transition-all duration-200 hover:shadow-lg">
+        <svg class="w-12 h-12 mb-2" fill="currentColor" viewBox="0 0 24 24">
+            <path d="M19.365 9.863c.349 0 .63.285.63.631 0 .345-.281.63-.63.63H17.61v1.125h1.755c.349 0 .63.283.63.63 0 .344-.281.629-.63.629h-2.386c-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.63-.63h2.386c.346 0 .627.285.627.63 0 .349-.281.63-.63.63H17.61v1.125h1.755zm-3.855 3.016c0 .27-.174.51-.432.596-.064.021-.133.031-.199.031-.211 0-.391-.09-.51-.25l-2.443-3.317v2.94c0 .344-.279.629-.631.629-.346 0-.626-.285-.626-.629V8.108c0-.27.173-.51.43-.595.06-.023.136-.033.194-.033.195 0 .375.104.495.254l2.462 3.33V8.108c0-.345.282-.63.63-.63.345 0 .63.285.63.63v4.771zm-5.741 0c0 .344-.282.629-.631.629-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.63-.63.346 0 .628.285.628.63v4.771zm-2.466.629H4.917c-.345 0-.63-.285-.63-.629V8.108c0-.345.285-.63.63-.63.348 0 .63.285.63.63v4.141h1.756c.348 0 .629.283.629.63 0 .344-.282.629-.629.629M24 10.314C24 4.943 18.615.572 12 .572S0 4.943 0 10.314c0 4.811 4.27 8.842 10.035 9.608.391.082.923.258 1.058.59.12.301.079.766.038 1.08l-.164 1.02c-.045.301-.24 1.186 1.049.645 1.291-.539 6.916-4.078 9.436-6.975C23.176 14.393 24 12.458 24 10.314"/>
+        </svg>
+        <span class="text-lg font-bold">LINE</span>
+        <span class="text-xs opacity-80 mt-1">{% trans "LINEアカウントで予約" %}</span>
+    </a>
+
+    <!-- Email -->
+    <a href="{% url 'booking:email_booking' %}"
+       class="flex flex-col items-center bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl p-6 shadow-md transition-all duration-200 hover:shadow-lg">
+        <svg class="w-12 h-12 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                  d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+        </svg>
+        <span class="text-lg font-bold">{% trans "メール" %}</span>
+        <span class="text-xs opacity-80 mt-1">{% trans "メールアドレスで予約" %}</span>
+    </a>
+
+</div>
+{% else %}
+<div class="bg-rose-50 border border-rose-200 rounded-lg p-4 text-rose-700">
+    {% trans "予約情報が見つかりません。最初からやり直してください。" %}
+</div>
+<a href="{% url 'booking:booking_top' %}" class="inline-block mt-4 bg-salon-brown text-white px-4 py-2 rounded-lg">{% trans "トップに戻る" %}</a>
+{% endif %}
+
+{% endblock %}
