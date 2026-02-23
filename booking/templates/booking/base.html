@@ -82,7 +82,7 @@ tailwind.config = {
                 </ul>
             </li>
             <li><a href="{% url 'booking:booking_top' %}" class="block px-4 py-3 hover:bg-white/20 transition text-sm font-medium">{% trans "ご予約" %}</a></li>
-            <li><a href="{% url 'booking:all_fortune_tellers' %}" class="block px-4 py-3 hover:bg-white/20 transition text-sm font-medium">{% trans "所属占い師" %}</a></li>
+            <li><a href="{% url 'booking:all_fortune_tellers' %}" class="block px-4 py-3 hover:bg-white/20 transition text-sm font-medium">所属{{ site_settings.staff_label }}</a></li>
             <li><a href="{% url 'booking:help' %}" class="block px-4 py-3 hover:bg-white/20 transition text-sm font-medium">{% trans "ヘルプ" %}</a></li>
             <li><a href="{% url 'booking:shop' %}" class="block px-4 py-3 hover:bg-white/20 transition text-sm font-medium">{% trans "ショップ" %}</a></li>
             {% if user.is_staff %}
@@ -98,7 +98,7 @@ tailwind.config = {
         <li><a href="{% url 'booking:booking_top' %}" class="block px-6 py-3 hover:bg-white/10">{% trans "ホーム" %}</a></li>
         <li><a href="{% url 'booking:booking_top' %}" class="block px-6 py-3 hover:bg-white/10">{% trans "店舗一覧" %}</a></li>
         <li><a href="{% url 'booking:booking_top' %}" class="block px-6 py-3 hover:bg-white/10">{% trans "ご予約" %}</a></li>
-        <li><a href="{% url 'booking:all_fortune_tellers' %}" class="block px-6 py-3 hover:bg-white/10">{% trans "所属占い師" %}</a></li>
+        <li><a href="{% url 'booking:all_fortune_tellers' %}" class="block px-6 py-3 hover:bg-white/10">所属{{ site_settings.staff_label }}</a></li>
         <li><a href="{% url 'booking:help' %}" class="block px-6 py-3 hover:bg-white/10">{% trans "ヘルプ" %}</a></li>
         <li><a href="{% url 'booking:shop' %}" class="block px-6 py-3 hover:bg-white/10">{% trans "ショップ" %}</a></li>
         {% if user.is_staff %}

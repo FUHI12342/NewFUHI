@@ -120,8 +120,8 @@ class Staff(models.Model):
 
     class Meta:
         app_label = 'booking'
-        verbose_name = '在籍占い師スタッフリスト'
-        verbose_name_plural = '在籍占い師スタッフリスト'
+        verbose_name = 'キャスト'
+        verbose_name_plural = 'キャスト'
 
     def __str__(self):
         return f'{self.store.name} - {self.name}'
@@ -1012,6 +1012,10 @@ class SiteSettings(models.Model):
     instagram_embed_html = models.TextField('Instagram埋め込みHTML', blank=True, default='',
         help_text='Instagramの投稿埋め込みHTMLを貼り付けてください')
 
+    # スタッフ呼称設定
+    staff_label = models.CharField('スタッフの呼称', max_length=50, default='キャスト',
+        help_text='管理画面・フロントで「占い師」「スタッフ」の代わりに表示する名称（例: キャスト、セラピスト）')
+
     class Meta:
         app_label = 'booking'
         verbose_name = 'サイト設定'
@@ -1110,10 +1114,11 @@ class HeroBanner(models.Model):
 
     def get_link_url(self):
         """link_type に応じたリンク先URLを返す"""
+        from django.urls import reverse
         if self.link_type == 'store' and self.linked_store_id:
-            return f'/booking/store/{self.linked_store_id}/staffs/'
+            return reverse('booking:staff_list', kwargs={'pk': self.linked_store_id})
         elif self.link_type == 'staff' and self.linked_staff_id:
-            return f'/booking/staff/{self.linked_staff_id}/calendar/'
+            return reverse('booking:staff_calendar', kwargs={'pk': self.linked_staff_id})
         elif self.link_type == 'url' and self.link_url:
             return self.link_url
         return ''

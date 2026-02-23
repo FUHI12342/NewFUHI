@@ -29,7 +29,7 @@ def get_user_role(request):
 GROUP_MAP = {
     '予約管理': ['schedule'],
     'シフト管理': ['shiftperiod', 'shiftrequest', 'shiftassignment'],
-    'スタッフ管理': ['staff', 'store', 'storescheduleconfig'],
+    'キャスト管理': ['staff', 'store', 'storescheduleconfig'],
     '給与管理': ['payrollperiod', 'payrollentry', 'employmentcontract', 'salarystructure'],
     '勤怠管理': ['workattendance'],
     '在庫管理': ['category', 'product'],

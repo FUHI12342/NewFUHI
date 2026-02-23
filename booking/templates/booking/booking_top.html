@@ -110,14 +110,14 @@
         </div>
         <div class="p-5">
             <h3 class="text-lg font-bold text-salon-dark mb-2">{% trans "店舗から選ぶ" %}</h3>
-            <p class="text-sm text-gray-600">{% trans "お近くの店舗を選んで、在籍する占い師の中から予約できます。" %}</p>
+            <p class="text-sm text-gray-600">お近くの店舗を選んで、在籍する{{ site_settings.staff_label }}の中から予約できます。</p>
         </div>
         <div class="px-5 py-3 bg-gray-50 border-t text-right">
             <span class="text-xs font-medium text-salon-brown">{% trans "店舗一覧へ" %} &rarr;</span>
         </div>
     </a>
 
-    <!-- Card 2: 占い師から選ぶ -->
+    <!-- Card 2: キャストから選ぶ -->
     <a href="{% url 'booking:all_fortune_tellers' %}"
        class="block bg-white rounded-xl shadow-md hover:shadow-lg transition-all duration-300 overflow-hidden border border-gray-200 hover:border-salon-brown/50 group">
         <div class="h-40 bg-gradient-to-br from-purple-100 to-purple-50 flex items-center justify-center">
@@ -126,11 +126,11 @@
             </svg>
         </div>
         <div class="p-5">
-            <h3 class="text-lg font-bold text-salon-dark mb-2">{% trans "占い師から選ぶ" %}</h3>
-            <p class="text-sm text-gray-600">{% trans "全店舗の占い師一覧から、お気に入りの占い師を見つけて予約できます。" %}</p>
+            <h3 class="text-lg font-bold text-salon-dark mb-2">{{ site_settings.staff_label }}から選ぶ</h3>
+            <p class="text-sm text-gray-600">全店舗の{{ site_settings.staff_label }}一覧から、お気に入りの{{ site_settings.staff_label }}を見つけて予約できます。</p>
         </div>
         <div class="px-5 py-3 bg-gray-50 border-t text-right">
-            <span class="text-xs font-medium text-salon-brown">{% trans "占い師一覧へ" %} &rarr;</span>
+            <span class="text-xs font-medium text-salon-brown">{{ site_settings.staff_label }}一覧へ &rarr;</span>
         </div>
     </a>
 
@@ -144,7 +144,7 @@
         </div>
         <div class="p-5">
             <h3 class="text-lg font-bold text-salon-dark mb-2">{% trans "日付から選ぶ" %}</h3>
-            <p class="text-sm text-gray-600">{% trans "ご希望の日付を選んで、その日に空きのある占い師を探せます。" %}</p>
+            <p class="text-sm text-gray-600">ご希望の日付を選んで、その日に空きのある{{ site_settings.staff_label }}を探せます。</p>
         </div>
         <div class="px-5 py-3 bg-gray-50 border-t text-right">
             <span class="text-xs font-medium text-salon-brown">{% trans "カレンダーへ" %} &rarr;</span>
@@ -180,7 +180,7 @@
     <!-- Tab buttons -->
     <div class="flex gap-2 mb-4" id="rankingTabs">
         <button type="button" class="ranking-tab px-4 py-2 rounded-full text-sm font-medium bg-salon-brown text-white" data-tab="tab-staff" onclick="switchRankingTab('tab-staff')">
-            {% trans "人気占い師" %}
+            人気{{ site_settings.staff_label }}
         </button>
         <button type="button" class="ranking-tab px-4 py-2 rounded-full text-sm font-medium bg-gray-200 text-gray-600" data-tab="tab-store" onclick="switchRankingTab('tab-store')">
             {% trans "人気店舗" %}
@@ -269,7 +269,7 @@
                 <div class="min-w-0 flex-1">
                     <p class="font-bold text-salon-dark truncate">{{ staff.name }}</p>
                     <p class="text-xs text-gray-500">{{ staff.store.name }}</p>
-                    <span class="inline-block mt-1 px-2 py-0.5 text-xs bg-rose-100 text-rose-600 rounded-full">{% trans "おすすめ占い師" %}</span>
+                    <span class="inline-block mt-1 px-2 py-0.5 text-xs bg-rose-100 text-rose-600 rounded-full">おすすめ{{ site_settings.staff_label }}</span>
                 </div>
             </a>
             {% endfor %}

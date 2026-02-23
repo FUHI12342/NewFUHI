@@ -65,7 +65,7 @@
 {% if selected_date %}
 <!-- Selected Date Header -->
 <h2 class="text-xl font-bold text-salon-dark mb-4 border-b-2 border-salon-brown pb-2">
-    {{ selected_date|date:"Y年n月j日" }}{% trans "に空きのある占い師" %}
+    {{ selected_date|date:"Y年n月j日" }}に空きのある{{ site_settings.staff_label }}
 </h2>
 
 {% if available_tellers %}
@@ -114,7 +114,7 @@
 </div>
 {% else %}
 <div class="bg-salon-beige rounded-xl p-10 text-center">
-    <p class="text-gray-500 text-base">{% trans "この日に空きのある占い師はいません。別の日付をお試しください。" %}</p>
+    <p class="text-gray-500 text-base">この日に空きのある{{ site_settings.staff_label }}はいません。別の日付をお試しください。</p>
 </div>
 {% endif %}
 

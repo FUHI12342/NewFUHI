@@ -2,7 +2,7 @@
 {% load i18n %}
 {% load static %}
 
-{% block title %}{{ store.name }}{% trans "店 在籍占い師" %} | {{ block.super }}{% endblock %}
+{% block title %}{{ store.name }}店 在籍{{ site_settings.staff_label }} | {{ block.super }}{% endblock %}
 
 {% block content %}
 
@@ -17,13 +17,13 @@
             <a href="{% url 'booking:staff_list' store.pk %}" class="hover:text-salon-brown transition">{{ store.name }}</a>
         </li>
         <li class="text-gray-300">&gt;</li>
-        <li class="text-salon-brown font-medium">{% trans "在籍占い師" %}</li>
+        <li class="text-salon-brown font-medium">在籍{{ site_settings.staff_label }}</li>
     </ol>
 </nav>
 
 <!-- Page Heading -->
 <div class="mb-6">
-    <h1 class="text-2xl font-bold text-salon-dark">{{ store.name }}{% trans "店 在籍占い師" %}</h1>
+    <h1 class="text-2xl font-bold text-salon-dark">{{ store.name }}店 在籍{{ site_settings.staff_label }}</h1>
 </div>
 
 <!-- Staff Card Grid -->
@@ -79,7 +79,7 @@
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
                   d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
         </svg>
-        <p class="text-gray-400 text-sm">{% trans "現在この店舗に占い師は在籍していません。" %}</p>
+        <p class="text-gray-400 text-sm">現在この店舗に{{ site_settings.staff_label }}は在籍していません。</p>
     </div>
     {% endfor %}
 </div>

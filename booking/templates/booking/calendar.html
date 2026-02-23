@@ -45,7 +45,7 @@
     <h2 class="text-2xl font-bold text-salon-dark mb-1">{% trans "予約カレンダー" %}</h2>
     <p class="text-sm text-gray-500">
         {{ staff.store.name }} &mdash;
-        {% trans "占い師" %}:
+        {{ site_settings.staff_label }}:
         <span class="font-semibold text-salon-brown">{{ staff.name }}</span>
     </p>
 </div>
@@ -211,7 +211,7 @@
     </a>
     <a href="{% url 'booking:staff_list' staff.store.pk %}"
        class="text-sm text-gray-500 hover:text-salon-brown transition underline underline-offset-2">
-        {% trans "占い師一覧に戻る" %}
+        {{ site_settings.staff_label }}一覧に戻る
     </a>
     <a href="{% url 'booking:calendar' staff.pk next.year next.month next.day %}"
        class="inline-flex items-center gap-1 text-sm font-medium text-salon-brown hover:text-salon-dark bg-salon-beige hover:bg-gray-200 px-4 py-2 rounded-lg transition">
@@ -224,16 +224,17 @@
 
 <script>
 // Fix prebooking links to include proper hour/minute from slot_label
+// Django の {% url %} でベースパスを取得（i18n prefix を正しく処理）
+var prebookingBase = "{% url 'booking:prebooking' staff.pk 1111 11 11 11 %}".split('/prebooking/')[0] + '/prebooking/';
 document.querySelectorAll('a[data-hour]').forEach(function(a) {
     var parts = a.dataset.hour.split(':');
     var hour = parseInt(parts[0]);
     var minute = parseInt(parts[1] || '0');
     var date = a.dataset.date.split('-');
-    var staffPk = {{ staff.pk }};
     if (minute > 0) {
-        a.href = '/' + '{{ request.LANGUAGE_CODE }}' + '/staff/' + staffPk + '/prebooking/' + date[0] + '/' + parseInt(date[1]) + '/' + parseInt(date[2]) + '/' + hour + '/' + minute + '/';
+        a.href = prebookingBase + date[0] + '/' + parseInt(date[1]) + '/' + parseInt(date[2]) + '/' + hour + '/' + minute + '/';
     } else {
-        a.href = '/' + '{{ request.LANGUAGE_CODE }}' + '/staff/' + staffPk + '/prebooking/' + date[0] + '/' + parseInt(date[1]) + '/' + parseInt(date[2]) + '/' + hour + '/';
+        a.href = prebookingBase + date[0] + '/' + parseInt(date[1]) + '/' + parseInt(date[2]) + '/' + hour + '/';
     }
 });
 </script>

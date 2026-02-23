@@ -24,7 +24,7 @@
 <div class="bg-salon-beige rounded-lg p-4 mb-6">
     <h3 class="font-bold text-salon-brown mb-2">{% trans "予約概要" %}</h3>
     <dl class="grid grid-cols-[auto_1fr] gap-x-4 gap-y-1 text-sm">
-        <dt class="font-medium text-salon-dark">{% trans "占い師" %}</dt>
+        <dt class="font-medium text-salon-dark">{{ site_settings.staff_label }}</dt>
         <dd class="text-gray-600">{{ booking.staff_name }}</dd>
         <dt class="font-medium text-salon-dark">{% trans "日時" %}</dt>
         <dd class="text-gray-600">{{ booking.start }}</dd>
