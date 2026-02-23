@@ -280,7 +280,9 @@ tailwind.config = {
 </footer>
 
 <!-- AI ガイドチャットウィジェット -->
+{% if site_settings.show_ai_chat %}
 <script src="{% static 'js/guide_chat_widget.js' %}" defer></script>
+{% endif %}
 
 <!-- スクロールトップボタン -->
 <button onclick="window.scrollTo({top:0,behavior:'smooth'})"

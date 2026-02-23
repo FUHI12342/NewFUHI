@@ -121,7 +121,7 @@ class Staff(models.Model):
     class Meta:
         app_label = 'booking'
         verbose_name = 'キャスト'
-        verbose_name_plural = 'キャスト'
+        verbose_name_plural = 'キャスト一覧'
 
     def __str__(self):
         return f'{self.store.name} - {self.name}'
@@ -1015,6 +1015,10 @@ class SiteSettings(models.Model):
     # スタッフ呼称設定
     staff_label = models.CharField('スタッフの呼称', max_length=50, default='キャスト',
         help_text='管理画面・フロントで「占い師」「スタッフ」の代わりに表示する名称（例: キャスト、セラピスト）')
+
+    # AIチャットウィジェット
+    show_ai_chat = models.BooleanField('AIアシスタント表示', default=False,
+        help_text='フロントページにAIアシスタントチャットを表示するかどうか')
 
     # 法定ページ（HTML編集可能）
     privacy_policy_html = models.TextField('プライバシーポリシー', blank=True, default='',

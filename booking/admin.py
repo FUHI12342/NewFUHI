@@ -713,6 +713,7 @@ class SiteSettingsAdmin(admin.ModelAdmin):
             'show_sidebar_external_links',
         )}),
         ('SNS連携', {'fields': ('twitter_url', 'instagram_url', 'instagram_embed_html')}),
+        ('機能ON/OFF', {'fields': ('show_ai_chat',)}),
         ('法定ページ', {
             'fields': ('privacy_policy_html', 'tokushoho_html'),
             'description': 'HTMLで記述できます。空の場合はデフォルトの内容が表示されます。',
