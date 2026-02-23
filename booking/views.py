@@ -578,11 +578,10 @@ class LineCallbackView(View):
             if response.status_code == 201:
                 try:
                     payment_url = response.json()['links']['paymentUrl']
-                except ValueError:
-                    print("Error decoding JSON")
+                except (ValueError, KeyError) as e:
+                    logger.error("Coiny response JSON parse error: %s, body=%s", e, response.text)
             else:
-                print("HTTP request failed with status code ", response.status_code)
-                print("Response body: ", response.content)
+                logger.error("Coiny API failed: status=%s, body=%s", response.status_code, response.text)
 
             if payment_url is not None:
                 line_bot_api.push_message(
@@ -593,9 +592,11 @@ class LineCallbackView(View):
                              + payment_url
                     )
                 )
+            else:
+                logger.error("Payment URL not obtained, LINE message not sent for reservation %s", reservation_number)
 
         except LineBotApiError as e:
-            print("Failed to send message: ", e)
+            logger.error("Failed to send LINE message: %s", e)
 
         request.session['profile'] = user_profile
         return render(request, 'booking/line_success.html', {'profile': user_profile})
