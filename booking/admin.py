@@ -699,7 +699,7 @@ custom_site.register(ShiftAssignment, ShiftAssignmentAdmin)
 class SiteSettingsAdmin(admin.ModelAdmin):
     """シングルトン設定 — 一覧は常にpk=1へリダイレクト"""
     fieldsets = (
-        ('基本設定', {'fields': ('site_name',)}),
+        ('基本設定', {'fields': ('site_name', 'staff_label')}),
         ('ホームページカード表示', {'fields': (
             'show_card_store', 'show_card_fortune_teller',
             'show_card_calendar', 'show_card_shop',
@@ -713,6 +713,10 @@ class SiteSettingsAdmin(admin.ModelAdmin):
             'show_sidebar_external_links',
         )}),
         ('SNS連携', {'fields': ('twitter_url', 'instagram_url', 'instagram_embed_html')}),
+        ('法定ページ', {
+            'fields': ('privacy_policy_html', 'tokushoho_html'),
+            'description': 'HTMLで記述できます。空の場合はデフォルトの内容が表示されます。',
+        }),
     )
 
     def has_add_permission(self, request):

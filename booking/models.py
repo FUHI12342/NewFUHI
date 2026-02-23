@@ -1016,6 +1016,12 @@ class SiteSettings(models.Model):
     staff_label = models.CharField('スタッフの呼称', max_length=50, default='キャスト',
         help_text='管理画面・フロントで「占い師」「スタッフ」の代わりに表示する名称（例: キャスト、セラピスト）')
 
+    # 法定ページ（HTML編集可能）
+    privacy_policy_html = models.TextField('プライバシーポリシー', blank=True, default='',
+        help_text='HTMLで記述。空の場合はデフォルトテンプレートが表示されます。')
+    tokushoho_html = models.TextField('特定商取引法に基づく表記', blank=True, default='',
+        help_text='HTMLで記述。空の場合はデフォルトテンプレートが表示されます。')
+
     class Meta:
         app_label = 'booking'
         verbose_name = 'サイト設定'

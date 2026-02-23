@@ -9,6 +9,11 @@
         {% trans "特定商取引法に基づく表記" %}
     </h1>
 
+    {% if site_settings.tokushoho_html %}
+    <div class="prose prose-sm max-w-none text-gray-700">
+        {{ site_settings.tokushoho_html|safe }}
+    </div>
+    {% else %}
     <div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
         <table class="w-full text-sm">
             <tbody class="divide-y divide-gray-100">
@@ -34,7 +39,7 @@
                 </tr>
                 <tr>
                     <th class="px-4 py-3 bg-salon-beige text-left font-semibold text-salon-dark">{% trans "価格" %}</th>
-                    <td class="px-4 py-3">{% trans "各占い師のプロフィールページに記載の料金をご確認ください。表示価格は税込みです。" %}</td>
+                    <td class="px-4 py-3">各{{ site_settings.staff_label }}のプロフィールページに記載の料金をご確認ください。表示価格は税込みです。</td>
                 </tr>
                 <tr>
                     <th class="px-4 py-3 bg-salon-beige text-left font-semibold text-salon-dark">{% trans "支払方法" %}</th>
@@ -61,5 +66,6 @@
             </tbody>
         </table>
     </div>
+    {% endif %}
 </div>
 {% endblock %}

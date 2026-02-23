@@ -10,7 +10,9 @@
     </h1>
 
     <div class="prose prose-sm max-w-none text-gray-700 space-y-6">
-
+        {% if site_settings.privacy_policy_html %}
+            {{ site_settings.privacy_policy_html|safe }}
+        {% else %}
         <section>
             <h2 class="text-lg font-bold text-salon-dark mb-2">{% trans "1. 個人情報の収集について" %}</h2>
             <p>{% trans "当サロンでは、予約やお問い合わせの際に、お名前、メールアドレス、LINE ID等の個人情報を収集することがあります。収集にあたっては、利用目的を明示し、適切な範囲で行います。" %}</p>
@@ -57,7 +59,7 @@
             </p>
             {% endif %}
         </section>
-
+        {% endif %}
     </div>
 </div>
 {% endblock %}
