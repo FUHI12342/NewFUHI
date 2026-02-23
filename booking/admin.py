@@ -45,6 +45,8 @@ from .models import (
     PayrollEntry,
     PayrollDeduction,
     SalaryStructure,
+    TableSeat,
+    PaymentMethod,
 )
 
 
@@ -360,6 +362,7 @@ class ProductAdmin(admin.ModelAdmin):
         'is_active',
         'is_ec_visible',
         'is_sold_out',
+        'display_image',
         'last_low_stock_notified_at',
     )
 
@@ -373,6 +376,12 @@ class ProductAdmin(admin.ModelAdmin):
         return obj.stock <= 0
     is_sold_out.short_description = '売り切れ'
     is_sold_out.boolean = True
+
+    def display_image(self, obj):
+        if obj.image:
+            return format_html('<img src="{}" width="40" height="40" style="object-fit:cover;border-radius:4px;" />', obj.image.url)
+        return '-'
+    display_image.short_description = '画像'
 
     actions = ['clear_low_stock_notification', 'stock_in', 'stock_out', 'stock_adjust_zero',
                'enable_ec_visibility', 'disable_ec_visibility']
@@ -1027,6 +1036,107 @@ class SalaryStructureAdmin(admin.ModelAdmin):
     list_display = ('store', 'pension_rate', 'health_insurance_rate', 'employment_insurance_rate',
                     'overtime_multiplier', 'late_night_multiplier', 'holiday_multiplier')
     search_fields = ('store__name',)
+
+
+# ==============================
+# テーブル注文
+# ==============================
+class TableSeatAdmin(admin.ModelAdmin):
+    list_display = ('store', 'label', 'is_active', 'has_qr', 'created_at')
+    list_filter = ('store', 'is_active')
+    search_fields = ('label', 'store__name')
+
+    def has_qr(self, obj):
+        return bool(obj.qr_code)
+    has_qr.boolean = True
+    has_qr.short_description = 'QRコード'
+
+    readonly_fields = ('id', 'qr_preview', 'created_at')
+
+    def qr_preview(self, obj):
+        if obj.qr_code:
+            return format_html(
+                '<img src="{}" width="200" /><br>'
+                '<a href="{}" download>QRコードをダウンロード</a><br>'
+                '<small>メニューURL: {}</small>',
+                obj.qr_code.url, obj.qr_code.url, obj.get_menu_url()
+            )
+        return 'QRコード未生成（アクション「QRコード生成」を実行してください）'
+    qr_preview.short_description = 'QRプレビュー'
+
+    actions = ['generate_qr_codes', 'download_qr_zip']
+
+    @admin.action(description='QRコード生成')
+    def generate_qr_codes(self, request, queryset):
+        from .services.qr_service import generate_table_qr
+        count = 0
+        for seat in queryset:
+            url = seat.get_menu_url()
+            qr_file = generate_table_qr(url, seat.label)
+            seat.qr_code.save(qr_file.name, qr_file, save=True)
+            count += 1
+        self.message_user(request, f'{count} 件のQRコードを生成しました。')
+
+    @admin.action(description='QRコードZIPダウンロード')
+    def download_qr_zip(self, request, queryset):
+        import zipfile
+        from django.http import HttpResponse
+        response = HttpResponse(content_type='application/zip')
+        response['Content-Disposition'] = 'attachment; filename="table_qr_codes.zip"'
+        with zipfile.ZipFile(response, 'w') as zf:
+            for seat in queryset:
+                if seat.qr_code:
+                    seat.qr_code.open('rb')
+                    safe_label = seat.label.replace('/', '_').replace(' ', '_')
+                    zf.writestr(
+                        f'{seat.store.name}_{safe_label}.png',
+                        seat.qr_code.read()
+                    )
+                    seat.qr_code.close()
+        return response
+
+    def get_queryset(self, request):
+        qs = super().get_queryset(request)
+        if _is_owner_or_super(request):
+            return qs
+        try:
+            staff = request.user.staff
+            if staff.is_store_manager:
+                return qs.filter(store=staff.store)
+            return qs.none()
+        except Staff.DoesNotExist:
+            return qs.none()
+
+
+class PaymentMethodAdmin(admin.ModelAdmin):
+    list_display = ('store', 'display_name', 'method_type', 'is_enabled', 'sort_order')
+    list_editable = ('is_enabled', 'sort_order')
+    list_filter = ('store', 'method_type', 'is_enabled')
+    search_fields = ('display_name', 'store__name')
+
+    fieldsets = (
+        (None, {'fields': ('store', 'method_type', 'display_name', 'is_enabled', 'sort_order')}),
+        ('API設定', {
+            'classes': ('collapse',),
+            'fields': ('api_key', 'api_secret', 'api_endpoint', 'extra_config'),
+        }),
+    )
+
+    def get_queryset(self, request):
+        qs = super().get_queryset(request)
+        if _is_owner_or_super(request):
+            return qs
+        try:
+            staff = request.user.staff
+            if staff.is_store_manager:
+                return qs.filter(store=staff.store)
+            return qs.none()
+        except Staff.DoesNotExist:
+            return qs.none()
+
+
+custom_site.register(TableSeat, TableSeatAdmin)
+custom_site.register(PaymentMethod, PaymentMethodAdmin)
 
 
 custom_site.register(EmploymentContract, EmploymentContractAdmin)

@@ -15,6 +15,7 @@ from .views_restaurant_dashboard import (
 )
 from .views_property import PropertyStatusAPIView, PropertyAlertResolveAPIView
 from .views import CheckinAPIView, CartAddAPIView, CartUpdateAPIView, CartRemoveAPIView
+from .views import TableCartAddAPI, TableCartUpdateAPI, TableCartRemoveAPI, TableOrderCreateAPI, TableOrderStatusAPI
 from .views_chat import AdminChatAPIView, GuideChatAPIView
 
 app_name = 'booking_api'
@@ -75,4 +76,11 @@ urlpatterns = [
     # AI Chat APIs
     path('chat/admin/', AdminChatAPIView.as_view(), name='api_admin_chat'),
     path('chat/guide/', GuideChatAPIView.as_view(), name='api_guide_chat'),
+
+    # Table ordering APIs
+    path('table/<uuid:table_id>/cart/add/', TableCartAddAPI.as_view(), name='table_cart_add'),
+    path('table/<uuid:table_id>/cart/update/', TableCartUpdateAPI.as_view(), name='table_cart_update'),
+    path('table/<uuid:table_id>/cart/remove/', TableCartRemoveAPI.as_view(), name='table_cart_remove'),
+    path('table/<uuid:table_id>/order/create/', TableOrderCreateAPI.as_view(), name='table_order_create'),
+    path('table/<uuid:table_id>/orders/status/', TableOrderStatusAPI.as_view(), name='table_order_status'),
 ]

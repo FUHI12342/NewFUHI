@@ -1,0 +1,42 @@
+{% extends "booking/table_base.html" %}
+{% block title %}お会計 - {{ store.name }}{% endblock %}
+
+{% block content %}
+<div class="text-center py-12">
+    {% if payment_type == 'cash' %}
+    <div class="w-20 h-20 mx-auto mb-6 rounded-full bg-green-100 flex items-center justify-center">
+        <svg class="w-10 h-10 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+        </svg>
+    </div>
+    <h2 class="text-xl font-bold mb-2">お会計をお待ちください</h2>
+    <p class="text-gray-500 mb-2">スタッフがお席までお伺いします</p>
+    <p class="text-2xl font-bold text-salon-brown my-4">&yen;{{ grand_total|stringformat:",.0f" }}</p>
+    <p class="text-sm text-gray-400">お支払い方法: {{ payment_display }}</p>
+
+    {% elif payment_type == 'coiney' %}
+    <div class="w-20 h-20 mx-auto mb-6 rounded-full bg-blue-100 flex items-center justify-center">
+        <svg class="w-10 h-10 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/>
+        </svg>
+    </div>
+    <h2 class="text-xl font-bold mb-2">決済処理中</h2>
+    <p class="text-gray-500 mb-4">お支払い画面に遷移します...</p>
+
+    {% else %}
+    <div class="w-20 h-20 mx-auto mb-6 rounded-full bg-yellow-100 flex items-center justify-center">
+        <svg class="w-10 h-10 text-yellow-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+        </svg>
+    </div>
+    <h2 class="text-xl font-bold mb-2">レジでお支払いください</h2>
+    <p class="text-gray-500 mb-2">お会計はレジにてお願いいたします</p>
+    <p class="text-2xl font-bold text-salon-brown my-4">&yen;{{ grand_total|stringformat:",.0f" }}</p>
+    <p class="text-sm text-gray-400">お支払い方法: {{ payment_display }}</p>
+    {% endif %}
+
+    <div class="mt-8">
+        <a href="{% url 'table:table_menu' table_id=seat.id %}" class="inline-block bg-salon-brown text-white px-6 py-2 rounded-lg text-sm">メニューに戻る</a>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,67 @@
+{% extends "booking/table_base.html" %}
+{% block title %}お会計 - {{ store.name }}{% endblock %}
+
+{% block content %}
+<h2 class="text-lg font-bold mb-4">お会計</h2>
+
+{% if orders %}
+<!-- Order Summary -->
+<div class="bg-white rounded-lg shadow-sm p-4 mb-4">
+    <h3 class="text-sm font-bold mb-2 text-gray-600">ご注文内容</h3>
+    <div class="divide-y divide-gray-100">
+        {% for order in orders %}
+        {% for item in order.items.all %}
+        <div class="py-2 flex justify-between text-sm">
+            <span>{{ item.product.name }} x{{ item.qty }}</span>
+            <span>&yen;{{ item.subtotal|stringformat:",.0f" }}</span>
+        </div>
+        {% endfor %}
+        {% endfor %}
+    </div>
+    <div class="border-t border-gray-200 mt-2 pt-2 flex justify-between text-lg font-bold">
+        <span>合計</span>
+        <span class="text-salon-brown">&yen;{{ grand_total|stringformat:",.0f" }}</span>
+    </div>
+</div>
+
+<!-- Payment Methods -->
+<h3 class="text-sm font-bold mb-3 text-gray-600">お支払い方法を選択</h3>
+<div class="space-y-3">
+    {% for method in payment_methods %}
+    <form method="post" action="{% url 'table:table_checkout' table_id=seat.id %}">
+        {% csrf_token %}
+        <input type="hidden" name="payment_method_id" value="{{ method.id }}">
+        <button type="submit"
+                class="w-full bg-white rounded-lg shadow-sm p-4 flex items-center gap-3 hover:bg-gray-50 transition text-left">
+            <div class="w-10 h-10 rounded-full bg-salon-beige flex items-center justify-center">
+                {% if method.method_type == 'cash' %}
+                <svg class="w-5 h-5 text-salon-brown" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"/>
+                </svg>
+                {% else %}
+                <svg class="w-5 h-5 text-salon-brown" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/>
+                </svg>
+                {% endif %}
+            </div>
+            <div>
+                <p class="text-sm font-bold">{{ method.display_name }}</p>
+                <p class="text-xs text-gray-500">{{ method.get_method_type_display }}</p>
+            </div>
+        </button>
+    </form>
+    {% empty %}
+    <div class="text-center py-8 text-gray-400">
+        <p>決済方法が設定されていません</p>
+        <p class="text-xs mt-1">スタッフにお声がけください</p>
+    </div>
+    {% endfor %}
+</div>
+
+{% else %}
+<div class="text-center py-16 text-gray-400">
+    <p class="mb-4">まだ注文がありません</p>
+    <a href="{% url 'table:table_menu' table_id=seat.id %}" class="inline-block bg-salon-brown text-white px-6 py-2 rounded-lg text-sm">メニューを見る</a>
+</div>
+{% endif %}
+{% endblock %}

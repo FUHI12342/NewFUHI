@@ -1,0 +1,118 @@
+{% extends "booking/table_base.html" %}
+{% block title %}メニュー - {{ store.name }}{% endblock %}
+
+{% block content %}
+<!-- Category Tabs -->
+{% if categories %}
+<div class="flex gap-2 overflow-x-auto pb-2 mb-4 -mx-4 px-4 scrollbar-hide">
+    <a href="{% url 'table:table_menu' table_id=seat.id %}"
+       class="flex-shrink-0 px-4 py-1.5 rounded-full text-sm {% if not current_category %}bg-salon-brown text-white{% else %}bg-gray-200 text-gray-600{% endif %}">
+        すべて
+    </a>
+    {% for cat in categories %}
+    <a href="{% url 'table:table_menu' table_id=seat.id %}?category={{ cat.id }}"
+       class="flex-shrink-0 px-4 py-1.5 rounded-full text-sm {% if current_category == cat.id|stringformat:'d' %}bg-salon-brown text-white{% else %}bg-gray-200 text-gray-600{% endif %}">
+        {{ cat.name }}
+    </a>
+    {% endfor %}
+</div>
+{% endif %}
+
+<!-- Product Grid -->
+<div class="grid grid-cols-2 gap-3">
+    {% for product in products %}
+    <div class="bg-white rounded-lg shadow-sm overflow-hidden" id="product-{{ product.id }}">
+        {% if product.image_url %}
+        <img src="{{ product.image_url }}" alt="{{ product.name }}" class="w-full h-32 object-cover">
+        {% else %}
+        <div class="w-full h-32 bg-gray-100 flex items-center justify-center">
+            <svg class="w-10 h-10 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+            </svg>
+        </div>
+        {% endif %}
+        <div class="p-3">
+            <h3 class="text-sm font-bold leading-tight mb-1">{{ product.name }}</h3>
+            {% if product.description %}
+            <p class="text-xs text-gray-500 mb-2 line-clamp-2">{{ product.description }}</p>
+            {% endif %}
+            <div class="flex items-center justify-between">
+                <span class="text-sm font-bold text-salon-brown">&yen;{{ product.price|stringformat:",.0f" }}</span>
+                {% if product.is_sold_out %}
+                <span class="text-xs text-red-500 font-bold">売り切れ</span>
+                {% else %}
+                <button onclick="addToCart('{{ product.id }}')"
+                        class="bg-salon-brown text-white text-xs px-3 py-1.5 rounded-full hover:opacity-80 transition add-btn"
+                        data-product-id="{{ product.id }}">
+                    追加
+                </button>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    {% empty %}
+    <div class="col-span-2 text-center py-12 text-gray-400">
+        <p>メニューはまだ登録されていません</p>
+    </div>
+    {% endfor %}
+</div>
+
+<!-- Added Toast -->
+<div id="toast" class="fixed top-20 left-1/2 -translate-x-1/2 bg-green-500 text-white px-4 py-2 rounded-lg shadow-lg text-sm transition-all duration-300 opacity-0 pointer-events-none z-50">
+    カートに追加しました
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function getCookie(name) {
+    let v = document.cookie.match('(^|;) ?' + name + '=([^;]*)(;|$)');
+    return v ? v[2] : null;
+}
+
+function addToCart(productId) {
+    const btn = document.querySelector(`[data-product-id="${productId}"]`);
+    btn.disabled = true;
+    btn.textContent = '...';
+
+    fetch('{{ cart_add_url }}', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCookie('csrftoken'),
+        },
+        body: JSON.stringify({product_id: productId, qty: 1}),
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.status === 'ok') {
+            // Update cart badge
+            const badges = document.querySelectorAll('[data-cart-count]');
+            badges.forEach(b => {
+                b.textContent = data.cart_count;
+                b.classList.remove('hidden');
+            });
+            // Update header badge
+            const headerBadge = document.querySelector('header .absolute');
+            if (headerBadge) headerBadge.textContent = data.cart_count;
+
+            // Show toast
+            const toast = document.getElementById('toast');
+            toast.classList.remove('opacity-0');
+            toast.classList.add('opacity-100');
+            setTimeout(() => {
+                toast.classList.remove('opacity-100');
+                toast.classList.add('opacity-0');
+            }, 1500);
+        } else {
+            alert(data.message || 'エラーが発生しました');
+        }
+    })
+    .catch(() => alert('通信エラーが発生しました'))
+    .finally(() => {
+        btn.disabled = false;
+        btn.textContent = '追加';
+    });
+}
+</script>
+{% endblock %}

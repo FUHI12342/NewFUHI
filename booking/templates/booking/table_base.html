@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{% block title %}{{ store.name }}{% endblock %}</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+tailwind.config = {
+    theme: {
+        extend: {
+            colors: {
+                'salon-brown': '#8c876c',
+                'salon-beige': '#f1f0ec',
+                'salon-dark': '#333333',
+            }
+        }
+    }
+}
+</script>
+{% block extra_css %}{% endblock %}
+</head>
+<body class="bg-gray-50 text-salon-dark min-h-screen flex flex-col">
+
+<!-- Header -->
+<header class="bg-white shadow-sm sticky top-0 z-50">
+    <div class="max-w-lg mx-auto px-4 py-3 flex items-center justify-between">
+        <div>
+            <h1 class="text-sm font-bold text-salon-brown">{{ store.name }}</h1>
+            <p class="text-xs text-gray-500">{{ seat.label }}</p>
+        </div>
+        <a href="{% url 'table:table_cart' table_id=seat.id %}" class="relative p-2">
+            <svg class="w-6 h-6 text-salon-brown" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 100 4 2 2 0 000-4z"/>
+            </svg>
+            {% if cart_count %}
+            <span class="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">{{ cart_count }}</span>
+            {% endif %}
+        </a>
+    </div>
+</header>
+
+<!-- Main Content -->
+<main class="flex-1 max-w-lg mx-auto w-full px-4 py-4 pb-20">
+    {% block content %}{% endblock %}
+</main>
+
+<!-- Bottom Navigation -->
+<nav class="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-50">
+    <div class="max-w-lg mx-auto flex">
+        <a href="{% url 'table:table_menu' table_id=seat.id %}"
+           class="flex-1 flex flex-col items-center py-2 text-xs {% if active_tab == 'menu' %}text-salon-brown font-bold{% else %}text-gray-400{% endif %}">
+            <svg class="w-5 h-5 mb-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"/>
+            </svg>
+            メニュー
+        </a>
+        <a href="{% url 'table:table_cart' table_id=seat.id %}"
+           class="flex-1 flex flex-col items-center py-2 text-xs {% if active_tab == 'cart' %}text-salon-brown font-bold{% else %}text-gray-400{% endif %}">
+            <svg class="w-5 h-5 mb-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 100 4 2 2 0 000-4z"/>
+            </svg>
+            カート{% if cart_count %}({{ cart_count }}){% endif %}
+        </a>
+        <a href="{% url 'table:table_history' table_id=seat.id %}"
+           class="flex-1 flex flex-col items-center py-2 text-xs {% if active_tab == 'history' %}text-salon-brown font-bold{% else %}text-gray-400{% endif %}">
+            <svg class="w-5 h-5 mb-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+            </svg>
+            注文履歴
+        </a>
+        <a href="{% url 'table:table_checkout' table_id=seat.id %}"
+           class="flex-1 flex flex-col items-center py-2 text-xs {% if active_tab == 'checkout' %}text-salon-brown font-bold{% else %}text-gray-400{% endif %}">
+            <svg class="w-5 h-5 mb-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"/>
+            </svg>
+            お会計
+        </a>
+    </div>
+</nav>
+
+{% block extra_js %}{% endblock %}
+</body>
+</html>

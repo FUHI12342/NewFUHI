@@ -34,6 +34,7 @@ GROUP_MAP = {
     '勤怠管理': ['workattendance'],
     '在庫管理': ['category', 'product'],
     '注文管理': ['order'],
+    'テーブル注文': ['tableseat', 'paymentmethod'],
     'IoT管理': ['iotdevice'],
     '物件管理': ['property'],
     '予約ページ情報': ['company', 'notice', 'media'],
@@ -64,6 +65,7 @@ DEFAULT_ALLOWED_MODELS = {
         'herobanner', 'bannerad', 'externallink',
         'payrollperiod', 'payrollentry', 'employmentcontract',
         'salarystructure', 'workattendance',
+        'tableseat', 'paymentmethod',
     ],
     'staff': [
         'schedule', 'order', 'staff',

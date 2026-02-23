@@ -510,6 +510,8 @@ class Product(models.Model):
     is_ec_visible = models.BooleanField('EC公開', default=False, db_index=True,
         help_text='チェックするとオンラインショップに表示されます')
 
+    image = models.ImageField('商品画像', upload_to='product_images/', blank=True, null=True)
+
     # 代替提案用の簡易スコア（どれを使うかはUI側で選べる）
     popularity = models.IntegerField('人気スコア', default=0)
     margin_rate = models.FloatField('利益率(概算)', default=0.0)
@@ -589,6 +591,10 @@ class Order(models.Model):
 
     customer_line_user_hash = models.CharField('顧客LINEハッシュ', max_length=64, null=True, blank=True, db_index=True)
     table_label = models.CharField('席/テーブル', max_length=50, blank=True, default='')
+    table_seat = models.ForeignKey(
+        'TableSeat', verbose_name='席', on_delete=models.SET_NULL,
+        null=True, blank=True, related_name='orders',
+    )
 
     status = models.CharField('状態', max_length=10, choices=STATUS_CHOICES, default=STATUS_OPEN, db_index=True)
 
@@ -911,6 +917,61 @@ class StoreScheduleConfig(models.Model):
 
     def __str__(self):
         return f"{self.store.name} ({self.open_hour}:00-{self.close_hour}:00 / {self.slot_duration}分)"
+
+
+class TableSeat(models.Model):
+    """店舗テーブル/席"""
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    store = models.ForeignKey(Store, verbose_name='店舗', on_delete=models.CASCADE, related_name='table_seats')
+    label = models.CharField('席名', max_length=50, help_text='例: A1, テーブル1, カウンター3')
+    is_active = models.BooleanField('有効', default=True)
+    qr_code = models.ImageField('QRコード画像', upload_to='table_qr/', blank=True, null=True)
+    created_at = models.DateTimeField('作成日時', auto_now_add=True)
+
+    class Meta:
+        app_label = 'booking'
+        verbose_name = 'テーブル/席'
+        verbose_name_plural = 'テーブル/席'
+        unique_together = (('store', 'label'),)
+        ordering = ('store', 'label')
+
+    def __str__(self):
+        return f'{self.store.name} / {self.label}'
+
+    def get_menu_url(self):
+        base = getattr(settings, 'SITE_BASE_URL', '')
+        return f'{base}/t/{self.id}/'
+
+
+class PaymentMethod(models.Model):
+    """店舗別決済方法設定"""
+    METHOD_TYPE_CHOICES = [
+        ('cash', '現金'),
+        ('coiney', 'Coiney (クレジットカード)'),
+        ('paypay', 'PayPay'),
+        ('ic', 'IC決済 (交通系/電子マネー)'),
+        ('other', 'その他'),
+    ]
+    store = models.ForeignKey(Store, verbose_name='店舗', on_delete=models.CASCADE, related_name='payment_methods')
+    method_type = models.CharField('決済種別', max_length=20, choices=METHOD_TYPE_CHOICES)
+    display_name = models.CharField('表示名', max_length=100)
+    is_enabled = models.BooleanField('有効', default=True)
+    api_key = models.CharField('APIキー', max_length=500, blank=True, default='')
+    api_secret = models.CharField('APIシークレット', max_length=500, blank=True, default='')
+    api_endpoint = models.URLField('APIエンドポイント', blank=True, default='')
+    extra_config = models.JSONField('追加設定', default=dict, blank=True)
+    sort_order = models.IntegerField('並び順', default=0)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        app_label = 'booking'
+        verbose_name = '決済方法'
+        verbose_name_plural = '決済方法'
+        unique_together = (('store', 'method_type'),)
+        ordering = ('store', 'sort_order')
+
+    def __str__(self):
+        return f'{self.store.name} / {self.display_name}'
 
 
 class ShiftPeriod(models.Model):

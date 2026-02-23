@@ -26,6 +26,9 @@ urlpatterns = [
 
     # Language switching
     path("i18n/", include("django.conf.urls.i18n")),
+
+    # Table ordering (QR entry - no i18n prefix)
+    path("t/", include("booking.table_urls")),
 ]
 
 # i18n-wrapped URLs (user-facing pages)

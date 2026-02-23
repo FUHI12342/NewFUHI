@@ -319,6 +319,9 @@ CANCEL_URL = env_required("CANCEL_URL")
 # Gemini AI Chat
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "")
 
+# Table ordering QR code base URL
+SITE_BASE_URL = os.getenv("SITE_BASE_URL", "https://timebaibai.com")
+
 
 # ====================================
 # Email (IoT gas alerts etc.)

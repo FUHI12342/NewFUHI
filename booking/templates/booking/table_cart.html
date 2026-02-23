@@ -1,0 +1,105 @@
+{% extends "booking/table_base.html" %}
+{% block title %}カート - {{ store.name }}{% endblock %}
+
+{% block content %}
+<h2 class="text-lg font-bold mb-4">カート</h2>
+
+{% if cart_items %}
+<div class="space-y-3 mb-6">
+    {% for item in cart_items %}
+    <div class="bg-white rounded-lg shadow-sm p-4 flex items-center gap-3" id="cart-item-{{ item.product_id }}">
+        <div class="flex-1">
+            <h3 class="text-sm font-bold">{{ item.name }}</h3>
+            <p class="text-xs text-gray-500">&yen;{{ item.price|stringformat:",.0f" }}</p>
+        </div>
+        <div class="flex items-center gap-2">
+            <button onclick="updateQty('{{ item.product_id }}', {{ item.qty }} - 1)"
+                    class="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center text-lg font-bold hover:bg-gray-300 transition">-</button>
+            <span class="w-8 text-center text-sm font-bold" id="qty-{{ item.product_id }}">{{ item.qty }}</span>
+            <button onclick="updateQty('{{ item.product_id }}', {{ item.qty }} + 1)"
+                    class="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center text-lg font-bold hover:bg-gray-300 transition">+</button>
+        </div>
+        <div class="text-right min-w-[60px]">
+            <p class="text-sm font-bold">&yen;{{ item.subtotal|stringformat:",.0f" }}</p>
+        </div>
+        <button onclick="removeItem('{{ item.product_id }}')" class="text-gray-400 hover:text-red-500 transition">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+            </svg>
+        </button>
+    </div>
+    {% endfor %}
+</div>
+
+<!-- Total -->
+<div class="bg-white rounded-lg shadow-sm p-4 mb-6">
+    <div class="flex justify-between items-center text-lg font-bold">
+        <span>合計</span>
+        <span class="text-salon-brown">&yen;{{ total|stringformat:",.0f" }}</span>
+    </div>
+</div>
+
+<!-- Order Button -->
+<form method="post" action="{% url 'table:table_order' table_id=seat.id %}">
+    {% csrf_token %}
+    <button type="submit"
+            class="w-full bg-salon-brown text-white py-3 rounded-lg font-bold text-base hover:opacity-90 transition">
+        注文を確定する
+    </button>
+</form>
+
+{% else %}
+<div class="text-center py-16 text-gray-400">
+    <svg class="w-16 h-16 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 100 4 2 2 0 000-4z"/>
+    </svg>
+    <p class="mb-4">カートは空です</p>
+    <a href="{% url 'table:table_menu' table_id=seat.id %}" class="inline-block bg-salon-brown text-white px-6 py-2 rounded-lg text-sm">メニューへ戻る</a>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function getCookie(name) {
+    let v = document.cookie.match('(^|;) ?' + name + '=([^;]*)(;|$)');
+    return v ? v[2] : null;
+}
+
+function updateQty(productId, qty) {
+    fetch('{{ cart_update_url }}', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCookie('csrftoken'),
+        },
+        body: JSON.stringify({product_id: productId, qty: qty}),
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.status === 'ok') {
+            location.reload();
+        } else {
+            alert(data.message || 'エラーが発生しました');
+        }
+    });
+}
+
+function removeItem(productId) {
+    fetch('{{ cart_remove_url }}', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCookie('csrftoken'),
+        },
+        body: JSON.stringify({product_id: productId}),
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.status === 'ok') {
+            location.reload();
+        }
+    });
+}
+</script>
+{% endblock %}
