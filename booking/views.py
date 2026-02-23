@@ -552,51 +552,67 @@ class LineCallbackView(View):
 
             del request.session['temporary_booking']
 
-            payment_api_url = settings.PAYMENT_API_URL
-            headers = {
-                'Authorization': 'Bearer ' + settings.PAYMENT_API_KEY,
-                'Content-Type': 'application/json',
-                'Accept': 'application/json',
-                'X-CoineyPayge-Version': '2016-10-25',
-            }
             reservation_number = schedule.reservation_number
-            webhook_url = f"{settings.WEBHOOK_URL_BASE}{reservation_number}/"
 
-            data = {
-                "amount": int(schedule.price),
-                "currency": "jpy",
-                "locale": "ja_JP",
-                "cancelUrl": settings.CANCEL_URL,
-                "webhookUrl": webhook_url,
-                "method": "creditcard",
-                "subject": "ご予約料金",
-                "description": "ウェブサイトからの支払い",
-                "remarks": "仮予約から15分を過ぎますと自動的にキャンセルとなります。あらかじめご了承ください。",
-                "metadata": {"orderId": reservation_number},
-                "expiredOn": expired_on_str
-            }
+            if int(schedule.price) >= 100:
+                # 有料予約: Coiney で決済URL を発行
+                payment_api_url = settings.PAYMENT_API_URL
+                headers = {
+                    'Authorization': 'Bearer ' + settings.PAYMENT_API_KEY,
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                    'X-CoineyPayge-Version': '2016-10-25',
+                }
+                webhook_url = f"{settings.WEBHOOK_URL_BASE}{reservation_number}/"
 
-            response = requests.post(payment_api_url, headers=headers, data=json.dumps(data))
-            payment_url = None
-            if response.status_code == 201:
-                try:
-                    payment_url = response.json()['links']['paymentUrl']
-                except (ValueError, KeyError) as e:
-                    logger.error("Coiny response JSON parse error: %s, body=%s", e, response.text)
+                data = {
+                    "amount": int(schedule.price),
+                    "currency": "jpy",
+                    "locale": "ja_JP",
+                    "cancelUrl": settings.CANCEL_URL,
+                    "webhookUrl": webhook_url,
+                    "method": "creditcard",
+                    "subject": "ご予約料金",
+                    "description": "ウェブサイトからの支払い",
+                    "remarks": "仮予約から15分を過ぎますと自動的にキャンセルとなります。あらかじめご了承ください。",
+                    "metadata": {"orderId": reservation_number},
+                    "expiredOn": expired_on_str
+                }
+
+                response = requests.post(payment_api_url, headers=headers, data=json.dumps(data))
+                payment_url = None
+                if response.status_code == 201:
+                    try:
+                        payment_url = response.json()['links']['paymentUrl']
+                    except (ValueError, KeyError) as e:
+                        logger.error("Coiny response JSON parse error: %s, body=%s", e, response.text)
+                else:
+                    logger.error("Coiny API failed: status=%s, body=%s", response.status_code, response.text)
+
+                if payment_url is not None:
+                    line_bot_api.push_message(
+                        user_id,
+                        TextSendMessage(
+                            text='こちらのURLから決済を行ってください。決済後に予約が確定します。\n'
+                                 '15分以内にお支払いがない場合、仮予約は自動キャンセルされます。\n'
+                                 + payment_url
+                        )
+                    )
+                else:
+                    logger.error("Payment URL not obtained, LINE message not sent for reservation %s", reservation_number)
             else:
-                logger.error("Coiny API failed: status=%s, body=%s", response.status_code, response.text)
-
-            if payment_url is not None:
+                # 無料予約（price=0）: 決済不要、直接確定
+                schedule.is_temporary = False
+                schedule.save(update_fields=['is_temporary'])
                 line_bot_api.push_message(
                     user_id,
                     TextSendMessage(
-                        text='こちらのURLから決済を行ってください。決済後に予約が確定します。\n'
-                             '15分以内にお支払いがない場合、仮予約は自動キャンセルされます。\n'
-                             + payment_url
+                        text=f'ご予約が確定しました。\n'
+                             f'予約番号: {reservation_number}\n'
+                             f'日時: {schedule.start.strftime("%Y/%m/%d %H:%M")}\n'
+                             f'ご来店をお待ちしております。'
                     )
                 )
-            else:
-                logger.error("Payment URL not obtained, LINE message not sent for reservation %s", reservation_number)
 
         except LineBotApiError as e:
             logger.error("Failed to send LINE message: %s", e)
