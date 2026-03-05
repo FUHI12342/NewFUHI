@@ -1,5 +1,5 @@
 """
-IoT Integration Tests — pytest-django
+IoT Integration Tests — Django TestCase
 
 Validates:
   - IoTEventAPIView (POST /api/iot/events/)
@@ -7,10 +7,11 @@ Validates:
   - SensorDataAPIView (GET /api/iot/sensors/data/)
   - PIREventsAPIView (GET /api/iot/sensors/pir-events/)
 """
-import pytest
 import hashlib
 import json
-from django.test import Client
+
+import pytest
+from django.test import TestCase
 from booking.models import Store, IoTDevice, IoTEvent
 
 
@@ -66,166 +67,141 @@ def _sensor_payload(mq9=123.4, light=456.7, sound=78.9, pir=True):
 # Tests
 # ---------------------------------------------------------------------------
 
-@pytest.mark.django_db
-def test_iot_event_post_success():
-    """POST sensor data with valid API key returns 201."""
-    client = Client()
-    store = _create_store()
-    _create_device(store)
+class TestIoTEventAPI(TestCase):
 
-    response = client.post(
-        "/api/iot/events/",
-        data=json.dumps(_sensor_payload()),
-        content_type="application/json",
-        HTTP_X_API_KEY=RAW_API_KEY,
-    )
-    assert response.status_code == 201
-    body = response.json()
-    assert body["device"] == DEVICE_EXTERNAL_ID
-    assert body["event_type"] == "sensor_reading"
-    assert "id" in body
+    def setUp(self):
+        self.store = _create_store()
+        self.device = _create_device(self.store)
 
+    def test_iot_event_post_success(self):
+        """POST sensor data with valid API key returns 201."""
+        response = self.client.post(
+            "/api/iot/events/",
+            data=json.dumps(_sensor_payload()),
+            content_type="application/json",
+            HTTP_X_API_KEY=RAW_API_KEY,
+        )
+        self.assertEqual(response.status_code, 201)
+        body = response.json()
+        self.assertEqual(body["device"], DEVICE_EXTERNAL_ID)
+        self.assertEqual(body["event_type"], "sensor_reading")
+        self.assertIn("id", body)
 
-@pytest.mark.django_db
-def test_iot_event_invalid_api_key():
-    """POST with wrong API key returns 404 (device not found by hash mismatch)."""
-    client = Client()
-    store = _create_store()
-    _create_device(store)
+    def test_iot_event_invalid_api_key(self):
+        """POST with wrong API key returns 404 (device not found by hash mismatch)."""
+        response = self.client.post(
+            "/api/iot/events/",
+            data=json.dumps(_sensor_payload()),
+            content_type="application/json",
+            HTTP_X_API_KEY="wrong-api-key-999",
+        )
+        self.assertEqual(response.status_code, 404)
 
-    response = client.post(
-        "/api/iot/events/",
-        data=json.dumps(_sensor_payload()),
-        content_type="application/json",
-        HTTP_X_API_KEY="wrong-api-key-999",
-    )
-    # IoTEventAPIView returns 404 when device lookup by api_key_hash fails
-    assert response.status_code == 404
+    def test_sensor_data_saved(self):
+        """POST sensor data persists correct mq9/light/sound/pir values in IoTEvent."""
+        payload = _sensor_payload(mq9=200.5, light=300.0, sound=45.2, pir=False)
+        response = self.client.post(
+            "/api/iot/events/",
+            data=json.dumps(payload),
+            content_type="application/json",
+            HTTP_X_API_KEY=RAW_API_KEY,
+        )
+        self.assertEqual(response.status_code, 201)
 
+        event = IoTEvent.objects.latest("id")
+        self.assertAlmostEqual(event.mq9_value, 200.5)
+        self.assertAlmostEqual(event.light_value, 300.0)
+        self.assertAlmostEqual(event.sound_value, 45.2)
+        self.assertFalse(event.pir_triggered)
+        self.assertEqual(event.event_type, "sensor_reading")
 
-@pytest.mark.django_db
-def test_sensor_data_saved():
-    """POST sensor data persists correct mq9/light/sound/pir values in IoTEvent."""
-    client = Client()
-    store = _create_store()
-    _create_device(store)
+    def test_last_seen_at_updated(self):
+        """POST event updates IoTDevice.last_seen_at."""
+        self.assertIsNone(self.device.last_seen_at)
 
-    payload = _sensor_payload(mq9=200.5, light=300.0, sound=45.2, pir=False)
-    response = client.post(
-        "/api/iot/events/",
-        data=json.dumps(payload),
-        content_type="application/json",
-        HTTP_X_API_KEY=RAW_API_KEY,
-    )
-    assert response.status_code == 201
+        response = self.client.post(
+            "/api/iot/events/",
+            data=json.dumps(_sensor_payload()),
+            content_type="application/json",
+            HTTP_X_API_KEY=RAW_API_KEY,
+        )
+        self.assertEqual(response.status_code, 201)
 
-    event = IoTEvent.objects.latest("id")
-    assert event.mq9_value == pytest.approx(200.5)
-    assert event.light_value == pytest.approx(300.0)
-    assert event.sound_value == pytest.approx(45.2)
-    assert event.pir_triggered is False
-    assert event.event_type == "sensor_reading"
-
-
-@pytest.mark.django_db
-def test_iot_config_get():
-    """GET config endpoint returns device configuration with valid API key."""
-    client = Client()
-    store = _create_store()
-    device = _create_device(store)
-
-    response = client.get(
-        f"/api/iot/config/?device={DEVICE_EXTERNAL_ID}",
-        HTTP_X_API_KEY=RAW_API_KEY,
-    )
-    assert response.status_code == 200
-
-    body = response.json()
-    assert body["device"] == DEVICE_EXTERNAL_ID
-    assert body["mq9_threshold"] == 500
-    assert body["alert_enabled"] is False
-    assert "wifi" in body
+        self.device.refresh_from_db()
+        self.assertIsNotNone(self.device.last_seen_at)
 
 
-@pytest.mark.django_db
-def test_last_seen_at_updated():
-    """POST event updates IoTDevice.last_seen_at."""
-    client = Client()
-    store = _create_store()
-    device = _create_device(store)
-    assert device.last_seen_at is None
+class TestIoTConfigAPI(TestCase):
 
-    response = client.post(
-        "/api/iot/events/",
-        data=json.dumps(_sensor_payload()),
-        content_type="application/json",
-        HTTP_X_API_KEY=RAW_API_KEY,
-    )
-    assert response.status_code == 201
+    def setUp(self):
+        self.store = _create_store()
+        self.device = _create_device(self.store)
 
-    device.refresh_from_db()
-    assert device.last_seen_at is not None
+    def test_iot_config_get(self):
+        """GET config endpoint returns device configuration with valid API key."""
+        response = self.client.get(
+            f"/api/iot/config/?device={DEVICE_EXTERNAL_ID}",
+            HTTP_X_API_KEY=RAW_API_KEY,
+        )
+        self.assertEqual(response.status_code, 200)
+
+        body = response.json()
+        self.assertEqual(body["device"], DEVICE_EXTERNAL_ID)
+        self.assertEqual(body["mq9_threshold"], 500)
+        self.assertFalse(body["alert_enabled"])
+        self.assertIn("wifi", body)
 
 
-@pytest.mark.django_db
-def test_sensor_dashboard_api():
-    """GET /api/iot/sensors/data/ returns time-series sensor data."""
-    client = Client()
-    store = _create_store()
-    device = _create_device(store)
+class TestSensorDashboardAPI(TestCase):
 
-    # Create some IoTEvents directly
-    for i in range(5):
+    def setUp(self):
+        self.store = _create_store()
+        self.device = _create_device(self.store)
+
+    def test_sensor_dashboard_api(self):
+        """GET /api/iot/sensors/data/ returns time-series sensor data."""
+        for i in range(5):
+            IoTEvent.objects.create(
+                device=self.device,
+                event_type="sensor_reading",
+                mq9_value=100.0 + i * 10,
+                light_value=200.0 + i,
+                sound_value=50.0 + i,
+                pir_triggered=False,
+            )
+
+        response = self.client.get(
+            f"/api/iot/sensors/data/?device_id={self.device.id}&range=1h&sensor=mq9",
+        )
+        self.assertEqual(response.status_code, 200)
+
+        body = response.json()
+        self.assertIn("labels", body)
+        self.assertIn("values", body)
+        self.assertEqual(len(body["labels"]), 5)
+        self.assertEqual(len(body["values"]), 5)
+
+    def test_pir_events_api(self):
+        """GET /api/iot/sensors/pir-events/ returns PIR motion event counts."""
+        for _ in range(3):
+            IoTEvent.objects.create(
+                device=self.device,
+                event_type="sensor_reading",
+                pir_triggered=True,
+            )
+
         IoTEvent.objects.create(
-            device=device,
+            device=self.device,
             event_type="sensor_reading",
-            mq9_value=100.0 + i * 10,
-            light_value=200.0 + i,
-            sound_value=50.0 + i,
             pir_triggered=False,
         )
 
-    response = client.get(
-        f"/api/iot/sensors/data/?device_id={device.id}&range=1h&sensor=mq9",
-    )
-    assert response.status_code == 200
-
-    body = response.json()
-    assert "labels" in body
-    assert "values" in body
-    assert len(body["labels"]) == 5
-    assert len(body["values"]) == 5
-
-
-@pytest.mark.django_db
-def test_pir_events_api():
-    """GET /api/iot/sensors/pir-events/ returns PIR motion event counts."""
-    client = Client()
-    store = _create_store()
-    device = _create_device(store)
-
-    # Create IoTEvents with pir_triggered=True
-    for _ in range(3):
-        IoTEvent.objects.create(
-            device=device,
-            event_type="sensor_reading",
-            pir_triggered=True,
+        response = self.client.get(
+            f"/api/iot/sensors/pir-events/?device_id={self.device.id}&range=1h",
         )
+        self.assertEqual(response.status_code, 200)
 
-    # Create one with pir_triggered=False (should not be counted)
-    IoTEvent.objects.create(
-        device=device,
-        event_type="sensor_reading",
-        pir_triggered=False,
-    )
-
-    response = client.get(
-        f"/api/iot/sensors/pir-events/?device_id={device.id}&range=1h",
-    )
-    assert response.status_code == 200
-
-    body = response.json()
-    assert "labels" in body
-    assert "counts" in body
-    # 3 PIR events in the same hour bucket => single label with count 3
-    assert sum(body["counts"]) == 3
+        body = response.json()
+        self.assertIn("labels", body)
+        self.assertIn("counts", body)
+        self.assertEqual(sum(body["counts"]), 3)
