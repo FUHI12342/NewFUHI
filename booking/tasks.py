@@ -140,3 +140,27 @@ def check_property_alerts():
                     created += 1
 
     logger.info('Property alert check completed: %d new alerts created', created)
+
+
+@shared_task
+def run_security_audit():
+    """セキュリティ監査を実行（Celery Beat から毎日 03:00）"""
+    from django.core.management import call_command
+    call_command('security_audit')
+    logger.info('Security audit completed')
+
+
+@shared_task
+def cleanup_security_logs():
+    """90日超のセキュリティログを削除（Celery Beat から毎週日曜 04:00）"""
+    from django.core.management import call_command
+    call_command('cleanup_security_logs', '--days', '90')
+    logger.info('Security log cleanup completed')
+
+
+@shared_task
+def check_aws_costs():
+    """AWSコストチェックを実行（Celery Beat から毎日 06:00）"""
+    from django.core.management import call_command
+    call_command('check_aws_costs', '--threshold', '50')
+    logger.info('AWS cost check completed')

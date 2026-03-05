@@ -1488,6 +1488,132 @@ class SalaryStructure(models.Model):
         return f'{self.store.name} 給与体系'
 
 
+# ==============================
+# セキュリティ監査・監視ログ・AWSコスト
+# ==============================
+
+class SecurityAudit(models.Model):
+    """セキュリティ監査結果"""
+    SEVERITY_CHOICES = [
+        ('critical', '重大'),
+        ('high', '高'),
+        ('medium', '中'),
+        ('low', '低'),
+        ('info', '情報'),
+        ('pass', '合格'),
+    ]
+    STATUS_CHOICES = [
+        ('fail', '不合格'),
+        ('warn', '警告'),
+        ('pass', '合格'),
+    ]
+    CATEGORY_CHOICES = [
+        ('django_settings', 'Django設定'),
+        ('credentials', '認証情報'),
+        ('endpoints', 'エンドポイント'),
+        ('infrastructure', 'インフラ'),
+        ('dependencies', '依存関係'),
+    ]
+
+    run_id = models.UUIDField('実行ID', default=uuid.uuid4, db_index=True)
+    check_name = models.CharField('チェック名', max_length=100)
+    category = models.CharField('カテゴリ', max_length=30, choices=CATEGORY_CHOICES)
+    severity = models.CharField('重大度', max_length=10, choices=SEVERITY_CHOICES)
+    status = models.CharField('結果', max_length=10, choices=STATUS_CHOICES)
+    message = models.TextField('メッセージ')
+    recommendation = models.TextField('推奨事項', blank=True, default='')
+    created_at = models.DateTimeField('実行日時', auto_now_add=True, db_index=True)
+
+    class Meta:
+        app_label = 'booking'
+        verbose_name = 'セキュリティ監査'
+        verbose_name_plural = 'セキュリティ監査'
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f'[{self.get_severity_display()}] {self.check_name}: {self.get_status_display()}'
+
+
+class SecurityLog(models.Model):
+    """セキュリティイベントログ"""
+    EVENT_TYPE_CHOICES = [
+        ('login_success', 'ログイン成功'),
+        ('login_fail', 'ログイン失敗'),
+        ('api_auth_fail', 'API認証失敗'),
+        ('permission_denied', '権限拒否'),
+        ('suspicious_request', '不審なリクエスト'),
+        ('admin_action', '管理操作'),
+    ]
+    SEVERITY_CHOICES = [
+        ('critical', '緊急'),
+        ('warning', '警告'),
+        ('info', '情報'),
+    ]
+
+    event_type = models.CharField('イベント種別', max_length=30, choices=EVENT_TYPE_CHOICES, db_index=True)
+    severity = models.CharField('重要度', max_length=10, choices=SEVERITY_CHOICES, default='info')
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL, verbose_name='ユーザー',
+        on_delete=models.SET_NULL, null=True, blank=True,
+    )
+    username = models.CharField('ユーザー名', max_length=150, blank=True, default='')
+    ip_address = models.GenericIPAddressField('IPアドレス', null=True, blank=True)
+    user_agent = models.TextField('User-Agent', blank=True, default='')
+    path = models.CharField('パス', max_length=500, blank=True, default='')
+    method = models.CharField('メソッド', max_length=10, blank=True, default='')
+    detail = models.TextField('詳細', blank=True, default='')
+    created_at = models.DateTimeField('発生日時', auto_now_add=True, db_index=True)
+
+    class Meta:
+        app_label = 'booking'
+        verbose_name = 'セキュリティログ'
+        verbose_name_plural = 'セキュリティログ'
+        ordering = ['-created_at']
+        indexes = [
+            models.Index(fields=['event_type', 'created_at']),
+            models.Index(fields=['ip_address', 'created_at']),
+        ]
+
+    def __str__(self):
+        return f'[{self.get_severity_display()}] {self.get_event_type_display()} - {self.username} ({self.ip_address})'
+
+
+class CostReport(models.Model):
+    """AWSコストレポート"""
+    STATUS_CHOICES = [
+        ('ok', 'OK'),
+        ('warn', '警告'),
+        ('alert', 'アラート'),
+    ]
+    RESOURCE_TYPE_CHOICES = [
+        ('ec2', 'EC2'),
+        ('s3', 'S3'),
+        ('ebs', 'EBS'),
+        ('eip', 'Elastic IP'),
+        ('rds', 'RDS'),
+        ('total', '合計'),
+    ]
+
+    run_id = models.UUIDField('実行ID', default=uuid.uuid4, db_index=True)
+    check_name = models.CharField('チェック名', max_length=100)
+    resource_type = models.CharField('リソース種別', max_length=10, choices=RESOURCE_TYPE_CHOICES)
+    resource_id = models.CharField('リソースID', max_length=200, blank=True, default='')
+    status = models.CharField('状態', max_length=10, choices=STATUS_CHOICES)
+    estimated_monthly_cost = models.DecimalField('推定月額コスト', max_digits=10, decimal_places=2, default=0)
+    detail = models.TextField('詳細', blank=True, default='')
+    recommendation = models.TextField('推奨事項', blank=True, default='')
+    created_at = models.DateTimeField('実行日時', auto_now_add=True, db_index=True)
+
+    class Meta:
+        app_label = 'booking'
+        verbose_name = 'AWSコストレポート'
+        verbose_name_plural = 'AWSコストレポート'
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f'[{self.get_status_display()}] {self.check_name} ({self.resource_type})'
+
+
 class AdminMenuConfig(models.Model):
     """ロールごとの管理画面サイドバー表示メニュー設定"""
     ROLE_CHOICES = [

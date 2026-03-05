@@ -47,6 +47,9 @@ from .models import (
     SalaryStructure,
     TableSeat,
     PaymentMethod,
+    SecurityAudit,
+    SecurityLog,
+    CostReport,
 )
 
 
@@ -1144,6 +1147,69 @@ custom_site.register(WorkAttendance, WorkAttendanceAdmin)
 custom_site.register(PayrollPeriod, PayrollPeriodAdmin)
 custom_site.register(PayrollEntry, PayrollEntryAdmin)
 custom_site.register(SalaryStructure, SalaryStructureAdmin)
+
+
+# ==============================
+# セキュリティ監査・監視ログ・AWSコスト
+# ==============================
+class SecurityAuditAdmin(admin.ModelAdmin):
+    list_display = ('created_at', 'severity', 'status', 'check_name', 'category', 'message')
+    list_filter = ('severity', 'status', 'category')
+    search_fields = ('check_name', 'message')
+    readonly_fields = ('run_id', 'check_name', 'category', 'severity', 'status', 'message', 'recommendation', 'created_at')
+    ordering = ('-created_at',)
+    date_hierarchy = 'created_at'
+
+    def has_add_permission(self, request):
+        return False
+
+    actions = ['run_security_audit']
+
+    @admin.action(description='セキュリティ監査を実行')
+    def run_security_audit(self, request, queryset):
+        from django.core.management import call_command
+        call_command('security_audit')
+        self.message_user(request, 'セキュリティ監査を実行しました。ページを更新して結果を確認してください。')
+
+
+class SecurityLogAdmin(admin.ModelAdmin):
+    list_display = ('created_at', 'event_type', 'severity', 'username', 'ip_address', 'path')
+    list_filter = ('event_type', 'severity')
+    search_fields = ('username', 'ip_address', 'path', 'detail')
+    readonly_fields = ('event_type', 'severity', 'user', 'username', 'ip_address', 'user_agent', 'path', 'method', 'detail', 'created_at')
+    ordering = ('-created_at',)
+    date_hierarchy = 'created_at'
+
+    def has_add_permission(self, request):
+        return False
+
+    def has_change_permission(self, request, obj=None):
+        return False
+
+
+class CostReportAdmin(admin.ModelAdmin):
+    list_display = ('created_at', 'status', 'check_name', 'resource_type', 'estimated_monthly_cost')
+    list_filter = ('status', 'resource_type')
+    search_fields = ('check_name', 'resource_id', 'detail')
+    readonly_fields = ('run_id', 'check_name', 'resource_type', 'resource_id', 'status', 'estimated_monthly_cost', 'detail', 'recommendation', 'created_at')
+    ordering = ('-created_at',)
+    date_hierarchy = 'created_at'
+
+    def has_add_permission(self, request):
+        return False
+
+    actions = ['run_aws_cost_check']
+
+    @admin.action(description='AWSコストチェックを実行')
+    def run_aws_cost_check(self, request, queryset):
+        from django.core.management import call_command
+        call_command('check_aws_costs')
+        self.message_user(request, 'AWSコストチェックを実行しました。ページを更新して結果を確認してください。')
+
+
+custom_site.register(SecurityAudit, SecurityAuditAdmin)
+custom_site.register(SecurityLog, SecurityLogAdmin)
+custom_site.register(CostReport, CostReportAdmin)
 
 
 print("booking.admin loaded")

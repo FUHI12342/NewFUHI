@@ -40,6 +40,7 @@ GROUP_MAP = {
     '予約ページ情報': ['company', 'notice', 'media'],
     'ページ設定': ['sitesettings', 'homepagecustomblock', 'herobanner', 'bannerad', 'externallink'],
     'システム': ['systemconfig', 'admintheme', 'dashboardlayout', 'adminmenuconfig'],
+    'セキュリティ': ['securityaudit', 'securitylog', 'costreport'],
     'ユーザーアカウント管理': ['user', 'group'],
 }
 

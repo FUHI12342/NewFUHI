@@ -32,6 +32,18 @@ app.conf.beat_schedule = {
         "task": "booking.tasks.check_property_alerts",
         "schedule": 300.0,  # 5分ごと
     },
+    "security-audit-daily": {
+        "task": "booking.tasks.run_security_audit",
+        "schedule": crontab(hour=3, minute=0),  # 毎日 03:00
+    },
+    "cleanup-security-logs-weekly": {
+        "task": "booking.tasks.cleanup_security_logs",
+        "schedule": crontab(hour=4, minute=0, day_of_week=0),  # 毎週日曜 04:00
+    },
+    "check-aws-costs-daily": {
+        "task": "booking.tasks.check_aws_costs",
+        "schedule": crontab(hour=6, minute=0),  # 毎日 06:00
+    },
 }
 
 # 互換のため明示（settings.py 側で CELERY_TASK_SERIALIZER などを設定しているなら不要）

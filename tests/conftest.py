@@ -12,6 +12,11 @@ os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'project.settings.local')
 import django
 django.setup()
 
+# テスト環境でtestserverを必ず許可
+from django.conf import settings as _settings
+if 'testserver' not in _settings.ALLOWED_HOSTS:
+    _settings.ALLOWED_HOSTS.append('testserver')
+
 from django.contrib.auth import get_user_model
 from django.test import Client
 from booking.models import Store, Staff, IoTDevice
