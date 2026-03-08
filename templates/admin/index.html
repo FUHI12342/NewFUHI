@@ -1,6 +1,8 @@
 {% extends "admin/index.html" %}
 {% load i18n %}
 
+{% block sidebar %}{% endblock %}
+
 {% block content %}
 {% if user.is_superuser or user.is_staff %}
 
