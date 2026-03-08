@@ -224,7 +224,7 @@ msgstr "Properties"
 
 #: booking/admin_site.py:41
 msgid "予約ページ情報"
-msgstr "Booking Page Info"
+msgstr "Reservation Page Info"
 
 #: booking/admin_site.py:42
 msgid "ページ設定"
@@ -240,7 +240,7 @@ msgstr "Security"
 
 #: booking/admin_site.py:45
 msgid "ユーザーアカウント管理"
-msgstr "User Accounts"
+msgstr "User Account Management"
 
 #: booking/admin_site.py:248 booking/templates/booking/base.html:294
 #: booking/templates/booking/property_list.html:68
@@ -1712,7 +1712,7 @@ msgstr "Reservations"
 #: booking/templates/booking/booking_top.html:248
 #: booking/templates/booking/iot_mq9_graph.html:45
 msgid "件"
-msgstr "items"
+msgstr ""
 
 #: booking/templates/booking/booking_top.html:290
 msgid "おすすめ店舗"
@@ -1894,7 +1894,7 @@ msgstr "Payment URL has been sent to your email"
 
 #: booking/templates/booking/email_payment_sent.html:21
 msgid "様"
-msgstr ","
+msgstr ""
 
 #: booking/templates/booking/email_payment_sent.html:22
 msgid "以下のメールアドレスに決済URLを送信しました。"

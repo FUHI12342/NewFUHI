@@ -76,10 +76,8 @@ msgid "（上級）入出庫履歴の合計で在庫を再計算して反映"
 msgstr "（上級）入出庫履歴の合計で在庫を再計算して反映"
 
 #: booking/admin.py:705
-#, fuzzy
-#| msgid "希望"
 msgid "希望数"
-msgstr "希望"
+msgstr "希望数"
 
 #: booking/admin.py:710
 msgid "確定数"
