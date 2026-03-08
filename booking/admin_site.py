@@ -132,11 +132,21 @@ class RoleBasedAdminSite(AdminSite):
     def each_context(self, request):
         ctx = super().each_context(request)
         ctx['sidebar_groups'] = self._get_sidebar_groups(request)
-        ctx['sidebar_special_links'] = [
+
+        role = get_user_role(request)
+        is_dev = role in ('superuser', 'developer')
+
+        links = [
             {'url': '/admin/', 'label': _('ダッシュボード'), 'icon': 'home'},
             {'url': '/admin/calendar/', 'label': _('カレンダー'), 'icon': 'calendar'},
             {'url': '/admin/gantt/', 'label': _('シフト管理'), 'icon': 'gantt'},
+            {'url': '/admin/dashboard/sales/', 'label': _('売上分析'), 'icon': 'sales'},
         ]
+        if is_dev:
+            links.append({'url': '/admin/debug/', 'label': _('デバッグ'), 'icon': 'debug'})
+            links.append({'url': '/admin/iot/mq9/', 'label': _('センサー'), 'icon': 'sensor'})
+
+        ctx['sidebar_special_links'] = links
         return ctx
 
     def _get_sidebar_groups(self, request):

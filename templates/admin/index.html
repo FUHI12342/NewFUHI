@@ -4,24 +4,6 @@
 {% block content %}
 {% if user.is_superuser or user.is_staff %}
 
-<!-- Top Bar links -->
-<div class="admin-topbar">
-    {% if is_developer_or_superuser %}
-    <a href="{% url 'admin_debug_panel' %}" class="admin-topbar__item admin-topbar__item--debug">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20V10"/><path d="M18 20V4"/><path d="M6 20v-4"/></svg>
-        {% trans "デバッグ" %}
-    </a>
-    {% endif %}
-    <a href="{% url 'admin_sales_dashboard' %}" class="admin-topbar__item admin-topbar__item--sales">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
-        {% trans "売上分析" %}
-    </a>
-    <a href="{% url 'admin_iot_mq9' %}" class="admin-topbar__item admin-topbar__item--sensor">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
-        {% trans "センサー" %}
-    </a>
-</div>
-
 <!-- Summary Cards -->
 <div class="dash-cards" id="dash-cards">
     <div class="dash-card">
