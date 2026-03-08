@@ -83,10 +83,6 @@ tailwind.config = {
     /* ===== FORCE LIGHT MODE — ダークモード完全無効化 ===== */
     html, :root {
         color-scheme: light only !important;
-    }
-    /* Django 4.x dark mode CSS variables を強制上書き（ハードコード値） */
-    :root,
-    @media (prefers-color-scheme: dark) { :root } {
         --primary: #465fff !important;
         --primary-fg: #fff !important;
         --body-fg: #111827 !important;
@@ -125,8 +121,10 @@ tailwind.config = {
         --object-tools-bg: #465fff !important;
         --object-tools-hover-bg: #3b4fdb !important;
     }
+    /* ダークモードでも同じ値を強制 */
     @media (prefers-color-scheme: dark) {
-        :root {
+        html, :root {
+            color-scheme: light only !important;
             --primary: #465fff !important;
             --primary-fg: #fff !important;
             --body-fg: #111827 !important;
@@ -165,7 +163,6 @@ tailwind.config = {
             --object-tools-bg: #465fff !important;
             --object-tools-hover-bg: #3b4fdb !important;
         }
-        /* 直接要素にも白背景を強制（変数を使わないDjangoスタイル対策） */
         body, #container, #content, #content-main {
             background: #f9fafb !important;
             color: #111827 !important;
@@ -213,7 +210,6 @@ tailwind.config = {
             color: #111827 !important;
             border-color: #e5e7eb !important;
         }
-        /* ヘッダー内の言語セレクタは除外 */
         #header .tw-lang-select {
             background: rgba(255,255,255,0.15) !important;
             color: #fff !important;
