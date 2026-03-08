@@ -1,5 +1,5 @@
 {% extends "admin/base_site.html" %}
-{% load i18n static %}
+{% load i18n %}
 
 {% block title %}{% trans "カレンダー" %} | {% trans 'サイト管理' %}{% endblock %}
 
@@ -14,13 +14,15 @@
 {% endblock %}
 
 {% block content %}
+<h1>{% trans "予約カレンダー" %}</h1>
+
 <div class="calendar-legend">
     <div class="calendar-legend__item">
-        <div class="calendar-legend__dot" style="background: #20AEE5;"></div>
+        <div class="calendar-legend__dot" style="background: #2271b1;"></div>
         <span>{% trans "確定予約" %}</span>
     </div>
     <div class="calendar-legend__item">
-        <div class="calendar-legend__dot" style="background: #F79009;"></div>
+        <div class="calendar-legend__dot" style="background: #dba617;"></div>
         <span>{% trans "仮予約" %}</span>
     </div>
 </div>
@@ -31,8 +33,7 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    var calendarEl = document.getElementById('fullcalendar');
-    var calendar = new FullCalendar.Calendar(calendarEl, {
+    var calendar = new FullCalendar.Calendar(document.getElementById('fullcalendar'), {
         initialView: 'dayGridMonth',
         locale: '{{ LANGUAGE_CODE|default:"ja" }}',
         headerToolbar: {
@@ -40,26 +41,16 @@ document.addEventListener('DOMContentLoaded', function() {
             center: 'title',
             right: 'dayGridMonth,timeGridWeek,timeGridDay'
         },
-        buttonText: {
-            today: '今日',
-            month: '月',
-            week: '週',
-            day: '日'
-        },
-        events: function(info, successCallback, failureCallback) {
+        buttonText: { today: '今日', month: '月', week: '週', day: '日' },
+        events: function(info, ok, fail) {
             fetch('/api/calendar/events/?start=' + info.startStr + '&end=' + info.endStr)
                 .then(function(r) { return r.json(); })
-                .then(function(data) { successCallback(data); })
-                .catch(function(err) { failureCallback(err); });
+                .then(ok).catch(fail);
         },
         eventClick: function(info) {
-            if (info.event.url) {
-                info.jsEvent.preventDefault();
-                window.location.href = info.event.url;
-            }
+            if (info.event.url) { info.jsEvent.preventDefault(); window.location.href = info.event.url; }
         },
         height: 'auto',
-        editable: false,
         dayMaxEvents: true,
         nowIndicator: true,
     });

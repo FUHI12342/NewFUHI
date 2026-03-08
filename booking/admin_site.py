@@ -127,6 +127,8 @@ def _get_allowed_models_for_role(role):
 
 
 class RoleBasedAdminSite(AdminSite):
+    enable_nav_sidebar = False  # Disable Django's built-in sidebar
+
     def each_context(self, request):
         ctx = super().each_context(request)
         ctx['sidebar_groups'] = self._get_sidebar_groups(request)

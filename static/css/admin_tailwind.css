@@ -1,58 +1,193 @@
 /*
  * admin_tailwind.css
- * AirShift/AirRegi inspired Django admin styles
- * Brand: シアン系 #20AEE5, ダークサイドバー #1a1f36
+ * WordPress-inspired Django admin theme
+ *
+ * Colors:
+ *   Sidebar:    #1d2327 (WP dark)
+ *   Brand:      #2271b1 (WP blue)
+ *   Hover:      #135e96
+ *   Content BG: #f0f0f1
+ *   Card:       #fff
+ *   Border:     #c3c4c7
  */
 
-/* ==============================
-   Global Reset & Typography
-   ============================== */
-body {
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
-    background: var(--gray-50, #f9fafb);
+:root {
+    --wp-sidebar:     #1d2327;
+    --wp-sidebar-h:   #2c3338;
+    --wp-brand:       #2271b1;
+    --wp-brand-h:     #135e96;
+    --wp-bg:          #f0f0f1;
+    --wp-card:        #fff;
+    --wp-border:      #c3c4c7;
+    --wp-text:        #1d2327;
+    --wp-text-light:  #50575e;
+    --wp-success:     #00a32a;
+    --wp-error:       #d63638;
+    --wp-warning:     #dba617;
+    --wp-sidebar-w:   220px;
 }
 
 /* ==============================
-   Dashboard Layout
+   Reset
    ============================== */
-.dashboard #content-main {
-    max-width: 1200px;
-    margin: 0 auto;
-    position: relative;
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen-Sans, Ubuntu, Cantarell, 'Helvetica Neue', sans-serif;
+    -webkit-font-smoothing: antialiased;
+    background: var(--wp-bg) !important;
 }
-.dashboard #content.colMS {
-    margin-right: 0;
+
+/* ==============================
+   Layout: Sidebar offset
+   ============================== */
+#container {
+    margin-left: var(--wp-sidebar-w);
+    transition: margin-left 0.2s ease;
 }
-.dashboard #content {
-    width: auto;
+
+/* Login page: no offset, no sidebar */
+body.login #container { margin-left: 0; }
+body.login .wp-sidebar,
+body.login .wp-sidebar-toggle { display: none !important; }
+
+/* Hide Django's built-in nav sidebar completely */
+#nav-sidebar,
+.toggle-nav-sidebar,
+#nav-sidebar + .main { margin-left: 0 !important; }
+
+/* ==============================
+   Header
+   ============================== */
+#header {
+    background: var(--wp-brand) !important;
+    padding: 8px 20px !important;
+    display: flex !important;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    overflow: visible !important;
+}
+#site-name { flex-shrink: 0; }
+#site-name a {
+    font-size: 16px !important;
+    font-weight: 600 !important;
+    color: #fff !important;
+}
+#user-tools {
+    font-size: 12px;
+    margin: 0;
+    padding: 0;
+    float: none;
+}
+#header a:link, #header a:visited { color: rgba(255,255,255,0.9) !important; }
+#header a:hover { color: #fff !important; }
+.wp-lang-select {
+    padding: 2px 6px;
+    border-radius: 3px;
+    border: 1px solid rgba(255,255,255,0.4);
+    font-size: 11px;
+    background: rgba(255,255,255,0.15);
+    color: #fff;
+    cursor: pointer;
+    margin-left: 6px;
+}
+.wp-lang-select option { color: #333; background: #fff; }
+
+/* ==============================
+   Breadcrumbs
+   ============================== */
+div.breadcrumbs {
+    background: #fff !important;
+    color: var(--wp-text-light) !important;
+    padding: 8px 20px !important;
+    font-size: 13px;
+    border-bottom: 1px solid var(--wp-border);
+}
+div.breadcrumbs a { color: var(--wp-brand) !important; }
+
+/* ==============================
+   Content
+   ============================== */
+#content {
+    padding: 20px !important;
+}
+
+/* ==============================
+   Links & Buttons
+   ============================== */
+a:link, a:visited { color: var(--wp-brand); }
+a:hover { color: var(--wp-brand-h); }
+
+input[type="submit"], .submit-row input, button.default {
+    background: var(--wp-brand) !important;
+    border: 1px solid var(--wp-brand) !important;
+    border-radius: 4px !important;
+    padding: 6px 16px !important;
+    font-weight: 500 !important;
+    color: #fff !important;
+    cursor: pointer;
+    transition: background 0.15s;
+}
+input[type="submit"]:hover, .submit-row input:hover, button.default:hover {
+    background: var(--wp-brand-h) !important;
+    border-color: var(--wp-brand-h) !important;
 }
 
 /* ==============================
    Module Cards
    ============================== */
 .module {
-    border: 1px solid var(--gray-200, #e5e7eb);
-    border-radius: 12px;
-    background: #fff;
-    box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+    background: var(--wp-card);
+    border: 1px solid var(--wp-border);
+    border-radius: 4px;
+    box-shadow: 0 1px 1px rgba(0,0,0,0.04);
     overflow: hidden;
+    margin-bottom: 12px;
 }
 .module h2,
 .module caption {
-    font-size: 13px;
+    background: var(--wp-brand) !important;
+    color: #fff !important;
+    padding: 8px 14px !important;
+    font-size: 13px !important;
     font-weight: 600;
-    padding: 10px 16px;
     margin: 0;
+    border-radius: 0;
+}
+.inline-group h2 {
+    background: var(--wp-brand) !important;
+    color: #fff !important;
+    padding: 8px 14px !important;
+    font-size: 13px !important;
+    font-weight: 600;
 }
 
 /* ==============================
    Tables
    ============================== */
-table {
-    border-collapse: collapse;
-    width: 100%;
+table { border-collapse: collapse; width: 100%; }
+
+/* ==============================
+   Messages
+   ============================== */
+.messagelist li {
+    border-radius: 4px;
+    margin-bottom: 8px;
+    padding: 10px 14px;
+    font-size: 13px;
+}
+.messagelist li.success { background: #edfaef; border-left: 4px solid var(--wp-success); color: #005a0b; }
+.messagelist li.error   { background: #fcf0f1; border-left: 4px solid var(--wp-error);   color: #8b1517; }
+.messagelist li.warning { background: #fef8e7; border-left: 4px solid var(--wp-warning); color: #6e4e00; }
+.messagelist li.info    { background: #f0f6fc; border-left: 4px solid var(--wp-brand);   color: #0a4b78; }
+
+/* ==============================
+   Object Tools
+   ============================== */
+.object-tools li a {
+    border-radius: 4px !important;
+    padding: 5px 12px !important;
+    font-size: 12px !important;
+    font-weight: 500;
 }
 
 /* ==============================
@@ -64,124 +199,194 @@ table {
     border-radius: 9999px;
     font-size: 11px;
     font-weight: 600;
-    letter-spacing: 0.025em;
 }
-.tw-badge-success { background: rgba(18, 183, 106, 0.1); color: #12b76a; }
-.tw-badge-error   { background: rgba(240, 68, 56, 0.1); color: #f04438; }
-.tw-badge-warning { background: rgba(247, 144, 9, 0.1); color: #f79009; }
-.tw-badge-info    { background: rgba(32, 174, 229, 0.1); color: #20AEE5; }
+.tw-badge-success { background: #edfaef; color: var(--wp-success); }
+.tw-badge-error   { background: #fcf0f1; color: var(--wp-error); }
+.tw-badge-warning { background: #fef8e7; color: var(--wp-warning); }
+.tw-badge-info    { background: #f0f6fc; color: var(--wp-brand); }
 
 /* ==============================
-   Buttons
+   SIDEBAR (WordPress-style)
    ============================== */
-.button, input[type="submit"], button.default, .submit-row input {
-    font-family: inherit;
-    font-weight: 500;
-    transition: all 0.15s ease;
+.wp-sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: var(--wp-sidebar-w);
+    height: 100vh;
+    background: var(--wp-sidebar);
+    color: #c3c4c7;
+    z-index: 9990;
+    overflow-y: auto;
+    overflow-x: hidden;
+    display: flex;
+    flex-direction: column;
+    font-size: 13px;
 }
-a.button {
-    border-radius: 8px;
+.wp-sidebar__brand {
+    padding: 14px 16px;
+    background: #101517;
+}
+.wp-sidebar__brand a {
+    color: #fff !important;
+    text-decoration: none !important;
+    font-size: 15px;
+    font-weight: 700;
+    display: block;
+}
+.wp-sidebar__menu {
+    list-style: none;
+    margin: 0;
+    padding: 8px 0;
+}
+.wp-sidebar__item a {
+    display: flex;
+    align-items: center;
+    gap: 8px;
     padding: 8px 16px;
-    font-size: 13px;
-    text-decoration: none;
+    color: #c3c4c7 !important;
+    text-decoration: none !important;
+    transition: background 0.1s, color 0.1s;
+}
+.wp-sidebar__item a:hover {
+    background: var(--wp-sidebar-h);
+    color: #fff !important;
+}
+.wp-sidebar__item--active > a {
+    background: var(--wp-brand) !important;
+    color: #fff !important;
+}
+.wp-sidebar__item svg {
+    flex-shrink: 0;
+    opacity: 0.8;
+}
+.wp-sidebar__item--active svg { opacity: 1; }
+.wp-sidebar__sep {
+    height: 1px;
+    background: rgba(255,255,255,0.08);
+    margin: 4px 12px;
 }
 
-/* ==============================
-   Messages
-   ============================== */
-.messagelist li {
-    border-radius: 8px;
-    margin-bottom: 8px;
+/* Groups */
+.wp-sidebar__group {
+    border-bottom: 1px solid rgba(255,255,255,0.04);
+}
+.wp-sidebar__group-title {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    padding: 8px 16px;
+    border: none;
+    background: none;
+    color: #c3c4c7;
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    cursor: pointer;
+    text-align: left;
+    transition: background 0.1s;
+}
+.wp-sidebar__group-title:hover {
+    background: var(--wp-sidebar-h);
+    color: #fff;
+}
+.wp-sidebar__arrow {
+    transition: transform 0.15s;
+    opacity: 0.5;
+}
+.wp-sidebar__group--open .wp-sidebar__arrow {
+    transform: rotate(180deg);
+}
+.wp-sidebar__sub {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.2s ease;
+}
+.wp-sidebar__group--open .wp-sidebar__sub {
+    max-height: 500px;
+}
+.wp-sidebar__sub li a {
+    display: block;
+    padding: 5px 16px 5px 28px;
+    color: #c3c4c7 !important;
+    text-decoration: none !important;
+    font-size: 13px;
+    transition: background 0.1s, color 0.1s;
+}
+.wp-sidebar__sub li a:hover {
+    background: var(--wp-sidebar-h);
+    color: #fff !important;
+}
+.wp-sidebar__sub .wp-sidebar__item--active a,
+.wp-sidebar__sub li.wp-sidebar__item--active a {
+    color: #fff !important;
+    background: var(--wp-brand);
+}
+
+/* Bottom user info */
+.wp-sidebar__bottom {
+    margin-top: auto;
     padding: 10px 16px;
-    font-size: 13px;
+    border-top: 1px solid rgba(255,255,255,0.08);
+    font-size: 12px;
+    color: #8c8f94;
 }
-.messagelist li.success { background: rgba(18, 183, 106, 0.08); border-left: 4px solid #12b76a; color: #065f46; }
-.messagelist li.error   { background: rgba(240, 68, 56, 0.08); border-left: 4px solid #f04438; color: #991b1b; }
-.messagelist li.warning { background: rgba(247, 144, 9, 0.08); border-left: 4px solid #f79009; color: #92400e; }
-.messagelist li.info    { background: rgba(32, 174, 229, 0.08); border-left: 4px solid #20AEE5; color: #0c4a6e; }
+
+/* Mobile toggle */
+.wp-sidebar-toggle {
+    display: none;
+    position: fixed;
+    top: 6px;
+    left: 6px;
+    z-index: 9999;
+    background: var(--wp-sidebar);
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    padding: 6px;
+    cursor: pointer;
+}
+
+@media (max-width: 782px) {
+    #container { margin-left: 0 !important; }
+    .wp-sidebar { transform: translateX(-100%); transition: transform 0.2s ease; }
+    .wp-sidebar.wp-sidebar--open { transform: translateX(0); }
+    .wp-sidebar-toggle { display: block; }
+}
 
 /* ==============================
-   Object Tools
-   ============================== */
-.object-tools li a {
-    border-radius: 6px !important;
-    padding: 6px 14px !important;
-    font-size: 12px !important;
-    font-weight: 500;
-    transition: opacity 0.15s;
-}
-.object-tools li a:hover { opacity: 0.85; }
-
-/* ==============================
-   Admin Top Bar (横一列ダッシュボードリンク)
+   Dashboard Top Bar
    ============================== */
 .admin-topbar {
     display: flex;
-    gap: 10px;
-    margin-bottom: 20px;
+    gap: 8px;
+    margin-bottom: 16px;
     flex-wrap: wrap;
 }
 .admin-topbar__item {
     display: inline-flex;
     align-items: center;
     gap: 6px;
-    padding: 10px 18px;
+    padding: 8px 14px;
     color: #fff !important;
     text-decoration: none !important;
-    border-radius: 10px;
-    font-weight: 600;
-    font-size: 13px;
-    transition: opacity 0.15s, transform 0.15s;
-    white-space: nowrap;
-}
-.admin-topbar__item:hover {
-    opacity: 0.9;
-    transform: translateY(-1px);
-    color: #fff !important;
-}
-.admin-topbar__item--debug  { background: var(--brand-primary, #20AEE5); }
-.admin-topbar__item--sales  { background: linear-gradient(135deg, #20AEE5, #1a9dd0); }
-.admin-topbar__item--sensor { background: #12b76a; }
-
-/* ==============================
-   Menu Operations Bar
-   ============================== */
-.sidebar-edit-bar {
-    display: flex;
-    gap: 6px;
-    padding: 6px 12px;
-    margin: 0 0 12px 0;
-    background: #fff;
-    border: 1px solid var(--gray-200, #e5e7eb);
-    border-radius: 8px;
-    align-items: center;
-    font-size: 12px;
-    box-shadow: 0 1px 2px rgba(0,0,0,0.04);
-    justify-content: center;
-}
-.sidebar-edit-bar button {
-    padding: 3px 10px;
-    border: 1px solid var(--gray-200, #e5e7eb);
-    border-radius: 6px;
-    background: #fff;
-    cursor: pointer;
-    font-size: 11px;
-    transition: background 0.15s;
-}
-.sidebar-edit-bar button:hover { background: var(--gray-50, #f9fafb); }
-.sidebar-edit-bar button.active {
-    background: var(--brand-primary, #20AEE5);
-    color: #fff;
-    border-color: var(--brand-primary, #20AEE5);
-}
-.sidebar-edit-bar .edit-label {
-    color: var(--gray-500, #6b7280);
-    margin-right: 6px;
+    border-radius: 4px;
     font-weight: 500;
+    font-size: 13px;
+    transition: opacity 0.15s;
 }
+.admin-topbar__item:hover { opacity: 0.9; color: #fff !important; }
+.admin-topbar__item--debug  { background: var(--wp-brand); }
+.admin-topbar__item--sales  { background: var(--wp-brand); }
+.admin-topbar__item--sensor { background: var(--wp-success); }
 
 /* ==============================
-   App List: 3 Column Grid
+   Dashboard App Grid (3 column)
    ============================== */
 .admin-app-grid {
     display: grid;
@@ -189,7 +394,7 @@ a.button {
     gap: 12px;
     align-content: start;
 }
-.admin-app-grid > .sidebar-edit-bar { grid-column: 1 / -1; margin-bottom: 0; }
+.admin-app-grid > .sidebar-edit-bar { grid-column: 1 / -1; }
 .admin-app-grid > .app-module { margin-bottom: 0; }
 
 @media (max-width: 1100px) {
@@ -199,422 +404,67 @@ a.button {
     .admin-app-grid { grid-template-columns: 1fr; }
 }
 
-/* ==============================
-   Recent Actions — Right-edge Drawer
-   ============================== */
-.admin-recent-drawer {
-    position: fixed;
-    top: 50px;
-    right: 0;
-    height: calc(100vh - 50px);
-    z-index: 1000;
-    display: flex;
-    transition: transform 0.3s ease;
+/* Dashboard content layout */
+.dashboard #content-main {
+    max-width: 1200px;
+    margin: 0 auto;
 }
-.admin-recent-drawer.collapsed { transform: translateX(300px); }
-
-.admin-recent-tab {
-    display: flex;
-    align-items: center;
-    writing-mode: vertical-rl;
-    text-orientation: mixed;
-    padding: 16px 8px;
-    background: var(--gray-700, #374151);
-    color: #fff;
-    border-radius: 8px 0 0 8px;
-    cursor: pointer;
-    font-size: 12px;
-    font-weight: 600;
-    letter-spacing: 0.05em;
-    user-select: none;
-    white-space: nowrap;
-    flex-shrink: 0;
-    transition: background 0.15s;
-    box-shadow: -2px 0 8px rgba(0,0,0,0.1);
-}
-.admin-recent-tab:hover { background: var(--gray-600, #4b5563); }
-.admin-recent-tab svg { margin-bottom: 6px; transition: transform 0.2s; }
-.admin-recent-drawer.collapsed .admin-recent-tab svg { transform: rotate(180deg); }
-
-.admin-recent-panel {
-    width: 300px;
-    flex-shrink: 0;
-    background: #fff;
-    border-left: 1px solid var(--gray-200, #e5e7eb);
-    box-shadow: -4px 0 16px rgba(0,0,0,0.08);
-    overflow-y: auto;
-    display: flex;
-    flex-direction: column;
-}
-.admin-recent-panel-header {
-    padding: 14px 16px;
-    font-size: 14px;
-    font-weight: 700;
-    color: var(--gray-800, #1f2937);
-    border-bottom: 1px solid var(--gray-200, #e5e7eb);
-    background: var(--gray-50, #f9fafb);
-    flex-shrink: 0;
-}
-.admin-recent-panel-body { flex: 1; overflow-y: auto; }
-.admin-recent-panel-body li {
-    padding: 10px 16px;
-    font-size: 13px;
-    border-bottom: 1px solid var(--gray-100, #f3f4f6);
-}
-.admin-recent-panel-body li:last-child { border-bottom: none; }
-
-#recent-actions-module { border-radius: 0; border: none; box-shadow: none; }
-#recent-actions-module h2 { display: none; }
-
-@media (max-width: 767px) {
-    .admin-recent-drawer { display: none !important; }
-}
+.dashboard #content.colMS { margin-right: 0; }
+.dashboard #content { width: auto; }
 
 /* ==============================
-   Login Page
-   ============================== */
-body.login #container { background: var(--gray-50, #f9fafb); }
-body.login #content {
-    background: #fff;
-    border: 1px solid var(--gray-200, #e5e7eb);
-    border-radius: 16px;
-    box-shadow: 0 4px 24px rgba(0,0,0,0.06);
-    padding: 32px;
-}
-body.login #header { border-radius: 16px 16px 0 0; }
-
-/* ==============================
-   Calendar & Date Widgets
-   ============================== */
-.calendarbox {
-    border-radius: 8px;
-    border: 1px solid var(--gray-200, #e5e7eb);
-    box-shadow: 0 4px 16px rgba(0,0,0,0.1);
-}
-
-/* ==============================
-   Account Bar
-   ============================== */
-.admin-account-bar {
-    display: flex;
-    gap: 10px;
-    margin-bottom: 16px;
-    flex-wrap: wrap;
-}
-.admin-account-bar__item {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    padding: 8px 16px;
-    background: #fff;
-    color: var(--brand-primary, #20AEE5) !important;
-    text-decoration: none !important;
-    border: 1px solid var(--gray-200, #e5e7eb);
-    border-radius: 8px;
-    font-size: 13px;
-    font-weight: 500;
-    transition: background 0.15s, box-shadow 0.15s;
-    box-shadow: 0 1px 2px rgba(0,0,0,0.04);
-}
-.admin-account-bar__item:hover {
-    background: var(--gray-50, #f9fafb);
-    box-shadow: 0 2px 6px rgba(0,0,0,0.08);
-}
-.admin-account-bar__item svg {
-    stroke: var(--brand-primary, #20AEE5);
-    flex-shrink: 0;
-}
-
-/* ==============================
-   SIDEBAR (AirRegi-style)
-   ============================== */
-.admin-sidebar {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: var(--sidebar-width, 240px);
-    height: 100vh;
-    background: var(--sidebar-bg, #1a1f36);
-    color: #c9cdd6;
-    display: flex;
-    flex-direction: column;
-    z-index: 1100;
-    overflow-y: auto;
-    overflow-x: hidden;
-    transition: transform 0.3s ease;
-}
-
-/* Logo area */
-.sidebar-logo {
-    padding: 20px 16px 12px;
-    border-bottom: 1px solid rgba(255,255,255,0.08);
-}
-.sidebar-logo a {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    text-decoration: none !important;
-    color: #fff !important;
-    font-size: 16px;
-    font-weight: 700;
-    letter-spacing: -0.02em;
-}
-
-/* Special links (Dashboard, Calendar, Gantt) */
-.sidebar-nav {
-    padding: 12px 8px 4px;
-}
-.sidebar-special-link {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    padding: 9px 12px;
-    border-radius: 8px;
-    color: #c9cdd6 !important;
-    text-decoration: none !important;
-    font-size: 13px;
-    font-weight: 500;
-    transition: background 0.15s, color 0.15s;
-    margin-bottom: 2px;
-}
-.sidebar-special-link:hover {
-    background: rgba(255,255,255,0.06);
-    color: #fff !important;
-}
-.sidebar-special-link.active {
-    background: rgba(32, 174, 229, 0.15);
-    color: #20AEE5 !important;
-    border-left: 3px solid #20AEE5;
-    padding-left: 9px;
-}
-.sidebar-special-link svg { flex-shrink: 0; opacity: 0.7; }
-.sidebar-special-link.active svg { opacity: 1; stroke: #20AEE5; }
-
-/* Divider */
-.sidebar-divider {
-    height: 1px;
-    background: rgba(255,255,255,0.08);
-    margin: 8px 16px;
-}
-
-/* Menu groups */
-.sidebar-menu {
-    flex: 1;
-    padding: 4px 8px;
-    overflow-y: auto;
-}
-.sidebar-group {
-    margin-bottom: 2px;
-}
-.sidebar-group__toggle {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    width: 100%;
-    padding: 8px 12px;
-    border: none;
-    background: none;
-    color: #8b92a5;
-    font-size: 11px;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    cursor: pointer;
-    border-radius: 6px;
-    transition: background 0.15s;
-}
-.sidebar-group__toggle:hover {
-    background: rgba(255,255,255,0.04);
-    color: #c9cdd6;
-}
-.sidebar-group__arrow {
-    transition: transform 0.2s;
-    opacity: 0.5;
-}
-.sidebar-group.collapsed .sidebar-group__arrow {
-    transform: rotate(-90deg);
-}
-.sidebar-group__models {
-    list-style: none;
-    margin: 0;
-    padding: 0 0 4px 0;
-    overflow: hidden;
-    transition: max-height 0.2s ease;
-    max-height: 500px;
-}
-.sidebar-group.collapsed .sidebar-group__models {
-    max-height: 0;
-    padding: 0;
-}
-.sidebar-model-link {
-    display: block;
-    padding: 6px 12px 6px 24px;
-    color: #c9cdd6 !important;
-    text-decoration: none !important;
-    font-size: 13px;
-    border-radius: 6px;
-    transition: background 0.15s, color 0.15s;
-}
-.sidebar-model-link:hover {
-    background: rgba(255,255,255,0.06);
-    color: #fff !important;
-}
-.sidebar-model-link.active {
-    background: rgba(32, 174, 229, 0.15);
-    color: #20AEE5 !important;
-}
-
-/* User section at bottom */
-.sidebar-user {
-    margin-top: auto;
-    padding: 12px 16px;
-    border-top: 1px solid rgba(255,255,255,0.08);
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 8px;
-}
-.sidebar-user__info {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    min-width: 0;
-}
-.sidebar-user__avatar {
-    width: 32px;
-    height: 32px;
-    border-radius: 50%;
-    background: #20AEE5;
-    color: #fff;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: 700;
-    font-size: 13px;
-    flex-shrink: 0;
-    text-transform: uppercase;
-}
-.sidebar-user__name {
-    font-size: 13px;
-    color: #fff;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
-.sidebar-user__logout {
-    padding: 6px;
-    border-radius: 6px;
-    color: #8b92a5 !important;
-    text-decoration: none !important;
-    transition: background 0.15s, color 0.15s;
-    flex-shrink: 0;
-}
-.sidebar-user__logout:hover {
-    background: rgba(255,255,255,0.06);
-    color: #fff !important;
-}
-
-/* Mobile sidebar */
-.sidebar-toggle {
-    display: none;
-    position: fixed;
-    top: 12px;
-    left: 12px;
-    z-index: 1200;
-    background: var(--sidebar-bg, #1a1f36);
-    color: #fff;
-    border: none;
-    border-radius: 8px;
-    padding: 8px;
-    cursor: pointer;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
-}
-.sidebar-overlay {
-    display: none;
-    position: fixed;
-    inset: 0;
-    background: rgba(0,0,0,0.5);
-    z-index: 1050;
-}
-.sidebar-overlay.open { display: block; }
-
-@media (max-width: 768px) {
-    .admin-sidebar {
-        transform: translateX(-100%);
-    }
-    .admin-sidebar.open {
-        transform: translateX(0);
-    }
-    .sidebar-toggle { display: block; }
-}
-
-/* Hide Django's built-in nav-sidebar */
-#nav-sidebar,
-.toggle-nav-sidebar { display: none !important; }
-
-/* ==============================
-   DASHBOARD SUMMARY CARDS (AirRegi-style)
+   Dashboard Summary Cards
    ============================== */
 .dash-cards {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
-    gap: 16px;
-    margin-bottom: 24px;
+    gap: 12px;
+    margin-bottom: 20px;
 }
 .dash-card {
-    background: #fff;
-    border-radius: 12px;
-    padding: 20px;
+    background: var(--wp-card);
+    border: 1px solid var(--wp-border);
+    border-radius: 4px;
+    padding: 16px;
     display: flex;
     align-items: flex-start;
-    gap: 14px;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.06);
-    border: 1px solid var(--gray-200, #e5e7eb);
-    transition: transform 0.15s, box-shadow 0.15s;
-}
-.dash-card:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    gap: 12px;
+    box-shadow: 0 1px 1px rgba(0,0,0,0.04);
 }
 .dash-card__icon {
-    width: 44px;
-    height: 44px;
-    border-radius: 10px;
+    width: 40px;
+    height: 40px;
+    border-radius: 4px;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 22px;
+    font-size: 20px;
     flex-shrink: 0;
 }
-.dash-card__icon--reservations { background: rgba(32, 174, 229, 0.12); }
-.dash-card__icon--sales        { background: rgba(18, 183, 106, 0.12); }
-.dash-card__icon--staff        { background: rgba(99, 102, 241, 0.12); }
-.dash-card__icon--shifts       { background: rgba(247, 144, 9, 0.12); }
-
-.dash-card__body {
-    display: flex;
-    flex-direction: column;
-    min-width: 0;
-}
+.dash-card__icon--reservations { background: #f0f6fc; }
+.dash-card__icon--sales        { background: #edfaef; }
+.dash-card__icon--staff        { background: #f0f6fc; }
+.dash-card__icon--shifts       { background: #fef8e7; }
+.dash-card__body { display: flex; flex-direction: column; }
 .dash-card__value {
-    font-size: 28px;
+    font-size: 24px;
     font-weight: 700;
-    color: var(--gray-900, #111827);
-    line-height: 1.1;
+    color: var(--wp-text);
+    line-height: 1.2;
 }
 .dash-card__label {
     font-size: 13px;
-    color: var(--gray-500, #6b7280);
-    margin-top: 4px;
+    color: var(--wp-text-light);
+    margin-top: 2px;
 }
 .dash-card__trend {
     font-size: 12px;
-    margin-top: 6px;
+    margin-top: 4px;
     font-weight: 500;
 }
-.dash-card__trend--up   { color: #12b76a; }
-.dash-card__trend--down { color: #f04438; }
-.dash-card__trend--neutral { color: var(--gray-400, #9ca3af); }
+.dash-card__trend--up   { color: var(--wp-success); }
+.dash-card__trend--down { color: var(--wp-error); }
+.dash-card__trend--neutral { color: #8c8f94; }
 
 @media (max-width: 1100px) {
     .dash-cards { grid-template-columns: repeat(2, 1fr); }
@@ -624,269 +474,265 @@ body.login #header { border-radius: 16px 16px 0 0; }
 }
 
 /* ==============================
-   FULLCALENDAR PAGE
+   Recent Actions Drawer (right edge)
    ============================== */
-.calendar-container {
-    background: #fff;
-    border-radius: 12px;
-    padding: 24px;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.06);
-    border: 1px solid var(--gray-200, #e5e7eb);
-}
-.calendar-container .fc {
-    font-family: inherit;
-}
-.calendar-container .fc .fc-toolbar-title {
-    font-size: 18px;
-    font-weight: 700;
-}
-.calendar-container .fc .fc-button-primary {
-    background: var(--brand-primary, #20AEE5);
-    border-color: var(--brand-primary, #20AEE5);
-    border-radius: 6px;
-    font-size: 13px;
-    font-weight: 500;
-}
-.calendar-container .fc .fc-button-primary:hover {
-    background: var(--brand-primary-hover, #1a9dd0);
-    border-color: var(--brand-primary-hover, #1a9dd0);
-}
-.calendar-container .fc .fc-button-primary:not(:disabled).fc-button-active {
-    background: var(--brand-primary-hover, #1a9dd0);
-    border-color: var(--brand-primary-hover, #1a9dd0);
-}
-.calendar-container .fc .fc-daygrid-day-number,
-.calendar-container .fc .fc-col-header-cell-cushion {
-    color: var(--gray-700, #374151);
-    text-decoration: none;
-}
-.calendar-container .fc .fc-event {
-    border-radius: 4px;
-    padding: 2px 4px;
-    font-size: 12px;
-}
-
-/* Calendar legend */
-.calendar-legend {
+.admin-recent-drawer {
+    position: fixed;
+    top: 0;
+    right: 0;
+    height: 100vh;
+    z-index: 1000;
     display: flex;
-    gap: 16px;
-    margin-bottom: 16px;
-    font-size: 13px;
-    color: var(--gray-600, #4b5563);
+    transition: transform 0.3s ease;
 }
-.calendar-legend__item {
+.admin-recent-drawer.collapsed { transform: translateX(280px); }
+.admin-recent-tab {
     display: flex;
     align-items: center;
-    gap: 6px;
+    writing-mode: vertical-rl;
+    text-orientation: mixed;
+    padding: 14px 6px;
+    background: var(--wp-sidebar);
+    color: #fff;
+    border-radius: 4px 0 0 4px;
+    cursor: pointer;
+    font-size: 12px;
+    font-weight: 600;
+    user-select: none;
+    flex-shrink: 0;
+    box-shadow: -2px 0 6px rgba(0,0,0,0.08);
 }
-.calendar-legend__dot {
-    width: 12px;
-    height: 12px;
-    border-radius: 3px;
+.admin-recent-tab:hover { background: var(--wp-sidebar-h); }
+.admin-recent-tab svg { margin-bottom: 6px; transition: transform 0.2s; }
+.admin-recent-drawer.collapsed .admin-recent-tab svg { transform: rotate(180deg); }
+.admin-recent-panel {
+    width: 280px;
+    flex-shrink: 0;
+    background: #fff;
+    border-left: 1px solid var(--wp-border);
+    box-shadow: -2px 0 8px rgba(0,0,0,0.06);
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+}
+.admin-recent-panel-header {
+    padding: 12px 14px;
+    font-size: 14px;
+    font-weight: 600;
+    border-bottom: 1px solid var(--wp-border);
+    background: #f6f7f7;
+}
+.admin-recent-panel-body { flex: 1; overflow-y: auto; }
+.admin-recent-panel-body li {
+    padding: 8px 14px;
+    font-size: 13px;
+    border-bottom: 1px solid #f0f0f1;
+}
+#recent-actions-module { border-radius: 0; border: none; box-shadow: none; }
+#recent-actions-module h2 { display: none; }
+
+@media (max-width: 782px) {
+    .admin-recent-drawer { display: none !important; }
 }
 
 /* ==============================
-   GANTT CHART (AirShift-style)
+   Login Page
+   ============================== */
+body.login #container {
+    background: var(--wp-bg);
+}
+body.login #content {
+    background: var(--wp-card);
+    border: 1px solid var(--wp-border);
+    border-radius: 4px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+    padding: 24px;
+}
+
+/* ==============================
+   Calendar & Date Widgets
+   ============================== */
+.calendarbox {
+    border-radius: 4px;
+    border: 1px solid var(--wp-border);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+}
+
+/* ==============================
+   FullCalendar Page
+   ============================== */
+.calendar-container {
+    background: #fff;
+    border: 1px solid var(--wp-border);
+    border-radius: 4px;
+    padding: 20px;
+    box-shadow: 0 1px 1px rgba(0,0,0,0.04);
+}
+.calendar-container .fc { font-family: inherit; }
+.calendar-container .fc .fc-toolbar-title { font-size: 18px; font-weight: 600; }
+.calendar-container .fc .fc-button-primary {
+    background: var(--wp-brand);
+    border-color: var(--wp-brand);
+    border-radius: 4px;
+    font-size: 13px;
+}
+.calendar-container .fc .fc-button-primary:hover {
+    background: var(--wp-brand-h);
+    border-color: var(--wp-brand-h);
+}
+.calendar-container .fc .fc-button-primary:not(:disabled).fc-button-active {
+    background: var(--wp-brand-h);
+    border-color: var(--wp-brand-h);
+}
+.calendar-container .fc .fc-event {
+    border-radius: 3px;
+    padding: 1px 4px;
+    font-size: 12px;
+}
+.calendar-legend {
+    display: flex;
+    gap: 16px;
+    margin-bottom: 12px;
+    font-size: 13px;
+    color: var(--wp-text-light);
+}
+.calendar-legend__item { display: flex; align-items: center; gap: 6px; }
+.calendar-legend__dot { width: 12px; height: 12px; border-radius: 2px; }
+
+/* ==============================
+   Gantt Chart (AirShift-style)
    ============================== */
 .gantt-wrapper {
     background: #fff;
-    border-radius: 12px;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.06);
-    border: 1px solid var(--gray-200, #e5e7eb);
+    border: 1px solid var(--wp-border);
+    border-radius: 4px;
+    box-shadow: 0 1px 1px rgba(0,0,0,0.04);
     overflow: hidden;
 }
-
-/* Gantt toolbar */
 .gantt-toolbar {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 16px 20px;
-    border-bottom: 1px solid var(--gray-200, #e5e7eb);
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--wp-border);
     flex-wrap: wrap;
-    gap: 12px;
+    gap: 10px;
 }
-.gantt-toolbar__nav {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-}
+.gantt-toolbar__nav { display: flex; align-items: center; gap: 10px; }
 .gantt-toolbar__nav-btn {
-    background: none;
-    border: 1px solid var(--gray-300, #d1d5db);
-    border-radius: 6px;
-    padding: 6px 10px;
+    background: #fff;
+    border: 1px solid var(--wp-border);
+    border-radius: 4px;
+    padding: 4px 10px;
     cursor: pointer;
-    color: var(--gray-700, #374151);
     font-size: 14px;
-    transition: background 0.15s;
 }
-.gantt-toolbar__nav-btn:hover { background: var(--gray-50, #f9fafb); }
-.gantt-toolbar__title {
-    font-size: 18px;
-    font-weight: 700;
-    color: var(--gray-900, #111827);
-}
-.gantt-toolbar__views {
-    display: flex;
-    gap: 4px;
-    background: var(--gray-100, #f3f4f6);
-    border-radius: 8px;
-    padding: 3px;
-}
+.gantt-toolbar__nav-btn:hover { background: #f6f7f7; }
+.gantt-toolbar__title { font-size: 16px; font-weight: 600; }
+.gantt-toolbar__views { display: flex; gap: 2px; }
 .gantt-toolbar__view-btn {
-    padding: 6px 14px;
-    border: none;
-    border-radius: 6px;
-    background: none;
+    padding: 5px 12px;
+    border: 1px solid var(--wp-border);
+    border-radius: 4px;
+    background: #fff;
     cursor: pointer;
     font-size: 13px;
-    font-weight: 500;
-    color: var(--gray-600, #4b5563);
-    transition: all 0.15s;
+    transition: all 0.1s;
 }
 .gantt-toolbar__view-btn.active {
-    background: #fff;
-    color: var(--brand-primary, #20AEE5);
-    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    background: var(--wp-brand);
+    color: #fff;
+    border-color: var(--wp-brand);
 }
 
-/* Gantt grid */
-.gantt-grid {
-    display: grid;
-    overflow-x: auto;
-}
-.gantt-grid__header {
-    display: contents;
-}
+.gantt-grid { display: grid; overflow-x: auto; }
 .gantt-grid__header-cell {
-    padding: 10px 4px;
+    padding: 8px 4px;
     text-align: center;
     font-size: 11px;
     font-weight: 600;
-    color: var(--gray-500, #6b7280);
-    border-bottom: 2px solid var(--gray-200, #e5e7eb);
-    border-right: 1px solid var(--gray-100, #f3f4f6);
+    color: var(--wp-text-light);
+    border-bottom: 2px solid var(--wp-border);
+    border-right: 1px solid #f0f0f1;
+    background: #fff;
     position: sticky;
     top: 0;
-    background: #fff;
     z-index: 2;
 }
 .gantt-grid__header-cell--staff {
     text-align: left;
-    padding-left: 16px;
+    padding-left: 12px;
     position: sticky;
     left: 0;
-    background: #fff;
     z-index: 3;
-    min-width: 120px;
+    min-width: 110px;
 }
-.gantt-grid__header-cell--today {
-    background: rgba(32, 174, 229, 0.08);
-    color: #20AEE5;
-}
-.gantt-grid__header-cell--sun { color: #f04438; }
-.gantt-grid__header-cell--sat { color: #3b82f6; }
+.gantt-grid__header-cell--today { background: #f0f6fc; color: var(--wp-brand); }
+.gantt-grid__header-cell--sun { color: var(--wp-error); }
+.gantt-grid__header-cell--sat { color: #2271b1; }
 
-.gantt-grid__row {
-    display: contents;
-}
 .gantt-grid__staff-cell {
-    padding: 10px 16px;
+    padding: 8px 12px;
     font-size: 13px;
     font-weight: 500;
-    color: var(--gray-800, #1f2937);
-    border-bottom: 1px solid var(--gray-100, #f3f4f6);
-    border-right: 1px solid var(--gray-100, #f3f4f6);
+    border-bottom: 1px solid #f0f0f1;
+    border-right: 1px solid #f0f0f1;
     position: sticky;
     left: 0;
     background: #fff;
     z-index: 1;
-    display: flex;
-    align-items: center;
-    min-width: 120px;
+    min-width: 110px;
     white-space: nowrap;
 }
 .gantt-grid__cell {
-    padding: 6px 4px;
-    border-bottom: 1px solid var(--gray-100, #f3f4f6);
-    border-right: 1px solid var(--gray-100, #f3f4f6);
-    min-height: 44px;
-    position: relative;
+    padding: 4px 3px;
+    border-bottom: 1px solid #f0f0f1;
+    border-right: 1px solid #f0f0f1;
+    min-height: 36px;
 }
-.gantt-grid__cell--today {
-    background: rgba(32, 174, 229, 0.04);
-}
+.gantt-grid__cell--today { background: #f0f6fc; }
 
-/* Shift blocks */
 .gantt-block {
     display: block;
-    padding: 4px 6px;
-    border-radius: 4px;
+    padding: 3px 4px;
+    border-radius: 3px;
     font-size: 11px;
     font-weight: 500;
     text-align: center;
     cursor: pointer;
-    transition: opacity 0.15s;
     white-space: nowrap;
     text-decoration: none !important;
 }
-.gantt-block:hover { opacity: 0.85; }
-.gantt-block--assignment {
-    background: #20AEE5;
-    color: #fff !important;
-}
-.gantt-block--available {
-    background: rgba(32, 174, 229, 0.15);
-    color: #20AEE5 !important;
-    border: 1px dashed #20AEE5;
-}
-.gantt-block--preferred {
-    background: rgba(59, 130, 246, 0.15);
-    color: #3b82f6 !important;
-    border: 1px dashed #3b82f6;
-}
-.gantt-block--unavailable {
-    background: var(--gray-100, #f3f4f6);
-    color: var(--gray-400, #9ca3af) !important;
-    text-decoration: line-through !important;
-}
+.gantt-block--assignment { background: var(--wp-brand); color: #fff !important; }
+.gantt-block--available  { background: #f0f6fc; color: var(--wp-brand) !important; border: 1px dashed var(--wp-brand); }
+.gantt-block--preferred  { background: #edfaef; color: var(--wp-success) !important; border: 1px dashed var(--wp-success); }
+.gantt-block--unavailable { background: #f6f7f7; color: #8c8f94 !important; text-decoration: line-through !important; }
 
-/* Gantt legend */
 .gantt-legend {
     display: flex;
-    gap: 16px;
-    padding: 12px 20px;
-    border-top: 1px solid var(--gray-200, #e5e7eb);
+    gap: 14px;
+    padding: 10px 16px;
+    border-top: 1px solid var(--wp-border);
     font-size: 12px;
-    color: var(--gray-600, #4b5563);
+    color: var(--wp-text-light);
     flex-wrap: wrap;
 }
-.gantt-legend__item {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-}
-.gantt-legend__swatch {
-    width: 14px;
-    height: 14px;
-    border-radius: 3px;
-}
+.gantt-legend__item { display: flex; align-items: center; gap: 5px; }
+.gantt-legend__swatch { width: 14px; height: 14px; border-radius: 2px; }
 
 /* ==============================
-   Responsive Tweaks
+   Responsive
    ============================== */
-@media (max-width: 767px) {
+@media (max-width: 782px) {
+    #header {
+        padding: 8px 12px !important;
+    }
+    #site-name a { font-size: 14px !important; }
+    #user-tools { font-size: 11px; }
+    #content { padding: 12px !important; }
     .admin-topbar { gap: 6px; }
     .admin-topbar__item {
-        padding: 8px 12px;
-        font-size: 12px;
-        flex: 1;
-        justify-content: center;
-    }
-    .admin-account-bar { gap: 6px; }
-    .admin-account-bar__item {
-        padding: 6px 12px;
+        padding: 6px 10px;
         font-size: 12px;
         flex: 1;
         justify-content: center;

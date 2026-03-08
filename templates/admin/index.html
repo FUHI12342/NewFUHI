@@ -4,31 +4,25 @@
 {% block content %}
 {% if user.is_superuser or user.is_staff %}
 
-<!-- ===== Dashboard Top Bar (横一列) ===== -->
+<!-- Top Bar links -->
 <div class="admin-topbar">
     {% if is_developer_or_superuser %}
     <a href="{% url 'admin_debug_panel' %}" class="admin-topbar__item admin-topbar__item--debug">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M12 20V10"/><path d="M18 20V4"/><path d="M6 20v-4"/>
-        </svg>
-        {% trans "デバッグパネル" %}
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20V10"/><path d="M18 20V4"/><path d="M6 20v-4"/></svg>
+        {% trans "デバッグ" %}
     </a>
     {% endif %}
     <a href="{% url 'admin_sales_dashboard' %}" class="admin-topbar__item admin-topbar__item--sales">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
-        </svg>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
         {% trans "売上分析" %}
     </a>
     <a href="{% url 'admin_iot_mq9' %}" class="admin-topbar__item admin-topbar__item--sensor">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M22 12h-4l-3 9L9 3l-3 9H2"/>
-        </svg>
-        {% trans "センサーモニタ" %}
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+        {% trans "センサー" %}
     </a>
 </div>
 
-<!-- ===== Dashboard Summary Cards (AirRegi-style) ===== -->
+<!-- Summary Cards -->
 <div class="dash-cards" id="dash-cards">
     <div class="dash-card">
         <div class="dash-card__icon dash-card__icon--reservations">📅</div>
@@ -43,7 +37,6 @@
         <div class="dash-card__body">
             <span class="dash-card__value" id="dc-sales">--</span>
             <span class="dash-card__label">{% trans "今月の売上" %}</span>
-            <span class="dash-card__trend dash-card__trend--neutral" id="dc-sales-trend"></span>
         </div>
     </div>
     <div class="dash-card">
@@ -51,7 +44,6 @@
         <div class="dash-card__body">
             <span class="dash-card__value" id="dc-staff">--</span>
             <span class="dash-card__label">{% trans "今日の出勤" %}</span>
-            <span class="dash-card__trend dash-card__trend--neutral" id="dc-staff-trend"></span>
         </div>
     </div>
     <div class="dash-card">
@@ -59,13 +51,17 @@
         <div class="dash-card__body">
             <span class="dash-card__value" id="dc-pending">--</span>
             <span class="dash-card__label">{% trans "未確定シフト" %}</span>
-            <span class="dash-card__trend dash-card__trend--neutral" id="dc-pending-trend"></span>
         </div>
     </div>
 </div>
 
+{% endif %}
+
+{{ block.super }}
+
 <script>
-(function() {
+document.addEventListener('DOMContentLoaded', function() {
+    // Load summary card data
     fetch('/api/dashboard/summary/')
         .then(function(r) { return r.json(); })
         .then(function(d) {
@@ -73,85 +69,45 @@
             document.getElementById('dc-sales').textContent = '¥' + (d.monthly_sales || 0).toLocaleString();
             document.getElementById('dc-staff').textContent = d.today_staff;
             document.getElementById('dc-pending').textContent = d.pending_shifts;
-
-            // Trends
             if (d.reservation_trend !== undefined) {
                 var el = document.getElementById('dc-reservations-trend');
                 var diff = d.reservation_trend;
                 el.textContent = (diff >= 0 ? '+' : '') + diff + ' vs 先週';
                 el.className = 'dash-card__trend dash-card__trend--' + (diff > 0 ? 'up' : diff < 0 ? 'down' : 'neutral');
             }
-        })
-        .catch(function() {});
-})();
-</script>
+        }).catch(function() {});
 
-{% endif %}
-
-{{ block.super }}
-
-<!-- ===== 3列グリッド + 最近行った操作 右端ドロワー ===== -->
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    // === 1. App list を 3列グリッドにする ===
+    // Make app grid 3-column
     var contentMain = document.getElementById('content-main');
-    if (contentMain) {
-        contentMain.classList.add('admin-app-grid');
-    }
+    if (contentMain) contentMain.classList.add('admin-app-grid');
 
-    // === 2. 最近行った操作 → 右端スライドドロワー ===
+    // Recent actions drawer
     var recentModule = document.getElementById('recent-actions-module');
     if (!recentModule) return;
-
     var contentRelated = document.getElementById('content-related');
-    if (contentRelated) {
-        contentRelated.style.display = 'none';
-    }
+    if (contentRelated) contentRelated.style.display = 'none';
 
     var drawer = document.createElement('div');
-    drawer.className = 'admin-recent-drawer';
-
+    drawer.className = 'admin-recent-drawer collapsed';
     var tab = document.createElement('div');
     tab.className = 'admin-recent-tab';
-    tab.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>' +
-        '{% trans "最近行った操作" %}';
-
+    tab.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>{% trans "最近の操作" %}';
     var panel = document.createElement('div');
     panel.className = 'admin-recent-panel';
-
-    var panelHeader = document.createElement('div');
-    panelHeader.className = 'admin-recent-panel-header';
-    panelHeader.textContent = '{% trans "最近行った操作" %}';
-
+    panel.innerHTML = '<div class="admin-recent-panel-header">{% trans "最近の操作" %}</div>';
     var panelBody = document.createElement('div');
     panelBody.className = 'admin-recent-panel-body';
-
     var actionList = recentModule.querySelector('ul');
-    if (actionList) {
-        panelBody.appendChild(actionList);
-    } else {
-        Array.from(recentModule.children).forEach(function(child) {
-            if (child.tagName !== 'H2') {
-                panelBody.appendChild(child.cloneNode(true));
-            }
-        });
-    }
-
-    panel.appendChild(panelHeader);
+    if (actionList) panelBody.appendChild(actionList);
     panel.appendChild(panelBody);
     drawer.appendChild(tab);
     drawer.appendChild(panel);
     document.body.appendChild(drawer);
 
-    var isCollapsed = localStorage.getItem('admin_recent_drawer') !== 'open';
-    if (isCollapsed) {
-        drawer.classList.add('collapsed');
-    }
-
+    if (localStorage.getItem('admin_recent_drawer') === 'open') drawer.classList.remove('collapsed');
     tab.addEventListener('click', function() {
         drawer.classList.toggle('collapsed');
-        localStorage.setItem('admin_recent_drawer',
-            drawer.classList.contains('collapsed') ? 'collapsed' : 'open');
+        localStorage.setItem('admin_recent_drawer', drawer.classList.contains('collapsed') ? 'collapsed' : 'open');
     });
 });
 </script>
