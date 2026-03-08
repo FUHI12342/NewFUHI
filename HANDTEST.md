@@ -13,20 +13,40 @@
 
 ---
 
+## 環境情報
+
+| 環境 | URL | アクセス方法 |
+|------|-----|-------------|
+| **本番 (EC2)** | `https://timebaibai.com/` | ブラウザ / curl |
+| **開発 (Mac)** | `http://localhost:8000/` | `python manage.py runserver 0.0.0.0:8000` |
+| **EC2 SSH** | `ubuntu@52.198.72.13` | `ssh -i newfuhi-key.pem` |
+
 ## 前提条件
 
+### 開発環境
 ```bash
-# 開発サーバー起動
-cd /home/ubuntu/NewFUHI
-source .venv/bin/activate
+cd ~/NewFUHI
 python manage.py runserver 0.0.0.0:8000
 
 # Celeryワーカー起動（タスクテスト用）
-celery -A project worker -l info &
-celery -A project beat -l info &
+celery -A celery_config worker -l info &
+celery -A celery_config beat -l info &
 
 # Redis起動確認
 redis-cli ping  # → PONG
+```
+
+### 本番環境 (EC2)
+```bash
+# SSH接続
+ssh -i newfuhi-key.pem ubuntu@52.198.72.13
+
+# サービス状態確認
+sudo systemctl status newfuhi newfuhi-celery newfuhi-celerybeat
+
+# ログ確認
+sudo journalctl -u newfuhi -f
+sudo tail -f /var/log/newfuhi/gunicorn-error.log
 ```
 
 ---
@@ -281,6 +301,108 @@ python manage.py shell
 ### 10.2 翻訳データ確認
 - [ ] 翻訳が存在しない言語 → デフォルト (ja) にフォールバック
 - [ ] 全言語で商品メニューが正しく表示される
+
+---
+
+## 11. 本番デプロイ検証
+
+### 11.1 SSL/HTTPS
+- [ ] `curl -I https://timebaibai.com/` → HTTP/2 200
+- [ ] `http://timebaibai.com/` → HTTPS に自動リダイレクト (301)
+- [ ] SSL証明書が有効期限内: `sudo certbot certificates`
+- [ ] セキュリティヘッダー確認:
+  ```bash
+  curl -sI https://timebaibai.com/ | grep -E "X-Frame|X-Content|Strict-Transport"
+  # X-Frame-Options: DENY
+  # X-Content-Type-Options: nosniff
+  # Strict-Transport-Security: max-age=31536000
+  ```
+
+### 11.2 systemd サービス
+- [ ] Gunicorn: `sudo systemctl is-active newfuhi` → active
+- [ ] Celery Worker: `sudo systemctl is-active newfuhi-celery` → active
+- [ ] Celery Beat: `sudo systemctl is-active newfuhi-celerybeat` → active
+- [ ] 自動復旧テスト: `sudo kill $(pgrep -f gunicorn)` → 5秒後に自動再起動
+- [ ] OS再起動後の自動起動: `sudo reboot` → 全サービス自動開始
+
+### 11.3 ファイアウォール (UFW)
+- [ ] `sudo ufw status` → active
+- [ ] SSH (22), HTTP (80), HTTPS (443) のみ許可
+- [ ] その他のポート拒否: `curl http://52.198.72.13:8000/` → 接続拒否
+
+### 11.4 Fail2ban (SSH保護)
+- [ ] `sudo fail2ban-client status sshd` → 稼働中
+- [ ] 連続SSH失敗でIP自動BAN確認 (テスト環境で注意)
+
+### 11.5 Nginx
+- [ ] `sudo nginx -t` → syntax is ok
+- [ ] static ファイル配信: `curl -s https://timebaibai.com/static/admin/css/base.css | head -1`
+- [ ] IoT APIレート制限: 10r/s burst=20 が適用されている
+
+### 11.6 S3バックアップ
+- [ ] 手動バックアップ実行:
+  ```bash
+  /bin/bash -lc '/home/ubuntu/NewFUHI/scripts/backup_to_s3.sh'
+  echo $?  # → 0
+  ```
+- [ ] S3にDBバックアップが保存される:
+  ```bash
+  aws s3 ls s3://mee-newfuhi-backups/db/ | tail -3
+  ```
+- [ ] S3にメディアが同期される:
+  ```bash
+  aws s3 ls s3://mee-newfuhi-backups/media/ | head -5
+  ```
+- [ ] cron設定確認: `crontab -l | grep backup` → 毎日 AM 2:00
+
+### 11.7 ヘルスチェック
+- [ ] `curl https://timebaibai.com/healthz` → `ok`
+- [ ] EC2内部: `curl http://127.0.0.1:8000/healthz` → `ok` (またはSSL redirect)
+
+---
+
+## 12. IoT 本番通信テスト
+
+**必要環境**: Pico 2W デバイス + 本番WiFi接続
+
+### 12.1 デバイス設定確認
+- [ ] `secrets.py` の `server_base` が `https://timebaibai.com` に設定
+- [ ] `secrets.py` の `api_key` がDjango管理画面のIoTDevice.api_keyと一致
+- [ ] `secrets.py` の `device` がDjango管理画面のIoTDevice.external_idと一致
+
+### 12.2 WiFi接続
+- [ ] デバイスが `secrets.py` 記載のSSIDに接続成功
+- [ ] WiFi接続失敗時にSetup APモードに移行
+
+### 12.3 センサーデータ送信 (本番)
+- [ ] curl で本番APIテスト:
+  ```bash
+  curl -s -X POST https://timebaibai.com/api/iot/events/ \
+    -H "X-API-KEY: <device-api-key>" \
+    -H "Content-Type: application/json" \
+    -d '{"device":"pico2w_001","event_type":"sensor","payload":{"mq9":120,"pir":false}}'
+  ```
+- [ ] レスポンス 201 確認
+- [ ] 管理画面でIoTEventレコード確認
+
+### 12.4 設定取得 (本番)
+- [ ] `GET https://timebaibai.com/api/iot/config/?device=pico2w_001` → 200
+- [ ] `mq9_threshold`, `alert_enabled` 等の設定値がレスポンスに含まれる
+
+### 12.5 MQ-9 アラート (本番)
+- [ ] 閾値超過データ送信 → LINE通知 / メール通知トリガー
+- [ ] PropertyAlert レコード自動作成確認
+
+---
+
+## 13. AWS Security Group 確認
+
+- [ ] EC2コンソールでInboundルール確認:
+  - SSH (22): 管理者IPのみ (推奨) or 0.0.0.0/0
+  - HTTP (80): 0.0.0.0/0
+  - HTTPS (443): 0.0.0.0/0
+- [ ] Outbound: All traffic 許可 (Django→外部API用)
+- [ ] 不要なポートが開いていないことを確認
 
 ---
 

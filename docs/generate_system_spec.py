@@ -553,7 +553,7 @@ Customer ──▶ BookingTopPage ──▶ StaffCalendar ──▶ PreBooking
 <tr><th>サービス</th><th>用途</th></tr>
 <tr><td>EC2</td><td>アプリケーションサーバー</td></tr>
 <tr><td>S3</td><td>メディアファイル、バックアップ</td></tr>
-<tr><td>RDS</td><td>PostgreSQL (本番)</td></tr>
+<tr><td>DB</td><td>SQLite3 (将来RDS PostgreSQL移行予定)</td></tr>
 <tr><td>CloudWatch</td><td>CPU監視（コスト最適化チェック）</td></tr>
 </table>
 '''
@@ -563,60 +563,118 @@ Customer ──▶ BookingTopPage ──▶ StaffCalendar ──▶ PreBooking
 <!-- 11. デプロイアーキテクチャ -->
 <h1>11. デプロイアーキテクチャ</h1>
 
-<h2>11.1 AWS構成</h2>
+<h2>11.1 AWS構成（現行）</h2>
+<table>
+<tr><th>リソース</th><th>詳細</th></tr>
+<tr><td>EC2 インスタンス</td><td>t3.micro / Ubuntu 24.04 / ap-northeast-1 (Tokyo)</td></tr>
+<tr><td>Public IP</td><td>52.198.72.13</td></tr>
+<tr><td>ドメイン</td><td>timebaibai.com (Route 53)</td></tr>
+<tr><td>IAM Role</td><td>EC2-S3-Backup-Tokyo</td></tr>
+<tr><td>S3 バケット</td><td>mee-newfuhi-backups (DB + Media)</td></tr>
+<tr><td>DB</td><td>SQLite3 (ローカルファイル)</td></tr>
+</table>
+
 <div class="arch-diagram">
-                    ┌──────────────┐
-                    │   Route 53   │
-                    │  (DNS)       │
-                    └──────┬───────┘
-                           │
-                    ┌──────▼───────┐
-                    │   ALB/ELB    │
-                    │  (HTTPS)     │
-                    └──────┬───────┘
-                           │
-                    ┌──────▼───────┐
-                    │   EC2        │
-                    │  Nginx       │
-                    │  + Gunicorn  │
-                    │  + Celery    │
-                    └──┬───────┬───┘
-                       │       │
-              ┌────────▼──┐ ┌──▼────────┐
-              │ RDS       │ │ ElastiCache│
-              │(PostgreSQL)│ │ (Redis)   │
-              └───────────┘ └───────────┘
-                       │
-              ┌────────▼──┐
-              │ S3        │
-              │ (Media/   │
-              │  Backup)  │
-              └───────────┘
+          Internet
+             │
+      ┌──────▼──────┐
+      │  Route 53   │  timebaibai.com
+      └──────┬──────┘
+             │
+      ┌──────▼──────┐
+      │   Nginx     │  SSL/TLS (Let's Encrypt)
+      │  :80 → :443 │  Security Headers
+      │  Rate Limit │  IoT API: 10r/s burst=20
+      └──────┬──────┘
+             │ proxy_pass
+      ┌──────▼──────┐
+      │  Gunicorn   │  127.0.0.1:8000
+      │  (systemd)  │  workers=2, timeout=30
+      └──────┬──────┘
+             │
+      ┌──────▼──────┐     ┌───────────┐
+      │  Django     │────▶│  Redis    │
+      │  + Celery   │     │ :6379     │
+      └──────┬──────┘     └───────────┘
+             │
+      ┌──────▼──────┐
+      │  SQLite3    │
+      │  + S3 Sync  │───▶ mee-newfuhi-backups
+      └─────────────┘
 </div>
 
-<h2>11.2 環境変数</h2>
+<h2>11.2 プロセス管理 (systemd)</h2>
+<table>
+<tr><th>サービス名</th><th>プロセス</th><th>設定</th></tr>
+<tr><td><code>newfuhi.service</code></td><td>Gunicorn (Django WSGI)</td><td>workers=2, bind=127.0.0.1:8000, Restart=always</td></tr>
+<tr><td><code>newfuhi-celery.service</code></td><td>Celery Worker</td><td>-A celery_config worker --loglevel=info</td></tr>
+<tr><td><code>newfuhi-celerybeat.service</code></td><td>Celery Beat (スケジューラ)</td><td>-A celery_config beat --loglevel=info</td></tr>
+<tr><td><code>nginx</code></td><td>リバースプロキシ</td><td>SSL終端 + 静的ファイル配信</td></tr>
+<tr><td><code>redis-server</code></td><td>Celeryブローカー</td><td>redis://localhost:6379/0</td></tr>
+</table>
+
+<h2>11.3 セキュリティ設定</h2>
+<table>
+<tr><th>項目</th><th>設定内容</th></tr>
+<tr><td>SSL/TLS</td><td>Let's Encrypt (certbot自動更新)</td></tr>
+<tr><td>ファイアウォール (UFW)</td><td>Inbound: 22/tcp, 80/tcp, 443/tcp のみ許可</td></tr>
+<tr><td>Fail2ban</td><td>SSH brute-force 防止 (sshd jail)</td></tr>
+<tr><td>HTTP→HTTPS リダイレクト</td><td>Nginx 301 + Django SECURE_SSL_REDIRECT</td></tr>
+<tr><td>HSTS</td><td>max-age=31536000, includeSubDomains, preload</td></tr>
+<tr><td>Security Headers</td><td>X-Frame-Options: DENY, X-Content-Type-Options: nosniff, CSP</td></tr>
+<tr><td>IoT API レート制限</td><td>limit_req_zone 10r/s burst=20 (Nginx)</td></tr>
+<tr><td>Django Cookie Security</td><td>SESSION_COOKIE_SECURE, CSRF_COOKIE_SECURE</td></tr>
+</table>
+
+<h2>11.4 バックアップ戦略</h2>
+<table>
+<tr><th>対象</th><th>方法</th><th>スケジュール</th><th>保持期間</th></tr>
+<tr><td>SQLite DB</td><td>sqlite3 .backup → S3 upload</td><td>毎日 AM 2:00 (cron)</td><td>ローカル30日 / S3 90日</td></tr>
+<tr><td>Media ファイル</td><td>aws s3 sync</td><td>毎日 AM 2:00 (cron)</td><td>S3に常時同期</td></tr>
+<tr><td>通知</td><td>LINE Notify (成功/失敗)</td><td>バックアップ完了時</td><td>-</td></tr>
+</table>
+<div class="info">
+バックアップスクリプト: <code>scripts/backup_to_s3.sh</code><br>
+S3バケット: <code>s3://mee-newfuhi-backups/</code> (db/, media/)<br>
+環境検出: EC2 (/home/ubuntu/NewFUHI) と Mac (/Users/adon/NewFUHI) を自動判別
+</div>
+
+<h2>11.5 デプロイフロー</h2>
+<div class="info">
+<pre><code># ローカルからEC2へのデプロイ
+./scripts/deploy_to_ec2.sh
+
+# 実行ステップ:
+# 1. git push origin main
+# 2. EC2: git fetch && git reset --hard origin/main
+# 3. EC2: pip install -r requirements.txt
+# 4. EC2: python manage.py migrate --noinput
+# 5. EC2: python manage.py collectstatic --noinput
+# 6. EC2: systemctl restart newfuhi newfuhi-celery newfuhi-celerybeat
+# 7. ヘルスチェック: curl https://timebaibai.com/healthz</code></pre>
+</div>
+
+<h2>11.6 環境変数</h2>
 <table>
 <tr><th>変数名</th><th>説明</th><th>必須</th></tr>
 <tr><td>SECRET_KEY</td><td>Django シークレットキー</td><td>Yes</td></tr>
-<tr><td>DATABASE_URL</td><td>DB接続文字列</td><td>Yes</td></tr>
-<tr><td>LINE_CHANNEL_ID</td><td>LINE Login チャネルID</td><td>Yes</td></tr>
-<tr><td>LINE_CHANNEL_SECRET</td><td>LINE Login チャネルシークレット</td><td>Yes</td></tr>
-<tr><td>LINE_REDIRECT_URL</td><td>LINE OAuth コールバックURL</td><td>Yes</td></tr>
-<tr><td>LINE_ACCESS_TOKEN</td><td>LINE Messaging API アクセストークン</td><td>Yes</td></tr>
-<tr><td>LINE_USER_ID_ENCRYPTION_KEY</td><td>LINE user_id 暗号化用Fernetキー</td><td>Yes</td></tr>
-<tr><td>LINE_USER_ID_HASH_PEPPER</td><td>LINE user_id ハッシュ用ペッパー</td><td>Yes</td></tr>
-<tr><td>IOT_ENCRYPTION_KEY</td><td>IoT秘密情報暗号化用Fernetキー</td><td>Yes</td></tr>
+<tr><td>DATABASE_URL</td><td>DB接続文字列 (SQLite: sqlite:////path/to/db.sqlite3)</td><td>No (SQLiteフォールバック)</td></tr>
+<tr><td>ALLOWED_HOSTS</td><td>許可ホスト (カンマ区切り)</td><td>Yes</td></tr>
+<tr><td>CSRF_TRUSTED_ORIGINS</td><td>CSRF信頼オリジン</td><td>Yes</td></tr>
+<tr><td>LINE_CHANNEL_ID</td><td>LINE Login チャネルID</td><td>LINE認証用</td></tr>
+<tr><td>LINE_CHANNEL_SECRET</td><td>LINE Login チャネルシークレット</td><td>LINE認証用</td></tr>
+<tr><td>LINE_REDIRECT_URL</td><td>LINE OAuth コールバックURL</td><td>LINE認証用</td></tr>
+<tr><td>LINE_ACCESS_TOKEN</td><td>LINE Messaging API アクセストークン</td><td>LINE通知用</td></tr>
+<tr><td>LINE_USER_ID_ENCRYPTION_KEY</td><td>LINE user_id 暗号化用Fernetキー</td><td>No (空でも起動可)</td></tr>
+<tr><td>LINE_USER_ID_HASH_PEPPER</td><td>LINE user_id ハッシュ用ペッパー</td><td>No (空でも起動可)</td></tr>
 <tr><td>GEMINI_API_KEY</td><td>Google Gemini API キー</td><td>AIチャット用</td></tr>
 <tr><td>PAYMENT_API_URL</td><td>Coiney API エンドポイント</td><td>決済用</td></tr>
 <tr><td>PAYMENT_API_KEY</td><td>Coiney API キー</td><td>決済用</td></tr>
-<tr><td>COINEY_WEBHOOK_SECRET</td><td>Coiney Webhook 署名検証キー</td><td>決済用</td></tr>
-<tr><td>LINE_NOTIFY_TOKEN</td><td>LINE Notify アクセストークン</td><td>通知用</td></tr>
-<tr><td>DEFAULT_FROM_EMAIL</td><td>システムメール送信元</td><td>Yes</td></tr>
-<tr><td>AWS_ACCESS_KEY_ID</td><td>AWS アクセスキー</td><td>コスト監視用</td></tr>
-<tr><td>AWS_SECRET_ACCESS_KEY</td><td>AWS シークレットキー</td><td>コスト監視用</td></tr>
+<tr><td>CELERY_BROKER_URL</td><td>Redis URL (default: redis://localhost:6379/0)</td><td>No</td></tr>
+<tr><td>DEFAULT_FROM_EMAIL</td><td>システムメール送信元</td><td>No</td></tr>
 </table>
 
-<h2>11.3 管理コマンド</h2>
+<h2>11.7 管理コマンド</h2>
 <table>
 <tr><th>コマンド</th><th>引数</th><th>説明</th></tr>
 '''
