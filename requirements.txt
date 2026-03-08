@@ -1,4 +1,30 @@
-pytest>=7.0.0
-hypothesis>=6.0.0
+# Core
+django>=4.2,<5.0
+djangorestframework>=3.14.0
+gunicorn>=21.2.0
+
+# Auth
+social-auth-app-django>=5.4.0
+
+# Async tasks
+celery>=5.3.0
+redis>=5.0.0
+
+# Security
+cryptography>=42.0.0
+
+# Media / QR
+pillow>=10.0.0
 qrcode[pil]>=7.0
+
+# AWS
 boto3>=1.26.0
+
+# Utils
+requests>=2.31.0
+newspaper3k>=0.2.8
+
+# Test
+pytest>=7.0.0
+pytest-django>=4.5.0
+hypothesis>=6.0.0
