@@ -45,14 +45,16 @@ GROUPS = [
     {'slug': 'user_account', 'name': _('ユーザーアカウント管理'), 'models': ['user', 'group']},
 ]
 
-GROUP_MAP = {g['name']: g['models'] for g in GROUPS}
-GROUP_ORDER = [g['name'] for g in GROUPS]
-GROUP_SLUG_MAP = {str(g['name']): g['slug'] for g in GROUPS}
-HIDDEN_GROUPS = {g['name'] for g in GROUPS if g.get('hidden')}
+# slug ベースのルックアップ（gettext_lazy のハッシュはロケールで変わるため）
+_GROUP_BY_SLUG = {g['slug']: g for g in GROUPS}
+HIDDEN_SLUGS = {g['slug'] for g in GROUPS if g.get('hidden')}
 HIDDEN_MODELS = set()
 for g in GROUPS:
     if g.get('hidden'):
         HIDDEN_MODELS.update(g['models'])
+
+# 後方互換: forms.py / admin.py から参照される GROUP_MAP（slug→models）
+GROUP_MAP = {g['slug']: g['models'] for g in GROUPS}
 
 
 # ==============================
@@ -199,7 +201,7 @@ class RoleBasedAdminSite(AdminSite):
         return app_list
 
     def _regroup_apps(self, raw_app_list):
-        """フラットなモデルリストを仮想アプリグループに再構成"""
+        """フラットなモデルリストを仮想アプリグループに再構成（slug ベース）"""
         # 全モデルをフラットに収集
         all_models = {}
         for app in raw_app_list:
@@ -207,13 +209,14 @@ class RoleBasedAdminSite(AdminSite):
                 key = model['object_name'].lower()
                 all_models[key] = model
 
-        # GROUP_MAP に従って再グループ化
+        # GROUPS の定義順に slug ベースで再グループ化
         result = []
         used_keys = set()
-        for group_name in GROUP_ORDER:
-            model_keys = GROUP_MAP[group_name]
-            # 非表示グループはスキップ（コードは残すが管理画面に表示しない）
-            if group_name in HIDDEN_GROUPS:
+        for g in GROUPS:
+            slug = g['slug']
+            model_keys = g['models']
+            # 非表示グループはスキップ
+            if slug in HIDDEN_SLUGS:
                 used_keys.update(k for k in model_keys if k in all_models)
                 continue
             group_models = []
@@ -222,14 +225,8 @@ class RoleBasedAdminSite(AdminSite):
                     group_models.append(all_models[key])
                     used_keys.add(key)
             if group_models:
-                # Get slug from original Japanese key
-                slug = ''
-                for g in GROUPS:
-                    if g['name'] == group_name:
-                        slug = g['slug']
-                        break
                 result.append({
-                    'name': group_name,
+                    'name': g['name'],
                     'slug': slug,
                     'app_label': 'booking',
                     'app_url': '/admin/booking/',
@@ -237,7 +234,7 @@ class RoleBasedAdminSite(AdminSite):
                     'models': group_models,
                 })
 
-        # GROUP_MAP に含まれないモデルは「その他」グループに
+        # GROUPS に含まれないモデルは「その他」グループに
         other_models = []
         for key, model in all_models.items():
             if key not in used_keys:

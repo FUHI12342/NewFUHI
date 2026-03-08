@@ -218,11 +218,6 @@ class CompanyAdmin(admin.ModelAdmin):
     search_fields = ('name', 'address', 'tel')
 
 
-
-    def get_queryset(self, request):
-        qs = super().get_queryset(request)
-        # Admin の date_hierarchy が start の MIN/MAX を取る際、NULL が混ざると SQLite で None になり落ちることがある
-        return qs.exclude(start__isnull=True)
 class MediaAdmin(admin.ModelAdmin):
     list_display = ('link', 'title', 'created_at')
     search_fields = ('title', 'link')
@@ -889,7 +884,10 @@ class AdminMenuConfigAdmin(admin.ModelAdmin):
         invalidate_menu_config_cache()
 
     def _get_group_map_json(self):
-        return json.dumps(GROUP_MAP, ensure_ascii=False)
+        from .admin_site import GROUPS
+        # テンプレート用: {表示名: [model_keys]}（リクエスト時のロケールで評価）
+        result = {str(g['name']): g['models'] for g in GROUPS}
+        return json.dumps(result, ensure_ascii=False)
 
     def change_view(self, request, object_id, form_url='', extra_context=None):
         extra_context = extra_context or {}
