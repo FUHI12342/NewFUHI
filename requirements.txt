@@ -23,6 +23,7 @@ boto3>=1.26.0
 # Utils
 requests>=2.31.0
 newspaper3k>=0.2.8
+python-dotenv>=1.0.0
 
 # Test
 pytest>=7.0.0

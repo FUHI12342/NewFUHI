@@ -18,12 +18,19 @@ ALLOWED_HOSTS = env_list("ALLOWED_HOSTS", [])
 # CSRF trusted origins for production
 CSRF_TRUSTED_ORIGINS = env_list("CSRF_TRUSTED_ORIGINS", [])
 
-# Database configuration - RDS preferred
-DATABASE_URL = env_required("DATABASE_URL")
-import dj_database_url
-DATABASES = {
-    "default": dj_database_url.parse(DATABASE_URL)
-}
+# Database configuration
+# SQLite (current) or DATABASE_URL (future RDS migration)
+_db_url = os.getenv("DATABASE_URL")
+if _db_url:
+    import dj_database_url
+    DATABASES = {"default": dj_database_url.parse(_db_url)}
+else:
+    DATABASES = {
+        "default": {
+            "ENGINE": os.getenv("DB_ENGINE", "django.db.backends.sqlite3"),
+            "NAME": os.getenv("DB_NAME", os.path.join(BASE_DIR, "db.sqlite3")),
+        }
+    }
 
 # Static and media files
 STATIC_ROOT = env_required("STATIC_ROOT")
@@ -85,39 +92,39 @@ LOGGING = {
     },
 }
 
-# LINE OAuth settings
-LINE_CHANNEL_ID = env_required("LINE_CHANNEL_ID")
-LINE_CHANNEL_SECRET = env_required("LINE_CHANNEL_SECRET")
-LINE_REDIRECT_URL = env_required("LINE_REDIRECT_URL")
-LINE_ACCESS_TOKEN = env_required("LINE_ACCESS_TOKEN")
+# LINE OAuth settings (set real values in .env.production)
+LINE_CHANNEL_ID = os.getenv("LINE_CHANNEL_ID", "")
+LINE_CHANNEL_SECRET = os.getenv("LINE_CHANNEL_SECRET", "")
+LINE_REDIRECT_URL = os.getenv("LINE_REDIRECT_URL", "https://timebaibai.com/booking/login/line/success/")
+LINE_ACCESS_TOKEN = os.getenv("LINE_ACCESS_TOKEN", "")
 
 # Payment settings
-PAYMENT_API_KEY = env_required("PAYMENT_API_KEY")
-PAYMENT_API_URL = env_required("PAYMENT_API_URL")
+PAYMENT_API_KEY = os.getenv("PAYMENT_API_KEY", "")
+PAYMENT_API_URL = os.getenv("PAYMENT_API_URL", "")
 
 # Webhook settings
-WEBHOOK_URL_BASE = env_required("WEBHOOK_URL_BASE")
-CANCEL_URL = env_required("CANCEL_URL")
+WEBHOOK_URL_BASE = os.getenv("WEBHOOK_URL_BASE", "https://timebaibai.com/booking/coiney_webhook/")
+CANCEL_URL = os.getenv("CANCEL_URL", "")
 
 # Gemini AI Chat
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "")
 
 # Email settings
-DEFAULT_FROM_EMAIL = env_required("DEFAULT_FROM_EMAIL")
-EMAIL_HOST = env_required("EMAIL_HOST")
+DEFAULT_FROM_EMAIL = os.getenv("DEFAULT_FROM_EMAIL", "no-reply@timebaibai.com")
+EMAIL_HOST = os.getenv("EMAIL_HOST", "")
 EMAIL_PORT = env_int("EMAIL_PORT", 587)
-EMAIL_HOST_USER = env_required("EMAIL_HOST_USER")
-EMAIL_HOST_PASSWORD = env_required("EMAIL_HOST_PASSWORD")
+EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER", "")
+EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD", "")
 EMAIL_USE_TLS = env_bool("EMAIL_USE_TLS", True)
 
 # Celery settings
-CELERY_BROKER_URL = env_required("CELERY_BROKER_URL")
+CELERY_BROKER_URL = os.getenv("CELERY_BROKER_URL", "redis://localhost:6379/0")
 accept_content = env_list("CELERY_ACCEPT_CONTENT", ["json"])
 task_serializer = os.getenv("CELERY_TASK_SERIALIZER", "json")
 
 # LINE user ID protection
-LINE_USER_ID_ENCRYPTION_KEY = env_required("LINE_USER_ID_ENCRYPTION_KEY")
-LINE_USER_ID_HASH_PEPPER = env_required("LINE_USER_ID_HASH_PEPPER")
+LINE_USER_ID_ENCRYPTION_KEY = os.getenv("LINE_USER_ID_ENCRYPTION_KEY", "")
+LINE_USER_ID_HASH_PEPPER = os.getenv("LINE_USER_ID_HASH_PEPPER", "")
 
 # Log production settings loaded
 import logging
