@@ -19,15 +19,30 @@
     <span class="user-greeting">{% trans 'ようこそ' %}{% if user.is_authenticated %}, <strong>{{ user.get_short_name|default:user.get_username }}</strong>{% endif %}。</span>
     <span class="user-actions">
         <a href="{% url 'admin:logout' %}" class="user-action-link">{% trans 'ログアウト' %}</a>
-        <form action="{% url 'set_language' %}" method="post" class="lang-form">
+        <form action="{% url 'set_language' %}" method="post" class="lang-form" id="lang-switch-form">
             {% csrf_token %}
-            <input type="hidden" name="next" value="{{ request.get_full_path }}">
-            <select name="language" onchange="this.form.submit()" class="tw-lang-select">
+            <input type="hidden" name="next" value="{{ request.get_full_path }}" id="lang-next">
+            <select name="language" class="tw-lang-select" id="lang-select">
                 {% for lang_code, lang_name in available_languages %}
                 <option value="{{ lang_code }}" {% if lang_code == current_language %}selected{% endif %}>{{ lang_name }}</option>
                 {% endfor %}
             </select>
         </form>
+        <script>
+        (function(){
+            var form = document.getElementById('lang-switch-form');
+            var sel = document.getElementById('lang-select');
+            var nextInput = document.getElementById('lang-next');
+            if (!form || !sel || !nextInput) return;
+            sel.addEventListener('change', function(){
+                // 言語プレフィックスを除去してからsubmit（prefix_default_language=False対応）
+                var path = nextInput.value;
+                path = path.replace(/^\/(en|zh-hant|zh-hans|ko|es|pt)(\/|$)/, '/');
+                nextInput.value = path;
+                form.submit();
+            });
+        })();
+        </script>
     </span>
 </div>
 {% endblock %}

@@ -409,6 +409,137 @@ body.login #header {
 }
 
 /* ==============================
+   Force Light Theme — Django nav-sidebar override
+   ============================== */
+/* Django 4.x default dark nav-sidebar — force hidden and override dark vars */
+#nav-sidebar {
+    display: none !important;
+}
+/* Override Django's dark CSS custom properties with light values */
+:root {
+    --body-bg: var(--gray-50, #f9fafb) !important;
+    --darkened-bg: var(--gray-100, #f3f4f6) !important;
+    --selected-bg: var(--gray-200, #e5e7eb) !important;
+    --selected-row: var(--gray-50, #f9fafb) !important;
+    --body-fg: var(--gray-900, #111827) !important;
+    --body-quiet-color: var(--gray-500, #6b7280) !important;
+    --body-loud-color: var(--gray-900, #111827) !important;
+    --header-color: #fff !important;
+    --header-branding-color: #fff !important;
+    --header-bg: var(--brand-primary, #465fff) !important;
+    --header-link-color: #fff !important;
+    --breadcrumbs-fg: var(--gray-600, #4b5563) !important;
+    --breadcrumbs-link-fg: var(--brand-primary, #465fff) !important;
+    --breadcrumbs-bg: var(--gray-50, #f9fafb) !important;
+    --link-fg: var(--brand-primary, #465fff) !important;
+    --link-hover-color: var(--brand-primary, #465fff) !important;
+    --link-selected-fg: var(--brand-primary, #465fff) !important;
+    --hairline-color: var(--gray-200, #e5e7eb) !important;
+    --border-color: var(--gray-200, #e5e7eb) !important;
+    --object-tools-fg: #fff !important;
+    --object-tools-bg: var(--brand-primary, #465fff) !important;
+    --object-tools-hover-bg: var(--brand-primary, #465fff) !important;
+    --button-bg: var(--brand-primary, #465fff) !important;
+    --button-hover-bg: var(--brand-primary, #465fff) !important;
+    --default-button-bg: var(--brand-primary, #465fff) !important;
+    --default-button-hover-bg: var(--brand-primary, #465fff) !important;
+    --close-button-bg: #767676 !important;
+    --close-button-hover-bg: #333 !important;
+    --delete-button-bg: #ba2121 !important;
+    --delete-button-hover-bg: #a41515 !important;
+    --message-success-bg: rgba(18, 183, 106, 0.08) !important;
+    --message-warning-bg: rgba(247, 144, 9, 0.08) !important;
+    --message-error-bg: rgba(240, 68, 56, 0.08) !important;
+}
+/* Prevent dark mode media query from overriding */
+@media (prefers-color-scheme: dark) {
+    :root {
+        --body-bg: var(--gray-50, #f9fafb) !important;
+        --darkened-bg: var(--gray-100, #f3f4f6) !important;
+        --selected-bg: var(--gray-200, #e5e7eb) !important;
+        --selected-row: var(--gray-50, #f9fafb) !important;
+        --body-fg: var(--gray-900, #111827) !important;
+        --body-quiet-color: var(--gray-500, #6b7280) !important;
+        --body-loud-color: var(--gray-900, #111827) !important;
+        --header-bg: var(--brand-primary, #465fff) !important;
+        --header-color: #fff !important;
+        --header-branding-color: #fff !important;
+        --header-link-color: #fff !important;
+        --breadcrumbs-fg: var(--gray-600, #4b5563) !important;
+        --breadcrumbs-link-fg: var(--brand-primary, #465fff) !important;
+        --breadcrumbs-bg: var(--gray-50, #f9fafb) !important;
+        --link-fg: var(--brand-primary, #465fff) !important;
+        --link-hover-color: var(--brand-primary, #465fff) !important;
+        --link-selected-fg: var(--brand-primary, #465fff) !important;
+        --hairline-color: var(--gray-200, #e5e7eb) !important;
+        --border-color: var(--gray-200, #e5e7eb) !important;
+        --object-tools-fg: #fff !important;
+        --object-tools-bg: var(--brand-primary, #465fff) !important;
+        --object-tools-hover-bg: var(--brand-primary, #465fff) !important;
+        --button-bg: var(--brand-primary, #465fff) !important;
+        --button-hover-bg: var(--brand-primary, #465fff) !important;
+        --default-button-bg: var(--brand-primary, #465fff) !important;
+        --default-button-hover-bg: var(--brand-primary, #465fff) !important;
+        --message-success-bg: rgba(18, 183, 106, 0.08) !important;
+        --message-warning-bg: rgba(247, 144, 9, 0.08) !important;
+        --message-error-bg: rgba(240, 68, 56, 0.08) !important;
+    }
+}
+/* Force white/light backgrounds on all admin containers */
+body, #container, #content, #content-main,
+.dashboard #content, .dashboard #content-main {
+    background: var(--gray-50, #f9fafb) !important;
+    color: var(--gray-900, #111827) !important;
+}
+/* Ensure module cards stay white, not dark */
+.module, .app-module, #changelist, .change-list,
+#changelist-form, .results, .paginator,
+form, fieldset, .form-row {
+    background: #fff !important;
+    color: var(--gray-900, #111827) !important;
+}
+/* Module header — brand color, not dark */
+.module h2, .module caption, .inline-group h2 {
+    background: var(--brand-primary, #465fff) !important;
+    color: #fff !important;
+}
+/* Table rows — light */
+#result_list tbody tr, #changelist table tbody tr {
+    background: #fff !important;
+}
+#result_list tbody tr:nth-child(odd), #changelist table tbody tr:nth-child(odd) {
+    background: var(--gray-50, #f9fafb) !important;
+}
+#result_list tbody tr:hover, #changelist table tbody tr:hover {
+    background: var(--gray-100, #f3f4f6) !important;
+}
+/* Table header */
+#result_list thead th, #changelist table thead th {
+    background: var(--gray-50, #f9fafb) !important;
+    color: var(--gray-700, #374151) !important;
+    border-bottom: 2px solid var(--gray-200, #e5e7eb) !important;
+}
+/* Sidebar filter — white background */
+#changelist-filter {
+    background: #fff !important;
+    border: 1px solid var(--gray-200, #e5e7eb) !important;
+    border-radius: 12px !important;
+}
+#changelist-filter h2 {
+    background: var(--brand-primary, #465fff) !important;
+    color: #fff !important;
+    border-radius: 12px 12px 0 0 !important;
+}
+#changelist-filter h3 {
+    color: var(--gray-700, #374151) !important;
+}
+/* Footer */
+#footer {
+    background: var(--gray-50, #f9fafb) !important;
+    color: var(--gray-500, #6b7280) !important;
+}
+
+/* ==============================
    Responsive Tweaks
    ============================== */
 @media (max-width: 767px) {

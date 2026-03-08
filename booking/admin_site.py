@@ -129,6 +129,8 @@ def _get_allowed_models_for_role(role):
 
 
 class RoleBasedAdminSite(AdminSite):
+    enable_nav_sidebar = False  # Django 4.x のダークサイドバーを無効化
+
     def get_app_list(self, request, app_label=None):
         role = get_user_role(request)
         logger.info(

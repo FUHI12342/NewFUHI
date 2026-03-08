@@ -20,9 +20,15 @@ def global_context(request):
     }
 
 
+def _is_admin_path(path):
+    """言語プレフィックス付きの管理画面パスを判定"""
+    import re
+    return bool(re.match(r'^(/(?:en|zh-hant|zh-hans|ko|es|pt))?/admin/', path))
+
+
 def admin_user_flags(request):
     """管理画面用のユーザー権限フラグを注入"""
-    if not request.path.startswith('/admin/'):
+    if not _is_admin_path(request.path):
         return {}
     is_dev = False
     if hasattr(request, 'user') and request.user.is_authenticated:
@@ -38,7 +44,7 @@ def admin_user_flags(request):
 
 def admin_theme(request):
     """管理画面用のテーマ設定をコンテキストに注入"""
-    if not request.path.startswith('/admin/'):
+    if not _is_admin_path(request.path):
         return {}
     if not hasattr(request, 'user') or not request.user.is_authenticated:
         return {}
