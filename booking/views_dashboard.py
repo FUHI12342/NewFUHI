@@ -48,6 +48,13 @@ class SensorDataAPIView(APIView):
         if not device_id:
             return Response({'detail': 'device_id required'}, status=status.HTTP_400_BAD_REQUEST)
 
+        # Accept both DB pk (integer) and external_id (string)
+        try:
+            device_pk = int(device_id)
+            device_filter = {'device_id': device_pk}
+        except (ValueError, TypeError):
+            device_filter = {'device__external_id': device_id}
+
         time_range = request.GET.get('range', '1h')
         sensor = request.GET.get('sensor', 'mq9')
         td = self.RANGE_MAP.get(time_range, timedelta(hours=1))
@@ -62,7 +69,7 @@ class SensorDataAPIView(APIView):
         field = field_map.get(sensor, 'mq9_value')
 
         qs = IoTEvent.objects.filter(
-            device_id=device_id,
+            **device_filter,
             created_at__gte=since,
         ).exclude(**{f'{field}__isnull': True}).order_by('created_at').values_list('created_at', field)
 
@@ -89,9 +96,15 @@ class PIRStatusAPIView(APIView):
         if not device_id:
             return Response({'detail': 'device_id required'}, status=status.HTTP_400_BAD_REQUEST)
 
+        try:
+            device_pk = int(device_id)
+            device_filter = {'device_id': device_pk}
+        except (ValueError, TypeError):
+            device_filter = {'device__external_id': device_id}
+
         # Check for PIR triggered within last 60 seconds
         recent = IoTEvent.objects.filter(
-            device_id=device_id,
+            **device_filter,
             pir_triggered=True,
             created_at__gte=timezone.now() - timedelta(seconds=60),
         ).exists()
@@ -115,12 +128,18 @@ class PIREventsAPIView(APIView):
         if not device_id:
             return Response({'detail': 'device_id required'}, status=status.HTTP_400_BAD_REQUEST)
 
+        try:
+            device_pk = int(device_id)
+            device_filter = {'device_id': device_pk}
+        except (ValueError, TypeError):
+            device_filter = {'device__external_id': device_id}
+
         time_range = request.GET.get('range', '1h')
         td = self.RANGE_MAP.get(time_range, timedelta(hours=1))
         since = timezone.now() - td
 
         events = IoTEvent.objects.filter(
-            device_id=device_id,
+            **device_filter,
             created_at__gte=since,
             pir_triggered=True,
         ).order_by('created_at').values_list('created_at', flat=True)
