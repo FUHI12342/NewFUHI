@@ -15,21 +15,27 @@
 {% endblock %}
 
 {% block usertools %}
-{{ block.super }}
-<form action="{% url 'set_language' %}" method="post" style="display:inline;margin-left:10px;">
-    {% csrf_token %}
-    <input type="hidden" name="next" value="/admin/">
-    <select name="language" onchange="this.form.submit()" class="tw-lang-select">
-        {% for lang_code, lang_name in available_languages %}
-        <option value="{{ lang_code }}" {% if lang_code == current_language %}selected{% endif %}>{{ lang_name }}</option>
-        {% endfor %}
-    </select>
-</form>
+<div id="user-tools-inner">
+    <span class="user-greeting">{% trans 'ようこそ' %}{% if user.is_authenticated %}, <strong>{{ user.get_short_name|default:user.get_username }}</strong>{% endif %}。</span>
+    <span class="user-actions">
+        <a href="{% url 'admin:logout' %}" class="user-action-link">{% trans 'ログアウト' %}</a>
+        <form action="{% url 'set_language' %}" method="post" class="lang-form">
+            {% csrf_token %}
+            <input type="hidden" name="next" value="{{ request.get_full_path }}">
+            <select name="language" onchange="this.form.submit()" class="tw-lang-select">
+                {% for lang_code, lang_name in available_languages %}
+                <option value="{{ lang_code }}" {% if lang_code == current_language %}selected{% endif %}>{{ lang_name }}</option>
+                {% endfor %}
+            </select>
+        </form>
+    </span>
+</div>
 {% endblock %}
 
 {% block extrahead %}
 {{ block.super }}
-<script src="{% static 'js/admin_chat_widget.js' %}" defer></script>
+{# AI assistant widget hidden (development in progress) #}
+{# <script src="{% static 'js/admin_chat_widget.js' %}" defer></script> #}
 {% endblock %}
 
 {% block extrastyle %}
@@ -110,9 +116,40 @@ tailwind.config = {
         letter-spacing: -0.025em;
     }
     #user-tools {
-        margin-left: auto;
-        text-align: right;
+        width: 100%;
         font-size: 13px;
+        margin: 0;
+        padding: 0;
+        float: none;
+    }
+    #user-tools-inner {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        width: 100%;
+    }
+    .user-greeting {
+        white-space: nowrap;
+    }
+    .user-actions {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    .user-action-link {
+        padding: 4px 10px;
+        border: 1px solid rgba(255,255,255,0.3);
+        border-radius: 6px;
+        font-size: 12px;
+        text-decoration: none !important;
+        white-space: nowrap;
+    }
+    .user-action-link:hover {
+        background: rgba(255,255,255,0.15);
+    }
+    .lang-form {
+        display: inline;
+        margin: 0;
     }
     #header a:link, #header a:visited { color: #fff; }
 

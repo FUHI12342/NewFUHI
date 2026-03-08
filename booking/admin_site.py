@@ -1,6 +1,7 @@
 from django.contrib import admin
 from django.contrib.admin.sites import AdminSite
 from django.urls import reverse
+from django.utils.translation import gettext_lazy as _
 from .models import Staff
 import logging
 import time
@@ -26,26 +27,32 @@ def get_user_role(request):
 
 
 # 仮想アプリグループ定義 (superuser/developer/owner 向け)
-GROUP_MAP = {
-    '予約管理': ['schedule'],
-    'シフト管理': ['shiftperiod', 'shiftrequest', 'shiftassignment'],
-    'キャスト管理': ['staff', 'store', 'storescheduleconfig'],
-    '給与管理': ['payrollperiod', 'payrollentry', 'employmentcontract', 'salarystructure'],
-    '勤怠管理': ['workattendance'],
-    '在庫管理': ['category', 'product'],
-    '注文管理': ['order'],
-    'テーブル注文': ['tableseat', 'paymentmethod'],
-    'IoT管理': ['iotdevice'],
-    '物件管理': ['property'],
-    '予約ページ情報': ['company', 'notice', 'media'],
-    'ページ設定': ['sitesettings', 'homepagecustomblock', 'herobanner', 'bannerad', 'externallink'],
-    'システム': ['systemconfig', 'admintheme', 'dashboardlayout', 'adminmenuconfig'],
-    'セキュリティ': ['securityaudit', 'securitylog', 'costreport'],
-    'ユーザーアカウント管理': ['user', 'group'],
-}
+GROUPS = [
+    {'slug': 'reservation', 'name': _('予約管理'), 'models': ['schedule']},
+    {'slug': 'shift', 'name': _('シフト管理'), 'models': ['shiftperiod', 'shiftrequest', 'shiftassignment']},
+    {'slug': 'cast', 'name': _('キャスト管理'), 'models': ['staff', 'store', 'storescheduleconfig']},
+    {'slug': 'payroll', 'name': _('給与管理'), 'models': ['payrollperiod', 'payrollentry', 'employmentcontract', 'salarystructure'], 'hidden': True},
+    {'slug': 'attendance', 'name': _('勤怠管理'), 'models': ['workattendance'], 'hidden': True},
+    {'slug': 'inventory', 'name': _('在庫管理'), 'models': ['category', 'product'], 'hidden': True},
+    {'slug': 'order', 'name': _('注文管理'), 'models': ['order']},
+    {'slug': 'table_order', 'name': _('テーブル注文'), 'models': ['tableseat', 'paymentmethod']},
+    {'slug': 'iot', 'name': _('IoT管理'), 'models': ['iotdevice']},
+    {'slug': 'property', 'name': _('物件管理'), 'models': ['property'], 'hidden': True},
+    {'slug': 'booking_page', 'name': _('予約ページ情報'), 'models': ['company', 'notice', 'media']},
+    {'slug': 'page_settings', 'name': _('ページ設定'), 'models': ['sitesettings', 'homepagecustomblock', 'herobanner', 'bannerad', 'externallink']},
+    {'slug': 'system', 'name': _('システム'), 'models': ['systemconfig', 'admintheme', 'dashboardlayout', 'adminmenuconfig']},
+    {'slug': 'security', 'name': _('セキュリティ'), 'models': ['securityaudit', 'securitylog', 'costreport']},
+    {'slug': 'user_account', 'name': _('ユーザーアカウント管理'), 'models': ['user', 'group']},
+]
 
-# グループの表示順序
-GROUP_ORDER = list(GROUP_MAP.keys())
+GROUP_MAP = {g['name']: g['models'] for g in GROUPS}
+GROUP_ORDER = [g['name'] for g in GROUPS]
+GROUP_SLUG_MAP = {str(g['name']): g['slug'] for g in GROUPS}
+HIDDEN_GROUPS = {g['name'] for g in GROUPS if g.get('hidden')}
+HIDDEN_MODELS = set()
+for g in GROUPS:
+    if g.get('hidden'):
+        HIDDEN_MODELS.update(g['models'])
 
 
 # ==============================
@@ -205,14 +212,25 @@ class RoleBasedAdminSite(AdminSite):
         used_keys = set()
         for group_name in GROUP_ORDER:
             model_keys = GROUP_MAP[group_name]
+            # 非表示グループはスキップ（コードは残すが管理画面に表示しない）
+            if group_name in HIDDEN_GROUPS:
+                used_keys.update(k for k in model_keys if k in all_models)
+                continue
             group_models = []
             for key in model_keys:
                 if key in all_models:
                     group_models.append(all_models[key])
                     used_keys.add(key)
             if group_models:
+                # Get slug from original Japanese key
+                slug = ''
+                for g in GROUPS:
+                    if g['name'] == group_name:
+                        slug = g['slug']
+                        break
                 result.append({
                     'name': group_name,
+                    'slug': slug,
                     'app_label': 'booking',
                     'app_url': '/admin/booking/',
                     'has_module_perms': True,
@@ -227,7 +245,8 @@ class RoleBasedAdminSite(AdminSite):
                 used_keys.add(key)
         if other_models:
             result.append({
-                'name': 'その他',
+                'name': _('その他'),
+                'slug': 'other',
                 'app_label': 'booking',
                 'app_url': '/admin/booking/',
                 'has_module_perms': True,

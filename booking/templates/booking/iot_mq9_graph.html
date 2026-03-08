@@ -42,19 +42,8 @@
   <h1>{% trans "センサーモニタ" %}</h1>
 
   <p class="mq9-meta">
-    {% trans "デバイス" %}: {{ device_external_id|default:"すべて" }} /
     {% trans "表示件数" %}: {{ labels|length }} {% trans "件" %}
   </p>
-
-  <form method="get" style="margin-bottom: 1rem;">
-    <label for="device">{% trans "デバイスID" %}:</label>
-    <input type="text"
-           id="device"
-           name="device"
-           value="{{ device_external_id|default_if_none:'' }}"
-           style="min-width: 120px;">
-    <button type="submit" class="button">{% trans "更新" %}</button>
-  </form>
 
   <div class="mq9-chart-wrap">
     <div class="mq9-chart-wrap-inner">
@@ -121,6 +110,9 @@
         }
       });
     })();
+
+    // Auto-refresh every 30 seconds
+    setTimeout(function() { location.reload(); }, 30000);
   </script>
 </div>
 {% endblock %}

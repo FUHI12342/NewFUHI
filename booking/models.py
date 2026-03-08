@@ -1,6 +1,7 @@
 from django.conf import settings
 from django.db import models
 from django.db.models import F
+from django.utils.translation import gettext_lazy as _
 from django.utils import timezone
 from django.core.exceptions import ImproperlyConfigured
 
@@ -46,8 +47,8 @@ class Timer(models.Model):
 
     class Meta:
         app_label = 'booking'
-        verbose_name = 'タイマー'
-        verbose_name_plural = 'タイマー'
+        verbose_name = _('タイマー')
+        verbose_name_plural = _('タイマー')
 
     def __str__(self):
         return f"{self.user_id} ({self.start_time} -> {self.end_time})"
@@ -55,24 +56,24 @@ class Timer(models.Model):
 
 class Store(models.Model):
     """店舗一覧"""
-    name = models.CharField('店名', max_length=255)
-    thumbnail = models.ImageField('サムネイル画像', upload_to='store_thumbnails/', null=True, blank=True)
-    address = models.CharField('住所', max_length=255, default='')
-    business_hours = models.CharField('営業時間', max_length=255, default='')
-    nearest_station = models.CharField('最寄り駅', max_length=255, default='')
-    regular_holiday = models.CharField('定休日', max_length=255, default='')
-    description = models.TextField('店舗情報', default='', blank=True)
-    is_recommended = models.BooleanField('おすすめ', default=False)
+    name = models.CharField(_('店名'), max_length=255)
+    thumbnail = models.ImageField(_('サムネイル画像'), upload_to='store_thumbnails/', null=True, blank=True)
+    address = models.CharField(_('住所'), max_length=255, default='')
+    business_hours = models.CharField(_('営業時間'), max_length=255, default='')
+    nearest_station = models.CharField(_('最寄り駅'), max_length=255, default='')
+    regular_holiday = models.CharField(_('定休日'), max_length=255, default='')
+    description = models.TextField(_('店舗情報'), default='', blank=True)
+    is_recommended = models.BooleanField(_('おすすめ'), default=False)
 
     # 追加（多言語）：店舗の既定言語（任意）
     default_language = models.CharField(
-        '既定言語', max_length=10, default='ja', blank=True, choices=LANG_CHOICES,
+        _('既定言語'), max_length=10, default='ja', blank=True, choices=LANG_CHOICES,
     )
 
     class Meta:
         app_label = 'booking'
-        verbose_name = '店舗一覧'
-        verbose_name_plural = '店舗一覧'
+        verbose_name = _('店舗一覧')
+        verbose_name_plural = _('店舗一覧')
 
     def __str__(self):
         return self.name
@@ -91,38 +92,38 @@ STAFF_TYPE_CHOICES = [
 
 class Staff(models.Model):
     """在籍占い師スタッフリスト"""
-    name = models.CharField('表示名', max_length=50)
+    name = models.CharField(_('表示名'), max_length=50)
     user = models.OneToOneField(
         settings.AUTH_USER_MODEL,
-        verbose_name='ログインユーザー',
+        verbose_name=_('ログインユーザー'),
         on_delete=models.CASCADE,
         related_name='staff',
     )
-    store = models.ForeignKey(Store, verbose_name='店舗', on_delete=models.CASCADE)
-    line_id = models.CharField('LINE ID', max_length=50, null=True, blank=True)
+    store = models.ForeignKey(Store, verbose_name=_('店舗'), on_delete=models.CASCADE)
+    line_id = models.CharField(_('LINE ID'), max_length=50, null=True, blank=True)
 
     staff_type = models.CharField(
-        'スタッフ種別', max_length=20,
+        _('スタッフ種別'), max_length=20,
         choices=STAFF_TYPE_CHOICES,
         default='fortune_teller',
         db_index=True,
     )
 
-    is_recommended = models.BooleanField('おすすめ', default=False)
+    is_recommended = models.BooleanField(_('おすすめ'), default=False)
 
     # 追加：仕入れ通知の送信先（店長だけ）
-    is_store_manager = models.BooleanField('店長', default=False)
-    is_owner = models.BooleanField('オーナー', default=False)
-    is_developer = models.BooleanField('開発者', default=False)
+    is_store_manager = models.BooleanField(_('店長'), default=False)
+    is_owner = models.BooleanField(_('オーナー'), default=False)
+    is_developer = models.BooleanField(_('開発者'), default=False)
 
-    thumbnail = models.ImageField('サムネイル画像', upload_to='thumbnails/', null=True, blank=True)
-    introduction = models.TextField('自己紹介文', null=True, blank=True)
-    price = models.IntegerField('価格', default=0)
+    thumbnail = models.ImageField(_('サムネイル画像'), upload_to='thumbnails/', null=True, blank=True)
+    introduction = models.TextField(_('自己紹介文'), null=True, blank=True)
+    price = models.IntegerField(_('価格'), default=0)
 
     class Meta:
         app_label = 'booking'
-        verbose_name = 'キャスト'
-        verbose_name_plural = 'キャスト一覧'
+        verbose_name = _('キャスト')
+        verbose_name_plural = _('キャスト一覧')
 
     def __str__(self):
         return f'{self.store.name} - {self.name}'
@@ -131,51 +132,51 @@ class Staff(models.Model):
 class Schedule(models.Model):
     """予約スケジュール."""
     reservation_number = models.CharField(
-        '予約番号',
+        _('予約番号'),
         max_length=255,
         default=uuid.uuid4,
         editable=False,
         db_index=True,
     )
-    start = models.DateTimeField('開始時間', db_index=True)
-    end = models.DateTimeField('終了時間')
-    staff = models.ForeignKey('Staff', verbose_name='占いスタッフ', on_delete=models.CASCADE, db_index=True)
+    start = models.DateTimeField(_('開始時間'), db_index=True)
+    end = models.DateTimeField(_('終了時間'))
+    staff = models.ForeignKey('Staff', verbose_name=_('占いスタッフ'), on_delete=models.CASCADE, db_index=True)
 
     customer_name = models.CharField(max_length=255, null=True, blank=True)
     hashed_id = models.CharField(max_length=255, null=True, blank=True, db_index=True)
 
     # ▼追加：生のLINE user_idは保存しない（検索用ハッシュ + 復号用暗号文のみ保存）
-    line_user_hash = models.CharField('LINEユーザーIDハッシュ', max_length=64, null=True, blank=True, db_index=True)
-    line_user_enc = models.TextField('LINEユーザーID(暗号化)', null=True, blank=True)
+    line_user_hash = models.CharField(_('LINEユーザーIDハッシュ'), max_length=64, null=True, blank=True, db_index=True)
+    line_user_enc = models.TextField(_('LINEユーザーID(暗号化)'), null=True, blank=True)
 
-    is_temporary = models.BooleanField('仮予約フラグ', default=True, db_index=True)
-    is_cancelled = models.BooleanField('キャンセルフラグ', default=False, db_index=True)
+    is_temporary = models.BooleanField(_('仮予約フラグ'), default=True, db_index=True)
+    is_cancelled = models.BooleanField(_('キャンセルフラグ'), default=False, db_index=True)
 
-    price = models.IntegerField('価格', default=0)
-    memo = models.TextField('備考', blank=True, null=True, default='ここに備考を記入してください。')
+    price = models.IntegerField(_('価格'), default=0)
+    memo = models.TextField(_('備考'), blank=True, null=True, default='ここに備考を記入してください。')
     temporary_booked_at = models.DateTimeField(null=True, blank=True, db_index=True)
 
     # Phase 4b: メール予約対応
     booking_channel = models.CharField(
-        '予約経路', max_length=10,
+        _('予約経路'), max_length=10,
         choices=[('line', 'LINE'), ('email', 'Email')],
         default='line',
     )
-    customer_email = models.EmailField('顧客メール', blank=True, null=True)
-    email_otp_hash = models.CharField('OTPハッシュ', max_length=64, blank=True, null=True)
-    email_otp_expires = models.DateTimeField('OTP有効期限', blank=True, null=True)
-    email_verified = models.BooleanField('メール認証済み', default=False)
-    payment_url = models.URLField('決済URL', blank=True, null=True)
+    customer_email = models.EmailField(_('顧客メール'), blank=True, null=True)
+    email_otp_hash = models.CharField(_('OTPハッシュ'), max_length=64, blank=True, null=True)
+    email_otp_expires = models.DateTimeField(_('OTP有効期限'), blank=True, null=True)
+    email_verified = models.BooleanField(_('メール認証済み'), default=False)
+    payment_url = models.URLField(_('決済URL'), blank=True, null=True)
 
     # QRチェックイン
-    checkin_qr = models.ImageField('チェックインQR', upload_to='checkin_qr/', blank=True, null=True)
-    is_checked_in = models.BooleanField('チェックイン済み', default=False)
-    checked_in_at = models.DateTimeField('チェックイン日時', blank=True, null=True)
+    checkin_qr = models.ImageField(_('チェックインQR'), upload_to='checkin_qr/', blank=True, null=True)
+    is_checked_in = models.BooleanField(_('チェックイン済み'), default=False)
+    checked_in_at = models.DateTimeField(_('チェックイン日時'), blank=True, null=True)
 
     class Meta:
         app_label = 'booking'
-        verbose_name = '予約確定済みのスケジュール'
-        verbose_name_plural = '予約確定済みのスケジュール'
+        verbose_name = _('予約確定済みのスケジュール')
+        verbose_name_plural = _('予約確定済みのスケジュール')
         indexes = [
             models.Index(fields=['staff', 'start']),
             models.Index(fields=['staff', 'is_temporary', 'start']),
@@ -249,14 +250,14 @@ class UserSerializer(serializers.ModelSerializer):
 
 
 class Company(models.Model):
-    name = models.CharField('会社名', max_length=255)
-    address = models.CharField('住所', max_length=255)
-    tel = models.CharField('電話番号', max_length=20, default='000-0000-0000')
+    name = models.CharField(_('会社名'), max_length=255)
+    address = models.CharField(_('住所'), max_length=255)
+    tel = models.CharField(_('電話番号'), max_length=20, default='000-0000-0000')
 
     class Meta:
         app_label = 'booking'
-        verbose_name = '運営会社情報'
-        verbose_name_plural = '運営会社情報'
+        verbose_name = _('運営会社情報')
+        verbose_name_plural = _('運営会社情報')
 
     def __str__(self):
         return self.name
@@ -270,8 +271,8 @@ class Notice(models.Model):
 
     class Meta:
         app_label = 'booking'
-        verbose_name = 'お知らせ'
-        verbose_name_plural = 'お知らせ'
+        verbose_name = _('お知らせ')
+        verbose_name_plural = _('お知らせ')
 
     def __str__(self):
         return self.title
@@ -282,7 +283,7 @@ class Media(models.Model):
     title = models.CharField(max_length=200, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     description = models.TextField(blank=True)
-    cached_thumbnail_url = models.URLField('サムネイルURL', blank=True)
+    cached_thumbnail_url = models.URLField(_('サムネイルURL'), blank=True)
 
     @staticmethod
     def _is_safe_url(url: str) -> bool:
@@ -326,8 +327,8 @@ class Media(models.Model):
 
     class Meta:
         app_label = 'booking'
-        verbose_name = 'メディア掲載情報'
-        verbose_name_plural = 'メディア掲載情報'
+        verbose_name = _('メディア掲載情報')
+        verbose_name_plural = _('メディア掲載情報')
 
     def __str__(self):
         return self.title
@@ -341,28 +342,28 @@ class IoTDevice(models.Model):
         ('other', 'その他'),
     ]
 
-    name = models.CharField('デバイス名', max_length=100)
-    store = models.ForeignKey(Store, verbose_name='店舗', on_delete=models.CASCADE, related_name='iot_devices')
-    device_type = models.CharField('種別', choices=DEVICE_TYPE_CHOICES, max_length=20, default='multi')
+    name = models.CharField(_('デバイス名'), max_length=100)
+    store = models.ForeignKey(Store, verbose_name=_('店舗'), on_delete=models.CASCADE, related_name='iot_devices')
+    device_type = models.CharField(_('種別'), choices=DEVICE_TYPE_CHOICES, max_length=20, default='multi')
 
-    external_id = models.CharField('デバイスID（AWS側）', max_length=255, unique=True)
-    api_key_hash = models.CharField('APIキーハッシュ', max_length=64, db_index=True, default='',
-                                     help_text='SHA-256ハッシュ。認証時の照合用')
-    api_key_prefix = models.CharField('APIキープレフィックス', max_length=8, blank=True, default='',
-                                       help_text='管理画面表示用（先頭8文字）')
+    external_id = models.CharField(_('デバイスID（AWS側）'), max_length=255, unique=True)
+    api_key_hash = models.CharField(_('APIキーハッシュ'), max_length=64, db_index=True, default='',
+                                     help_text=_('SHA-256ハッシュ。認証時の照合用'))
+    api_key_prefix = models.CharField(_('APIキープレフィックス'), max_length=8, blank=True, default='',
+                                       help_text=_('管理画面表示用（先頭8文字）'))
 
-    mq9_threshold = models.FloatField('MQ-9閾値', null=True, blank=True)
-    alert_enabled = models.BooleanField('ガス検知アラート有効', default=False)
-    alert_email = models.EmailField('アラート送信メール', blank=True)
+    mq9_threshold = models.FloatField(_('MQ-9閾値'), null=True, blank=True)
+    alert_enabled = models.BooleanField(_('ガス検知アラート有効'), default=False)
+    alert_email = models.EmailField(_('アラート送信メール'), blank=True)
     alert_line_user_id = models.CharField(
-        'アラートLINE通知先ID', max_length=255, blank=True, default='',
-        help_text='閾値超過時にLINE通知を送信するユーザーID'
+        _('アラートLINE通知先ID'), max_length=255, blank=True, default='',
+        help_text=_('閾値超過時にLINE通知を送信するユーザーID')
     )
 
-    wifi_ssid = models.CharField('Wi-Fi SSID', max_length=64, blank=True)
-    wifi_password_enc = models.CharField('Wi-Fi パスワード（暗号化）', max_length=512, blank=True)
-    pending_ir_command = models.TextField('保留中IRコマンド', blank=True, default='',
-        help_text='デバイスが次回config取得時に実行するIRコマンド（JSON）'
+    wifi_ssid = models.CharField(_('Wi-Fi SSID'), max_length=64, blank=True)
+    wifi_password_enc = models.CharField(_('Wi-Fi パスワード（暗号化）'), max_length=512, blank=True)
+    pending_ir_command = models.TextField(_('保留中IRコマンド'), blank=True, default='',
+        help_text=_('デバイスが次回config取得時に実行するIRコマンド（JSON）')
     )
 
     @staticmethod
@@ -407,13 +408,13 @@ class IoTDevice(models.Model):
         """APIキーを検証する"""
         return self.api_key_hash == self.hash_api_key(raw_key)
 
-    is_active = models.BooleanField('有効', default=True)
-    last_seen_at = models.DateTimeField('最終通信日時', null=True, blank=True)
+    is_active = models.BooleanField(_('有効'), default=True)
+    last_seen_at = models.DateTimeField(_('最終通信日時'), null=True, blank=True)
 
     class Meta:
         app_label = 'booking'
-        verbose_name = 'IoTデバイス'
-        verbose_name_plural = 'IoTデバイス'
+        verbose_name = _('IoTデバイス')
+        verbose_name_plural = _('IoTデバイス')
 
     def __str__(self):
         return f'{self.store.name} / {self.name}'
@@ -421,19 +422,19 @@ class IoTDevice(models.Model):
 
 class IoTEvent(models.Model):
     """IoT デバイスから送信されたセンサーログ"""
-    device = models.ForeignKey(IoTDevice, verbose_name='デバイス', on_delete=models.CASCADE, related_name='events')
-    created_at = models.DateTimeField('受信日時', auto_now_add=True, db_index=True)
-    event_type = models.CharField('イベント種別', max_length=50, blank=True)
-    payload = models.TextField('ペイロード(JSON)', blank=True)
-    mq9_value = models.FloatField('MQ-9値', null=True, blank=True, db_index=True)
-    light_value = models.FloatField('照度値', null=True, blank=True, db_index=True)
-    sound_value = models.FloatField('音値', null=True, blank=True, db_index=True)
-    pir_triggered = models.BooleanField('PIR検知', null=True, blank=True)
+    device = models.ForeignKey(IoTDevice, verbose_name=_('デバイス'), on_delete=models.CASCADE, related_name='events')
+    created_at = models.DateTimeField(_('受信日時'), auto_now_add=True, db_index=True)
+    event_type = models.CharField(_('イベント種別'), max_length=50, blank=True)
+    payload = models.TextField(_('ペイロード(JSON)'), blank=True)
+    mq9_value = models.FloatField(_('MQ-9値'), null=True, blank=True, db_index=True)
+    light_value = models.FloatField(_('照度値'), null=True, blank=True, db_index=True)
+    sound_value = models.FloatField(_('音値'), null=True, blank=True, db_index=True)
+    pir_triggered = models.BooleanField(_('PIR検知'), null=True, blank=True)
 
     class Meta:
         app_label = 'booking'
-        verbose_name = 'IoTイベントログ'
-        verbose_name_plural = 'IoTイベントログ'
+        verbose_name = _('IoTイベントログ')
+        verbose_name_plural = _('IoTイベントログ')
         indexes = [
             models.Index(fields=['device', 'created_at']),
             models.Index(fields=['device', 'mq9_value', 'created_at']),
@@ -447,19 +448,19 @@ class IoTEvent(models.Model):
 
 class IRCode(models.Model):
     """学習済みIRリモコンコード"""
-    device = models.ForeignKey(IoTDevice, verbose_name='デバイス', on_delete=models.CASCADE, related_name='ir_codes')
-    name = models.CharField('名前', max_length=100)
-    protocol = models.CharField('プロトコル', max_length=20, default='NEC')
-    code = models.CharField('コード', max_length=20)
-    address = models.CharField('アドレス', max_length=20, blank=True, default='')
-    command = models.CharField('コマンド', max_length=20, blank=True, default='')
-    raw_data = models.TextField('RAWデータ', blank=True, default='')
+    device = models.ForeignKey(IoTDevice, verbose_name=_('デバイス'), on_delete=models.CASCADE, related_name='ir_codes')
+    name = models.CharField(_('名前'), max_length=100)
+    protocol = models.CharField(_('プロトコル'), max_length=20, default='NEC')
+    code = models.CharField(_('コード'), max_length=20)
+    address = models.CharField(_('アドレス'), max_length=20, blank=True, default='')
+    command = models.CharField(_('コマンド'), max_length=20, blank=True, default='')
+    raw_data = models.TextField(_('RAWデータ'), blank=True, default='')
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
         app_label = 'booking'
-        verbose_name = 'IRコード'
-        verbose_name_plural = 'IRコード'
+        verbose_name = _('IRコード')
+        verbose_name_plural = _('IRコード')
 
     def __str__(self):
         return f'{self.device.name} / {self.name}'
@@ -470,14 +471,14 @@ class IRCode(models.Model):
 # ==============================
 
 class Category(models.Model):
-    store = models.ForeignKey(Store, verbose_name='店舗', on_delete=models.CASCADE, related_name='categories')
-    name = models.CharField('カテゴリ名', max_length=100)
-    sort_order = models.IntegerField('並び順', default=0)
+    store = models.ForeignKey(Store, verbose_name=_('店舗'), on_delete=models.CASCADE, related_name='categories')
+    name = models.CharField(_('カテゴリ名'), max_length=100)
+    sort_order = models.IntegerField(_('並び順'), default=0)
 
     class Meta:
         app_label = 'booking'
-        verbose_name = '商品カテゴリ'
-        verbose_name_plural = '商品カテゴリ'
+        verbose_name = _('商品カテゴリ')
+        verbose_name_plural = _('商品カテゴリ')
         unique_together = (('store', 'name'),)
         ordering = ('store', 'sort_order', 'name')
 
@@ -486,44 +487,44 @@ class Category(models.Model):
 
 
 class Product(models.Model):
-    store = models.ForeignKey(Store, verbose_name='店舗', on_delete=models.CASCADE, related_name='products')
+    store = models.ForeignKey(Store, verbose_name=_('店舗'), on_delete=models.CASCADE, related_name='products')
     category = models.ForeignKey(
         Category,
-        verbose_name='カテゴリ',
+        verbose_name=_('カテゴリ'),
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
         related_name='products'
     )
 
-    sku = models.CharField('商品コード', max_length=64, db_index=True)
-    name = models.CharField('商品名(デフォルト)', max_length=200)
-    description = models.TextField('説明(デフォルト)', blank=True, default='')
+    sku = models.CharField(_('商品コード'), max_length=64, db_index=True)
+    name = models.CharField(_('商品名(デフォルト)'), max_length=200)
+    description = models.TextField(_('説明(デフォルト)'), blank=True, default='')
 
-    price = models.IntegerField('価格', default=0)
+    price = models.IntegerField(_('価格'), default=0)
 
     # 在庫
-    stock = models.IntegerField('現在庫', default=0)
-    low_stock_threshold = models.IntegerField('閾値', default=0)
-    last_low_stock_notified_at = models.DateTimeField('閾値通知済み(最後)', null=True, blank=True)
+    stock = models.IntegerField(_('現在庫'), default=0)
+    low_stock_threshold = models.IntegerField(_('閾値'), default=0)
+    last_low_stock_notified_at = models.DateTimeField(_('閾値通知済み(最後)'), null=True, blank=True)
 
-    is_active = models.BooleanField('公開', default=True)
-    is_ec_visible = models.BooleanField('EC公開', default=False, db_index=True,
-        help_text='チェックするとオンラインショップに表示されます')
+    is_active = models.BooleanField(_('公開'), default=True)
+    is_ec_visible = models.BooleanField(_('EC公開'), default=False, db_index=True,
+        help_text=_('チェックするとオンラインショップに表示されます'))
 
-    image = models.ImageField('商品画像', upload_to='product_images/', blank=True, null=True)
+    image = models.ImageField(_('商品画像'), upload_to='product_images/', blank=True, null=True)
 
     # 代替提案用の簡易スコア（どれを使うかはUI側で選べる）
-    popularity = models.IntegerField('人気スコア', default=0)
-    margin_rate = models.FloatField('利益率(概算)', default=0.0)
+    popularity = models.IntegerField(_('人気スコア'), default=0)
+    margin_rate = models.FloatField(_('利益率(概算)'), default=0.0)
 
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
         app_label = 'booking'
-        verbose_name = '商品'
-        verbose_name_plural = '商品'
+        verbose_name = _('商品')
+        verbose_name_plural = _('商品')
         unique_together = (('store', 'sku'),)
         indexes = [
             models.Index(fields=['store', 'is_active']),
@@ -551,15 +552,15 @@ class ProductTranslation(models.Model):
     """商品データ文言の多言語テーブル"""
     LANG_CHOICES = LANG_CHOICES  # backward compat alias
 
-    product = models.ForeignKey(Product, verbose_name='商品', on_delete=models.CASCADE, related_name='translations')
-    lang = models.CharField('言語', max_length=10, choices=LANG_CHOICES, db_index=True)
-    name = models.CharField('商品名', max_length=200)
-    description = models.TextField('説明', blank=True, default='')
+    product = models.ForeignKey(Product, verbose_name=_('商品'), on_delete=models.CASCADE, related_name='translations')
+    lang = models.CharField(_('言語'), max_length=10, choices=LANG_CHOICES, db_index=True)
+    name = models.CharField(_('商品名'), max_length=200)
+    description = models.TextField(_('説明'), blank=True, default='')
 
     class Meta:
         app_label = 'booking'
-        verbose_name = '商品翻訳'
-        verbose_name_plural = '商品翻訳'
+        verbose_name = _('商品翻訳')
+        verbose_name_plural = _('商品翻訳')
         unique_together = (('product', 'lang'),)
         indexes = [
             models.Index(fields=['lang']),
@@ -580,32 +581,32 @@ class Order(models.Model):
         (STATUS_CLOSED, 'Closed'),
     )
 
-    store = models.ForeignKey(Store, verbose_name='店舗', on_delete=models.CASCADE, related_name='orders')
+    store = models.ForeignKey(Store, verbose_name=_('店舗'), on_delete=models.CASCADE, related_name='orders')
     schedule = models.ForeignKey(
         Schedule,
-        verbose_name='予約',
+        verbose_name=_('予約'),
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
         related_name='orders'
     )
 
-    customer_line_user_hash = models.CharField('顧客LINEハッシュ', max_length=64, null=True, blank=True, db_index=True)
-    table_label = models.CharField('席/テーブル', max_length=50, blank=True, default='')
+    customer_line_user_hash = models.CharField(_('顧客LINEハッシュ'), max_length=64, null=True, blank=True, db_index=True)
+    table_label = models.CharField(_('席/テーブル'), max_length=50, blank=True, default='')
     table_seat = models.ForeignKey(
-        'TableSeat', verbose_name='席', on_delete=models.SET_NULL,
+        'TableSeat', verbose_name=_('席'), on_delete=models.SET_NULL,
         null=True, blank=True, related_name='orders',
     )
 
-    status = models.CharField('状態', max_length=10, choices=STATUS_CHOICES, default=STATUS_OPEN, db_index=True)
+    status = models.CharField(_('状態'), max_length=10, choices=STATUS_CHOICES, default=STATUS_OPEN, db_index=True)
 
     created_at = models.DateTimeField(auto_now_add=True, db_index=True)
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
         app_label = 'booking'
-        verbose_name = '注文'
-        verbose_name_plural = '注文'
+        verbose_name = _('注文')
+        verbose_name_plural = _('注文')
         indexes = [
             models.Index(fields=['store', 'status', 'created_at']),
             models.Index(fields=['customer_line_user_hash', 'created_at']),
@@ -629,22 +630,22 @@ class OrderItem(models.Model):
         (STATUS_CLOSED, 'Closed'),
     )
 
-    order = models.ForeignKey(Order, verbose_name='注文', on_delete=models.CASCADE, related_name='items')
-    product = models.ForeignKey(Product, verbose_name='商品', on_delete=models.PROTECT, related_name='order_items')
+    order = models.ForeignKey(Order, verbose_name=_('注文'), on_delete=models.CASCADE, related_name='items')
+    product = models.ForeignKey(Product, verbose_name=_('商品'), on_delete=models.PROTECT, related_name='order_items')
 
-    qty = models.IntegerField('数量', default=1)
-    unit_price = models.IntegerField('単価', default=0)
+    qty = models.IntegerField(_('数量'), default=1)
+    unit_price = models.IntegerField(_('単価'), default=0)
 
-    status = models.CharField('状態', max_length=20, choices=STATUS_CHOICES, default=STATUS_ORDERED, db_index=True)
-    note = models.CharField('備考', max_length=255, blank=True, default='')
+    status = models.CharField(_('状態'), max_length=20, choices=STATUS_CHOICES, default=STATUS_ORDERED, db_index=True)
+    note = models.CharField(_('備考'), max_length=255, blank=True, default='')
 
     created_at = models.DateTimeField(auto_now_add=True, db_index=True)
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
         app_label = 'booking'
-        verbose_name = '注文明細'
-        verbose_name_plural = '注文明細'
+        verbose_name = _('注文明細')
+        verbose_name_plural = _('注文明細')
         indexes = [
             models.Index(fields=['order', 'status', 'created_at']),
             models.Index(fields=['product', 'created_at']),
@@ -666,21 +667,21 @@ class StockMovement(models.Model):
         (TYPE_ADJUST, '棚卸調整'),
     )
 
-    store = models.ForeignKey(Store, verbose_name='店舗', on_delete=models.CASCADE, related_name='stock_movements')
-    product = models.ForeignKey(Product, verbose_name='商品', on_delete=models.PROTECT, related_name='stock_movements')
+    store = models.ForeignKey(Store, verbose_name=_('店舗'), on_delete=models.CASCADE, related_name='stock_movements')
+    product = models.ForeignKey(Product, verbose_name=_('商品'), on_delete=models.PROTECT, related_name='stock_movements')
 
-    movement_type = models.CharField('種別', max_length=10, choices=TYPE_CHOICES, db_index=True)
-    qty = models.IntegerField('数量')
+    movement_type = models.CharField(_('種別'), max_length=10, choices=TYPE_CHOICES, db_index=True)
+    qty = models.IntegerField(_('数量'))
 
-    by_staff = models.ForeignKey(Staff, verbose_name='実施スタッフ', on_delete=models.SET_NULL, null=True, blank=True)
-    note = models.CharField('メモ', max_length=255, blank=True, default='')
+    by_staff = models.ForeignKey(Staff, verbose_name=_('実施スタッフ'), on_delete=models.SET_NULL, null=True, blank=True)
+    note = models.CharField(_('メモ'), max_length=255, blank=True, default='')
 
     created_at = models.DateTimeField(auto_now_add=True, db_index=True)
 
     class Meta:
         app_label = 'booking'
-        verbose_name = '入出庫履歴'
-        verbose_name_plural = '入出庫履歴'
+        verbose_name = _('入出庫履歴')
+        verbose_name_plural = _('入出庫履歴')
         indexes = [
             models.Index(fields=['store', 'created_at']),
             models.Index(fields=['product', 'created_at']),
@@ -760,14 +761,14 @@ class DashboardLayout(models.Model):
         on_delete=models.CASCADE,
         related_name='dashboard_layout',
     )
-    layout_json = models.JSONField('レイアウトJSON', default=list)
-    dark_mode = models.BooleanField('ダークモード', default=False)
+    layout_json = models.JSONField(_('レイアウトJSON'), default=list)
+    dark_mode = models.BooleanField(_('ダークモード'), default=False)
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
         app_label = 'booking'
-        verbose_name = 'ダッシュボードレイアウト'
-        verbose_name_plural = 'ダッシュボードレイアウト'
+        verbose_name = _('ダッシュボードレイアウト')
+        verbose_name_plural = _('ダッシュボードレイアウト')
 
     def __str__(self):
         return f'DashboardLayout({self.user.username})'
@@ -779,14 +780,14 @@ class DashboardLayout(models.Model):
 
 class SystemConfig(models.Model):
     """シングルトンパターンのランタイム設定（ログレベル等）"""
-    key = models.CharField('キー', max_length=100, unique=True)
-    value = models.TextField('値', blank=True, default='')
-    updated_at = models.DateTimeField('更新日時', auto_now=True)
+    key = models.CharField(_('キー'), max_length=100, unique=True)
+    value = models.TextField(_('値'), blank=True, default='')
+    updated_at = models.DateTimeField(_('更新日時'), auto_now=True)
 
     class Meta:
         app_label = 'booking'
-        verbose_name = 'システム設定'
-        verbose_name_plural = 'システム設定'
+        verbose_name = _('システム設定')
+        verbose_name_plural = _('システム設定')
 
     def __str__(self):
         return f"{self.key} = {self.value}"
@@ -817,22 +818,22 @@ class Property(models.Model):
         ('store', '店舗'),
     ]
 
-    name = models.CharField('物件名', max_length=200)
-    address = models.CharField('住所', max_length=300)
-    property_type = models.CharField('種別', max_length=20, choices=PROPERTY_TYPE_CHOICES, default='apartment')
-    owner_name = models.CharField('オーナー名', max_length=100, blank=True)
-    owner_contact = models.CharField('オーナー連絡先', max_length=200, blank=True)
+    name = models.CharField(_('物件名'), max_length=200)
+    address = models.CharField(_('住所'), max_length=300)
+    property_type = models.CharField(_('種別'), max_length=20, choices=PROPERTY_TYPE_CHOICES, default='apartment')
+    owner_name = models.CharField(_('オーナー名'), max_length=100, blank=True)
+    owner_contact = models.CharField(_('オーナー連絡先'), max_length=200, blank=True)
     store = models.ForeignKey(
-        Store, verbose_name='関連店舗', on_delete=models.SET_NULL,
+        Store, verbose_name=_('関連店舗'), on_delete=models.SET_NULL,
         null=True, blank=True, related_name='properties',
     )
-    is_active = models.BooleanField('有効', default=True)
+    is_active = models.BooleanField(_('有効'), default=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
         app_label = 'booking'
-        verbose_name = '物件'
-        verbose_name_plural = '物件'
+        verbose_name = _('物件')
+        verbose_name_plural = _('物件')
 
     def __str__(self):
         return self.name
@@ -841,17 +842,17 @@ class Property(models.Model):
 class PropertyDevice(models.Model):
     """物件に設置されたデバイス"""
     property = models.ForeignKey(
-        Property, verbose_name='物件', on_delete=models.CASCADE, related_name='property_devices',
+        Property, verbose_name=_('物件'), on_delete=models.CASCADE, related_name='property_devices',
     )
     device = models.ForeignKey(
-        IoTDevice, verbose_name='デバイス', on_delete=models.CASCADE, related_name='property_placements',
+        IoTDevice, verbose_name=_('デバイス'), on_delete=models.CASCADE, related_name='property_placements',
     )
-    location_label = models.CharField('設置場所', max_length=100, help_text='例: リビング, 玄関, 寝室')
+    location_label = models.CharField(_('設置場所'), max_length=100, help_text=_('例: リビング, 玄関, 寝室'))
 
     class Meta:
         app_label = 'booking'
-        verbose_name = '物件デバイス'
-        verbose_name_plural = '物件デバイス'
+        verbose_name = _('物件デバイス')
+        verbose_name_plural = _('物件デバイス')
         unique_together = (('property', 'device'),)
 
     def __str__(self):
@@ -873,23 +874,23 @@ class PropertyAlert(models.Model):
     ]
 
     property = models.ForeignKey(
-        Property, verbose_name='物件', on_delete=models.CASCADE, related_name='alerts',
+        Property, verbose_name=_('物件'), on_delete=models.CASCADE, related_name='alerts',
     )
     device = models.ForeignKey(
-        IoTDevice, verbose_name='デバイス', on_delete=models.SET_NULL,
+        IoTDevice, verbose_name=_('デバイス'), on_delete=models.SET_NULL,
         null=True, blank=True, related_name='property_alerts',
     )
-    alert_type = models.CharField('種別', max_length=20, choices=ALERT_TYPE_CHOICES)
-    severity = models.CharField('重要度', max_length=10, choices=SEVERITY_CHOICES, default='info')
-    message = models.TextField('メッセージ', blank=True)
-    is_resolved = models.BooleanField('解決済み', default=False, db_index=True)
+    alert_type = models.CharField(_('種別'), max_length=20, choices=ALERT_TYPE_CHOICES)
+    severity = models.CharField(_('重要度'), max_length=10, choices=SEVERITY_CHOICES, default='info')
+    message = models.TextField(_('メッセージ'), blank=True)
+    is_resolved = models.BooleanField(_('解決済み'), default=False, db_index=True)
     created_at = models.DateTimeField(auto_now_add=True, db_index=True)
-    resolved_at = models.DateTimeField('解決日時', null=True, blank=True)
+    resolved_at = models.DateTimeField(_('解決日時'), null=True, blank=True)
 
     class Meta:
         app_label = 'booking'
-        verbose_name = '物件アラート'
-        verbose_name_plural = '物件アラート'
+        verbose_name = _('物件アラート')
+        verbose_name_plural = _('物件アラート')
         indexes = [
             models.Index(fields=['property', 'is_resolved', 'created_at']),
             models.Index(fields=['alert_type', 'is_resolved']),
@@ -906,15 +907,15 @@ class PropertyAlert(models.Model):
 class StoreScheduleConfig(models.Model):
     """店舗営業時間 + 予約コマ設定"""
     store = models.OneToOneField(Store, on_delete=models.CASCADE, related_name='schedule_config')
-    open_hour = models.IntegerField('営業開始時間', default=9)      # 0-23
-    close_hour = models.IntegerField('営業終了時間', default=21)     # 0-23
-    slot_duration = models.IntegerField('予約コマ(分)', default=60,
-        help_text='15, 30, 45, 60 のいずれか')
+    open_hour = models.IntegerField(_('営業開始時間'), default=9)      # 0-23
+    close_hour = models.IntegerField(_('営業終了時間'), default=21)     # 0-23
+    slot_duration = models.IntegerField(_('予約コマ(分)'), default=60,
+        help_text=_('15, 30, 45, 60 のいずれか'))
 
     class Meta:
         app_label = 'booking'
-        verbose_name = '店舗スケジュール設定'
-        verbose_name_plural = '店舗スケジュール設定'
+        verbose_name = _('店舗スケジュール設定')
+        verbose_name_plural = _('店舗スケジュール設定')
 
     def __str__(self):
         return f"{self.store.name} ({self.open_hour}:00-{self.close_hour}:00 / {self.slot_duration}分)"
@@ -923,16 +924,16 @@ class StoreScheduleConfig(models.Model):
 class TableSeat(models.Model):
     """店舗テーブル/席"""
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    store = models.ForeignKey(Store, verbose_name='店舗', on_delete=models.CASCADE, related_name='table_seats')
-    label = models.CharField('席名', max_length=50, help_text='例: A1, テーブル1, カウンター3')
-    is_active = models.BooleanField('有効', default=True)
-    qr_code = models.ImageField('QRコード画像', upload_to='table_qr/', blank=True, null=True)
-    created_at = models.DateTimeField('作成日時', auto_now_add=True)
+    store = models.ForeignKey(Store, verbose_name=_('店舗'), on_delete=models.CASCADE, related_name='table_seats')
+    label = models.CharField(_('席名'), max_length=50, help_text=_('例: A1, テーブル1, カウンター3'))
+    is_active = models.BooleanField(_('有効'), default=True)
+    qr_code = models.ImageField(_('QRコード画像'), upload_to='table_qr/', blank=True, null=True)
+    created_at = models.DateTimeField(_('作成日時'), auto_now_add=True)
 
     class Meta:
         app_label = 'booking'
-        verbose_name = 'テーブル/席'
-        verbose_name_plural = 'テーブル/席'
+        verbose_name = _('テーブル/席')
+        verbose_name_plural = _('テーブル/席')
         unique_together = (('store', 'label'),)
         ordering = ('store', 'label')
 
@@ -953,21 +954,21 @@ class PaymentMethod(models.Model):
         ('ic', 'IC決済 (交通系/電子マネー)'),
         ('other', 'その他'),
     ]
-    store = models.ForeignKey(Store, verbose_name='店舗', on_delete=models.CASCADE, related_name='payment_methods')
-    method_type = models.CharField('決済種別', max_length=20, choices=METHOD_TYPE_CHOICES)
-    display_name = models.CharField('表示名', max_length=100)
-    is_enabled = models.BooleanField('有効', default=True)
-    api_key = models.CharField('APIキー', max_length=500, blank=True, default='')
-    api_secret = models.CharField('APIシークレット', max_length=500, blank=True, default='')
-    api_endpoint = models.URLField('APIエンドポイント', blank=True, default='')
-    extra_config = models.JSONField('追加設定', default=dict, blank=True)
-    sort_order = models.IntegerField('並び順', default=0)
+    store = models.ForeignKey(Store, verbose_name=_('店舗'), on_delete=models.CASCADE, related_name='payment_methods')
+    method_type = models.CharField(_('決済種別'), max_length=20, choices=METHOD_TYPE_CHOICES)
+    display_name = models.CharField(_('表示名'), max_length=100)
+    is_enabled = models.BooleanField(_('有効'), default=True)
+    api_key = models.CharField(_('APIキー'), max_length=500, blank=True, default='')
+    api_secret = models.CharField(_('APIシークレット'), max_length=500, blank=True, default='')
+    api_endpoint = models.URLField(_('APIエンドポイント'), blank=True, default='')
+    extra_config = models.JSONField(_('追加設定'), default=dict, blank=True)
+    sort_order = models.IntegerField(_('並び順'), default=0)
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
         app_label = 'booking'
-        verbose_name = '決済方法'
-        verbose_name_plural = '決済方法'
+        verbose_name = _('決済方法')
+        verbose_name_plural = _('決済方法')
         unique_together = (('store', 'method_type'),)
         ordering = ('store', 'sort_order')
 
@@ -984,16 +985,16 @@ class ShiftPeriod(models.Model):
         ('approved', '承認済'),
     ]
     store = models.ForeignKey(Store, on_delete=models.CASCADE, related_name='shift_periods')
-    year_month = models.DateField('対象年月')  # 月初の日付
-    deadline = models.DateTimeField('申請締切')
-    status = models.CharField('状態', max_length=20, choices=STATUS_CHOICES, default='open')
+    year_month = models.DateField(_('対象年月'))  # 月初の日付
+    deadline = models.DateTimeField(_('申請締切'))
+    status = models.CharField(_('状態'), max_length=20, choices=STATUS_CHOICES, default='open')
     created_by = models.ForeignKey(Staff, on_delete=models.SET_NULL, null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
         app_label = 'booking'
-        verbose_name = 'シフト募集期間'
-        verbose_name_plural = 'シフト募集期間'
+        verbose_name = _('シフト募集期間')
+        verbose_name_plural = _('シフト募集期間')
 
     def __str__(self):
         return f"{self.store.name} {self.year_month.strftime('%Y年%m月')} ({self.get_status_display()})"
@@ -1008,17 +1009,17 @@ class ShiftRequest(models.Model):
     ]
     period = models.ForeignKey(ShiftPeriod, on_delete=models.CASCADE, related_name='requests')
     staff = models.ForeignKey(Staff, on_delete=models.CASCADE, related_name='shift_requests')
-    date = models.DateField('日付')
-    start_hour = models.IntegerField('開始時間')
-    end_hour = models.IntegerField('終了時間')
-    preference = models.CharField('希望区分', max_length=20, choices=PREF_CHOICES, default='available')
-    note = models.TextField('備考', blank=True)
+    date = models.DateField(_('日付'))
+    start_hour = models.IntegerField(_('開始時間'))
+    end_hour = models.IntegerField(_('終了時間'))
+    preference = models.CharField(_('希望区分'), max_length=20, choices=PREF_CHOICES, default='available')
+    note = models.TextField(_('備考'), blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
         app_label = 'booking'
-        verbose_name = 'シフト希望'
-        verbose_name_plural = 'シフト希望'
+        verbose_name = _('シフト希望')
+        verbose_name_plural = _('シフト希望')
         unique_together = ('period', 'staff', 'date', 'start_hour')
 
     def __str__(self):
@@ -1029,16 +1030,16 @@ class ShiftAssignment(models.Model):
     """確定シフト"""
     period = models.ForeignKey(ShiftPeriod, on_delete=models.CASCADE, related_name='assignments')
     staff = models.ForeignKey(Staff, on_delete=models.CASCADE, related_name='shift_assignments')
-    date = models.DateField('日付')
-    start_hour = models.IntegerField('開始時間')
-    end_hour = models.IntegerField('終了時間')
-    is_synced = models.BooleanField('Schedule同期済み', default=False)
+    date = models.DateField(_('日付'))
+    start_hour = models.IntegerField(_('開始時間'))
+    end_hour = models.IntegerField(_('終了時間'))
+    is_synced = models.BooleanField(_('Schedule同期済み'), default=False)
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
         app_label = 'booking'
-        verbose_name = '確定シフト'
-        verbose_name_plural = '確定シフト'
+        verbose_name = _('確定シフト')
+        verbose_name_plural = _('確定シフト')
         unique_together = ('period', 'staff', 'date', 'start_hour')
 
     def __str__(self):
@@ -1048,14 +1049,14 @@ class ShiftAssignment(models.Model):
 class AdminTheme(models.Model):
     """管理画面UIカスタムテーマ"""
     store = models.OneToOneField(Store, on_delete=models.CASCADE, related_name='admin_theme')
-    primary_color = models.CharField('メインカラー', max_length=7, default='#8c876c')
-    secondary_color = models.CharField('サブカラー', max_length=7, default='#f1f0ec')
-    header_image = models.ImageField('ヘッダー画像', upload_to='admin_themes/', blank=True)
+    primary_color = models.CharField(_('メインカラー'), max_length=7, default='#8c876c')
+    secondary_color = models.CharField(_('サブカラー'), max_length=7, default='#f1f0ec')
+    header_image = models.ImageField(_('ヘッダー画像'), upload_to='admin_themes/', blank=True)
 
     class Meta:
         app_label = 'booking'
-        verbose_name = '管理画面テーマ'
-        verbose_name_plural = '管理画面テーマ'
+        verbose_name = _('管理画面テーマ')
+        verbose_name_plural = _('管理画面テーマ')
 
     def __str__(self):
         return f"{self.store.name} テーマ"
@@ -1067,58 +1068,58 @@ class AdminTheme(models.Model):
 
 class SiteSettings(models.Model):
     """サイト全体の設定 (シングルトン)"""
-    site_name = models.CharField('サイト名', max_length=200, default='占いサロンチャンス')
+    site_name = models.CharField(_('サイト名'), max_length=200, default='占いサロンチャンス')
 
     # ホームページカードON/OFF
-    show_card_store = models.BooleanField('店舗カード表示', default=True)
-    show_card_fortune_teller = models.BooleanField('占い師カード表示', default=True)
-    show_card_calendar = models.BooleanField('カレンダーカード表示', default=True)
-    show_card_shop = models.BooleanField('ショップカード表示', default=True)
+    show_card_store = models.BooleanField(_('店舗カード表示'), default=True)
+    show_card_fortune_teller = models.BooleanField(_('占い師カード表示'), default=True)
+    show_card_calendar = models.BooleanField(_('カレンダーカード表示'), default=True)
+    show_card_shop = models.BooleanField(_('ショップカード表示'), default=True)
 
     # サイドバーON/OFF
-    show_sidebar_notice = models.BooleanField('お知らせ表示', default=True)
-    show_sidebar_company = models.BooleanField('運営会社表示', default=True)
-    show_sidebar_media = models.BooleanField('メディア掲載表示', default=True)
-    show_sidebar_social = models.BooleanField('SNSフィード表示', default=False)
+    show_sidebar_notice = models.BooleanField(_('お知らせ表示'), default=True)
+    show_sidebar_company = models.BooleanField(_('運営会社表示'), default=True)
+    show_sidebar_media = models.BooleanField(_('メディア掲載表示'), default=True)
+    show_sidebar_social = models.BooleanField(_('SNSフィード表示'), default=False)
 
     # SNS連携URL
-    twitter_url = models.URLField('X(Twitter) URL', blank=True, default='',
-        help_text='例: https://twitter.com/youraccount')
-    instagram_url = models.URLField('Instagram URL', blank=True, default='',
-        help_text='例: https://www.instagram.com/youraccount')
+    twitter_url = models.URLField(_('X(Twitter) URL'), blank=True, default='',
+        help_text=_('例: https://twitter.com/youraccount'))
+    instagram_url = models.URLField(_('Instagram URL'), blank=True, default='',
+        help_text=_('例: https://www.instagram.com/youraccount'))
 
     # ヒーローバナー
-    show_hero_banner = models.BooleanField('ヒーローバナー表示', default=True)
+    show_hero_banner = models.BooleanField(_('ヒーローバナー表示'), default=True)
 
     # 予約ランキング
-    show_ranking = models.BooleanField('予約ランキング表示', default=True)
-    ranking_limit = models.IntegerField('ランキング表示件数', default=5)
+    show_ranking = models.BooleanField(_('予約ランキング表示'), default=True)
+    ranking_limit = models.IntegerField(_('ランキング表示件数'), default=5)
 
     # 外部リンク
-    show_sidebar_external_links = models.BooleanField('外部リンク表示', default=True)
+    show_sidebar_external_links = models.BooleanField(_('外部リンク表示'), default=True)
 
     # Instagram埋め込みHTML
-    instagram_embed_html = models.TextField('Instagram埋め込みHTML', blank=True, default='',
-        help_text='Instagramの投稿埋め込みHTMLを貼り付けてください')
+    instagram_embed_html = models.TextField(_('Instagram埋め込みHTML'), blank=True, default='',
+        help_text=_('Instagramの投稿埋め込みHTMLを貼り付けてください'))
 
     # スタッフ呼称設定
-    staff_label = models.CharField('スタッフの呼称', max_length=50, default='キャスト',
-        help_text='管理画面・フロントで「占い師」「スタッフ」の代わりに表示する名称（例: キャスト、セラピスト）')
+    staff_label = models.CharField(_('スタッフの呼称'), max_length=50, default='キャスト',
+        help_text=_('管理画面・フロントで「占い師」「スタッフ」の代わりに表示する名称（例: キャスト、セラピスト）'))
 
     # AIチャットウィジェット
-    show_ai_chat = models.BooleanField('AIアシスタント表示', default=False,
-        help_text='フロントページにAIアシスタントチャットを表示するかどうか')
+    show_ai_chat = models.BooleanField(_('AIアシスタント表示'), default=False,
+        help_text=_('フロントページにAIアシスタントチャットを表示するかどうか'))
 
     # 法定ページ（HTML編集可能）
-    privacy_policy_html = models.TextField('プライバシーポリシー', blank=True, default='',
-        help_text='HTMLで記述。空の場合はデフォルトテンプレートが表示されます。')
-    tokushoho_html = models.TextField('特定商取引法に基づく表記', blank=True, default='',
-        help_text='HTMLで記述。空の場合はデフォルトテンプレートが表示されます。')
+    privacy_policy_html = models.TextField(_('プライバシーポリシー'), blank=True, default='',
+        help_text=_('HTMLで記述。空の場合はデフォルトテンプレートが表示されます。'))
+    tokushoho_html = models.TextField(_('特定商取引法に基づく表記'), blank=True, default='',
+        help_text=_('HTMLで記述。空の場合はデフォルトテンプレートが表示されます。'))
 
     class Meta:
         app_label = 'booking'
-        verbose_name = 'サイト設定'
-        verbose_name_plural = 'サイト設定'
+        verbose_name = _('サイト設定')
+        verbose_name_plural = _('サイト設定')
 
     def __str__(self):
         return self.site_name
@@ -1140,18 +1141,18 @@ class HomepageCustomBlock(models.Model):
         ('below_cards', 'カードの下'),
         ('sidebar', 'サイドバー'),
     ]
-    title = models.CharField('タイトル', max_length=200)
-    content = models.TextField('HTML内容', help_text='HTMLを直接記述できます')
-    position = models.CharField('表示位置', max_length=20, choices=POSITION_CHOICES, default='below_cards')
-    sort_order = models.IntegerField('並び順', default=0)
-    is_active = models.BooleanField('公開', default=True)
-    created_at = models.DateTimeField('作成日時', auto_now_add=True)
-    updated_at = models.DateTimeField('更新日時', auto_now=True)
+    title = models.CharField(_('タイトル'), max_length=200)
+    content = models.TextField(_('HTML内容'), help_text=_('HTMLを直接記述できます'))
+    position = models.CharField(_('表示位置'), max_length=20, choices=POSITION_CHOICES, default='below_cards')
+    sort_order = models.IntegerField(_('並び順'), default=0)
+    is_active = models.BooleanField(_('公開'), default=True)
+    created_at = models.DateTimeField(_('作成日時'), auto_now_add=True)
+    updated_at = models.DateTimeField(_('更新日時'), auto_now=True)
 
     class Meta:
         app_label = 'booking'
-        verbose_name = 'カスタムブロック'
-        verbose_name_plural = 'カスタムブロック'
+        verbose_name = _('カスタムブロック')
+        verbose_name_plural = _('カスタムブロック')
         ordering = ['position', 'sort_order']
 
     def __str__(self):
@@ -1177,36 +1178,36 @@ class HeroBanner(models.Model):
         ('staff', '占い師'),
         ('url', 'カスタムURL'),
     ]
-    title = models.CharField('タイトル', max_length=200)
-    image = models.ImageField('バナー画像', upload_to='hero_banners/')
+    title = models.CharField(_('タイトル'), max_length=200)
+    image = models.ImageField(_('バナー画像'), upload_to='hero_banners/')
     image_position = models.CharField(
-        '画像表示位置', max_length=20,
+        _('画像表示位置'), max_length=20,
         choices=IMAGE_POSITION_CHOICES, default='center',
-        help_text='バナー内で画像のどの部分を表示するかを指定します',
+        help_text=_('バナー内で画像のどの部分を表示するかを指定します'),
     )
     link_type = models.CharField(
-        'リンク種別', max_length=10,
+        _('リンク種別'), max_length=10,
         choices=LINK_TYPE_CHOICES, default='none',
     )
     linked_store = models.ForeignKey(
-        'Store', verbose_name='リンク先店舗',
+        'Store', verbose_name=_('リンク先店舗'),
         null=True, blank=True, on_delete=models.SET_NULL,
     )
     linked_staff = models.ForeignKey(
-        'Staff', verbose_name='リンク先占い師',
+        'Staff', verbose_name=_('リンク先占い師'),
         null=True, blank=True, on_delete=models.SET_NULL,
     )
-    link_url = models.URLField('リンクURL', blank=True, default='')
-    sort_order = models.IntegerField('並び順', default=0)
-    is_active = models.BooleanField('公開', default=True)
-    created_at = models.DateTimeField('作成日時', auto_now_add=True)
-    updated_at = models.DateTimeField('更新日時', auto_now=True)
+    link_url = models.URLField(_('リンクURL'), blank=True, default='')
+    sort_order = models.IntegerField(_('並び順'), default=0)
+    is_active = models.BooleanField(_('公開'), default=True)
+    created_at = models.DateTimeField(_('作成日時'), auto_now_add=True)
+    updated_at = models.DateTimeField(_('更新日時'), auto_now=True)
 
     class Meta:
         app_label = 'booking'
         ordering = ['sort_order']
-        verbose_name = 'ヒーローバナー'
-        verbose_name_plural = 'ヒーローバナー'
+        verbose_name = _('ヒーローバナー')
+        verbose_name_plural = _('ヒーローバナー')
 
     def __str__(self):
         return self.title
@@ -1232,20 +1233,20 @@ class BannerAd(models.Model):
         ('after_campaign', 'キャンペーンの後'),
         ('sidebar', 'サイドバー'),
     ]
-    title = models.CharField('タイトル', max_length=200)
-    image = models.ImageField('バナー画像', upload_to='banner_ads/')
-    link_url = models.URLField('リンクURL', blank=True, default='')
-    position = models.CharField('表示位置', max_length=20, choices=POSITION_CHOICES, default='after_hero')
-    sort_order = models.IntegerField('並び順', default=0)
-    is_active = models.BooleanField('公開', default=True)
-    created_at = models.DateTimeField('作成日時', auto_now_add=True)
-    updated_at = models.DateTimeField('更新日時', auto_now=True)
+    title = models.CharField(_('タイトル'), max_length=200)
+    image = models.ImageField(_('バナー画像'), upload_to='banner_ads/')
+    link_url = models.URLField(_('リンクURL'), blank=True, default='')
+    position = models.CharField(_('表示位置'), max_length=20, choices=POSITION_CHOICES, default='after_hero')
+    sort_order = models.IntegerField(_('並び順'), default=0)
+    is_active = models.BooleanField(_('公開'), default=True)
+    created_at = models.DateTimeField(_('作成日時'), auto_now_add=True)
+    updated_at = models.DateTimeField(_('更新日時'), auto_now=True)
 
     class Meta:
         app_label = 'booking'
         ordering = ['position', 'sort_order']
-        verbose_name = 'バナー広告'
-        verbose_name_plural = 'バナー広告'
+        verbose_name = _('バナー広告')
+        verbose_name_plural = _('バナー広告')
 
     def __str__(self):
         return f'{self.title} ({self.get_position_display()})'
@@ -1253,18 +1254,18 @@ class BannerAd(models.Model):
 
 class ExternalLink(models.Model):
     """外部リンク"""
-    title = models.CharField('タイトル', max_length=200)
-    url = models.URLField('URL')
-    description = models.TextField('説明', blank=True, default='')
-    sort_order = models.IntegerField('並び順', default=0)
-    is_active = models.BooleanField('公開', default=True)
-    open_in_new_tab = models.BooleanField('新しいタブで開く', default=True)
+    title = models.CharField(_('タイトル'), max_length=200)
+    url = models.URLField(_('URL'))
+    description = models.TextField(_('説明'), blank=True, default='')
+    sort_order = models.IntegerField(_('並び順'), default=0)
+    is_active = models.BooleanField(_('公開'), default=True)
+    open_in_new_tab = models.BooleanField(_('新しいタブで開く'), default=True)
 
     class Meta:
         app_label = 'booking'
         ordering = ['sort_order']
-        verbose_name = '外部リンク'
-        verbose_name_plural = '外部リンク'
+        verbose_name = _('外部リンク')
+        verbose_name_plural = _('外部リンク')
 
     def __str__(self):
         return self.title
@@ -1291,32 +1292,32 @@ class EmploymentContract(models.Model):
     ]
 
     staff = models.OneToOneField(
-        Staff, verbose_name='スタッフ', on_delete=models.CASCADE, related_name='employment_contract',
+        Staff, verbose_name=_('スタッフ'), on_delete=models.CASCADE, related_name='employment_contract',
     )
-    employment_type = models.CharField('雇用形態', max_length=20, choices=EMPLOYMENT_TYPE_CHOICES, default='part_time')
-    pay_type = models.CharField('給与形態', max_length=10, choices=PAY_TYPE_CHOICES, default='hourly')
-    hourly_rate = models.IntegerField('時給（円）', default=0, help_text='時給制の場合に設定')
-    monthly_salary = models.IntegerField('月給（円）', default=0, help_text='月給制の場合に設定')
+    employment_type = models.CharField(_('雇用形態'), max_length=20, choices=EMPLOYMENT_TYPE_CHOICES, default='part_time')
+    pay_type = models.CharField(_('給与形態'), max_length=10, choices=PAY_TYPE_CHOICES, default='hourly')
+    hourly_rate = models.IntegerField(_('時給（円）'), default=0, help_text=_('時給制の場合に設定'))
+    monthly_salary = models.IntegerField(_('月給（円）'), default=0, help_text=_('月給制の場合に設定'))
 
-    commute_allowance = models.IntegerField('通勤手当（円/月）', default=0)
-    housing_allowance = models.IntegerField('住宅手当（円/月）', default=0)
-    family_allowance = models.IntegerField('家族手当（円/月）', default=0)
+    commute_allowance = models.IntegerField(_('通勤手当（円/月）'), default=0)
+    housing_allowance = models.IntegerField(_('住宅手当（円/月）'), default=0)
+    family_allowance = models.IntegerField(_('家族手当（円/月）'), default=0)
 
     standard_monthly_remuneration = models.IntegerField(
-        '標準報酬月額（円）', default=0,
-        help_text='社会保険料計算の基準額。4〜6月の平均報酬から算定。',
+        _('標準報酬月額（円）'), default=0,
+        help_text=_('社会保険料計算の基準額。4〜6月の平均報酬から算定。'),
     )
-    resident_tax_monthly = models.IntegerField('住民税月額（円）', default=0, help_text='特別徴収の月額')
+    resident_tax_monthly = models.IntegerField(_('住民税月額（円）'), default=0, help_text=_('特別徴収の月額'))
 
-    birth_date = models.DateField('生年月日', null=True, blank=True, help_text='介護保険適用判定に使用（40歳以上）')
-    contract_start = models.DateField('契約開始日', null=True, blank=True)
-    contract_end = models.DateField('契約終了日', null=True, blank=True)
-    is_active = models.BooleanField('有効', default=True)
+    birth_date = models.DateField(_('生年月日'), null=True, blank=True, help_text=_('介護保険適用判定に使用（40歳以上）'))
+    contract_start = models.DateField(_('契約開始日'), null=True, blank=True)
+    contract_end = models.DateField(_('契約終了日'), null=True, blank=True)
+    is_active = models.BooleanField(_('有効'), default=True)
 
     class Meta:
         app_label = 'booking'
-        verbose_name = '雇用契約'
-        verbose_name_plural = '雇用契約'
+        verbose_name = _('雇用契約')
+        verbose_name_plural = _('雇用契約')
 
     def __str__(self):
         return f'{self.staff.name} ({self.get_employment_type_display()} / {self.get_pay_type_display()})'
@@ -1330,27 +1331,27 @@ class WorkAttendance(models.Model):
         ('corrected', '修正済み'),
     ]
 
-    staff = models.ForeignKey(Staff, verbose_name='スタッフ', on_delete=models.CASCADE, related_name='attendances')
-    date = models.DateField('日付', db_index=True)
-    clock_in = models.TimeField('出勤時刻', null=True, blank=True)
-    clock_out = models.TimeField('退勤時刻', null=True, blank=True)
+    staff = models.ForeignKey(Staff, verbose_name=_('スタッフ'), on_delete=models.CASCADE, related_name='attendances')
+    date = models.DateField(_('日付'), db_index=True)
+    clock_in = models.TimeField(_('出勤時刻'), null=True, blank=True)
+    clock_out = models.TimeField(_('退勤時刻'), null=True, blank=True)
 
-    regular_minutes = models.IntegerField('通常勤務（分）', default=0)
-    overtime_minutes = models.IntegerField('残業（分）', default=0)
-    late_night_minutes = models.IntegerField('深夜勤務（分）', default=0)
-    holiday_minutes = models.IntegerField('休日勤務（分）', default=0)
-    break_minutes = models.IntegerField('休憩（分）', default=0)
+    regular_minutes = models.IntegerField(_('通常勤務（分）'), default=0)
+    overtime_minutes = models.IntegerField(_('残業（分）'), default=0)
+    late_night_minutes = models.IntegerField(_('深夜勤務（分）'), default=0)
+    holiday_minutes = models.IntegerField(_('休日勤務（分）'), default=0)
+    break_minutes = models.IntegerField(_('休憩（分）'), default=0)
 
-    source = models.CharField('データソース', max_length=20, choices=SOURCE_CHOICES, default='shift')
+    source = models.CharField(_('データソース'), max_length=20, choices=SOURCE_CHOICES, default='shift')
     source_assignment = models.ForeignKey(
-        ShiftAssignment, verbose_name='元シフト', on_delete=models.SET_NULL,
+        ShiftAssignment, verbose_name=_('元シフト'), on_delete=models.SET_NULL,
         null=True, blank=True, related_name='derived_attendances',
     )
 
     class Meta:
         app_label = 'booking'
-        verbose_name = '勤怠記録'
-        verbose_name_plural = '勤怠記録'
+        verbose_name = _('勤怠記録')
+        verbose_name_plural = _('勤怠記録')
         unique_together = ('staff', 'date')
         indexes = [
             models.Index(fields=['staff', 'date']),
@@ -1374,19 +1375,19 @@ class PayrollPeriod(models.Model):
         ('paid', '支払済'),
     ]
 
-    store = models.ForeignKey(Store, verbose_name='店舗', on_delete=models.CASCADE, related_name='payroll_periods')
-    year_month = models.CharField('対象年月', max_length=7, help_text='YYYY-MM形式')
-    period_start = models.DateField('計算期間開始')
-    period_end = models.DateField('計算期間終了')
-    status = models.CharField('状態', max_length=20, choices=STATUS_CHOICES, default='draft')
-    payment_date = models.DateField('支給日', null=True, blank=True)
-    created_at = models.DateTimeField('作成日時', auto_now_add=True)
-    updated_at = models.DateTimeField('更新日時', auto_now=True)
+    store = models.ForeignKey(Store, verbose_name=_('店舗'), on_delete=models.CASCADE, related_name='payroll_periods')
+    year_month = models.CharField(_('対象年月'), max_length=7, help_text=_('YYYY-MM形式'))
+    period_start = models.DateField(_('計算期間開始'))
+    period_end = models.DateField(_('計算期間終了'))
+    status = models.CharField(_('状態'), max_length=20, choices=STATUS_CHOICES, default='draft')
+    payment_date = models.DateField(_('支給日'), null=True, blank=True)
+    created_at = models.DateTimeField(_('作成日時'), auto_now_add=True)
+    updated_at = models.DateTimeField(_('更新日時'), auto_now=True)
 
     class Meta:
         app_label = 'booking'
-        verbose_name = '給与計算期間'
-        verbose_name_plural = '給与計算期間'
+        verbose_name = _('給与計算期間')
+        verbose_name_plural = _('給与計算期間')
         unique_together = ('store', 'year_month')
 
     def __str__(self):
@@ -1395,36 +1396,36 @@ class PayrollPeriod(models.Model):
 
 class PayrollEntry(models.Model):
     """個人別給与明細"""
-    period = models.ForeignKey(PayrollPeriod, verbose_name='給与期間', on_delete=models.CASCADE, related_name='entries')
-    staff = models.ForeignKey(Staff, verbose_name='スタッフ', on_delete=models.CASCADE, related_name='payroll_entries')
+    period = models.ForeignKey(PayrollPeriod, verbose_name=_('給与期間'), on_delete=models.CASCADE, related_name='entries')
+    staff = models.ForeignKey(Staff, verbose_name=_('スタッフ'), on_delete=models.CASCADE, related_name='payroll_entries')
     contract = models.ForeignKey(
-        EmploymentContract, verbose_name='雇用契約', on_delete=models.SET_NULL,
+        EmploymentContract, verbose_name=_('雇用契約'), on_delete=models.SET_NULL,
         null=True, blank=True, related_name='payroll_entries',
     )
 
-    total_work_days = models.IntegerField('出勤日数', default=0)
-    total_regular_hours = models.DecimalField('通常勤務時間', max_digits=6, decimal_places=2, default=0)
-    total_overtime_hours = models.DecimalField('残業時間', max_digits=6, decimal_places=2, default=0)
-    total_late_night_hours = models.DecimalField('深夜勤務時間', max_digits=6, decimal_places=2, default=0)
-    total_holiday_hours = models.DecimalField('休日勤務時間', max_digits=6, decimal_places=2, default=0)
+    total_work_days = models.IntegerField(_('出勤日数'), default=0)
+    total_regular_hours = models.DecimalField(_('通常勤務時間'), max_digits=6, decimal_places=2, default=0)
+    total_overtime_hours = models.DecimalField(_('残業時間'), max_digits=6, decimal_places=2, default=0)
+    total_late_night_hours = models.DecimalField(_('深夜勤務時間'), max_digits=6, decimal_places=2, default=0)
+    total_holiday_hours = models.DecimalField(_('休日勤務時間'), max_digits=6, decimal_places=2, default=0)
 
-    base_pay = models.IntegerField('基本給', default=0)
-    overtime_pay = models.IntegerField('残業手当', default=0)
-    late_night_pay = models.IntegerField('深夜手当', default=0)
-    holiday_pay = models.IntegerField('休日手当', default=0)
-    allowances = models.IntegerField('各種手当合計', default=0, help_text='通勤+住宅+家族手当')
+    base_pay = models.IntegerField(_('基本給'), default=0)
+    overtime_pay = models.IntegerField(_('残業手当'), default=0)
+    late_night_pay = models.IntegerField(_('深夜手当'), default=0)
+    holiday_pay = models.IntegerField(_('休日手当'), default=0)
+    allowances = models.IntegerField(_('各種手当合計'), default=0, help_text=_('通勤+住宅+家族手当'))
 
-    gross_pay = models.IntegerField('総支給額', default=0)
-    total_deductions = models.IntegerField('控除合計', default=0)
-    net_pay = models.IntegerField('差引支給額', default=0)
+    gross_pay = models.IntegerField(_('総支給額'), default=0)
+    total_deductions = models.IntegerField(_('控除合計'), default=0)
+    net_pay = models.IntegerField(_('差引支給額'), default=0)
 
-    created_at = models.DateTimeField('作成日時', auto_now_add=True)
-    updated_at = models.DateTimeField('更新日時', auto_now=True)
+    created_at = models.DateTimeField(_('作成日時'), auto_now_add=True)
+    updated_at = models.DateTimeField(_('更新日時'), auto_now=True)
 
     class Meta:
         app_label = 'booking'
-        verbose_name = '給与明細'
-        verbose_name_plural = '給与明細'
+        verbose_name = _('給与明細')
+        verbose_name_plural = _('給与明細')
         unique_together = ('period', 'staff')
 
     def __str__(self):
@@ -1444,15 +1445,15 @@ class PayrollDeduction(models.Model):
         ('other', 'その他'),
     ]
 
-    entry = models.ForeignKey(PayrollEntry, verbose_name='給与明細', on_delete=models.CASCADE, related_name='deductions')
-    deduction_type = models.CharField('控除種別', max_length=30, choices=DEDUCTION_TYPE_CHOICES)
-    amount = models.IntegerField('金額', default=0)
-    is_employer_only = models.BooleanField('事業主負担のみ', default=False, help_text='労災保険等、従業員控除なし')
+    entry = models.ForeignKey(PayrollEntry, verbose_name=_('給与明細'), on_delete=models.CASCADE, related_name='deductions')
+    deduction_type = models.CharField(_('控除種別'), max_length=30, choices=DEDUCTION_TYPE_CHOICES)
+    amount = models.IntegerField(_('金額'), default=0)
+    is_employer_only = models.BooleanField(_('事業主負担のみ'), default=False, help_text=_('労災保険等、従業員控除なし'))
 
     class Meta:
         app_label = 'booking'
-        verbose_name = '控除明細'
-        verbose_name_plural = '控除明細'
+        verbose_name = _('控除明細')
+        verbose_name_plural = _('控除明細')
 
     def __str__(self):
         label = self.get_deduction_type_display()
@@ -1461,29 +1462,29 @@ class PayrollDeduction(models.Model):
 
 class SalaryStructure(models.Model):
     """給与体系（Store 1:1）— 社会保険料率・割増率"""
-    store = models.OneToOneField(Store, verbose_name='店舗', on_delete=models.CASCADE, related_name='salary_structure')
+    store = models.OneToOneField(Store, verbose_name=_('店舗'), on_delete=models.CASCADE, related_name='salary_structure')
 
     # 社会保険料率（従業員負担分、%表記→小数で格納）
-    pension_rate = models.DecimalField('厚生年金料率(%)', max_digits=5, decimal_places=3, default=Decimal('9.150'),
-        help_text='従業員負担分 例: 9.150')
-    health_insurance_rate = models.DecimalField('健康保険料率(%)', max_digits=5, decimal_places=3, default=Decimal('5.000'),
-        help_text='従業員負担分 例: 5.000（協会けんぽ東京支部）')
-    employment_insurance_rate = models.DecimalField('雇用保険料率(%)', max_digits=5, decimal_places=3, default=Decimal('0.600'),
-        help_text='従業員負担分 例: 0.600')
-    long_term_care_rate = models.DecimalField('介護保険料率(%)', max_digits=5, decimal_places=3, default=Decimal('0.820'),
-        help_text='40歳以上のみ適用 例: 0.820')
-    workers_comp_rate = models.DecimalField('労災保険料率(%)', max_digits=5, decimal_places=3, default=Decimal('0.300'),
-        help_text='事業主全額負担（記録用） 例: 0.300')
+    pension_rate = models.DecimalField(_('厚生年金料率(%)'), max_digits=5, decimal_places=3, default=Decimal('9.150'),
+        help_text=_('従業員負担分 例: 9.150'))
+    health_insurance_rate = models.DecimalField(_('健康保険料率(%)'), max_digits=5, decimal_places=3, default=Decimal('5.000'),
+        help_text=_('従業員負担分 例: 5.000（協会けんぽ東京支部）'))
+    employment_insurance_rate = models.DecimalField(_('雇用保険料率(%)'), max_digits=5, decimal_places=3, default=Decimal('0.600'),
+        help_text=_('従業員負担分 例: 0.600'))
+    long_term_care_rate = models.DecimalField(_('介護保険料率(%)'), max_digits=5, decimal_places=3, default=Decimal('0.820'),
+        help_text=_('40歳以上のみ適用 例: 0.820'))
+    workers_comp_rate = models.DecimalField(_('労災保険料率(%)'), max_digits=5, decimal_places=3, default=Decimal('0.300'),
+        help_text=_('事業主全額負担（記録用） 例: 0.300'))
 
     # 割増率
-    overtime_multiplier = models.DecimalField('残業割増率', max_digits=4, decimal_places=2, default=Decimal('1.25'))
-    late_night_multiplier = models.DecimalField('深夜割増率', max_digits=4, decimal_places=2, default=Decimal('1.35'))
-    holiday_multiplier = models.DecimalField('休日割増率', max_digits=4, decimal_places=2, default=Decimal('1.50'))
+    overtime_multiplier = models.DecimalField(_('残業割増率'), max_digits=4, decimal_places=2, default=Decimal('1.25'))
+    late_night_multiplier = models.DecimalField(_('深夜割増率'), max_digits=4, decimal_places=2, default=Decimal('1.35'))
+    holiday_multiplier = models.DecimalField(_('休日割増率'), max_digits=4, decimal_places=2, default=Decimal('1.50'))
 
     class Meta:
         app_label = 'booking'
-        verbose_name = '給与体系'
-        verbose_name_plural = '給与体系'
+        verbose_name = _('給与体系')
+        verbose_name_plural = _('給与体系')
 
     def __str__(self):
         return f'{self.store.name} 給与体系'
@@ -1516,19 +1517,19 @@ class SecurityAudit(models.Model):
         ('dependencies', '依存関係'),
     ]
 
-    run_id = models.UUIDField('実行ID', default=uuid.uuid4, db_index=True)
-    check_name = models.CharField('チェック名', max_length=100)
-    category = models.CharField('カテゴリ', max_length=30, choices=CATEGORY_CHOICES)
-    severity = models.CharField('重大度', max_length=10, choices=SEVERITY_CHOICES)
-    status = models.CharField('結果', max_length=10, choices=STATUS_CHOICES)
-    message = models.TextField('メッセージ')
-    recommendation = models.TextField('推奨事項', blank=True, default='')
-    created_at = models.DateTimeField('実行日時', auto_now_add=True, db_index=True)
+    run_id = models.UUIDField(_('実行ID'), default=uuid.uuid4, db_index=True)
+    check_name = models.CharField(_('チェック名'), max_length=100)
+    category = models.CharField(_('カテゴリ'), max_length=30, choices=CATEGORY_CHOICES)
+    severity = models.CharField(_('重大度'), max_length=10, choices=SEVERITY_CHOICES)
+    status = models.CharField(_('結果'), max_length=10, choices=STATUS_CHOICES)
+    message = models.TextField(_('メッセージ'))
+    recommendation = models.TextField(_('推奨事項'), blank=True, default='')
+    created_at = models.DateTimeField(_('実行日時'), auto_now_add=True, db_index=True)
 
     class Meta:
         app_label = 'booking'
-        verbose_name = 'セキュリティ監査'
-        verbose_name_plural = 'セキュリティ監査'
+        verbose_name = _('セキュリティ監査')
+        verbose_name_plural = _('セキュリティ監査')
         ordering = ['-created_at']
 
     def __str__(self):
@@ -1551,24 +1552,24 @@ class SecurityLog(models.Model):
         ('info', '情報'),
     ]
 
-    event_type = models.CharField('イベント種別', max_length=30, choices=EVENT_TYPE_CHOICES, db_index=True)
-    severity = models.CharField('重要度', max_length=10, choices=SEVERITY_CHOICES, default='info')
+    event_type = models.CharField(_('イベント種別'), max_length=30, choices=EVENT_TYPE_CHOICES, db_index=True)
+    severity = models.CharField(_('重要度'), max_length=10, choices=SEVERITY_CHOICES, default='info')
     user = models.ForeignKey(
-        settings.AUTH_USER_MODEL, verbose_name='ユーザー',
+        settings.AUTH_USER_MODEL, verbose_name=_('ユーザー'),
         on_delete=models.SET_NULL, null=True, blank=True,
     )
-    username = models.CharField('ユーザー名', max_length=150, blank=True, default='')
-    ip_address = models.GenericIPAddressField('IPアドレス', null=True, blank=True)
-    user_agent = models.TextField('User-Agent', blank=True, default='')
-    path = models.CharField('パス', max_length=500, blank=True, default='')
-    method = models.CharField('メソッド', max_length=10, blank=True, default='')
-    detail = models.TextField('詳細', blank=True, default='')
-    created_at = models.DateTimeField('発生日時', auto_now_add=True, db_index=True)
+    username = models.CharField(_('ユーザー名'), max_length=150, blank=True, default='')
+    ip_address = models.GenericIPAddressField(_('IPアドレス'), null=True, blank=True)
+    user_agent = models.TextField(_('User-Agent'), blank=True, default='')
+    path = models.CharField(_('パス'), max_length=500, blank=True, default='')
+    method = models.CharField(_('メソッド'), max_length=10, blank=True, default='')
+    detail = models.TextField(_('詳細'), blank=True, default='')
+    created_at = models.DateTimeField(_('発生日時'), auto_now_add=True, db_index=True)
 
     class Meta:
         app_label = 'booking'
-        verbose_name = 'セキュリティログ'
-        verbose_name_plural = 'セキュリティログ'
+        verbose_name = _('セキュリティログ')
+        verbose_name_plural = _('セキュリティログ')
         ordering = ['-created_at']
         indexes = [
             models.Index(fields=['event_type', 'created_at']),
@@ -1595,20 +1596,20 @@ class CostReport(models.Model):
         ('total', '合計'),
     ]
 
-    run_id = models.UUIDField('実行ID', default=uuid.uuid4, db_index=True)
-    check_name = models.CharField('チェック名', max_length=100)
-    resource_type = models.CharField('リソース種別', max_length=10, choices=RESOURCE_TYPE_CHOICES)
-    resource_id = models.CharField('リソースID', max_length=200, blank=True, default='')
-    status = models.CharField('状態', max_length=10, choices=STATUS_CHOICES)
-    estimated_monthly_cost = models.DecimalField('推定月額コスト', max_digits=10, decimal_places=2, default=0)
-    detail = models.TextField('詳細', blank=True, default='')
-    recommendation = models.TextField('推奨事項', blank=True, default='')
-    created_at = models.DateTimeField('実行日時', auto_now_add=True, db_index=True)
+    run_id = models.UUIDField(_('実行ID'), default=uuid.uuid4, db_index=True)
+    check_name = models.CharField(_('チェック名'), max_length=100)
+    resource_type = models.CharField(_('リソース種別'), max_length=10, choices=RESOURCE_TYPE_CHOICES)
+    resource_id = models.CharField(_('リソースID'), max_length=200, blank=True, default='')
+    status = models.CharField(_('状態'), max_length=10, choices=STATUS_CHOICES)
+    estimated_monthly_cost = models.DecimalField(_('推定月額コスト'), max_digits=10, decimal_places=2, default=0)
+    detail = models.TextField(_('詳細'), blank=True, default='')
+    recommendation = models.TextField(_('推奨事項'), blank=True, default='')
+    created_at = models.DateTimeField(_('実行日時'), auto_now_add=True, db_index=True)
 
     class Meta:
         app_label = 'booking'
-        verbose_name = 'AWSコストレポート'
-        verbose_name_plural = 'AWSコストレポート'
+        verbose_name = _('AWSコストレポート')
+        verbose_name_plural = _('AWSコストレポート')
         ordering = ['-created_at']
 
     def __str__(self):
@@ -1623,17 +1624,17 @@ class AdminMenuConfig(models.Model):
         ('manager', '店長'),
         ('staff', 'スタッフ'),
     ]
-    role = models.CharField('ロール', max_length=20, choices=ROLE_CHOICES, unique=True,
-        help_text='superuserは常に全モデルを表示するため設定不要')
-    allowed_models = models.JSONField('表示許可モデル', default=list)
-    updated_at = models.DateTimeField('更新日時', auto_now=True)
-    updated_by = models.ForeignKey('auth.User', verbose_name='更新者',
+    role = models.CharField(_('ロール'), max_length=20, choices=ROLE_CHOICES, unique=True,
+        help_text=_('superuserは常に全モデルを表示するため設定不要'))
+    allowed_models = models.JSONField(_('表示許可モデル'), default=list)
+    updated_at = models.DateTimeField(_('更新日時'), auto_now=True)
+    updated_by = models.ForeignKey('auth.User', verbose_name=_('更新者'),
         on_delete=models.SET_NULL, null=True, blank=True)
 
     class Meta:
         app_label = 'booking'
-        verbose_name = 'メニュー権限設定'
-        verbose_name_plural = 'メニュー権限設定'
+        verbose_name = _('メニュー権限設定')
+        verbose_name_plural = _('メニュー権限設定')
 
     def __str__(self):
         return f'{self.get_role_display()} メニュー設定'

@@ -35,7 +35,7 @@ class RestaurantDashboardView(TemplateView):
 
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
-        ctx['title'] = '売り上げダッシュボード'
+        ctx['title'] = '売上分析'
         ctx['has_permission'] = True
         return ctx
 
@@ -50,32 +50,26 @@ class DashboardLayoutAPIView(APIView):
             layout = DashboardLayout.objects.get(user=request.user)
             return Response({
                 'layout': layout.layout_json,
-                'dark_mode': layout.dark_mode,
             })
         except DashboardLayout.DoesNotExist:
             return Response({
                 'layout': DEFAULT_DASHBOARD_LAYOUT,
-                'dark_mode': False,
             })
 
     def put(self, request):
         if not request.user.is_authenticated:
             return Response({'detail': 'login required'}, status=status.HTTP_403_FORBIDDEN)
         layout_data = request.data.get('layout')
-        dark_mode = request.data.get('dark_mode')
 
         obj, created = DashboardLayout.objects.get_or_create(
             user=request.user,
             defaults={
                 'layout_json': layout_data if layout_data is not None else DEFAULT_DASHBOARD_LAYOUT,
-                'dark_mode': dark_mode if dark_mode is not None else False,
             }
         )
         if not created:
             if layout_data is not None:
                 obj.layout_json = layout_data
-            if dark_mode is not None:
-                obj.dark_mode = dark_mode
             obj.save()
 
         return Response({'ok': True})

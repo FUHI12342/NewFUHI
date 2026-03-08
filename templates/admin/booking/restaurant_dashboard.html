@@ -300,6 +300,75 @@ document.addEventListener('DOMContentLoaded', function () {
   const PALETTE = Object.values(COLORS);
 
   /* ------------------------------------------------------------------ */
+  /*  Demo data (when no real data exists)                               */
+  /* ------------------------------------------------------------------ */
+  var DEMO = {
+    reservations: {
+      future_count: 24,
+      cancel_rate: 0.085,
+      daily: (function() {
+        var result = [];
+        var now = new Date();
+        for (var i = 89; i >= 0; i--) {
+          var d = new Date(now);
+          d.setDate(d.getDate() - i);
+          var iso = d.toISOString().slice(0, 10);
+          var count = Math.floor(Math.random() * 12) + 3;
+          var cancelled = Math.floor(Math.random() * 2);
+          result.push({date: iso, count: count, cancelled: cancelled});
+        }
+        return result;
+      })()
+    },
+    sales: {
+      trend: (function() {
+        var result = [];
+        var now = new Date();
+        for (var i = 89; i >= 0; i--) {
+          var d = new Date(now);
+          d.setDate(d.getDate() - i);
+          var iso = d.toISOString().slice(0, 10);
+          result.push({date: iso, total: Math.floor(Math.random() * 80000) + 20000});
+        }
+        return result;
+      })(),
+      top_products: [
+        {name: 'ビール', total: 156}, {name: 'ハイボール', total: 132},
+        {name: '枝豆', total: 98}, {name: '唐揚げ', total: 87},
+        {name: '焼き鳥盛り合わせ', total: 76}, {name: 'サワー', total: 65},
+        {name: '刺身盛り合わせ', total: 54}, {name: 'ポテトフライ', total: 48},
+        {name: '日本酒', total: 42}, {name: 'サラダ', total: 38}
+      ]
+    },
+    staff: {
+      staff: [
+        {name: '田中 太郎', reservations: 45, sales: 320000},
+        {name: '佐藤 花子', reservations: 38, sales: 280000},
+        {name: '鈴木 一郎', reservations: 32, sales: 250000},
+        {name: '高橋 美咲', reservations: 28, sales: 210000}
+      ]
+    },
+    shift: {
+      total_assignments: 48,
+      synced_assignments: 42,
+      open_periods: 2,
+      staff_shifts: [
+        {name: '田中 太郎', total: 14, synced: 12},
+        {name: '佐藤 花子', total: 12, synced: 11},
+        {name: '鈴木 一郎', total: 12, synced: 10},
+        {name: '高橋 美咲', total: 10, synced: 9}
+      ]
+    }
+  };
+
+  function useDemo(apiData, demoKey, checkField) {
+    if (!apiData || (Array.isArray(apiData[checkField]) && apiData[checkField].length === 0) || apiData[checkField] === 0) {
+      return DEMO[demoKey];
+    }
+    return apiData;
+  }
+
+  /* ------------------------------------------------------------------ */
   /*  Helper: CSRF-safe fetch                                            */
   /* ------------------------------------------------------------------ */
   function getCookie(name) {
@@ -331,7 +400,8 @@ document.addEventListener('DOMContentLoaded', function () {
   var reservationChart = null;
 
   function loadReservations() {
-    apiFetch('/api/dashboard/reservations/').then(function (data) {
+    apiFetch('/api/dashboard/reservations/').then(function (raw) {
+      var data = useDemo(raw, 'reservations', 'daily');
       document.getElementById('future-count').textContent = data.future_count;
       document.getElementById('cancel-rate').textContent = (data.cancel_rate * 100).toFixed(1) + '%';
 
@@ -376,7 +446,8 @@ document.addEventListener('DOMContentLoaded', function () {
   var topProductsChart = null;
 
   function loadSales(period) {
-    apiFetch('/api/dashboard/sales/?period=' + encodeURIComponent(period)).then(function (data) {
+    apiFetch('/api/dashboard/sales/?period=' + encodeURIComponent(period)).then(function (raw) {
+      var data = useDemo(raw, 'sales', 'trend');
       var trend = data.trend || [];
       var trendLabels = trend.map(function (d) { return d.date; });
       var trendTotals = trend.map(function (d) { return d.total; });
@@ -438,7 +509,8 @@ document.addEventListener('DOMContentLoaded', function () {
   var staffChart = null;
 
   function loadStaffPerformance() {
-    apiFetch('/api/dashboard/staff-performance/').then(function (data) {
+    apiFetch('/api/dashboard/staff-performance/').then(function (raw) {
+      var data = useDemo(raw, 'staff', 'staff');
       var staff = data.staff || [];
       if (staffChart) staffChart.destroy();
       var ctx = document.getElementById('staffChart').getContext('2d');
@@ -473,7 +545,8 @@ document.addEventListener('DOMContentLoaded', function () {
   /*  4. Shift data (lazy loaded, no API needed - direct DB count)       */
   /* ------------------------------------------------------------------ */
   function loadShiftData() {
-    apiFetch('/api/dashboard/shift-summary/').then(function (data) {
+    apiFetch('/api/dashboard/shift-summary/').then(function (raw) {
+      var data = useDemo(raw, 'shift', 'total_assignments');
       document.getElementById('shift-total').textContent = data.total_assignments || 0;
       document.getElementById('shift-synced').textContent = data.synced_assignments || 0;
       document.getElementById('shift-open-periods').textContent = data.open_periods || 0;

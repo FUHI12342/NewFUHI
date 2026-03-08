@@ -2,6 +2,7 @@ from django.contrib import admin, messages
 from django.contrib.admin.sites import AdminSite
 from django.db.models import F
 from django.utils.html import format_html
+from django.utils.translation import gettext_lazy as _
 import json
 
 from social_django.models import Association, Nonce, UserSocialAuth
@@ -67,7 +68,7 @@ def _is_owner_or_super(request):
 # ==============================
 class ScheduleAdmin(admin.ModelAdmin):
     list_display = (
-        'reservation_number',
+        'short_reservation_number',
         'customer_name',
         'start',
         'end',
@@ -82,6 +83,27 @@ class ScheduleAdmin(admin.ModelAdmin):
     ordering = ('-start',)
 
     readonly_fields = ('reservation_number', 'line_user_hash', 'line_user_enc', 'checkin_qr', 'checked_in_at')
+
+    def short_reservation_number(self, obj):
+        rn = obj.reservation_number or ''
+        short = rn[:9]
+        if len(rn) > 9:
+            return format_html('<span title="{}">{}&hellip;</span>', rn, short)
+        return short
+
+    short_reservation_number.short_description = _('予約番号')
+    short_reservation_number.admin_order_field = 'reservation_number'
+
+    def get_changeform_initial_data(self, request):
+        return super().get_changeform_initial_data(request)
+
+    class Media:
+        pass
+
+    def changelist_view(self, request, extra_context=None):
+        extra_context = extra_context or {}
+        extra_context['add_button_label'] = _('予約を追加')
+        return super().changelist_view(request, extra_context=extra_context)
 
 
 
@@ -99,7 +121,7 @@ class StaffAdmin(admin.ModelAdmin):
             return format_html('<img src="{}" width="50" height="50" />', obj.thumbnail.url)
         return ''
 
-    display_thumbnail.short_description = 'サムネイル'
+    display_thumbnail.short_description = _('サムネイル')
 
     def get_queryset(self, request):
         qs = super().get_queryset(request)
@@ -261,7 +283,7 @@ class IoTEventAdmin(admin.ModelAdmin):
                 parts.append(f"{label}: {data[k]}")
         return " / ".join(parts) if parts else "-"
 
-    sensor_summary.short_description = "センサー要約"
+    sensor_summary.short_description = _("センサー要約")
 
 
 class IRCodeAdmin(admin.ModelAdmin):
@@ -271,7 +293,7 @@ class IRCodeAdmin(admin.ModelAdmin):
     readonly_fields = ('created_at',)
     actions = ['send_ir_code']
 
-    @admin.action(description='IRコードを送信')
+    @admin.action(description=_('IRコードを送信'))
     def send_ir_code(self, request, queryset):
         import json as _json
         count = 0
@@ -377,23 +399,23 @@ class ProductAdmin(admin.ModelAdmin):
 
     def is_sold_out(self, obj):
         return obj.stock <= 0
-    is_sold_out.short_description = '売り切れ'
+    is_sold_out.short_description = _('売り切れ')
     is_sold_out.boolean = True
 
     def display_image(self, obj):
         if obj.image:
             return format_html('<img src="{}" width="40" height="40" style="object-fit:cover;border-radius:4px;" />', obj.image.url)
         return '-'
-    display_image.short_description = '画像'
+    display_image.short_description = _('画像')
 
     actions = ['clear_low_stock_notification', 'stock_in', 'stock_out', 'stock_adjust_zero',
                'enable_ec_visibility', 'disable_ec_visibility']
 
-    @admin.action(description='閾値通知フラグを解除（last_low_stock_notified_at を空にする）')
+    @admin.action(description=_('閾値通知フラグを解除（last_low_stock_notified_at を空にする）'))
     def clear_low_stock_notification(self, request, queryset):
         queryset.update(last_low_stock_notified_at=None)
 
-    @admin.action(description='入庫（1個）')
+    @admin.action(description=_('入庫（1個）'))
     def stock_in(self, request, queryset):
         count = 0
         for product in queryset:
@@ -411,7 +433,7 @@ class ProductAdmin(admin.ModelAdmin):
             count += 1
         self.message_user(request, f'{count} 件の商品に入庫しました。')
 
-    @admin.action(description='出庫（1個、在庫不足時はスキップ）')
+    @admin.action(description=_('出庫（1個、在庫不足時はスキップ）'))
     def stock_out(self, request, queryset):
         count = 0
         skipped = 0
@@ -436,7 +458,7 @@ class ProductAdmin(admin.ModelAdmin):
             msg += f' 在庫不足でスキップ: {skipped} 件'
         self.message_user(request, msg)
 
-    @admin.action(description='棚卸（在庫を0に調整）')
+    @admin.action(description=_('棚卸（在庫を0に調整）'))
     def stock_adjust_zero(self, request, queryset):
         count = 0
         for product in queryset:
@@ -456,12 +478,12 @@ class ProductAdmin(admin.ModelAdmin):
             count += 1
         self.message_user(request, f'{count} 件の商品の在庫を0に調整しました。')
 
-    @admin.action(description='EC公開をONにする')
+    @admin.action(description=_('EC公開をONにする'))
     def enable_ec_visibility(self, request, queryset):
         count = queryset.update(is_ec_visible=True)
         self.message_user(request, f'{count} 件の商品をEC公開にしました。')
 
-    @admin.action(description='EC公開をOFFにする')
+    @admin.action(description=_('EC公開をOFFにする'))
     def disable_ec_visibility(self, request, queryset):
         count = queryset.update(is_ec_visible=False)
         self.message_user(request, f'{count} 件の商品のEC公開を解除しました。')
@@ -526,7 +548,7 @@ class StockMovementAdmin(admin.ModelAdmin):
 
     actions = ['recompute_stock_from_movements']
 
-    @admin.action(description='（上級）入出庫履歴の合計で在庫を再計算して反映')
+    @admin.action(description=_('（上級）入出庫履歴の合計で在庫を再計算して反映'))
     def recompute_stock_from_movements(self, request, queryset):
         """選択した入出庫履歴の product ごとに合計し、Product.stock に反映する。
         注意: 選択範囲のみで計算されるので、運用では「全期間」を対象にする想定。
@@ -674,11 +696,20 @@ class ShiftAssignmentInline(admin.TabularInline):
 
 
 class ShiftPeriodAdmin(admin.ModelAdmin):
-    list_display = ('store', 'year_month', 'deadline', 'status', 'created_by')
-    inlines = [ShiftRequestInline, ShiftAssignmentInline]
+    list_display = ('store', 'year_month', 'deadline', 'status', 'request_count', 'assignment_count', 'created_by')
     actions = ['run_auto_schedule', 'approve_and_sync']
 
-    @admin.action(description='自動スケジューリング実行')
+    def request_count(self, obj):
+        return obj.requests.count()
+
+    request_count.short_description = _('希望数')
+
+    def assignment_count(self, obj):
+        return obj.assignments.count()
+
+    assignment_count.short_description = _('確定数')
+
+    @admin.action(description=_('自動スケジューリング実行'))
     def run_auto_schedule(self, request, queryset):
         from booking.services.shift_scheduler import auto_schedule
         total = 0
@@ -687,7 +718,7 @@ class ShiftPeriodAdmin(admin.ModelAdmin):
             total += count
         self.message_user(request, f'{total} 件のシフトを自動割り当てしました。')
 
-    @admin.action(description='承認してScheduleに同期')
+    @admin.action(description=_('承認してScheduleに同期'))
     def approve_and_sync(self, request, queryset):
         from booking.services.shift_scheduler import sync_assignments_to_schedule
         from booking.services.shift_notifications import notify_shift_approved
@@ -734,24 +765,24 @@ custom_site.register(ShiftAssignment, ShiftAssignmentAdmin)
 class SiteSettingsAdmin(admin.ModelAdmin):
     """シングルトン設定 — 一覧は常にpk=1へリダイレクト"""
     fieldsets = (
-        ('基本設定', {'fields': ('site_name', 'staff_label')}),
-        ('ホームページカード表示', {'fields': (
+        (_('基本設定'), {'fields': ('site_name', 'staff_label')}),
+        (_('ホームページカード表示'), {'fields': (
             'show_card_store', 'show_card_fortune_teller',
             'show_card_calendar', 'show_card_shop',
         )}),
-        ('ヒーローバナー / ランキング', {'fields': (
+        (_('ヒーローバナー / ランキング'), {'fields': (
             'show_hero_banner', 'show_ranking', 'ranking_limit',
         )}),
-        ('サイドバー表示', {'fields': (
+        (_('サイドバー表示'), {'fields': (
             'show_sidebar_notice', 'show_sidebar_company',
             'show_sidebar_media', 'show_sidebar_social',
             'show_sidebar_external_links',
         )}),
-        ('SNS連携', {'fields': ('twitter_url', 'instagram_url', 'instagram_embed_html')}),
-        ('機能ON/OFF', {'fields': ('show_ai_chat',)}),
-        ('法定ページ', {
+        (_('SNS連携'), {'fields': ('twitter_url', 'instagram_url', 'instagram_embed_html')}),
+        (_('機能ON/OFF'), {'fields': ('show_ai_chat',)}),
+        (_('法定ページ'), {
             'fields': ('privacy_policy_html', 'tokushoho_html'),
-            'description': 'HTMLで記述できます。空の場合はデフォルトの内容が表示されます。',
+            'description': _('HTMLで記述できます。空の場合はデフォルトの内容が表示されます。'),
         }),
     )
 
@@ -788,7 +819,7 @@ class HeroBannerAdmin(admin.ModelAdmin):
     search_fields = ('title',)
     fieldsets = (
         (None, {'fields': ('title', 'image', 'image_position', 'sort_order', 'is_active')}),
-        ('リンク設定', {'fields': ('link_type', 'linked_store', 'linked_staff', 'link_url')}),
+        (_('リンク設定'), {'fields': ('link_type', 'linked_store', 'linked_staff', 'link_url')}),
     )
 
 
@@ -824,13 +855,13 @@ class AdminMenuConfigAdmin(admin.ModelAdmin):
 
     def get_role_display(self, obj):
         return obj.get_role_display()
-    get_role_display.short_description = 'ロール名'
+    get_role_display.short_description = _('ロール名')
 
     def model_count(self, obj):
         if isinstance(obj.allowed_models, list):
             return len(obj.allowed_models)
         return 0
-    model_count.short_description = '許可モデル数'
+    model_count.short_description = _('許可モデル数')
 
     def has_module_permission(self, request):
         return request.user.is_superuser
@@ -908,7 +939,7 @@ class WorkAttendanceAdmin(admin.ModelAdmin):
 
     actions = ['derive_from_shifts']
 
-    @admin.action(description='確定シフトから勤怠データを自動生成')
+    @admin.action(description=_('確定シフトから勤怠データを自動生成'))
     def derive_from_shifts(self, request, queryset):
         from booking.services.attendance_service import derive_attendance_from_shifts
         # Get unique stores from selected attendances, or use user's store
@@ -991,7 +1022,7 @@ class PayrollPeriodAdmin(admin.ModelAdmin):
 
     actions = ['run_payroll_calculation', 'export_zengin_csv', 'mark_as_paid']
 
-    @admin.action(description='給与計算を実行')
+    @admin.action(description=_('給与計算を実行'))
     def run_payroll_calculation(self, request, queryset):
         from booking.services.payroll_calculator import calculate_payroll_for_period
         total = 0
@@ -1000,7 +1031,7 @@ class PayrollPeriodAdmin(admin.ModelAdmin):
             total += len(entries)
         self.message_user(request, f'{total} 件の給与明細を計算しました。')
 
-    @admin.action(description='全銀フォーマットCSVダウンロード')
+    @admin.action(description=_('全銀フォーマットCSVダウンロード'))
     def export_zengin_csv(self, request, queryset):
         from booking.services.zengin_export import generate_zengin_csv
         from django.http import HttpResponse
@@ -1017,7 +1048,7 @@ class PayrollPeriodAdmin(admin.ModelAdmin):
         response['Content-Disposition'] = f'attachment; filename="{filename}"'
         return response
 
-    @admin.action(description='支払済みにする')
+    @admin.action(description=_('支払済みにする'))
     def mark_as_paid(self, request, queryset):
         count = queryset.filter(status='confirmed').update(status='paid')
         self.message_user(request, f'{count} 件の給与期間を支払済みにしました。')
@@ -1052,7 +1083,7 @@ class TableSeatAdmin(admin.ModelAdmin):
     def has_qr(self, obj):
         return bool(obj.qr_code)
     has_qr.boolean = True
-    has_qr.short_description = 'QRコード'
+    has_qr.short_description = _('QRコード')
 
     readonly_fields = ('id', 'qr_preview', 'created_at')
 
@@ -1065,11 +1096,20 @@ class TableSeatAdmin(admin.ModelAdmin):
                 obj.qr_code.url, obj.qr_code.url, obj.get_menu_url()
             )
         return 'QRコード未生成（アクション「QRコード生成」を実行してください）'
-    qr_preview.short_description = 'QRプレビュー'
+    qr_preview.short_description = _('QRプレビュー')
 
     actions = ['generate_qr_codes', 'download_qr_zip']
 
-    @admin.action(description='QRコード生成')
+    def save_model(self, request, obj, form, change):
+        super().save_model(request, obj, form, change)
+        # Auto-generate QR code on save if not yet generated
+        if not obj.qr_code:
+            from .services.qr_service import generate_table_qr
+            url = obj.get_menu_url()
+            qr_file = generate_table_qr(url, obj.label)
+            obj.qr_code.save(qr_file.name, qr_file, save=True)
+
+    @admin.action(description=_('QRコード生成'))
     def generate_qr_codes(self, request, queryset):
         from .services.qr_service import generate_table_qr
         count = 0
@@ -1080,7 +1120,7 @@ class TableSeatAdmin(admin.ModelAdmin):
             count += 1
         self.message_user(request, f'{count} 件のQRコードを生成しました。')
 
-    @admin.action(description='QRコードZIPダウンロード')
+    @admin.action(description=_('QRコードZIPダウンロード'))
     def download_qr_zip(self, request, queryset):
         import zipfile
         from django.http import HttpResponse
@@ -1119,7 +1159,7 @@ class PaymentMethodAdmin(admin.ModelAdmin):
 
     fieldsets = (
         (None, {'fields': ('store', 'method_type', 'display_name', 'is_enabled', 'sort_order')}),
-        ('API設定', {
+        (_('API設定'), {
             'classes': ('collapse',),
             'fields': ('api_key', 'api_secret', 'api_endpoint', 'extra_config'),
         }),
@@ -1165,7 +1205,7 @@ class SecurityAuditAdmin(admin.ModelAdmin):
 
     actions = ['run_security_audit']
 
-    @admin.action(description='セキュリティ監査を実行')
+    @admin.action(description=_('セキュリティ監査を実行'))
     def run_security_audit(self, request, queryset):
         from django.core.management import call_command
         call_command('security_audit')
@@ -1200,7 +1240,7 @@ class CostReportAdmin(admin.ModelAdmin):
 
     actions = ['run_aws_cost_check']
 
-    @admin.action(description='AWSコストチェックを実行')
+    @admin.action(description=_('AWSコストチェックを実行'))
     def run_aws_cost_check(self, request, queryset):
         from django.core.management import call_command
         call_command('check_aws_costs')

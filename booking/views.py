@@ -498,7 +498,7 @@ class IoTMQ9GraphView(LoginRequiredMixin, generic.TemplateView):
         context["labels_json"] = json.dumps(labels, ensure_ascii=False)
         context["values_json"] = json.dumps(values)
         context["labels"] = labels
-        context["labels_values"] = list(zip(labels, values))[::-1]
+        context["labels_values"] = list(zip(labels, values))[::-1][:10]
 
         live_qs = IoTEvent.objects.filter(mq9_value__isnull=False)
         if device_external_id:
