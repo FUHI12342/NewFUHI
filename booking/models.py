@@ -8,6 +8,7 @@ from rest_framework import serializers
 from django.contrib.auth.models import User
 
 import uuid
+from decimal import Decimal
 from newspaper import Article
 import textwrap
 import hashlib
@@ -1463,21 +1464,21 @@ class SalaryStructure(models.Model):
     store = models.OneToOneField(Store, verbose_name='店舗', on_delete=models.CASCADE, related_name='salary_structure')
 
     # 社会保険料率（従業員負担分、%表記→小数で格納）
-    pension_rate = models.DecimalField('厚生年金料率(%)', max_digits=5, decimal_places=3, default=9.150,
+    pension_rate = models.DecimalField('厚生年金料率(%)', max_digits=5, decimal_places=3, default=Decimal('9.150'),
         help_text='従業員負担分 例: 9.150')
-    health_insurance_rate = models.DecimalField('健康保険料率(%)', max_digits=5, decimal_places=3, default=5.000,
+    health_insurance_rate = models.DecimalField('健康保険料率(%)', max_digits=5, decimal_places=3, default=Decimal('5.000'),
         help_text='従業員負担分 例: 5.000（協会けんぽ東京支部）')
-    employment_insurance_rate = models.DecimalField('雇用保険料率(%)', max_digits=5, decimal_places=3, default=0.600,
+    employment_insurance_rate = models.DecimalField('雇用保険料率(%)', max_digits=5, decimal_places=3, default=Decimal('0.600'),
         help_text='従業員負担分 例: 0.600')
-    long_term_care_rate = models.DecimalField('介護保険料率(%)', max_digits=5, decimal_places=3, default=0.820,
+    long_term_care_rate = models.DecimalField('介護保険料率(%)', max_digits=5, decimal_places=3, default=Decimal('0.820'),
         help_text='40歳以上のみ適用 例: 0.820')
-    workers_comp_rate = models.DecimalField('労災保険料率(%)', max_digits=5, decimal_places=3, default=0.300,
+    workers_comp_rate = models.DecimalField('労災保険料率(%)', max_digits=5, decimal_places=3, default=Decimal('0.300'),
         help_text='事業主全額負担（記録用） 例: 0.300')
 
     # 割増率
-    overtime_multiplier = models.DecimalField('残業割増率', max_digits=4, decimal_places=2, default=1.25)
-    late_night_multiplier = models.DecimalField('深夜割増率', max_digits=4, decimal_places=2, default=1.35)
-    holiday_multiplier = models.DecimalField('休日割増率', max_digits=4, decimal_places=2, default=1.50)
+    overtime_multiplier = models.DecimalField('残業割増率', max_digits=4, decimal_places=2, default=Decimal('1.25'))
+    late_night_multiplier = models.DecimalField('深夜割増率', max_digits=4, decimal_places=2, default=Decimal('1.35'))
+    holiday_multiplier = models.DecimalField('休日割増率', max_digits=4, decimal_places=2, default=Decimal('1.50'))
 
     class Meta:
         app_label = 'booking'

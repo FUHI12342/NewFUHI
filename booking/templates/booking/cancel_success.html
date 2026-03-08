@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>予約キャンセル完了</title>
+</head>
+<body>
+    <h1>予約キャンセル完了</h1>
+    <p>予約のキャンセルが完了しました。</p>
+    {% if schedule %}
+    <p>キャンセルされた予約: {{ schedule.staff }} - {{ schedule.start }}</p>
+    {% endif %}
+    <a href="{% url 'booking:booking_top' %}">トップへ戻る</a>
+</body>
+</html>

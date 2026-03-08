@@ -134,6 +134,7 @@ urlpatterns = [
 
     # Sensor dashboard
     path('dashboard/sensors/', views.IoTSensorDashboardView.as_view(), name='iot_sensor_dashboard'),
+    path('dashboard/mq9/', IoTMQ9GraphView.as_view(), name='iot_mq9_graph'),
 
     # Property monitoring
     path('properties/', views.PropertyListView.as_view(), name='property_list'),

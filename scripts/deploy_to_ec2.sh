@@ -74,10 +74,9 @@ $SSH_CMD "cd $REMOTE_PATH && \
 echo -e "${GREEN}  完了${NC}"
 echo ""
 
-# ========== Step 4: Gunicorn 再起動 ==========
+# ========== Step 4: アプリケーション再起動 (Gunicorn + Celery) ==========
 echo -e "${GREEN}[4/5] アプリケーション再起動...${NC}"
-# systemd サービスがある場合
-$SSH_CMD "sudo systemctl restart newfuhi-production 2>/dev/null || \
+$SSH_CMD "sudo systemctl restart newfuhi newfuhi-celery newfuhi-celerybeat 2>/dev/null || \
     (echo 'systemd サービス未設定。Gunicorn を直接再起動します...' && \
      pkill -f gunicorn 2>/dev/null; \
      cd $REMOTE_PATH && source venv/bin/activate && \
@@ -88,7 +87,11 @@ echo ""
 # ========== Step 5: ヘルスチェック ==========
 echo -e "${GREEN}[5/5] ヘルスチェック...${NC}"
 sleep 3
-HTTP_CODE=$($SSH_CMD "curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:8000/booking/" 2>/dev/null || echo "000")
+HTTP_CODE=$($SSH_CMD "curl -s -o /dev/null -w '%{http_code}' https://timebaibai.com/booking/" 2>/dev/null || echo "000")
+# HTTPS失敗時はローカルへフォールバック
+if [ "$HTTP_CODE" = "000" ]; then
+    HTTP_CODE=$($SSH_CMD "curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:8000/booking/" 2>/dev/null || echo "000")
+fi
 
 if [ "$HTTP_CODE" = "200" ] || [ "$HTTP_CODE" = "301" ] || [ "$HTTP_CODE" = "302" ]; then
     echo -e "${GREEN}  HTTP $HTTP_CODE - 正常${NC}"
@@ -102,6 +105,6 @@ echo "========================================"
 echo -e "${GREEN}  デプロイ完了!${NC}"
 echo "  EC2: $EC2_USER@$EC2_HOST"
 echo "  パス: $REMOTE_PATH"
-echo "  URL: http://$EC2_HOST"
+echo "  URL: https://timebaibai.com"
 echo "========================================"
 echo ""

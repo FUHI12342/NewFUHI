@@ -1,0 +1,5 @@
+pytest>=7.0.0
+hypothesis>=6.0.0
+django>=4.2.0
+djangorestframework>=3.14.0
+pyyaml>=6.0.0

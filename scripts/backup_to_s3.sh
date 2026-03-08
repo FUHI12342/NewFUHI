@@ -7,7 +7,8 @@
 #   /usr/local/bin/aws s3 ls s3://mee-newfuhi-backups/db/ | tail
 #   /usr/local/bin/aws s3 ls s3://mee-newfuhi-backups/media/ | head
 # cron 例（このスクリプトが backup.log に書くので、cron 側で >> backup.log は付けない）:
-#   0 2 * * * /bin/bash -lc '/Users/adon/NewFUHI/scripts/backup_to_s3.sh'
+#   (Mac)  0 2 * * * /bin/bash -lc '/Users/adon/NewFUHI/scripts/backup_to_s3.sh'
+#   (EC2)  0 2 * * * /bin/bash -lc '/home/ubuntu/NewFUHI/scripts/backup_to_s3.sh'
 set -euo pipefail
 
 # ===== Load env (LINE_NOTIFY_TOKEN etc.) =====
@@ -23,7 +24,12 @@ load_env_file() {
 }
 
 # ===== Config =====
-PROJECT_DIR="/Users/adon/NewFUHI"
+# 環境検出: EC2 or ローカルMac
+if [ -d "/home/ubuntu/NewFUHI" ]; then
+    PROJECT_DIR="/home/ubuntu/NewFUHI"
+else
+    PROJECT_DIR="/Users/adon/NewFUHI"
+fi
 load_env_file "${PROJECT_DIR}/.env.local"
 load_env_file "${PROJECT_DIR}/.env.production"
 load_env_file "${PROJECT_DIR}/.env"
@@ -34,7 +40,7 @@ BACKUP_DIR="${PROJECT_DIR}/backups"
 LOG_FILE="${PROJECT_DIR}/backup.log"
 LOCK_DIR="${PROJECT_DIR}/backup.lock"
 
-AWS="/usr/local/bin/aws"
+AWS="$(command -v aws || echo /usr/local/bin/aws)"
 S3_BUCKET="s3://mee-newfuhi-backups"
 S3_MEDIA_PATH="${S3_BUCKET}/media"
 S3_DB_PATH="${S3_BUCKET}/db"

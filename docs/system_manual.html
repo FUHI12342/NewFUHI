@@ -1,0 +1,1210 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NewFUHI システム取扱説明書</title>
+
+<style>
+@page {
+  size: A4;
+  margin: 20mm 15mm 25mm 15mm;
+  @top-center { content: "NewFUHI システム取扱説明書"; font-size: 9pt; color: #666; }
+  @bottom-center { content: "— " counter(page) " —"; font-size: 9pt; color: #666; }
+}
+* { box-sizing: border-box; }
+body { font-family: "Hiragino Kaku Gothic ProN","Noto Sans JP","Noto Sans CJK JP",sans-serif; font-size: 10pt; line-height: 1.7; color: #222; max-width: 100%; margin: 0; padding: 0; }
+h1 { font-size: 22pt; color: #1a3a5c; border-bottom: 3px solid #1a3a5c; padding-bottom: 8px; page-break-before: always; margin-top: 0; }
+h1:first-of-type { page-break-before: avoid; }
+h2 { font-size: 14pt; color: #2c5282; border-bottom: 1.5px solid #bee3f8; padding-bottom: 4px; margin-top: 24px; }
+h3 { font-size: 11pt; color: #2b6cb0; margin-top: 18px; }
+table { width: 100%; border-collapse: collapse; margin: 10px 0 16px 0; font-size: 9pt; }
+th, td { border: 1px solid #cbd5e0; padding: 5px 8px; text-align: left; word-break: break-all; }
+th { background: #ebf4ff; font-weight: bold; color: #2c5282; }
+tr:nth-child(even) { background: #f7fafc; }
+code { background: #edf2f7; padding: 1px 4px; border-radius: 3px; font-size: 8.5pt; font-family: "SF Mono","Menlo",monospace; }
+pre { background: #1a202c; color: #e2e8f0; padding: 12px; border-radius: 6px; font-size: 8pt; line-height: 1.5; overflow-x: auto; white-space: pre-wrap; word-break: break-all; }
+pre code { background: none; color: inherit; padding: 0; }
+.cover { text-align: center; padding: 120px 0 60px 0; page-break-after: always; }
+.cover h1 { font-size: 32pt; border: none; page-break-before: avoid; }
+.cover .subtitle { font-size: 14pt; color: #4a5568; margin-top: 16px; }
+.cover .date { font-size: 11pt; color: #718096; margin-top: 40px; }
+.toc { page-break-after: always; }
+.toc h1 { page-break-before: avoid; }
+.toc ol { font-size: 11pt; line-height: 2.2; }
+.note { background: #fffbeb; border-left: 4px solid #f6ad55; padding: 10px 14px; margin: 10px 0; font-size: 9pt; }
+.info { background: #ebf8ff; border-left: 4px solid #63b3ed; padding: 10px 14px; margin: 10px 0; font-size: 9pt; }
+ul, ol { margin: 6px 0; padding-left: 24px; }
+li { margin: 2px 0; }
+.badge { display: inline-block; padding: 1px 6px; border-radius: 3px; font-size: 8pt; font-weight: bold; color: #fff; }
+.badge-pk { background: #e53e3e; }
+.badge-fk { background: #3182ce; }
+.badge-bool { background: #38a169; }
+.badge-char { background: #805ad5; }
+.badge-int { background: #d69e2e; }
+.badge-dt { background: #dd6b20; }
+@media print {
+  h1, h2, h3 { page-break-after: avoid; }
+  table, pre { page-break-inside: avoid; }
+}
+</style>
+</head>
+<body>
+
+<div class="cover">
+<h1>NewFUHI<br>システム取扱説明書</h1>
+<p class="subtitle">予約・店舗・IoT・決済・在庫・給与 統合管理プラットフォーム</p>
+<p class="date">Version 1.0 — 2026年3月</p>
+<p style="margin-top:60px;color:#a0aec0;font-size:10pt;">Confidential — 社内用資料</p>
+</div>
+<div class="toc"><h1>目次</h1><ol><li>システム概要</li>
+<li>システム構成</li>
+<li>データベースモデル一覧</li>
+<li>画面一覧・URLマップ</li>
+<li>APIリファレンス</li>
+<li>管理画面の操作手順</li>
+<li>予約フロー</li>
+<li>決済連携</li>
+<li>QRテーブル注文</li>
+<li>IoTデバイス管理</li>
+<li>物件管理・監視</li>
+<li>シフト・勤怠・給与管理</li>
+<li>在庫管理</li>
+<li>ECショップ</li>
+<li>セキュリティ機能</li>
+<li>AWSコスト監視</li>
+<li>定期タスク（Celery）</li>
+<li>管理コマンドリファレンス</li>
+<li>デプロイ手順</li>
+<li>多言語対応</li>
+<li>トラブルシューティング</li></ol></div>
+<h1>1. システム概要</h1>
+<h2>1.1 NewFUHI とは</h2>
+<p>NewFUHI は、占いサロン・飲食店・宿泊施設などの店舗運営を統合的に管理する Django ベースの Web プラットフォームです。予約管理、決済、IoT デバイス制御、在庫管理、シフト・給与管理、EC ショップ、物件監視など幅広い業務をカバーします。</p>
+
+<h2>1.2 技術スタック</h2>
+<table>
+<tr><th>レイヤー</th><th>技術</th></tr>
+<tr><td>バックエンド</td><td>Django / Django REST Framework / Python 3</td></tr>
+<tr><td>タスクキュー</td><td>Celery + Redis</td></tr>
+<tr><td>データベース</td><td>SQLite（開発）/ PostgreSQL・RDS（本番）</td></tr>
+<tr><td>認証</td><td>Django Auth + LINE OAuth2（python-social-auth）</td></tr>
+<tr><td>暗号化</td><td>cryptography（Fernet）</td></tr>
+<tr><td>QRコード</td><td>qrcode[pil]</td></tr>
+<tr><td>AWS連携</td><td>boto3</td></tr>
+<tr><td>Web サーバー</td><td>Nginx + Gunicorn</td></tr>
+<tr><td>CI/CD</td><td>GitHub Actions</td></tr>
+<tr><td>プロセス管理</td><td>systemd</td></tr>
+</table>
+
+<h2>1.3 対応言語（7言語）</h2>
+<table>
+<tr><th>コード</th><th>言語</th><th>備考</th></tr>
+<tr><td>ja</td><td>日本語</td><td>デフォルト言語</td></tr>
+<tr><td>en</td><td>English</td><td></td></tr>
+<tr><td>zh-hant</td><td>繁體中文</td><td>台湾・香港向け</td></tr>
+<tr><td>zh-hans</td><td>简体中文</td><td>中国大陸向け</td></tr>
+<tr><td>ko</td><td>한국어</td><td></td></tr>
+<tr><td>es</td><td>Español</td><td></td></tr>
+<tr><td>pt</td><td>Português</td><td></td></tr>
+</table>
+
+<h1>2. システム構成</h1>
+<h2>2.1 ディレクトリ構造</h2>
+<pre><code>NewFUHI/
+├── manage.py
+├── project/                    # Django プロジェクト設定
+│   ├── urls.py                # メイン URL ルーティング
+│   └── settings/
+│       ├── base.py            # 共通設定
+│       ├── local.py           # 開発用設定
+│       ├── production.py      # 本番設定
+│       └── staging.py         # ステージング設定
+├── booking/                    # メインアプリ
+│   ├── models.py              # 全データベースモデル（1638行）
+│   ├── views.py               # メインビュー（2806行）
+│   ├── views_debug.py         # デバッグパネル
+│   ├── views_dashboard.py     # センサーダッシュボード
+│   ├── views_restaurant_dashboard.py  # 売上ダッシュボード
+│   ├── views_property.py      # 物件管理ビュー
+│   ├── views_chat.py          # AIチャットビュー
+│   ├── urls.py                # ページ URL（151行）
+│   ├── api_urls.py            # API エンドポイント（87行）
+│   ├── table_urls.py          # テーブル注文 URL
+│   ├── admin.py               # 管理画面カスタマイズ（1215行）
+│   ├── admin_site.py          # ロールベース管理サイト
+│   ├── forms.py               # フォーム定義
+│   ├── tasks.py               # Celery タスク
+│   ├── middleware.py          # セキュリティ監査ミドルウェア
+│   ├── management/commands/   # 管理コマンド（5個）
+│   └── templates/booking/     # テンプレート（30+）
+├── config/                     # デプロイ設定
+│   ├── nginx/                 # Nginx設定
+│   ├── gunicorn/              # Gunicorn設定
+│   ├── systemd/               # サービス定義
+│   └── logrotate/             # ログローテーション
+├── locale/                     # 翻訳ファイル（7言語）
+├── static/                     # 静的ファイル
+├── media/                      # アップロードファイル
+├── celery_config.py           # Celery設定
+└── requirements.txt           # 依存パッケージ
+</code></pre>
+
+<h2>2.2 設定ファイル</h2>
+<table>
+<tr><th>ファイル</th><th>内容</th></tr>
+<tr><td><code>project/settings/base.py</code></td><td>共通設定（INSTALLED_APPS, MIDDLEWARE, AUTH, i18n）</td></tr>
+<tr><td><code>project/settings/local.py</code></td><td>開発環境（DEBUG=True, SQLite, ローカルメール）</td></tr>
+<tr><td><code>project/settings/production.py</code></td><td>本番環境（SSL, HSTS, セキュアクッキー）</td></tr>
+<tr><td><code>project/settings/staging.py</code></td><td>ステージング環境</td></tr>
+<tr><td><code>celery_config.py</code></td><td>Celery Beat スケジュール定義</td></tr>
+</table>
+
+<h2>2.3 環境変数一覧</h2>
+<h3>必須</h3>
+<table>
+<tr><th>変数名</th><th>説明</th></tr>
+<tr><td><code>SECRET_KEY</code></td><td>Django シークレットキー</td></tr>
+<tr><td><code>LINE_CHANNEL_ID</code></td><td>LINE Bot チャネル ID</td></tr>
+<tr><td><code>LINE_CHANNEL_SECRET</code></td><td>LINE Bot チャネルシークレット</td></tr>
+<tr><td><code>LINE_REDIRECT_URL</code></td><td>LINE OAuth リダイレクト URL</td></tr>
+<tr><td><code>LINE_ACCESS_TOKEN</code></td><td>LINE アクセストークン</td></tr>
+<tr><td><code>PAYMENT_API_KEY</code></td><td>決済 API キー</td></tr>
+<tr><td><code>PAYMENT_API_URL</code></td><td>決済 API URL</td></tr>
+<tr><td><code>WEBHOOK_URL_BASE</code></td><td>Webhook ベース URL</td></tr>
+<tr><td><code>CANCEL_URL</code></td><td>キャンセル URL</td></tr>
+<tr><td><code>LINE_USER_ID_ENCRYPTION_KEY</code></td><td>LINE ID Fernet 暗号化キー</td></tr>
+<tr><td><code>LINE_USER_ID_HASH_PEPPER</code></td><td>LINE ID ハッシュペッパー</td></tr>
+<tr><td><code>IOT_ENCRYPTION_KEY</code></td><td>IoT 資格情報暗号化キー</td></tr>
+</table>
+<h3>オプション</h3>
+<table>
+<tr><th>変数名</th><th>説明</th><th>デフォルト</th></tr>
+<tr><td><code>DEBUG</code></td><td>デバッグモード</td><td>True（開発）</td></tr>
+<tr><td><code>ALLOWED_HOSTS</code></td><td>許可ホスト</td><td>localhost,127.0.0.1</td></tr>
+<tr><td><code>DB_ENGINE</code></td><td>DB エンジン</td><td>sqlite3</td></tr>
+<tr><td><code>DB_NAME</code></td><td>DB 名</td><td>db.sqlite3</td></tr>
+<tr><td><code>DATABASE_URL</code></td><td>DB 接続 URL</td><td>—</td></tr>
+<tr><td><code>CELERY_BROKER_URL</code></td><td>Redis ブローカー</td><td>redis://localhost:6379/0</td></tr>
+<tr><td><code>EMAIL_HOST</code></td><td>SMTP ホスト</td><td>—</td></tr>
+<tr><td><code>GEMINI_API_KEY</code></td><td>Google Gemini API</td><td>—</td></tr>
+<tr><td><code>LOG_LEVEL</code></td><td>ログレベル</td><td>DEBUG</td></tr>
+</table>
+
+<h2>2.4 INSTALLED_APPS</h2>
+<table>
+<tr><th>アプリ</th><th>用途</th></tr>
+<tr><td><code>booking</code></td><td>メインアプリ（全ビジネスロジック）</td></tr>
+<tr><td><code>rest_framework</code></td><td>REST API フレームワーク</td></tr>
+<tr><td><code>social_django</code></td><td>LINE OAuth2 ソーシャル認証</td></tr>
+<tr><td><code>booking.custom_auth</code></td><td>カスタム認証（管理画面表示名変更）</td></tr>
+</table>
+
+<h2>2.5 ミドルウェア</h2>
+<table>
+<tr><th>#</th><th>ミドルウェア</th><th>役割</th></tr>
+<tr><td>1</td><td>SecurityMiddleware</td><td>HTTPS リダイレクト、HSTS</td></tr>
+<tr><td>2</td><td>SessionMiddleware</td><td>セッション管理</td></tr>
+<tr><td>3</td><td>LocaleMiddleware</td><td>多言語切替</td></tr>
+<tr><td>4</td><td>CommonMiddleware</td><td>URL 正規化</td></tr>
+<tr><td>5</td><td>CsrfViewMiddleware</td><td>CSRF 保護</td></tr>
+<tr><td>6</td><td>AuthenticationMiddleware</td><td>ユーザー認証</td></tr>
+<tr><td>7</td><td>MessageMiddleware</td><td>メッセージフレームワーク</td></tr>
+<tr><td>8</td><td>XFrameOptionsMiddleware</td><td>クリックジャッキング防止</td></tr>
+<tr><td>9</td><td>SecurityAuditMiddleware</td><td>セキュリティイベント記録</td></tr>
+</table>
+
+<h1>3. データベースモデル一覧</h1>
+<p>全モデルは <code>booking/models.py</code>（1638行）に定義されています。</p>
+
+<h2>3.1 認証・ユーザー管理</h2>
+<h3>Timer</h3>
+<table>
+<tr><th>フィールド</th><th>型</th><th>説明</th></tr>
+<tr><td>user_id</td><td>CharField(255, unique)</td><td>ユーザー識別子</td></tr>
+<tr><td>start_time</td><td>DateTimeField(auto_now_add)</td><td>開始時刻</td></tr>
+<tr><td>end_time</td><td>DateTimeField(null)</td><td>終了時刻</td></tr>
+</table>
+
+<h2>3.2 店舗管理</h2>
+<h3>Store（店舗）</h3>
+<table>
+<tr><th>フィールド</th><th>型</th><th>説明</th></tr>
+<tr><td>name</td><td>CharField(255)</td><td>店舗名</td></tr>
+<tr><td>thumbnail</td><td>ImageField</td><td>サムネイル画像</td></tr>
+<tr><td>address</td><td>CharField(255)</td><td>住所</td></tr>
+<tr><td>business_hours</td><td>CharField(255)</td><td>営業時間</td></tr>
+<tr><td>nearest_station</td><td>CharField(255)</td><td>最寄り駅</td></tr>
+<tr><td>regular_holiday</td><td>CharField(255)</td><td>定休日</td></tr>
+<tr><td>description</td><td>TextField</td><td>説明文</td></tr>
+<tr><td>is_recommended</td><td>BooleanField</td><td>おすすめフラグ</td></tr>
+<tr><td>default_language</td><td>CharField(10)</td><td>デフォルト言語</td></tr>
+</table>
+
+<h3>Staff（スタッフ）</h3>
+<table>
+<tr><th>フィールド</th><th>型</th><th>説明</th></tr>
+<tr><td>name</td><td>CharField(50)</td><td>名前</td></tr>
+<tr><td>user</td><td>OneToOneField → User</td><td>Django ユーザー</td></tr>
+<tr><td>store</td><td>ForeignKey → Store</td><td>所属店舗</td></tr>
+<tr><td>line_id</td><td>CharField(50, null)</td><td>LINE ID</td></tr>
+<tr><td>staff_type</td><td>CharField(choices)</td><td>fortune_teller / store_staff</td></tr>
+<tr><td>is_recommended</td><td>BooleanField</td><td>おすすめフラグ</td></tr>
+<tr><td>is_store_manager</td><td>BooleanField</td><td>店長フラグ</td></tr>
+<tr><td>is_owner</td><td>BooleanField</td><td>オーナーフラグ</td></tr>
+<tr><td>is_developer</td><td>BooleanField</td><td>開発者フラグ</td></tr>
+<tr><td>thumbnail</td><td>ImageField</td><td>プロフィール画像</td></tr>
+<tr><td>introduction</td><td>TextField</td><td>自己紹介</td></tr>
+<tr><td>price</td><td>IntegerField</td><td>料金</td></tr>
+</table>
+
+<h3>StoreScheduleConfig（営業時間設定）</h3>
+<table>
+<tr><th>フィールド</th><th>型</th><th>説明</th></tr>
+<tr><td>store</td><td>OneToOneField → Store</td><td>対象店舗</td></tr>
+<tr><td>open_hour</td><td>IntegerField(0-23)</td><td>開店時刻</td></tr>
+<tr><td>close_hour</td><td>IntegerField(0-23)</td><td>閉店時刻</td></tr>
+<tr><td>slot_duration</td><td>IntegerField</td><td>予約枠（15/30/45/60分）</td></tr>
+</table>
+
+<h2>3.3 予約管理</h2>
+<h3>Schedule（予約）</h3>
+<table>
+<tr><th>フィールド</th><th>型</th><th>説明</th></tr>
+<tr><td>reservation_number</td><td>CharField(255, unique)</td><td>予約番号（UUID）</td></tr>
+<tr><td>start</td><td>DateTimeField</td><td>開始日時</td></tr>
+<tr><td>end</td><td>DateTimeField</td><td>終了日時</td></tr>
+<tr><td>staff</td><td>ForeignKey → Staff</td><td>担当スタッフ</td></tr>
+<tr><td>customer_name</td><td>CharField(255, null)</td><td>顧客名</td></tr>
+<tr><td>hashed_id</td><td>CharField(255, null)</td><td>ハッシュ済 ID</td></tr>
+<tr><td>line_user_hash</td><td>CharField(64, null)</td><td>LINE ID ハッシュ</td></tr>
+<tr><td>line_user_enc</td><td>TextField(null)</td><td>LINE ID 暗号化</td></tr>
+<tr><td>is_temporary</td><td>BooleanField</td><td>仮予約フラグ</td></tr>
+<tr><td>is_cancelled</td><td>BooleanField</td><td>キャンセルフラグ</td></tr>
+<tr><td>price</td><td>IntegerField</td><td>料金</td></tr>
+<tr><td>memo</td><td>TextField</td><td>メモ</td></tr>
+<tr><td>temporary_booked_at</td><td>DateTimeField(null)</td><td>仮予約日時</td></tr>
+<tr><td>booking_channel</td><td>CharField(choices)</td><td>line / email</td></tr>
+<tr><td>customer_email</td><td>EmailField(null)</td><td>メールアドレス</td></tr>
+<tr><td>email_otp_hash</td><td>CharField(64, null)</td><td>OTP ハッシュ</td></tr>
+<tr><td>email_otp_expires</td><td>DateTimeField(null)</td><td>OTP 有効期限</td></tr>
+<tr><td>email_verified</td><td>BooleanField</td><td>メール認証済</td></tr>
+<tr><td>payment_url</td><td>URLField(null)</td><td>決済 URL</td></tr>
+<tr><td>checkin_qr</td><td>ImageField</td><td>チェックイン QR</td></tr>
+<tr><td>is_checked_in</td><td>BooleanField</td><td>チェックイン済</td></tr>
+<tr><td>checked_in_at</td><td>DateTimeField(null)</td><td>チェックイン日時</td></tr>
+</table>
+
+<h2>3.4 IoT デバイス</h2>
+<h3>IoTDevice</h3>
+<table>
+<tr><th>フィールド</th><th>型</th><th>説明</th></tr>
+<tr><td>name</td><td>CharField(100)</td><td>デバイス名</td></tr>
+<tr><td>store</td><td>ForeignKey → Store</td><td>設置店舗</td></tr>
+<tr><td>device_type</td><td>CharField(choices)</td><td>multi / door / other</td></tr>
+<tr><td>external_id</td><td>CharField(255, unique)</td><td>AWS デバイス ID</td></tr>
+<tr><td>api_key_hash</td><td>CharField(64)</td><td>API キー SHA-256 ハッシュ</td></tr>
+<tr><td>api_key_prefix</td><td>CharField(8)</td><td>表示用プレフィックス</td></tr>
+<tr><td>mq9_threshold</td><td>FloatField(null)</td><td>MQ-9 ガスセンサー閾値</td></tr>
+<tr><td>alert_enabled</td><td>BooleanField</td><td>アラート有効</td></tr>
+<tr><td>alert_email</td><td>EmailField</td><td>アラート送信先メール</td></tr>
+<tr><td>alert_line_user_id</td><td>CharField(255)</td><td>アラート送信先 LINE</td></tr>
+<tr><td>wifi_ssid</td><td>CharField(64)</td><td>Wi-Fi SSID</td></tr>
+<tr><td>wifi_password_enc</td><td>CharField(512)</td><td>Wi-Fi パスワード（暗号化）</td></tr>
+<tr><td>pending_ir_command</td><td>TextField</td><td>保留中 IR コマンド（JSON）</td></tr>
+<tr><td>is_active</td><td>BooleanField</td><td>有効フラグ</td></tr>
+<tr><td>last_seen_at</td><td>DateTimeField(null)</td><td>最終通信日時</td></tr>
+</table>
+
+<h3>IoTEvent（センサーイベント）</h3>
+<table>
+<tr><th>フィールド</th><th>型</th><th>説明</th></tr>
+<tr><td>device</td><td>ForeignKey → IoTDevice</td><td>デバイス</td></tr>
+<tr><td>created_at</td><td>DateTimeField(auto)</td><td>記録日時</td></tr>
+<tr><td>event_type</td><td>CharField(50)</td><td>イベント種別</td></tr>
+<tr><td>payload</td><td>TextField</td><td>JSON ペイロード</td></tr>
+<tr><td>mq9_value</td><td>FloatField(null)</td><td>ガスセンサー値</td></tr>
+<tr><td>light_value</td><td>FloatField(null)</td><td>照度センサー値</td></tr>
+<tr><td>sound_value</td><td>FloatField(null)</td><td>音センサー値</td></tr>
+<tr><td>pir_triggered</td><td>BooleanField(null)</td><td>人感センサー検知</td></tr>
+</table>
+
+<h3>IRCode（赤外線リモコンコード）</h3>
+<table>
+<tr><th>フィールド</th><th>型</th><th>説明</th></tr>
+<tr><td>device</td><td>ForeignKey → IoTDevice</td><td>デバイス</td></tr>
+<tr><td>name</td><td>CharField(100)</td><td>コード名</td></tr>
+<tr><td>protocol</td><td>CharField(20)</td><td>プロトコル（NEC等）</td></tr>
+<tr><td>code</td><td>CharField(20)</td><td>IRコード値</td></tr>
+<tr><td>raw_data</td><td>TextField</td><td>生データ</td></tr>
+</table>
+
+<h2>3.5 商品・注文・在庫</h2>
+<h3>Category（カテゴリ）</h3>
+<table>
+<tr><th>フィールド</th><th>型</th><th>説明</th></tr>
+<tr><td>store</td><td>ForeignKey → Store</td><td>店舗</td></tr>
+<tr><td>name</td><td>CharField(100)</td><td>カテゴリ名</td></tr>
+<tr><td>sort_order</td><td>IntegerField</td><td>表示順</td></tr>
+</table>
+
+<h3>Product（商品）</h3>
+<table>
+<tr><th>フィールド</th><th>型</th><th>説明</th></tr>
+<tr><td>store</td><td>ForeignKey → Store</td><td>店舗</td></tr>
+<tr><td>category</td><td>ForeignKey → Category(null)</td><td>カテゴリ</td></tr>
+<tr><td>sku</td><td>CharField(64)</td><td>商品コード</td></tr>
+<tr><td>name</td><td>CharField(200)</td><td>商品名</td></tr>
+<tr><td>description</td><td>TextField</td><td>商品説明</td></tr>
+<tr><td>price</td><td>IntegerField</td><td>価格</td></tr>
+<tr><td>stock</td><td>IntegerField</td><td>在庫数</td></tr>
+<tr><td>low_stock_threshold</td><td>IntegerField</td><td>低在庫閾値</td></tr>
+<tr><td>is_active</td><td>BooleanField</td><td>有効フラグ</td></tr>
+<tr><td>is_ec_visible</td><td>BooleanField</td><td>EC ショップ表示</td></tr>
+<tr><td>image</td><td>ImageField</td><td>商品画像</td></tr>
+<tr><td>popularity</td><td>IntegerField</td><td>人気スコア</td></tr>
+<tr><td>margin_rate</td><td>FloatField</td><td>利益率</td></tr>
+</table>
+
+<h3>ProductTranslation（商品翻訳）</h3>
+<table>
+<tr><th>フィールド</th><th>型</th><th>説明</th></tr>
+<tr><td>product</td><td>ForeignKey → Product</td><td>商品</td></tr>
+<tr><td>lang</td><td>CharField(10)</td><td>言語コード</td></tr>
+<tr><td>name</td><td>CharField(200)</td><td>翻訳名</td></tr>
+<tr><td>description</td><td>TextField</td><td>翻訳説明</td></tr>
+</table>
+<p class="info">unique_together: (product, lang) — 1商品につき各言語1翻訳</p>
+
+<h3>Order（注文）</h3>
+<table>
+<tr><th>フィールド</th><th>型</th><th>説明</th></tr>
+<tr><td>store</td><td>ForeignKey → Store</td><td>店舗</td></tr>
+<tr><td>schedule</td><td>ForeignKey → Schedule(null)</td><td>関連予約</td></tr>
+<tr><td>table_label</td><td>CharField(50)</td><td>テーブル番号</td></tr>
+<tr><td>table_seat</td><td>ForeignKey → TableSeat(null)</td><td>テーブル席</td></tr>
+<tr><td>status</td><td>CharField(choices)</td><td>OPEN / CLOSED</td></tr>
+<tr><td>created_at</td><td>DateTimeField(auto)</td><td>作成日時</td></tr>
+</table>
+
+<h3>OrderItem（注文明細）</h3>
+<table>
+<tr><th>フィールド</th><th>型</th><th>説明</th></tr>
+<tr><td>order</td><td>ForeignKey → Order</td><td>注文</td></tr>
+<tr><td>product</td><td>ForeignKey → Product</td><td>商品</td></tr>
+<tr><td>qty</td><td>IntegerField</td><td>数量</td></tr>
+<tr><td>unit_price</td><td>IntegerField</td><td>単価</td></tr>
+<tr><td>status</td><td>CharField(choices)</td><td>ORDERED → PREPARING → SERVED → CLOSED</td></tr>
+<tr><td>note</td><td>CharField(255)</td><td>備考</td></tr>
+</table>
+
+<h3>StockMovement（在庫移動）</h3>
+<table>
+<tr><th>フィールド</th><th>型</th><th>説明</th></tr>
+<tr><td>store</td><td>ForeignKey → Store</td><td>店舗</td></tr>
+<tr><td>product</td><td>ForeignKey → Product</td><td>商品</td></tr>
+<tr><td>movement_type</td><td>CharField(choices)</td><td>IN / OUT / ADJUST</td></tr>
+<tr><td>qty</td><td>IntegerField</td><td>数量</td></tr>
+<tr><td>by_staff</td><td>ForeignKey → Staff(null)</td><td>操作者</td></tr>
+<tr><td>note</td><td>CharField(255)</td><td>備考</td></tr>
+</table>
+
+<h2>3.6 物件管理</h2>
+<h3>Property（物件）</h3>
+<table>
+<tr><th>フィールド</th><th>型</th><th>説明</th></tr>
+<tr><td>name</td><td>CharField(200)</td><td>物件名</td></tr>
+<tr><td>address</td><td>CharField(300)</td><td>住所</td></tr>
+<tr><td>property_type</td><td>CharField(choices)</td><td>apartment / house / office / store</td></tr>
+<tr><td>owner_name</td><td>CharField(100)</td><td>オーナー名</td></tr>
+<tr><td>owner_contact</td><td>CharField(200)</td><td>オーナー連絡先</td></tr>
+<tr><td>store</td><td>ForeignKey → Store(null)</td><td>関連店舗</td></tr>
+<tr><td>is_active</td><td>BooleanField</td><td>有効フラグ</td></tr>
+</table>
+
+<h3>PropertyDevice / PropertyAlert</h3>
+<p>PropertyDevice: 物件とIoTデバイスの紐付け（location_label で設置場所を記録）。<br>
+PropertyAlert: ガス漏れ（gas_leak）、動体未検知（no_motion）、デバイスオフライン（device_offline）のアラート。severity は critical / warning / info。</p>
+
+<h2>3.7 シフト管理</h2>
+<h3>ShiftPeriod（シフト期間）</h3>
+<table>
+<tr><th>フィールド</th><th>型</th><th>説明</th></tr>
+<tr><td>store</td><td>ForeignKey → Store</td><td>店舗</td></tr>
+<tr><td>year_month</td><td>DateField</td><td>対象月</td></tr>
+<tr><td>deadline</td><td>DateTimeField</td><td>申請締切</td></tr>
+<tr><td>status</td><td>CharField(choices)</td><td>open → closed → scheduled → approved</td></tr>
+</table>
+
+<h3>ShiftRequest / ShiftAssignment</h3>
+<p>ShiftRequest: スタッフの希望シフト（preference: available / preferred / unavailable）。<br>
+ShiftAssignment: 確定シフト（is_synced で Schedule への同期状態を管理）。</p>
+
+<h2>3.8 テーブル・決済</h2>
+<h3>TableSeat（テーブル席）</h3>
+<table>
+<tr><th>フィールド</th><th>型</th><th>説明</th></tr>
+<tr><td>id</td><td>UUIDField(PK)</td><td>UUID 主キー</td></tr>
+<tr><td>store</td><td>ForeignKey → Store</td><td>店舗</td></tr>
+<tr><td>label</td><td>CharField(50)</td><td>テーブル名（例: A1）</td></tr>
+<tr><td>is_active</td><td>BooleanField</td><td>有効フラグ</td></tr>
+<tr><td>qr_code</td><td>ImageField</td><td>QR コード画像</td></tr>
+</table>
+
+<h3>PaymentMethod（決済方法）</h3>
+<table>
+<tr><th>フィールド</th><th>型</th><th>説明</th></tr>
+<tr><td>store</td><td>ForeignKey → Store</td><td>店舗</td></tr>
+<tr><td>method_type</td><td>CharField(choices)</td><td>cash / coiney / paypay / ic / other</td></tr>
+<tr><td>display_name</td><td>CharField(100)</td><td>表示名</td></tr>
+<tr><td>is_enabled</td><td>BooleanField</td><td>有効フラグ</td></tr>
+<tr><td>api_key / api_secret</td><td>CharField</td><td>API 認証情報</td></tr>
+<tr><td>extra_config</td><td>JSONField</td><td>追加設定</td></tr>
+</table>
+
+<h2>3.9 給与管理</h2>
+<h3>EmploymentContract（雇用契約）</h3>
+<table>
+<tr><th>フィールド</th><th>型</th><th>説明</th></tr>
+<tr><td>staff</td><td>OneToOneField → Staff</td><td>スタッフ</td></tr>
+<tr><td>employment_type</td><td>CharField</td><td>full_time / part_time / contract</td></tr>
+<tr><td>pay_type</td><td>CharField</td><td>hourly / monthly</td></tr>
+<tr><td>hourly_rate</td><td>IntegerField</td><td>時給</td></tr>
+<tr><td>monthly_salary</td><td>IntegerField</td><td>月給</td></tr>
+<tr><td>通勤・住宅・家族手当</td><td>IntegerField × 3</td><td>各種手当</td></tr>
+<tr><td>standard_monthly_remuneration</td><td>IntegerField</td><td>標準報酬月額（社保基準）</td></tr>
+<tr><td>resident_tax_monthly</td><td>IntegerField</td><td>住民税月額</td></tr>
+<tr><td>birth_date</td><td>DateField(null)</td><td>生年月日（介護保険判定用）</td></tr>
+</table>
+
+<h3>PayrollPeriod / PayrollEntry / PayrollDeduction</h3>
+<p>PayrollPeriod: 給与計算期間（status: draft → calculating → confirmed → paid）。<br>
+PayrollEntry: 個人別給与明細（労働時間・基本給・残業代・控除・手取り）。<br>
+PayrollDeduction: 控除項目（所得税・住民税・厚生年金・健保・雇用保険・介護保険・労災）。</p>
+
+<h3>SalaryStructure（給与計算設定）</h3>
+<table>
+<tr><th>フィールド</th><th>型</th><th>説明</th></tr>
+<tr><td>pension_rate</td><td>Decimal(5,3)</td><td>厚生年金率 %（デフォルト 9.150）</td></tr>
+<tr><td>health_insurance_rate</td><td>Decimal(5,3)</td><td>健康保険率 %（デフォルト 5.000）</td></tr>
+<tr><td>employment_insurance_rate</td><td>Decimal(5,3)</td><td>雇用保険率 %（デフォルト 0.600）</td></tr>
+<tr><td>long_term_care_rate</td><td>Decimal(5,3)</td><td>介護保険率 %（40歳以上, デフォルト 0.820）</td></tr>
+<tr><td>workers_comp_rate</td><td>Decimal(5,3)</td><td>労災保険率 %（デフォルト 0.300）</td></tr>
+<tr><td>overtime_multiplier</td><td>Decimal(4,2)</td><td>残業倍率（デフォルト 1.25）</td></tr>
+<tr><td>late_night_multiplier</td><td>Decimal(4,2)</td><td>深夜倍率（デフォルト 1.35）</td></tr>
+<tr><td>holiday_multiplier</td><td>Decimal(4,2)</td><td>休日倍率（デフォルト 1.50）</td></tr>
+</table>
+
+<h2>3.10 CMS・ホームページ</h2>
+<h3>SiteSettings（サイト設定・シングルトン）</h3>
+<p>サイト名、表示セクション制御（カード・サイドバー・ランキング等のON/OFF）、SNS連携URL、スタッフ呼称（デフォルト：キャスト）、プライバシーポリシー・特商法HTMLなど。</p>
+
+<h3>HomepageCustomBlock / HeroBanner / BannerAd / ExternalLink</h3>
+<p>ホームページのカスタムHTMLブロック、ヒーローバナー（画像+リンク先設定）、バナー広告（5つの配置位置）、外部リンク。いずれも sort_order / is_active で表示制御。</p>
+
+<h2>3.11 管理画面カスタマイズ</h2>
+<h3>AdminTheme / DashboardLayout / AdminMenuConfig</h3>
+<p>AdminTheme: 店舗ごとの管理画面テーマカラー。DashboardLayout: ユーザーごとのダッシュボードレイアウト（JSON）+ダークモード。AdminMenuConfig: ロール別管理画面メニュー許可設定。</p>
+
+<h2>3.12 セキュリティ・監視</h2>
+<h3>SecurityAudit / SecurityLog / CostReport / SystemConfig</h3>
+<p>SecurityAudit: セキュリティ監査結果（category: django_settings / credentials / endpoints / infrastructure / dependencies）。SecurityLog: ログイン・認証失敗・レート制限イベント。CostReport: AWS コストレポート。SystemConfig: Key-Value 設定ストア（シングルトンパターン）。</p>
+
+<h2>3.13 会社情報・お知らせ</h2>
+<h3>Company / Notice / Media</h3>
+<p>Company: 会社名・住所・電話番号。Notice: お知らせ（タイトル・リンク・本文）。Media: メディア掲載情報（URLからサムネイル自動取得、内部ネットワークアクセス防止セキュリティチェック付き）。</p>
+
+<h1>4. 画面一覧・URLマップ</h1>
+<h2>4.1 顧客向けページ（booking/urls.py）</h2>
+<table>
+<tr><th>URL</th><th>ビュー</th><th>name</th><th>説明</th></tr>
+<tr><td><code>/</code></td><td>BookingTopPage</td><td>booking_top</td><td>トップページ</td></tr>
+<tr><td><code>/stores/</code></td><td>StoreList</td><td>store_list</td><td>店舗一覧</td></tr>
+<tr><td><code>/fortune-tellers/</code></td><td>AllFortuneTellerList</td><td>all_fortune_tellers</td><td>キャスト一覧</td></tr>
+<tr><td><code>/date-calendar/</code></td><td>DateFirstCalendar</td><td>date_first_calendar</td><td>日付優先カレンダー</td></tr>
+<tr><td><code>/store/&lt;id&gt;/staffs/</code></td><td>StaffList</td><td>staff_list</td><td>店舗スタッフ一覧</td></tr>
+<tr><td><code>/staff/&lt;id&gt;/calendar/</code></td><td>StaffCalendar</td><td>staff_calendar</td><td>スタッフカレンダー</td></tr>
+<tr><td><code>/staff/&lt;id&gt;/prebooking/...</code></td><td>PreBooking</td><td>prebooking</td><td>予約フォーム</td></tr>
+<tr><td><code>/booking/channel-choice/</code></td><td>BookingChannelChoice</td><td>channel_choice</td><td>LINE/メール選択</td></tr>
+<tr><td><code>/booking/email/</code></td><td>EmailBookingView</td><td>email_booking</td><td>メール予約フォーム</td></tr>
+<tr><td><code>/booking/email/verify/</code></td><td>EmailVerifyView</td><td>email_verify</td><td>メール OTP 認証</td></tr>
+<tr><td><code>/line_enter/</code></td><td>LineEnterView</td><td>line_enter</td><td>LINE ログイン開始</td></tr>
+<tr><td><code>/booking/login/line/success/</code></td><td>LineCallbackView</td><td>line_success</td><td>LINE OAuth コールバック</td></tr>
+<tr><td><code>/cancel_reservation/&lt;id&gt;/</code></td><td>CancelReservationView</td><td>cancel_reservation</td><td>予約キャンセル</td></tr>
+<tr><td><code>/reservation/&lt;no&gt;/qr/</code></td><td>ReservationQRView</td><td>reservation_qr</td><td>予約 QR コード</td></tr>
+<tr><td><code>/checkin/</code></td><td>CheckinScanView</td><td>checkin_scan</td><td>QR チェックインスキャン</td></tr>
+<tr><td><code>/privacy/</code></td><td>PrivacyPolicyView</td><td>privacy_policy</td><td>プライバシーポリシー</td></tr>
+<tr><td><code>/tokushoho/</code></td><td>TokushohoView</td><td>tokushoho</td><td>特定商取引法に基づく表記</td></tr>
+<tr><td><code>/help/</code></td><td>HelpView</td><td>help</td><td>ヘルプページ</td></tr>
+</table>
+
+<h2>4.2 スタッフ向けページ</h2>
+<table>
+<tr><th>URL</th><th>ビュー</th><th>name</th><th>説明</th></tr>
+<tr><td><code>/mypage/</code></td><td>MyPage</td><td>my_page</td><td>マイページ</td></tr>
+<tr><td><code>/mypage/&lt;id&gt;/</code></td><td>MyPageWithPk</td><td>my_page_with_pk</td><td>マイページ（ID指定）</td></tr>
+<tr><td><code>/mypage/&lt;id&gt;/calendar/</code></td><td>MyPageCalendar</td><td>my_page_calendar</td><td>スケジュールカレンダー</td></tr>
+<tr><td><code>/mypage/&lt;id&gt;/config/.../</code></td><td>MyPageDayDetail</td><td>my_page_day_detail</td><td>日別設定</td></tr>
+<tr><td><code>/mypage/schedule/&lt;id&gt;/</code></td><td>MyPageSchedule</td><td>my_page_schedule</td><td>予約編集</td></tr>
+<tr><td><code>/shift/</code></td><td>StaffShiftCalendarView</td><td>staff_shift_calendar</td><td>シフトカレンダー</td></tr>
+<tr><td><code>/shift/&lt;id&gt;/submit/</code></td><td>StaffShiftSubmitView</td><td>staff_shift_submit</td><td>シフト希望提出</td></tr>
+</table>
+
+<h2>4.3 飲食・注文ページ</h2>
+<table>
+<tr><th>URL</th><th>ビュー</th><th>name</th><th>説明</th></tr>
+<tr><td><code>/menu/&lt;store_id&gt;/</code></td><td>CustomerMenuView</td><td>customer_menu</td><td>メニュー一覧</td></tr>
+<tr><td><code>/stock/inbound/</code></td><td>InboundQRView</td><td>inbound_qr</td><td>QR 入庫</td></tr>
+<tr><td><code>/shop/</code></td><td>ShopView</td><td>shop</td><td>EC ショップ</td></tr>
+<tr><td><code>/shop/cart/</code></td><td>CartView</td><td>shop_cart</td><td>カート</td></tr>
+<tr><td><code>/shop/checkout/</code></td><td>ShopCheckoutView</td><td>shop_checkout</td><td>チェックアウト</td></tr>
+</table>
+
+<h2>4.4 テーブル注文（table_urls.py）</h2>
+<table>
+<tr><th>URL</th><th>ビュー</th><th>name</th><th>説明</th></tr>
+<tr><td><code>/table/&lt;uuid&gt;/</code></td><td>TableMenuView</td><td>table_menu</td><td>テーブルメニュー</td></tr>
+<tr><td><code>/table/&lt;uuid&gt;/cart/</code></td><td>TableCartView</td><td>table_cart</td><td>テーブルカート</td></tr>
+<tr><td><code>/table/&lt;uuid&gt;/order/</code></td><td>TableOrderView</td><td>table_order</td><td>テーブル注文確認</td></tr>
+<tr><td><code>/table/&lt;uuid&gt;/history/</code></td><td>TableOrderHistoryView</td><td>table_history</td><td>注文履歴</td></tr>
+<tr><td><code>/table/&lt;uuid&gt;/checkout/</code></td><td>TableCheckoutView</td><td>table_checkout</td><td>テーブル会計</td></tr>
+</table>
+
+<h2>4.5 IoT・物件ページ</h2>
+<table>
+<tr><th>URL</th><th>ビュー</th><th>name</th><th>説明</th></tr>
+<tr><td><code>/dashboard/sensors/</code></td><td>IoTSensorDashboardView</td><td>iot_sensor_dashboard</td><td>センサーダッシュボード</td></tr>
+<tr><td><code>/properties/</code></td><td>PropertyListView</td><td>property_list</td><td>物件一覧</td></tr>
+<tr><td><code>/properties/&lt;id&gt;/</code></td><td>PropertyDetailView</td><td>property_detail</td><td>物件詳細</td></tr>
+</table>
+
+<h1>5. APIリファレンス</h1>
+<p>全 API エンドポイントは <code>booking/api_urls.py</code> で定義されています（prefix: <code>/api/</code>）。</p>
+
+<h2>5.1 IoT API</h2>
+<table>
+<tr><th>メソッド</th><th>エンドポイント</th><th>認証</th><th>説明</th></tr>
+<tr><td>POST</td><td><code>/api/iot/events/</code></td><td>API Key (X-API-Key ヘッダー)</td><td>センサーデータ送信</td></tr>
+<tr><td>GET</td><td><code>/api/iot/config/</code></td><td>API Key</td><td>デバイス設定取得（pending_ir_command含む）</td></tr>
+<tr><td>GET</td><td><code>/api/iot/sensors/data/</code></td><td>ログイン</td><td>センサーデータ取得（グラフ用）</td></tr>
+<tr><td>GET</td><td><code>/api/iot/sensors/pir-events/</code></td><td>ログイン</td><td>人感センサーイベント</td></tr>
+<tr><td>GET</td><td><code>/api/iot/sensors/pir-status/</code></td><td>ログイン</td><td>人感センサー状態</td></tr>
+<tr><td>POST</td><td><code>/api/iot/ir/send/</code></td><td>ログイン</td><td>IR コマンド送信</td></tr>
+</table>
+
+<h2>5.2 注文 API</h2>
+<table>
+<tr><th>メソッド</th><th>エンドポイント</th><th>説明</th></tr>
+<tr><td>GET</td><td><code>/api/menu</code></td><td>メニュー JSON 取得（store_id パラメータ）</td></tr>
+<tr><td>GET</td><td><code>/api/products/alternatives/</code></td><td>代替商品提案</td></tr>
+<tr><td>POST</td><td><code>/api/orders/create/</code></td><td>注文作成</td></tr>
+<tr><td>GET</td><td><code>/api/orders/status/</code></td><td>注文ステータス取得</td></tr>
+<tr><td>POST</td><td><code>/api/staff/orders/served/</code></td><td>提供済みマーク</td></tr>
+<tr><td>PATCH</td><td><code>/api/staff/orders/items/&lt;id&gt;/status/</code></td><td>注文品ステータス更新</td></tr>
+</table>
+
+<h2>5.3 テーブル注文 API</h2>
+<table>
+<tr><th>メソッド</th><th>エンドポイント</th><th>説明</th></tr>
+<tr><td>POST</td><td><code>/api/table/&lt;uuid&gt;/cart/add/</code></td><td>テーブルカートに追加</td></tr>
+<tr><td>POST</td><td><code>/api/table/&lt;uuid&gt;/cart/update/</code></td><td>テーブルカート更新</td></tr>
+<tr><td>POST</td><td><code>/api/table/&lt;uuid&gt;/cart/remove/</code></td><td>テーブルカートから削除</td></tr>
+<tr><td>POST</td><td><code>/api/table/&lt;uuid&gt;/order/create/</code></td><td>テーブル注文作成</td></tr>
+<tr><td>GET</td><td><code>/api/table/&lt;uuid&gt;/orders/status/</code></td><td>テーブル注文ステータス</td></tr>
+</table>
+
+<h2>5.4 在庫 API</h2>
+<table>
+<tr><th>メソッド</th><th>エンドポイント</th><th>説明</th></tr>
+<tr><td>POST</td><td><code>/api/stock/inbound/apply/</code></td><td>入庫処理適用</td></tr>
+</table>
+
+<h2>5.5 EC ショップ API</h2>
+<table>
+<tr><th>メソッド</th><th>エンドポイント</th><th>説明</th></tr>
+<tr><td>POST</td><td><code>/api/shop/cart/add/</code></td><td>カートに追加</td></tr>
+<tr><td>POST</td><td><code>/api/shop/cart/update/</code></td><td>カート更新</td></tr>
+<tr><td>POST</td><td><code>/api/shop/cart/remove/</code></td><td>カートから削除</td></tr>
+</table>
+
+<h2>5.6 ダッシュボード API</h2>
+<table>
+<tr><th>メソッド</th><th>エンドポイント</th><th>説明</th></tr>
+<tr><td>GET/POST</td><td><code>/api/dashboard/layout/</code></td><td>ダッシュボードレイアウト取得・保存</td></tr>
+<tr><td>GET</td><td><code>/api/dashboard/reservations/</code></td><td>予約統計</td></tr>
+<tr><td>GET</td><td><code>/api/dashboard/sales/</code></td><td>売上統計</td></tr>
+<tr><td>GET</td><td><code>/api/dashboard/staff-performance/</code></td><td>スタッフ実績</td></tr>
+<tr><td>GET</td><td><code>/api/dashboard/shift-summary/</code></td><td>シフトサマリー</td></tr>
+</table>
+
+<h2>5.7 物件 API</h2>
+<table>
+<tr><th>メソッド</th><th>エンドポイント</th><th>説明</th></tr>
+<tr><td>GET</td><td><code>/api/properties/&lt;id&gt;/status/</code></td><td>物件ステータス</td></tr>
+<tr><td>POST</td><td><code>/api/alerts/&lt;id&gt;/resolve/</code></td><td>アラート解決</td></tr>
+</table>
+
+<h2>5.8 チェックイン API</h2>
+<table>
+<tr><th>メソッド</th><th>エンドポイント</th><th>説明</th></tr>
+<tr><td>POST</td><td><code>/api/checkin/</code></td><td>QR チェックイン処理</td></tr>
+</table>
+
+<h2>5.9 AI チャット API</h2>
+<table>
+<tr><th>メソッド</th><th>エンドポイント</th><th>説明</th></tr>
+<tr><td>POST</td><td><code>/api/chat/admin/</code></td><td>管理者向け AI チャット</td></tr>
+<tr><td>POST</td><td><code>/api/chat/guide/</code></td><td>ガイド AI チャット</td></tr>
+</table>
+
+<h2>5.10 デバッグ API</h2>
+<table>
+<tr><th>メソッド</th><th>エンドポイント</th><th>説明</th></tr>
+<tr><td>GET</td><td><code>/api/debug/panel/</code></td><td>デバッグパネルデータ</td></tr>
+<tr><td>POST</td><td><code>/api/debug/log-level/</code></td><td>ログレベル動的変更</td></tr>
+</table>
+
+<h2>5.11 予約時刻 API</h2>
+<table>
+<tr><th>メソッド</th><th>エンドポイント</th><th>説明</th></tr>
+<tr><td>GET</td><td><code>/api/endTime</code></td><td>終了時刻 JSON</td></tr>
+<tr><td>GET</td><td><code>/api/currentTime</code></td><td>現在時刻 JSON</td></tr>
+<tr><td>GET</td><td><code>/api/reservation/&lt;id&gt;/</code></td><td>予約時刻取得</td></tr>
+<tr><td>GET</td><td><code>/api/reservation_times/&lt;id&gt;/</code></td><td>予約時刻一覧</td></tr>
+</table>
+
+<h1>6. 管理画面の操作手順</h1>
+<h2>6.1 アクセス方法</h2>
+<p>管理画面は <code>/admin/</code> でアクセスします。カスタム管理サイト <code>RoleBasedAdminSite</code> を使用しており、ユーザーのロールに応じてメニューが動的にフィルタリングされます。</p>
+
+<h2>6.2 ロールベースアクセス制御</h2>
+<table>
+<tr><th>ロール</th><th>判定条件</th><th>権限範囲</th></tr>
+<tr><td>superuser</td><td>User.is_superuser = True</td><td>全モデル表示（Django 標準権限）</td></tr>
+<tr><td>developer</td><td>Staff.is_developer = True</td><td>全モデル表示</td></tr>
+<tr><td>owner</td><td>Staff.is_owner = True</td><td>全モデル表示</td></tr>
+<tr><td>manager</td><td>Staff.is_store_manager = True</td><td>約30モデル（予約・注文・商品・シフト・給与・IoT・物件・CMS等）</td></tr>
+<tr><td>staff</td><td>上記いずれでもない Staff</td><td>7モデル（予約・注文・スタッフ・IoT・商品・シフト申請）</td></tr>
+</table>
+
+<h2>6.3 GROUP_MAP（メニューグループ定義）</h2>
+<p>管理画面のメニューは以下の15グループに整理されて表示されます：</p>
+<table>
+<tr><th>グループ名</th><th>含まれるモデル</th></tr>
+<tr><td>予約管理</td><td>Schedule</td></tr>
+<tr><td>シフト管理</td><td>ShiftPeriod, ShiftRequest, ShiftAssignment</td></tr>
+<tr><td>キャスト管理</td><td>Staff, Store, StoreScheduleConfig</td></tr>
+<tr><td>給与管理</td><td>PayrollPeriod, PayrollEntry, EmploymentContract, SalaryStructure</td></tr>
+<tr><td>勤怠管理</td><td>WorkAttendance</td></tr>
+<tr><td>在庫管理</td><td>Category, Product</td></tr>
+<tr><td>注文管理</td><td>Order</td></tr>
+<tr><td>テーブル注文</td><td>TableSeat, PaymentMethod</td></tr>
+<tr><td>IoT管理</td><td>IoTDevice</td></tr>
+<tr><td>物件管理</td><td>Property</td></tr>
+<tr><td>予約ページ情報</td><td>Company, Notice, Media</td></tr>
+<tr><td>ページ設定</td><td>SiteSettings, HomepageCustomBlock, HeroBanner, BannerAd, ExternalLink</td></tr>
+<tr><td>システム</td><td>SystemConfig, AdminTheme, DashboardLayout, AdminMenuConfig</td></tr>
+<tr><td>セキュリティ</td><td>SecurityAudit, SecurityLog, CostReport</td></tr>
+<tr><td>ユーザーアカウント管理</td><td>User, Group</td></tr>
+</table>
+
+<h2>6.4 メニュー設定のカスタマイズ</h2>
+<p><code>AdminMenuConfig</code> モデルでロールごとの表示メニューを DB から動的に変更可能です。5分間のキャッシュ TTL あり。DB に設定がない場合は <code>DEFAULT_ALLOWED_MODELS</code> にフォールバックします。</p>
+
+<h1>7. 予約フロー</h1>
+<h2>7.1 LINE 予約フロー</h2>
+<ol>
+<li>顧客がトップページで店舗 → スタッフ → 日時を選択</li>
+<li><code>/booking/channel-choice/</code> で LINE を選択</li>
+<li><code>/line_enter/</code> → LINE OAuth2 認証開始</li>
+<li>LINE ログイン成功 → <code>/booking/login/line/success/</code> コールバック</li>
+<li>仮予約（Schedule）作成（<code>is_temporary=True</code>）</li>
+<li>LINE User ID を暗号化（Fernet）＋ハッシュ（SHA-256 + pepper）して保存</li>
+<li>決済 URL（Coiney）を生成し <code>payment_url</code> に保存</li>
+<li>顧客が決済完了 → Webhook で <code>is_temporary=False</code> に更新</li>
+<li>チェックイン QR コード生成・保存</li>
+</ol>
+<div class="note">仮予約は Celery タスク（毎分実行）で 10分超過分を自動削除します。</div>
+
+<h2>7.2 メール予約フロー</h2>
+<ol>
+<li>顧客が <code>/booking/channel-choice/</code> で「メール」を選択</li>
+<li><code>/booking/email/</code> でメールアドレス入力</li>
+<li>OTP（ワンタイムパスワード）をメール送信</li>
+<li><code>/booking/email/verify/</code> で OTP 入力・認証</li>
+<li>認証成功 → 仮予約作成（<code>booking_channel='email'</code>, <code>email_verified=True</code>）</li>
+<li>以降は LINE フローと同じ（決済→確定→QR生成）</li>
+</ol>
+
+<h2>7.3 チェックイン</h2>
+<ol>
+<li>店舗スタッフが <code>/checkin/</code> で QR スキャナーを起動</li>
+<li>顧客のチェックイン QR コードを読み取り</li>
+<li><code>/api/checkin/</code> API でチェックイン処理</li>
+<li><code>is_checked_in=True</code>, <code>checked_in_at</code> 記録</li>
+</ol>
+
+<h2>7.4 予約キャンセル</h2>
+<p><code>/cancel_reservation/&lt;schedule_id&gt;/</code> で予約をキャンセル。<code>is_cancelled=True</code> に更新。</p>
+
+<h1>8. 決済連携</h1>
+<h2>8.1 Coiney 決済フロー</h2>
+<ol>
+<li>仮予約作成時に決済 API（<code>PAYMENT_API_URL</code>）に決済リクエスト送信</li>
+<li><code>PAYMENT_API_KEY</code> で API 認証</li>
+<li>決済 URL を取得 → Schedule の <code>payment_url</code> に保存</li>
+<li>顧客を決済ページにリダイレクト</li>
+<li>決済完了 → Coiney が Webhook を送信</li>
+</ol>
+
+<h2>8.2 Webhook 処理</h2>
+<pre><code># URL: /api/coiney/webhook/&lt;orderId&gt;/
+# ビュー: coiney_webhook(request, orderId)
+# 処理:
+#   1. orderId で Schedule を検索
+#   2. is_temporary = False に更新（確定）
+#   3. チェックイン QR コード生成
+#   4. LINE で確認メッセージ送信</code></pre>
+
+<h2>8.3 PaymentMethod モデル</h2>
+<p>店舗ごとに複数の決済方法を設定可能：cash / coiney / paypay / ic / other。<code>api_key</code>, <code>api_secret</code>, <code>extra_config</code>（JSON）で各決済プロバイダーの設定を管理。</p>
+
+<h1>9. QRテーブル注文</h1>
+<h2>9.1 概要</h2>
+<p>テーブルに設置した QR コードをスマートフォンで読み取り、メニュー閲覧→カート→注文→会計をセルフサービスで完結するシステム。</p>
+
+<h2>9.2 フロー</h2>
+<ol>
+<li><strong>QR 読み取り</strong> → <code>/table/&lt;uuid&gt;/</code> テーブルメニュー表示</li>
+<li><strong>商品選択</strong> → <code>/api/table/&lt;uuid&gt;/cart/add/</code> でカート追加</li>
+<li><strong>カート確認</strong> → <code>/table/&lt;uuid&gt;/cart/</code></li>
+<li><strong>注文確定</strong> → <code>/api/table/&lt;uuid&gt;/order/create/</code></li>
+<li><strong>注文状況</strong> → <code>/api/table/&lt;uuid&gt;/orders/status/</code> でリアルタイム確認</li>
+<li><strong>注文履歴</strong> → <code>/table/&lt;uuid&gt;/history/</code></li>
+<li><strong>会計</strong> → <code>/table/&lt;uuid&gt;/checkout/</code></li>
+</ol>
+
+<h2>9.3 注文ステータス遷移</h2>
+<pre><code>ORDERED → PREPARING → SERVED → CLOSED
+  注文済     調理中      提供済    会計済</code></pre>
+<p>スタッフは <code>/api/staff/orders/items/&lt;id&gt;/status/</code> で各アイテムのステータスを更新。</p>
+
+<h2>9.4 テーブル管理</h2>
+<p>管理画面の「テーブル注文」グループから <code>TableSeat</code> を登録。UUID ベースの QR コード画像が自動生成されます。</p>
+
+<h1>10. IoTデバイス管理</h1>
+<h2>10.1 デバイス登録</h2>
+<p>管理画面の「IoT管理」から <code>IoTDevice</code> を登録。デバイスタイプ：multi（マルチセンサー）/ door（ドアセンサー）/ other。</p>
+
+<h2>10.2 API 認証</h2>
+<p>デバイスは <code>X-API-Key</code> ヘッダーで認証。API キーは SHA-256 ハッシュで保存（平文は保存しない）。登録時にのみ平文表示。</p>
+
+<h2>10.3 センサーデータ送信</h2>
+<pre><code>POST /api/iot/events/
+Headers: X-API-Key: &lt;api_key&gt;
+Body: {
+  "event_type": "sensor_reading",
+  "mq9_value": 150.5,    // ガスセンサー値
+  "light_value": 450.0,  // 照度値
+  "sound_value": 35.2,   // 音量値
+  "pir_triggered": false  // 人感センサー
+}</code></pre>
+
+<h2>10.4 ガスアラート</h2>
+<p><code>mq9_value</code> が <code>mq9_threshold</code> を超えた場合、Celery タスク <code>trigger_gas_alert</code> が発火。メール＋LINE で緊急通知。</p>
+
+<h2>10.5 IR スマートハブ</h2>
+<ol>
+<li>管理画面で <code>IRCode</code>（学習済み赤外線コード）を登録</li>
+<li><code>POST /api/iot/ir/send/</code> でコマンド送信</li>
+<li>デバイスが <code>GET /api/iot/config/</code> で <code>pending_ir_command</code> を取得して実行</li>
+</ol>
+
+<h2>10.6 Wi-Fi パスワード管理</h2>
+<p>デバイスの Wi-Fi パスワードは Fernet 暗号化して保存。<code>set_wifi_password()</code> / <code>get_wifi_password()</code> メソッドで暗号化・復号。</p>
+
+<h2>10.7 センサーダッシュボード</h2>
+<p><code>/dashboard/sensors/</code> でリアルタイムセンサーデータを可視化。API: <code>/api/iot/sensors/data/</code>, <code>/api/iot/sensors/pir-events/</code>, <code>/api/iot/sensors/pir-status/</code>。</p>
+
+<h1>11. 物件管理・監視</h1>
+<h2>11.1 物件登録</h2>
+<p>管理画面「物件管理」から <code>Property</code> を登録。property_type: apartment / house / office / store。IoTDevice を <code>PropertyDevice</code> で紐付け、設置場所（location_label）を記録。</p>
+
+<h2>11.2 アラート機能</h2>
+<table>
+<tr><th>アラートタイプ</th><th>トリガー条件</th><th>severity</th></tr>
+<tr><td>gas_leak</td><td>MQ-9 値が閾値を超過</td><td>critical</td></tr>
+<tr><td>no_motion</td><td>一定期間 PIR 検知なし</td><td>warning</td></tr>
+<tr><td>device_offline</td><td>デバイスが一定期間通信なし</td><td>warning</td></tr>
+<tr><td>custom</td><td>カスタム条件</td><td>設定による</td></tr>
+</table>
+
+<h2>11.3 定期チェック</h2>
+<p>Celery Beat で5分間隔で <code>check_property_alerts</code> タスクを実行。アラート発生時は <code>PropertyAlert</code> レコードを作成。</p>
+
+<h2>11.4 アラート解決</h2>
+<p><code>POST /api/alerts/&lt;id&gt;/resolve/</code> で <code>is_resolved=True</code>, <code>resolved_at</code> を記録。</p>
+
+<h1>12. シフト・勤怠・給与管理</h1>
+<h2>12.1 シフト管理フロー</h2>
+<ol>
+<li><strong>シフト期間作成</strong>：管理画面で <code>ShiftPeriod</code> 作成（対象月・締切設定、status=open）</li>
+<li><strong>シフト希望提出</strong>：スタッフが <code>/shift/&lt;period_id&gt;/submit/</code> で希望提出（available / preferred / unavailable）</li>
+<li><strong>シフト確定</strong>：管理者が <code>ShiftAssignment</code> を作成（日付・開始時刻・終了時刻）</li>
+<li><strong>Schedule 同期</strong>：<code>is_synced</code> フラグで予約カレンダーへの同期状態を管理</li>
+</ol>
+
+<h2>12.2 勤怠管理</h2>
+<p><code>WorkAttendance</code> で日次の勤怠記録。シフトからの自動生成（source=shift）、手動入力（manual）、修正（corrected）の3ソース。</p>
+<table>
+<tr><th>フィールド</th><th>説明</th></tr>
+<tr><td>regular_minutes</td><td>通常勤務時間（分）</td></tr>
+<tr><td>overtime_minutes</td><td>残業時間（分）</td></tr>
+<tr><td>late_night_minutes</td><td>深夜勤務時間（分）</td></tr>
+<tr><td>holiday_minutes</td><td>休日勤務時間（分）</td></tr>
+<tr><td>break_minutes</td><td>休憩時間（分）</td></tr>
+</table>
+
+<h2>12.3 給与計算</h2>
+<ol>
+<li><code>PayrollPeriod</code> 作成（status=draft）</li>
+<li>計算実行（status=calculating）→ <code>PayrollEntry</code> 自動生成</li>
+<li><code>EmploymentContract</code> に基づき基本給計算（時給制 or 月給制）</li>
+<li><code>SalaryStructure</code> の倍率で残業代・深夜手当・休日手当を計算</li>
+<li><code>PayrollDeduction</code> で社会保険料・税金を自動控除</li>
+<li>確定（status=confirmed）→ 支給（status=paid）</li>
+</ol>
+
+<h2>12.4 社会保険控除項目</h2>
+<table>
+<tr><th>項目</th><th>デフォルト率</th><th>備考</th></tr>
+<tr><td>厚生年金</td><td>9.150%</td><td>標準報酬月額ベース</td></tr>
+<tr><td>健康保険</td><td>5.000%</td><td>標準報酬月額ベース</td></tr>
+<tr><td>雇用保険</td><td>0.600%</td><td>総支給額ベース</td></tr>
+<tr><td>介護保険</td><td>0.820%</td><td>40歳以上のみ（birth_date で判定）</td></tr>
+<tr><td>労災保険</td><td>0.300%</td><td>事業主負担（is_employer_only）</td></tr>
+<tr><td>所得税</td><td>—</td><td>源泉徴収税額表に基づく</td></tr>
+<tr><td>住民税</td><td>—</td><td>resident_tax_monthly（定額）</td></tr>
+</table>
+
+<h1>13. 在庫管理</h1>
+<h2>13.1 在庫の基本操作</h2>
+<table>
+<tr><th>操作</th><th>movement_type</th><th>stock への影響</th></tr>
+<tr><td>入庫</td><td>IN</td><td>+ qty</td></tr>
+<tr><td>出庫</td><td>OUT</td><td>- qty</td></tr>
+<tr><td>棚卸調整</td><td>ADJUST</td><td>指定数量に設定</td></tr>
+</table>
+<p>全ての在庫変動は <code>StockMovement</code> に記録され、トレーサビリティを確保。</p>
+
+<h2>13.2 低在庫通知</h2>
+<p>Celery Beat タスク <code>check_low_stock_and_notify</code>（毎日09:00）で <code>stock ≤ low_stock_threshold</code> の商品を検出し、LINE で通知。<code>last_low_stock_notified_at</code> で重複通知を防止。</p>
+
+<h2>13.3 QR 入庫</h2>
+<p><code>/stock/inbound/</code> ページで商品 QR をスキャンし、<code>/api/stock/inbound/apply/</code> API で入庫処理。</p>
+
+<h2>13.4 注文による自動出庫</h2>
+<p>注文作成時に <code>apply_stock_movement(product, 'OUT', qty)</code> が呼ばれ、在庫を自動減算。<code>allow_negative=False</code> で在庫不足時はエラー。</p>
+
+<h1>14. ECショップ</h1>
+<h2>14.1 概要</h2>
+<p>Product モデルの <code>is_ec_visible=True</code> の商品が EC ショップに表示されます。</p>
+
+<h2>14.2 ページ構成</h2>
+<table>
+<tr><th>ページ</th><th>URL</th><th>説明</th></tr>
+<tr><td>商品一覧</td><td><code>/shop/</code></td><td>EC 表示対象商品の一覧</td></tr>
+<tr><td>カート</td><td><code>/shop/cart/</code></td><td>ショッピングカート</td></tr>
+<tr><td>チェックアウト</td><td><code>/shop/checkout/</code></td><td>注文確定・決済</td></tr>
+</table>
+
+<h2>14.3 カート API</h2>
+<table>
+<tr><th>操作</th><th>API</th><th>メソッド</th></tr>
+<tr><td>追加</td><td><code>/api/shop/cart/add/</code></td><td>POST</td></tr>
+<tr><td>更新</td><td><code>/api/shop/cart/update/</code></td><td>POST</td></tr>
+<tr><td>削除</td><td><code>/api/shop/cart/remove/</code></td><td>POST</td></tr>
+</table>
+
+<h2>14.4 多言語対応</h2>
+<p><code>ProductTranslation</code> モデルで商品名・説明文を7言語に翻訳。ユーザーの言語設定に応じて自動切替。</p>
+
+<h1>15. セキュリティ機能</h1>
+<h2>15.1 暗号化</h2>
+<table>
+<tr><th>対象</th><th>方式</th><th>キー環境変数</th></tr>
+<tr><td>LINE User ID</td><td>Fernet 暗号化 + SHA-256 ハッシュ</td><td><code>LINE_USER_ID_ENCRYPTION_KEY</code>, <code>LINE_USER_ID_HASH_PEPPER</code></td></tr>
+<tr><td>IoT Wi-Fi パスワード</td><td>Fernet 暗号化</td><td><code>IOT_ENCRYPTION_KEY</code></td></tr>
+<tr><td>IoT API キー</td><td>SHA-256 ハッシュ（不可逆）</td><td>—</td></tr>
+<tr><td>Email OTP</td><td>SHA-256 ハッシュ + 有効期限</td><td>—</td></tr>
+</table>
+
+<h2>15.2 セキュリティ監査</h2>
+<p><code>python manage.py security_audit</code> または Celery タスク（毎日03:00）で自動実行。チェックカテゴリ：</p>
+<ul>
+<li><strong>django_settings</strong> — DEBUG, ALLOWED_HOSTS, SECRET_KEY 等</li>
+<li><strong>credentials</strong> — API キー・パスワードの安全性</li>
+<li><strong>endpoints</strong> — エンドポイントのアクセス制御</li>
+<li><strong>infrastructure</strong> — SSL, ファイアウォール</li>
+<li><strong>dependencies</strong> — パッケージの脆弱性</li>
+</ul>
+
+<h2>15.3 監視ログ（SecurityLog）</h2>
+<p><code>SecurityAuditMiddleware</code> が全リクエストを監視し、以下のイベントを自動記録：</p>
+<table>
+<tr><th>event_type</th><th>severity</th><th>トリガー</th></tr>
+<tr><td>login_success</td><td>info</td><td>ログイン成功</td></tr>
+<tr><td>login_fail</td><td>warning</td><td>ログイン失敗</td></tr>
+<tr><td>api_auth_fail</td><td>warning</td><td>/api/ への 401/403</td></tr>
+<tr><td>permission_denied</td><td>warning</td><td>403 レスポンス</td></tr>
+<tr><td>suspicious_request</td><td>critical</td><td>レート制限超過</td></tr>
+<tr><td>admin_action</td><td>info</td><td>管理画面操作</td></tr>
+</table>
+
+<h2>15.4 レート制限</h2>
+<p>同一 IP から60秒間に100リクエスト超で <code>suspicious_request</code>（critical）を記録。カウンターは最大10,000エントリ。IP 検出は <code>X-Forwarded-For</code> ヘッダー対応。</p>
+
+<h2>15.5 本番セキュリティ設定</h2>
+<ul>
+<li><code>SECURE_SSL_REDIRECT = True</code></li>
+<li><code>SECURE_HSTS_SECONDS = 31536000</code>（1年）</li>
+<li><code>SESSION_COOKIE_SECURE = True</code></li>
+<li><code>CSRF_COOKIE_SECURE = True</code></li>
+<li><code>X_FRAME_OPTIONS = "DENY"</code></li>
+</ul>
+
+<h2>15.6 ログ保持</h2>
+<p><code>cleanup_security_logs</code> タスク（毎週日曜04:00）で90日以上前のログを自動削除。<code>--days</code> オプションで保持期間変更可能。</p>
+
+<h1>16. AWSコスト監視</h1>
+<h2>16.1 概要</h2>
+<p><code>check_aws_costs</code> 管理コマンド（Celery で毎日06:00実行）が AWS リソースのコストを監視し、<code>CostReport</code> モデルに記録。</p>
+
+<h2>16.2 チェック対象</h2>
+<table>
+<tr><th>resource_type</th><th>チェック内容</th></tr>
+<tr><td>ec2</td><td>EC2 インスタンスの稼働状況・コスト</td></tr>
+<tr><td>s3</td><td>S3 バケットのストレージコスト</td></tr>
+<tr><td>ebs</td><td>EBS ボリュームの使用状況</td></tr>
+<tr><td>eip</td><td>未使用 Elastic IP</td></tr>
+<tr><td>rds</td><td>RDS インスタンスのコスト</td></tr>
+<tr><td>total</td><td>月額合計</td></tr>
+</table>
+
+<h2>16.3 ステータス</h2>
+<table>
+<tr><th>status</th><th>意味</th></tr>
+<tr><td>ok</td><td>正常範囲内</td></tr>
+<tr><td>warn</td><td>コスト上昇の兆候</td></tr>
+<tr><td>alert</td><td>閾値超過（要対応）</td></tr>
+</table>
+
+<h2>16.4 使用方法</h2>
+<pre><code># 手動実行
+python manage.py check_aws_costs
+
+# 閾値指定
+python manage.py check_aws_costs --threshold 100</code></pre>
+
+<h1>17. 定期タスク（Celery）</h1>
+<h2>17.1 Celery 設定</h2>
+<p>ブローカー: Redis（<code>CELERY_BROKER_URL</code>、デフォルト: <code>redis://localhost:6379/0</code>）</p>
+
+<h2>17.2 Beat スケジュール一覧</h2>
+<table>
+<tr><th>タスク名</th><th>関数</th><th>スケジュール</th><th>説明</th></tr>
+<tr><td>delete-every-minute</td><td>delete_temporary_schedules</td><td>毎60秒</td><td>仮予約の自動削除（10分超過）</td></tr>
+<tr><td>check-low-stock-daily</td><td>check_low_stock_and_notify</td><td>毎日 09:00</td><td>低在庫 LINE 通知</td></tr>
+<tr><td>check-property-alerts</td><td>check_property_alerts</td><td>5分間隔</td><td>物件アラート監視</td></tr>
+<tr><td>security-audit-daily</td><td>run_security_audit</td><td>毎日 03:00</td><td>セキュリティ監査</td></tr>
+<tr><td>cleanup-security-logs-weekly</td><td>cleanup_security_logs</td><td>毎週日曜 04:00</td><td>古いログの削除</td></tr>
+<tr><td>check-aws-costs-daily</td><td>check_aws_costs</td><td>毎日 06:00</td><td>AWS コスト監視</td></tr>
+</table>
+
+<h2>17.3 非同期タスク</h2>
+<table>
+<tr><th>タスク</th><th>トリガー</th><th>説明</th></tr>
+<tr><td>trigger_gas_alert</td><td>IoT イベント受信時（mq9 超過）</td><td>ガス漏れ緊急アラート送信</td></tr>
+</table>
+
+<h2>17.4 起動方法</h2>
+<pre><code># ワーカー起動
+celery -A project worker -l info
+
+# Beat スケジューラー起動
+celery -A project beat -l info
+
+# 開発環境（ワーカー + Beat 同時）
+celery -A project worker -l info -B</code></pre>
+
+<h1>18. 管理コマンドリファレンス</h1>
+<table>
+<tr><th>コマンド</th><th>説明</th><th>主なオプション</th></tr>
+<tr><td><code>bootstrap_admin_staff</code></td><td>管理者ユーザーと Staff レコード作成</td><td><code>--username</code>, <code>--store_id</code>, <code>--manager</code>, <code>--developer</code></td></tr>
+<tr><td><code>security_audit</code></td><td>セキュリティ監査の実行</td><td>なし</td></tr>
+<tr><td><code>cleanup_security_logs</code></td><td>古いセキュリティログの削除</td><td><code>--days</code>（デフォルト: 90）</td></tr>
+<tr><td><code>check_aws_costs</code></td><td>AWS コストチェック</td><td><code>--threshold</code></td></tr>
+<tr><td><code>cancel_expired_temp_bookings</code></td><td>期限切れ仮予約のキャンセル</td><td>なし</td></tr>
+</table>
+
+<h2>18.1 使用例</h2>
+<pre><code># 管理者作成
+python manage.py bootstrap_admin_staff \
+  --username admin --store_id 1 --manager --developer
+
+# セキュリティ監査
+python manage.py security_audit
+
+# 30日以上前のログ削除
+python manage.py cleanup_security_logs --days 30
+
+# AWS コストチェック（閾値 $50）
+python manage.py check_aws_costs --threshold 50
+
+# 期限切れ仮予約キャンセル
+python manage.py cancel_expired_temp_bookings</code></pre>
+
+<h1>19. デプロイ手順</h1>
+<h2>19.1 サーバー前提条件</h2>
+<ul>
+<li>OS: Ubuntu / Amazon Linux</li>
+<li>Python 3.x + venv</li>
+<li>Nginx, Gunicorn</li>
+<li>Redis（Celery ブローカー）</li>
+<li>PostgreSQL（RDS）— 本番は SQLite 使用不可</li>
+<li>SSL 証明書</li>
+</ul>
+
+<h2>19.2 本番デプロイ</h2>
+<pre><code># 1. リリースタグ作成
+git tag -a release-YYYYMMDD-HHMM -m "Release description"
+git push origin release-YYYYMMDD-HHMM
+
+# 2. GitHub Actions が自動デプロイ
+#    - deploy-production.yml が実行
+#    - "DEPLOY" 確認文字列が必要
+#    - セキュリティ監査・SECRET_KEY検証を事前実行
+
+# 3. 手動デプロイの場合
+ssh newfuhi@server
+cd /var/www/newfuhi
+git fetch && git checkout release-YYYYMMDD-HHMM
+source .venv/bin/activate
+pip install -r requirements.txt
+python manage.py migrate --noinput
+python manage.py collectstatic --noinput
+sudo systemctl restart newfuhi-production</code></pre>
+
+<h2>19.3 ステージングデプロイ</h2>
+<p><code>develop</code> / <code>staging</code> ブランチへの push で自動デプロイ。rsync でコード同期後、マイグレーション・静的ファイル収集・サービス再起動。IP 制限あり（192.168.1.0/24, 10.0.0.0/8）。</p>
+
+<h2>19.4 設定ファイル</h2>
+<table>
+<tr><th>ファイル</th><th>説明</th></tr>
+<tr><td><code>config/nginx/production.conf</code></td><td>Nginx 本番設定（HTTPS, TLS 1.2/1.3, HSTS）</td></tr>
+<tr><td><code>config/nginx/staging.conf</code></td><td>Nginx ステージング設定（HTTP, IP制限, BasicAuth）</td></tr>
+<tr><td><code>config/gunicorn/production.conf.py</code></td><td>Gunicorn 本番（workers=CPU*2+1, preload）</td></tr>
+<tr><td><code>config/systemd/newfuhi-production.service</code></td><td>systemd サービス（セキュリティ制限付き）</td></tr>
+</table>
+
+<h2>19.5 CI/CD パイプライン</h2>
+<table>
+<tr><th>ワークフロー</th><th>トリガー</th><th>内容</th></tr>
+<tr><td>pr-validation.yml</td><td>PR 作成</td><td>Lint（flake8, black, isort, mypy）、テスト、カバレッジ</td></tr>
+<tr><td>deploy-staging.yml</td><td>develop/staging push</td><td>自動デプロイ + ヘルスチェック</td></tr>
+<tr><td>deploy-production.yml</td><td>release-* タグ / 手動</td><td>承認必須デプロイ</td></tr>
+</table>
+
+<h2>19.6 ロールバック</h2>
+<pre><code>ssh newfuhi@server
+cd /var/www/newfuhi
+git checkout release-PREVIOUS-TAG
+source .venv/bin/activate
+pip install -r requirements.txt
+python manage.py migrate --noinput
+sudo systemctl restart newfuhi-production</code></pre>
+
+<h2>19.7 監視</h2>
+<pre><code># ログ確認
+sudo journalctl -u newfuhi-production -f
+
+# Nginx アクセスログ
+tail -f /var/log/nginx/access.log
+
+# ヘルスチェック
+curl -s https://example.com/healthz</code></pre>
+
+<h1>20. 多言語対応</h1>
+<h2>20.1 対応言語</h2>
+<p>7言語対応。Django の i18n フレームワーク（<code>LocaleMiddleware</code>）+ URL プレフィックス（<code>i18n_patterns</code>）で言語切替。</p>
+
+<h2>20.2 翻訳ファイル</h2>
+<pre><code>locale/
+├── ja/LC_MESSAGES/django.po    # 日本語
+├── en/LC_MESSAGES/django.po    # 英語
+├── zh_Hant/LC_MESSAGES/django.po  # 繁體中文
+├── zh_Hans/LC_MESSAGES/django.po  # 简体中文
+├── ko/LC_MESSAGES/django.po    # 한국어
+├── es/LC_MESSAGES/django.po    # Español
+└── pt/LC_MESSAGES/django.po    # Português</code></pre>
+
+<h2>20.3 翻訳コマンド</h2>
+<pre><code># メッセージ抽出
+python manage.py makemessages -l ja
+python manage.py makemessages -l en
+# ... 全言語
+
+# コンパイル
+python manage.py compilemessages</code></pre>
+
+<h2>20.4 商品翻訳（ProductTranslation）</h2>
+<p>商品名・説明文は <code>ProductTranslation</code> モデルで言語ごとに個別管理。管理画面からインラインで編集可能。翻訳がない言語では Product のデフォルト値（name, description）を表示。</p>
+
+<h1>21. トラブルシューティング</h1>
+<h2>21.1 よくある問題</h2>
+<table>
+<tr><th>症状</th><th>原因</th><th>対処法</th></tr>
+<tr><td>仮予約が消えない</td><td>Celery ワーカー / Beat が停止</td><td><code>celery -A project worker -l info -B</code> で再起動</td></tr>
+<tr><td>LINE ログインエラー</td><td>LINE_CHANNEL_ID / SECRET の設定ミス</td><td>環境変数を確認。LINE Developers コンソールでリダイレクト URL を確認</td></tr>
+<tr><td>決済 Webhook が来ない</td><td>WEBHOOK_URL_BASE の設定ミス</td><td>本番 URL に設定されているか確認。ファイアウォール確認</td></tr>
+<tr><td>IoT デバイスが接続できない</td><td>API キーの不一致</td><td>デバイス側のキーが登録時の平文と一致するか確認</td></tr>
+<tr><td>メール送信失敗</td><td>SMTP 設定ミス</td><td>EMAIL_HOST, EMAIL_PORT, 認証情報を確認</td></tr>
+<tr><td>静的ファイルが表示されない</td><td>collectstatic 未実行</td><td><code>python manage.py collectstatic --noinput</code></td></tr>
+<tr><td>マイグレーションエラー</td><td>DB スキーマの不整合</td><td><code>python manage.py showmigrations</code> で状態確認</td></tr>
+<tr><td>管理画面のメニューが表示されない</td><td>Staff レコードなし / ロール未設定</td><td><code>bootstrap_admin_staff</code> コマンドで作成</td></tr>
+<tr><td>ガスアラートが発火しない</td><td>mq9_threshold 未設定 / alert_enabled=False</td><td>IoTDevice の閾値とアラート有効フラグを確認</td></tr>
+<tr><td>給与計算が0円</td><td>EmploymentContract 未作成</td><td>スタッフの雇用契約を管理画面で設定</td></tr>
+</table>
+
+<h2>21.2 ログ確認方法</h2>
+<pre><code># Django アプリログ
+tail -f debug.log
+
+# 本番ログ（systemd）
+sudo journalctl -u newfuhi-production -f --since "1 hour ago"
+
+# Gunicorn ログ
+tail -f /var/log/newfuhi/gunicorn-error.log
+
+# Celery ログ
+celery -A project worker -l debug
+
+# セキュリティログ（DB）
+python manage.py shell -c "
+from booking.models import SecurityLog
+for log in SecurityLog.objects.order_by('-created_at')[:10]:
+    print(f'{log.created_at} [{log.severity}] {log.event_type}: {log.detail}')
+"</code></pre>
+
+<h2>21.3 緊急時の対応</h2>
+<table>
+<tr><th>状況</th><th>対応</th></tr>
+<tr><td>サービス完全停止</td><td><code>sudo systemctl restart newfuhi-production</code></td></tr>
+<tr><td>DB 接続エラー（本番）</td><td>RDS の状態確認、セキュリティグループ確認</td></tr>
+<tr><td>ディスク容量不足</td><td>ログローテーション確認、<code>cleanup_security_logs</code> 実行</td></tr>
+<tr><td>セキュリティインシデント</td><td>SecurityLog 確認、該当 IP ブロック、関係者に連絡</td></tr>
+<tr><td>ロールバックが必要</td><td>前のリリースタグに checkout → サービス再起動</td></tr>
+</table>
+
+</body>
+</html>
