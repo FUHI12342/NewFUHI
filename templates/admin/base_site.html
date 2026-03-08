@@ -18,7 +18,9 @@
 <div id="user-tools-inner">
     <span class="user-greeting">{% trans 'ようこそ' %}{% if user.is_authenticated %}, <strong>{{ user.get_short_name|default:user.get_username }}</strong>{% endif %}。</span>
     <span class="user-actions">
-        <a href="{% url 'admin:logout' %}" class="user-action-link">{% trans 'ログアウト' %}</a>
+        <a href="/" class="user-action-link">{% trans 'サイトを表示' %}</a>
+        <a href="{% url 'admin:password_change' %}" class="user-action-link">{% trans 'パスワードの変更' %}</a>
+        <a href="{% url 'admin:logout' %}" class="user-action-link user-action-link--logout">{% trans 'ログアウト' %}</a>
         <form action="{% url 'set_language' %}" method="post" class="lang-form">
             {% csrf_token %}
             <input type="hidden" name="next" value="{{ request.get_full_path }}">
@@ -147,6 +149,9 @@ tailwind.config = {
     .user-action-link:hover {
         background: rgba(255,255,255,0.15);
     }
+    .user-action-link--logout {
+        background: rgba(255,255,255,0.1);
+    }
     .lang-form {
         display: inline;
         margin: 0;
@@ -165,9 +170,10 @@ tailwind.config = {
         color: var(--brand-primary) !important;
     }
 
-    /* Module headers */
+    /* Module headers (non-dashboard pages like change forms) */
     .module h2, .module caption, .inline-group h2 {
         background: var(--brand-primary) !important;
+        color: #fff !important;
         border-radius: 8px 8px 0 0;
         padding: 10px 16px !important;
         font-size: 14px !important;
