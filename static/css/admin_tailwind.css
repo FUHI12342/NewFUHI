@@ -253,100 +253,11 @@ a.button {
 }
 
 /* ==============================
-   Recent Actions — Right-edge Drawer
+   Recent Actions — 非表示
    ============================== */
-.admin-recent-drawer {
-    position: fixed;
-    top: 50px;
-    right: 0;
-    height: calc(100vh - 50px);
-    z-index: 1000;
-    display: flex;
-    transition: transform 0.3s ease;
-}
-.admin-recent-drawer.collapsed {
-    transform: translateX(300px);
-}
-/* When collapsed, only panel (300px) slides off-screen; tab stays visible */
-
-/* Tab on the left side of drawer */
-.admin-recent-tab {
-    display: flex;
-    align-items: center;
-    writing-mode: vertical-rl;
-    text-orientation: mixed;
-    padding: 16px 8px;
-    background: var(--gray-700, #374151);
-    color: #fff;
-    border-radius: 8px 0 0 8px;
-    cursor: pointer;
-    font-size: 12px;
-    font-weight: 600;
-    letter-spacing: 0.05em;
-    user-select: none;
-    white-space: nowrap;
-    flex-shrink: 0;
-    transition: background 0.15s;
-    box-shadow: -2px 0 8px rgba(0,0,0,0.1);
-}
-.admin-recent-tab:hover {
-    background: var(--gray-600, #4b5563);
-}
-.admin-recent-tab svg {
-    margin-bottom: 6px;
-    transition: transform 0.2s;
-}
-.admin-recent-drawer.collapsed .admin-recent-tab svg {
-    transform: rotate(180deg);
-}
-
-/* Panel content */
-.admin-recent-panel {
-    width: 300px;
-    flex-shrink: 0;
-    background: #fff;
-    border-left: 1px solid var(--gray-200, #e5e7eb);
-    box-shadow: -4px 0 16px rgba(0,0,0,0.08);
-    overflow-y: auto;
-    display: flex;
-    flex-direction: column;
-}
-.admin-recent-panel-header {
-    padding: 14px 16px;
-    font-size: 14px;
-    font-weight: 700;
-    color: var(--gray-800, #1f2937);
-    border-bottom: 1px solid var(--gray-200, #e5e7eb);
-    background: var(--gray-50, #f9fafb);
-    flex-shrink: 0;
-}
-.admin-recent-panel-body {
-    flex: 1;
-    overflow-y: auto;
-}
-.admin-recent-panel-body li {
-    padding: 10px 16px;
-    font-size: 13px;
-    border-bottom: 1px solid var(--gray-100, #f3f4f6);
-}
-.admin-recent-panel-body li:last-child {
-    border-bottom: none;
-}
-
-/* Hide original recent-actions-module styling */
-#recent-actions-module {
-    border-radius: 0;
-    border: none;
-    box-shadow: none;
-}
-#recent-actions-module h2 {
-    display: none;
-}
-
-@media (max-width: 767px) {
-    .admin-recent-drawer {
-        display: none !important;
-    }
+#recent-actions-module,
+#content-related {
+    display: none !important;
 }
 
 /* ==============================
