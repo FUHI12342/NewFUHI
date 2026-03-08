@@ -1,0 +1,96 @@
+{% load i18n %}
+<aside class="admin-sidebar" id="admin-sidebar">
+    <!-- Logo / Site name -->
+    <div class="sidebar-logo">
+        <a href="{% url 'admin:index' %}">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#20AEE5" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/>
+            </svg>
+            <span>{{ site_settings.site_name|default:"サイト" }}</span>
+        </a>
+    </div>
+
+    <!-- Special links -->
+    <nav class="sidebar-nav">
+        {% for link in sidebar_special_links %}
+        <a href="{{ link.url }}" class="sidebar-special-link{% if request.path == link.url %} active{% endif %}">
+            {% if link.icon == 'home' %}
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+            {% elif link.icon == 'calendar' %}
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+            {% elif link.icon == 'gantt' %}
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="14" height="4" rx="1"/><rect x="5" y="10" width="16" height="4" rx="1"/><rect x="7" y="16" width="10" height="4" rx="1"/></svg>
+            {% endif %}
+            <span>{{ link.label }}</span>
+        </a>
+        {% endfor %}
+    </nav>
+
+    <!-- Divider -->
+    <div class="sidebar-divider"></div>
+
+    <!-- Menu groups -->
+    <nav class="sidebar-menu">
+        {% for group in sidebar_groups %}
+        <div class="sidebar-group" data-group="{{ group.slug }}">
+            <button class="sidebar-group__toggle" onclick="toggleSidebarGroup(this)" type="button">
+                <span class="sidebar-group__name">{{ group.name }}</span>
+                <svg class="sidebar-group__arrow" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+            </button>
+            <ul class="sidebar-group__models">
+                {% for model in group.models %}
+                <li>
+                    <a href="{{ model.admin_url }}" class="sidebar-model-link{% if request.path == model.admin_url %} active{% endif %}">{{ model.name }}</a>
+                </li>
+                {% endfor %}
+            </ul>
+        </div>
+        {% endfor %}
+    </nav>
+
+    <!-- User info at bottom -->
+    <div class="sidebar-user">
+        {% if user.is_authenticated %}
+        <div class="sidebar-user__info">
+            <div class="sidebar-user__avatar">{{ user.get_short_name|default:user.get_username|truncatechars:1 }}</div>
+            <div class="sidebar-user__details">
+                <span class="sidebar-user__name">{{ user.get_short_name|default:user.get_username }}</span>
+            </div>
+        </div>
+        <a href="{% url 'admin:logout' %}" class="sidebar-user__logout" title="{% trans 'ログアウト' %}">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+        </a>
+        {% endif %}
+    </div>
+</aside>
+
+<!-- Mobile hamburger toggle -->
+<button class="sidebar-toggle" id="sidebar-toggle" onclick="toggleSidebar()" type="button" aria-label="Menu">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+</button>
+<div class="sidebar-overlay" id="sidebar-overlay" onclick="toggleSidebar()"></div>
+
+<script>
+function toggleSidebar() {
+    var sb = document.getElementById('admin-sidebar');
+    var ov = document.getElementById('sidebar-overlay');
+    sb.classList.toggle('open');
+    ov.classList.toggle('open');
+}
+function toggleSidebarGroup(btn) {
+    var group = btn.closest('.sidebar-group');
+    group.classList.toggle('collapsed');
+    var slug = group.getAttribute('data-group');
+    var state = JSON.parse(localStorage.getItem('sidebar_groups') || '{}');
+    state[slug] = group.classList.contains('collapsed');
+    localStorage.setItem('sidebar_groups', JSON.stringify(state));
+}
+// Restore collapsed state
+document.addEventListener('DOMContentLoaded', function() {
+    var state = JSON.parse(localStorage.getItem('sidebar_groups') || '{}');
+    document.querySelectorAll('.sidebar-group').forEach(function(g) {
+        var slug = g.getAttribute('data-group');
+        if (state[slug]) g.classList.add('collapsed');
+    });
+});
+</script>

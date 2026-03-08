@@ -28,6 +28,64 @@
     </a>
 </div>
 
+<!-- ===== Dashboard Summary Cards (AirRegi-style) ===== -->
+<div class="dash-cards" id="dash-cards">
+    <div class="dash-card">
+        <div class="dash-card__icon dash-card__icon--reservations">📅</div>
+        <div class="dash-card__body">
+            <span class="dash-card__value" id="dc-reservations">--</span>
+            <span class="dash-card__label">{% trans "今日の予約" %}</span>
+            <span class="dash-card__trend dash-card__trend--neutral" id="dc-reservations-trend"></span>
+        </div>
+    </div>
+    <div class="dash-card">
+        <div class="dash-card__icon dash-card__icon--sales">💰</div>
+        <div class="dash-card__body">
+            <span class="dash-card__value" id="dc-sales">--</span>
+            <span class="dash-card__label">{% trans "今月の売上" %}</span>
+            <span class="dash-card__trend dash-card__trend--neutral" id="dc-sales-trend"></span>
+        </div>
+    </div>
+    <div class="dash-card">
+        <div class="dash-card__icon dash-card__icon--staff">👤</div>
+        <div class="dash-card__body">
+            <span class="dash-card__value" id="dc-staff">--</span>
+            <span class="dash-card__label">{% trans "今日の出勤" %}</span>
+            <span class="dash-card__trend dash-card__trend--neutral" id="dc-staff-trend"></span>
+        </div>
+    </div>
+    <div class="dash-card">
+        <div class="dash-card__icon dash-card__icon--shifts">📋</div>
+        <div class="dash-card__body">
+            <span class="dash-card__value" id="dc-pending">--</span>
+            <span class="dash-card__label">{% trans "未確定シフト" %}</span>
+            <span class="dash-card__trend dash-card__trend--neutral" id="dc-pending-trend"></span>
+        </div>
+    </div>
+</div>
+
+<script>
+(function() {
+    fetch('/api/dashboard/summary/')
+        .then(function(r) { return r.json(); })
+        .then(function(d) {
+            document.getElementById('dc-reservations').textContent = d.today_reservations;
+            document.getElementById('dc-sales').textContent = '¥' + (d.monthly_sales || 0).toLocaleString();
+            document.getElementById('dc-staff').textContent = d.today_staff;
+            document.getElementById('dc-pending').textContent = d.pending_shifts;
+
+            // Trends
+            if (d.reservation_trend !== undefined) {
+                var el = document.getElementById('dc-reservations-trend');
+                var diff = d.reservation_trend;
+                el.textContent = (diff >= 0 ? '+' : '') + diff + ' vs 先週';
+                el.className = 'dash-card__trend dash-card__trend--' + (diff > 0 ? 'up' : diff < 0 ? 'down' : 'neutral');
+            }
+        })
+        .catch(function() {});
+})();
+</script>
+
 {% endif %}
 
 {{ block.super }}
@@ -45,23 +103,19 @@ document.addEventListener('DOMContentLoaded', function() {
     var recentModule = document.getElementById('recent-actions-module');
     if (!recentModule) return;
 
-    // 元の #content-related を非表示
     var contentRelated = document.getElementById('content-related');
     if (contentRelated) {
         contentRelated.style.display = 'none';
     }
 
-    // ドロワー構造を作成
     var drawer = document.createElement('div');
     drawer.className = 'admin-recent-drawer';
 
-    // タブ（縦書きラベル、ドロワー左端に配置）
     var tab = document.createElement('div');
     tab.className = 'admin-recent-tab';
     tab.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>' +
         '{% trans "最近行った操作" %}';
 
-    // パネル（コンテンツエリア）
     var panel = document.createElement('div');
     panel.className = 'admin-recent-panel';
 
@@ -72,7 +126,6 @@ document.addEventListener('DOMContentLoaded', function() {
     var panelBody = document.createElement('div');
     panelBody.className = 'admin-recent-panel-body';
 
-    // 既存のアクションリストをパネルに移動
     var actionList = recentModule.querySelector('ul');
     if (actionList) {
         panelBody.appendChild(actionList);
@@ -90,13 +143,11 @@ document.addEventListener('DOMContentLoaded', function() {
     drawer.appendChild(panel);
     document.body.appendChild(drawer);
 
-    // 折りたたみ状態を復元（デフォルトは折りたたみ）
     var isCollapsed = localStorage.getItem('admin_recent_drawer') !== 'open';
     if (isCollapsed) {
         drawer.classList.add('collapsed');
     }
 
-    // タブクリックでトグル
     tab.addEventListener('click', function() {
         drawer.classList.toggle('collapsed');
         localStorage.setItem('admin_recent_drawer',

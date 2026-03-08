@@ -10,7 +10,7 @@ from booking import views as booking_views
 from booking.admin_site import custom_site
 from booking.health import healthz
 from booking.views_debug import AdminDebugPanelView, IoTDeviceDebugView
-from booking.views_restaurant_dashboard import RestaurantDashboardView
+from booking.views_restaurant_dashboard import RestaurantDashboardView, CalendarView, GanttView
 import booking.admin
 
 # Non-i18n URLs (APIs, health check)
@@ -48,6 +48,16 @@ urlpatterns += i18n_patterns(
         "admin/debug/device/<int:device_id>/",
         custom_site.admin_view(IoTDeviceDebugView.as_view()),
         name="admin_iot_device_debug",
+    ),
+    path(
+        "admin/calendar/",
+        custom_site.admin_view(CalendarView.as_view()),
+        name="admin_calendar",
+    ),
+    path(
+        "admin/gantt/",
+        custom_site.admin_view(GanttView.as_view()),
+        name="admin_gantt",
     ),
     path(
         "admin/dashboard/sales/",

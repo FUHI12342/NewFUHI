@@ -1,7 +1,7 @@
 /*
  * admin_tailwind.css
- * Django admin Tailwind-inspired style overrides
- * Brand color system via CSS custom properties (set in base_site.html)
+ * AirShift/AirRegi inspired Django admin styles
+ * Brand: シアン系 #20AEE5, ダークサイドバー #1a1f36
  */
 
 /* ==============================
@@ -22,7 +22,6 @@ body {
     margin: 0 auto;
     position: relative;
 }
-/* Override Django default .colMS sidebar margin */
 .dashboard #content.colMS {
     margin-right: 0;
 }
@@ -40,7 +39,6 @@ body {
     box-shadow: 0 1px 2px rgba(0,0,0,0.04);
     overflow: hidden;
 }
-
 .module h2,
 .module caption {
     font-size: 13px;
@@ -68,22 +66,10 @@ table {
     font-weight: 600;
     letter-spacing: 0.025em;
 }
-.tw-badge-success {
-    background: rgba(18, 183, 106, 0.1);
-    color: #12b76a;
-}
-.tw-badge-error {
-    background: rgba(240, 68, 56, 0.1);
-    color: #f04438;
-}
-.tw-badge-warning {
-    background: rgba(247, 144, 9, 0.1);
-    color: #f79009;
-}
-.tw-badge-info {
-    background: rgba(70, 95, 255, 0.1);
-    color: #465fff;
-}
+.tw-badge-success { background: rgba(18, 183, 106, 0.1); color: #12b76a; }
+.tw-badge-error   { background: rgba(240, 68, 56, 0.1); color: #f04438; }
+.tw-badge-warning { background: rgba(247, 144, 9, 0.1); color: #f79009; }
+.tw-badge-info    { background: rgba(32, 174, 229, 0.1); color: #20AEE5; }
 
 /* ==============================
    Buttons
@@ -93,7 +79,6 @@ table {
     font-weight: 500;
     transition: all 0.15s ease;
 }
-
 a.button {
     border-radius: 8px;
     padding: 8px 16px;
@@ -110,29 +95,13 @@ a.button {
     padding: 10px 16px;
     font-size: 13px;
 }
-.messagelist li.success {
-    background: rgba(18, 183, 106, 0.08);
-    border-left: 4px solid #12b76a;
-    color: #065f46;
-}
-.messagelist li.error {
-    background: rgba(240, 68, 56, 0.08);
-    border-left: 4px solid #f04438;
-    color: #991b1b;
-}
-.messagelist li.warning {
-    background: rgba(247, 144, 9, 0.08);
-    border-left: 4px solid #f79009;
-    color: #92400e;
-}
-.messagelist li.info {
-    background: rgba(70, 95, 255, 0.08);
-    border-left: 4px solid #465fff;
-    color: #1e40af;
-}
+.messagelist li.success { background: rgba(18, 183, 106, 0.08); border-left: 4px solid #12b76a; color: #065f46; }
+.messagelist li.error   { background: rgba(240, 68, 56, 0.08); border-left: 4px solid #f04438; color: #991b1b; }
+.messagelist li.warning { background: rgba(247, 144, 9, 0.08); border-left: 4px solid #f79009; color: #92400e; }
+.messagelist li.info    { background: rgba(32, 174, 229, 0.08); border-left: 4px solid #20AEE5; color: #0c4a6e; }
 
 /* ==============================
-   Object Tools (top-right action links)
+   Object Tools
    ============================== */
 .object-tools li a {
     border-radius: 6px !important;
@@ -141,9 +110,7 @@ a.button {
     font-weight: 500;
     transition: opacity 0.15s;
 }
-.object-tools li a:hover {
-    opacity: 0.85;
-}
+.object-tools li a:hover { opacity: 0.85; }
 
 /* ==============================
    Admin Top Bar (横一列ダッシュボードリンク)
@@ -172,18 +139,12 @@ a.button {
     transform: translateY(-1px);
     color: #fff !important;
 }
-.admin-topbar__item--debug {
-    background: var(--brand-primary, #465fff);
-}
-.admin-topbar__item--sales {
-    background: linear-gradient(135deg, #465fff, #6366f1);
-}
-.admin-topbar__item--sensor {
-    background: #12b76a;
-}
+.admin-topbar__item--debug  { background: var(--brand-primary, #20AEE5); }
+.admin-topbar__item--sales  { background: linear-gradient(135deg, #20AEE5, #1a9dd0); }
+.admin-topbar__item--sensor { background: #12b76a; }
 
 /* ==============================
-   Menu Operations Bar (thin, spans 3-col width)
+   Menu Operations Bar
    ============================== */
 .sidebar-edit-bar {
     display: flex;
@@ -207,13 +168,11 @@ a.button {
     font-size: 11px;
     transition: background 0.15s;
 }
-.sidebar-edit-bar button:hover {
-    background: var(--gray-50, #f9fafb);
-}
+.sidebar-edit-bar button:hover { background: var(--gray-50, #f9fafb); }
 .sidebar-edit-bar button.active {
-    background: var(--brand-primary, #465fff);
+    background: var(--brand-primary, #20AEE5);
     color: #fff;
-    border-color: var(--brand-primary, #465fff);
+    border-color: var(--brand-primary, #20AEE5);
 }
 .sidebar-edit-bar .edit-label {
     color: var(--gray-500, #6b7280);
@@ -230,26 +189,14 @@ a.button {
     gap: 12px;
     align-content: start;
 }
-
-/* Edit bar spans full width */
-.admin-app-grid > .sidebar-edit-bar {
-    grid-column: 1 / -1;
-    margin-bottom: 0;
-}
-/* Remove module margin-bottom inside grid (gap handles spacing) */
-.admin-app-grid > .app-module {
-    margin-bottom: 0;
-}
+.admin-app-grid > .sidebar-edit-bar { grid-column: 1 / -1; margin-bottom: 0; }
+.admin-app-grid > .app-module { margin-bottom: 0; }
 
 @media (max-width: 1100px) {
-    .admin-app-grid {
-        grid-template-columns: repeat(2, 1fr);
-    }
+    .admin-app-grid { grid-template-columns: repeat(2, 1fr); }
 }
 @media (max-width: 700px) {
-    .admin-app-grid {
-        grid-template-columns: 1fr;
-    }
+    .admin-app-grid { grid-template-columns: 1fr; }
 }
 
 /* ==============================
@@ -264,12 +211,8 @@ a.button {
     display: flex;
     transition: transform 0.3s ease;
 }
-.admin-recent-drawer.collapsed {
-    transform: translateX(300px);
-}
-/* When collapsed, only panel (300px) slides off-screen; tab stays visible */
+.admin-recent-drawer.collapsed { transform: translateX(300px); }
 
-/* Tab on the left side of drawer */
 .admin-recent-tab {
     display: flex;
     align-items: center;
@@ -289,18 +232,10 @@ a.button {
     transition: background 0.15s;
     box-shadow: -2px 0 8px rgba(0,0,0,0.1);
 }
-.admin-recent-tab:hover {
-    background: var(--gray-600, #4b5563);
-}
-.admin-recent-tab svg {
-    margin-bottom: 6px;
-    transition: transform 0.2s;
-}
-.admin-recent-drawer.collapsed .admin-recent-tab svg {
-    transform: rotate(180deg);
-}
+.admin-recent-tab:hover { background: var(--gray-600, #4b5563); }
+.admin-recent-tab svg { margin-bottom: 6px; transition: transform 0.2s; }
+.admin-recent-drawer.collapsed .admin-recent-tab svg { transform: rotate(180deg); }
 
-/* Panel content */
 .admin-recent-panel {
     width: 300px;
     flex-shrink: 0;
@@ -320,41 +255,25 @@ a.button {
     background: var(--gray-50, #f9fafb);
     flex-shrink: 0;
 }
-.admin-recent-panel-body {
-    flex: 1;
-    overflow-y: auto;
-}
+.admin-recent-panel-body { flex: 1; overflow-y: auto; }
 .admin-recent-panel-body li {
     padding: 10px 16px;
     font-size: 13px;
     border-bottom: 1px solid var(--gray-100, #f3f4f6);
 }
-.admin-recent-panel-body li:last-child {
-    border-bottom: none;
-}
+.admin-recent-panel-body li:last-child { border-bottom: none; }
 
-/* Hide original recent-actions-module styling */
-#recent-actions-module {
-    border-radius: 0;
-    border: none;
-    box-shadow: none;
-}
-#recent-actions-module h2 {
-    display: none;
-}
+#recent-actions-module { border-radius: 0; border: none; box-shadow: none; }
+#recent-actions-module h2 { display: none; }
 
 @media (max-width: 767px) {
-    .admin-recent-drawer {
-        display: none !important;
-    }
+    .admin-recent-drawer { display: none !important; }
 }
 
 /* ==============================
    Login Page
    ============================== */
-body.login #container {
-    background: var(--gray-50, #f9fafb);
-}
+body.login #container { background: var(--gray-50, #f9fafb); }
 body.login #content {
     background: #fff;
     border: 1px solid var(--gray-200, #e5e7eb);
@@ -362,9 +281,7 @@ body.login #content {
     box-shadow: 0 4px 24px rgba(0,0,0,0.06);
     padding: 32px;
 }
-body.login #header {
-    border-radius: 16px 16px 0 0;
-}
+body.login #header { border-radius: 16px 16px 0 0; }
 
 /* ==============================
    Calendar & Date Widgets
@@ -376,7 +293,7 @@ body.login #header {
 }
 
 /* ==============================
-   Account Bar (View Site / Change Password)
+   Account Bar
    ============================== */
 .admin-account-bar {
     display: flex;
@@ -390,7 +307,7 @@ body.login #header {
     gap: 6px;
     padding: 8px 16px;
     background: #fff;
-    color: var(--brand-primary, #465fff) !important;
+    color: var(--brand-primary, #20AEE5) !important;
     text-decoration: none !important;
     border: 1px solid var(--gray-200, #e5e7eb);
     border-radius: 8px;
@@ -404,61 +321,570 @@ body.login #header {
     box-shadow: 0 2px 6px rgba(0,0,0,0.08);
 }
 .admin-account-bar__item svg {
-    stroke: var(--brand-primary, #465fff);
+    stroke: var(--brand-primary, #20AEE5);
     flex-shrink: 0;
+}
+
+/* ==============================
+   SIDEBAR (AirRegi-style)
+   ============================== */
+.admin-sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: var(--sidebar-width, 240px);
+    height: 100vh;
+    background: var(--sidebar-bg, #1a1f36);
+    color: #c9cdd6;
+    display: flex;
+    flex-direction: column;
+    z-index: 1100;
+    overflow-y: auto;
+    overflow-x: hidden;
+    transition: transform 0.3s ease;
+}
+
+/* Logo area */
+.sidebar-logo {
+    padding: 20px 16px 12px;
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+}
+.sidebar-logo a {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    text-decoration: none !important;
+    color: #fff !important;
+    font-size: 16px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+}
+
+/* Special links (Dashboard, Calendar, Gantt) */
+.sidebar-nav {
+    padding: 12px 8px 4px;
+}
+.sidebar-special-link {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 9px 12px;
+    border-radius: 8px;
+    color: #c9cdd6 !important;
+    text-decoration: none !important;
+    font-size: 13px;
+    font-weight: 500;
+    transition: background 0.15s, color 0.15s;
+    margin-bottom: 2px;
+}
+.sidebar-special-link:hover {
+    background: rgba(255,255,255,0.06);
+    color: #fff !important;
+}
+.sidebar-special-link.active {
+    background: rgba(32, 174, 229, 0.15);
+    color: #20AEE5 !important;
+    border-left: 3px solid #20AEE5;
+    padding-left: 9px;
+}
+.sidebar-special-link svg { flex-shrink: 0; opacity: 0.7; }
+.sidebar-special-link.active svg { opacity: 1; stroke: #20AEE5; }
+
+/* Divider */
+.sidebar-divider {
+    height: 1px;
+    background: rgba(255,255,255,0.08);
+    margin: 8px 16px;
+}
+
+/* Menu groups */
+.sidebar-menu {
+    flex: 1;
+    padding: 4px 8px;
+    overflow-y: auto;
+}
+.sidebar-group {
+    margin-bottom: 2px;
+}
+.sidebar-group__toggle {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    padding: 8px 12px;
+    border: none;
+    background: none;
+    color: #8b92a5;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    cursor: pointer;
+    border-radius: 6px;
+    transition: background 0.15s;
+}
+.sidebar-group__toggle:hover {
+    background: rgba(255,255,255,0.04);
+    color: #c9cdd6;
+}
+.sidebar-group__arrow {
+    transition: transform 0.2s;
+    opacity: 0.5;
+}
+.sidebar-group.collapsed .sidebar-group__arrow {
+    transform: rotate(-90deg);
+}
+.sidebar-group__models {
+    list-style: none;
+    margin: 0;
+    padding: 0 0 4px 0;
+    overflow: hidden;
+    transition: max-height 0.2s ease;
+    max-height: 500px;
+}
+.sidebar-group.collapsed .sidebar-group__models {
+    max-height: 0;
+    padding: 0;
+}
+.sidebar-model-link {
+    display: block;
+    padding: 6px 12px 6px 24px;
+    color: #c9cdd6 !important;
+    text-decoration: none !important;
+    font-size: 13px;
+    border-radius: 6px;
+    transition: background 0.15s, color 0.15s;
+}
+.sidebar-model-link:hover {
+    background: rgba(255,255,255,0.06);
+    color: #fff !important;
+}
+.sidebar-model-link.active {
+    background: rgba(32, 174, 229, 0.15);
+    color: #20AEE5 !important;
+}
+
+/* User section at bottom */
+.sidebar-user {
+    margin-top: auto;
+    padding: 12px 16px;
+    border-top: 1px solid rgba(255,255,255,0.08);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+}
+.sidebar-user__info {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-width: 0;
+}
+.sidebar-user__avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: #20AEE5;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 13px;
+    flex-shrink: 0;
+    text-transform: uppercase;
+}
+.sidebar-user__name {
+    font-size: 13px;
+    color: #fff;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.sidebar-user__logout {
+    padding: 6px;
+    border-radius: 6px;
+    color: #8b92a5 !important;
+    text-decoration: none !important;
+    transition: background 0.15s, color 0.15s;
+    flex-shrink: 0;
+}
+.sidebar-user__logout:hover {
+    background: rgba(255,255,255,0.06);
+    color: #fff !important;
+}
+
+/* Mobile sidebar */
+.sidebar-toggle {
+    display: none;
+    position: fixed;
+    top: 12px;
+    left: 12px;
+    z-index: 1200;
+    background: var(--sidebar-bg, #1a1f36);
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    padding: 8px;
+    cursor: pointer;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+}
+.sidebar-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.5);
+    z-index: 1050;
+}
+.sidebar-overlay.open { display: block; }
+
+@media (max-width: 768px) {
+    .admin-sidebar {
+        transform: translateX(-100%);
+    }
+    .admin-sidebar.open {
+        transform: translateX(0);
+    }
+    .sidebar-toggle { display: block; }
+}
+
+/* Hide Django's built-in nav-sidebar */
+#nav-sidebar,
+.toggle-nav-sidebar { display: none !important; }
+
+/* ==============================
+   DASHBOARD SUMMARY CARDS (AirRegi-style)
+   ============================== */
+.dash-cards {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+    margin-bottom: 24px;
+}
+.dash-card {
+    background: #fff;
+    border-radius: 12px;
+    padding: 20px;
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+    border: 1px solid var(--gray-200, #e5e7eb);
+    transition: transform 0.15s, box-shadow 0.15s;
+}
+.dash-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+.dash-card__icon {
+    width: 44px;
+    height: 44px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 22px;
+    flex-shrink: 0;
+}
+.dash-card__icon--reservations { background: rgba(32, 174, 229, 0.12); }
+.dash-card__icon--sales        { background: rgba(18, 183, 106, 0.12); }
+.dash-card__icon--staff        { background: rgba(99, 102, 241, 0.12); }
+.dash-card__icon--shifts       { background: rgba(247, 144, 9, 0.12); }
+
+.dash-card__body {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+}
+.dash-card__value {
+    font-size: 28px;
+    font-weight: 700;
+    color: var(--gray-900, #111827);
+    line-height: 1.1;
+}
+.dash-card__label {
+    font-size: 13px;
+    color: var(--gray-500, #6b7280);
+    margin-top: 4px;
+}
+.dash-card__trend {
+    font-size: 12px;
+    margin-top: 6px;
+    font-weight: 500;
+}
+.dash-card__trend--up   { color: #12b76a; }
+.dash-card__trend--down { color: #f04438; }
+.dash-card__trend--neutral { color: var(--gray-400, #9ca3af); }
+
+@media (max-width: 1100px) {
+    .dash-cards { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 600px) {
+    .dash-cards { grid-template-columns: 1fr; }
+}
+
+/* ==============================
+   FULLCALENDAR PAGE
+   ============================== */
+.calendar-container {
+    background: #fff;
+    border-radius: 12px;
+    padding: 24px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+    border: 1px solid var(--gray-200, #e5e7eb);
+}
+.calendar-container .fc {
+    font-family: inherit;
+}
+.calendar-container .fc .fc-toolbar-title {
+    font-size: 18px;
+    font-weight: 700;
+}
+.calendar-container .fc .fc-button-primary {
+    background: var(--brand-primary, #20AEE5);
+    border-color: var(--brand-primary, #20AEE5);
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 500;
+}
+.calendar-container .fc .fc-button-primary:hover {
+    background: var(--brand-primary-hover, #1a9dd0);
+    border-color: var(--brand-primary-hover, #1a9dd0);
+}
+.calendar-container .fc .fc-button-primary:not(:disabled).fc-button-active {
+    background: var(--brand-primary-hover, #1a9dd0);
+    border-color: var(--brand-primary-hover, #1a9dd0);
+}
+.calendar-container .fc .fc-daygrid-day-number,
+.calendar-container .fc .fc-col-header-cell-cushion {
+    color: var(--gray-700, #374151);
+    text-decoration: none;
+}
+.calendar-container .fc .fc-event {
+    border-radius: 4px;
+    padding: 2px 4px;
+    font-size: 12px;
+}
+
+/* Calendar legend */
+.calendar-legend {
+    display: flex;
+    gap: 16px;
+    margin-bottom: 16px;
+    font-size: 13px;
+    color: var(--gray-600, #4b5563);
+}
+.calendar-legend__item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+.calendar-legend__dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 3px;
+}
+
+/* ==============================
+   GANTT CHART (AirShift-style)
+   ============================== */
+.gantt-wrapper {
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+    border: 1px solid var(--gray-200, #e5e7eb);
+    overflow: hidden;
+}
+
+/* Gantt toolbar */
+.gantt-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--gray-200, #e5e7eb);
+    flex-wrap: wrap;
+    gap: 12px;
+}
+.gantt-toolbar__nav {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+.gantt-toolbar__nav-btn {
+    background: none;
+    border: 1px solid var(--gray-300, #d1d5db);
+    border-radius: 6px;
+    padding: 6px 10px;
+    cursor: pointer;
+    color: var(--gray-700, #374151);
+    font-size: 14px;
+    transition: background 0.15s;
+}
+.gantt-toolbar__nav-btn:hover { background: var(--gray-50, #f9fafb); }
+.gantt-toolbar__title {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--gray-900, #111827);
+}
+.gantt-toolbar__views {
+    display: flex;
+    gap: 4px;
+    background: var(--gray-100, #f3f4f6);
+    border-radius: 8px;
+    padding: 3px;
+}
+.gantt-toolbar__view-btn {
+    padding: 6px 14px;
+    border: none;
+    border-radius: 6px;
+    background: none;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--gray-600, #4b5563);
+    transition: all 0.15s;
+}
+.gantt-toolbar__view-btn.active {
+    background: #fff;
+    color: var(--brand-primary, #20AEE5);
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+/* Gantt grid */
+.gantt-grid {
+    display: grid;
+    overflow-x: auto;
+}
+.gantt-grid__header {
+    display: contents;
+}
+.gantt-grid__header-cell {
+    padding: 10px 4px;
+    text-align: center;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--gray-500, #6b7280);
+    border-bottom: 2px solid var(--gray-200, #e5e7eb);
+    border-right: 1px solid var(--gray-100, #f3f4f6);
+    position: sticky;
+    top: 0;
+    background: #fff;
+    z-index: 2;
+}
+.gantt-grid__header-cell--staff {
+    text-align: left;
+    padding-left: 16px;
+    position: sticky;
+    left: 0;
+    background: #fff;
+    z-index: 3;
+    min-width: 120px;
+}
+.gantt-grid__header-cell--today {
+    background: rgba(32, 174, 229, 0.08);
+    color: #20AEE5;
+}
+.gantt-grid__header-cell--sun { color: #f04438; }
+.gantt-grid__header-cell--sat { color: #3b82f6; }
+
+.gantt-grid__row {
+    display: contents;
+}
+.gantt-grid__staff-cell {
+    padding: 10px 16px;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--gray-800, #1f2937);
+    border-bottom: 1px solid var(--gray-100, #f3f4f6);
+    border-right: 1px solid var(--gray-100, #f3f4f6);
+    position: sticky;
+    left: 0;
+    background: #fff;
+    z-index: 1;
+    display: flex;
+    align-items: center;
+    min-width: 120px;
+    white-space: nowrap;
+}
+.gantt-grid__cell {
+    padding: 6px 4px;
+    border-bottom: 1px solid var(--gray-100, #f3f4f6);
+    border-right: 1px solid var(--gray-100, #f3f4f6);
+    min-height: 44px;
+    position: relative;
+}
+.gantt-grid__cell--today {
+    background: rgba(32, 174, 229, 0.04);
+}
+
+/* Shift blocks */
+.gantt-block {
+    display: block;
+    padding: 4px 6px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 500;
+    text-align: center;
+    cursor: pointer;
+    transition: opacity 0.15s;
+    white-space: nowrap;
+    text-decoration: none !important;
+}
+.gantt-block:hover { opacity: 0.85; }
+.gantt-block--assignment {
+    background: #20AEE5;
+    color: #fff !important;
+}
+.gantt-block--available {
+    background: rgba(32, 174, 229, 0.15);
+    color: #20AEE5 !important;
+    border: 1px dashed #20AEE5;
+}
+.gantt-block--preferred {
+    background: rgba(59, 130, 246, 0.15);
+    color: #3b82f6 !important;
+    border: 1px dashed #3b82f6;
+}
+.gantt-block--unavailable {
+    background: var(--gray-100, #f3f4f6);
+    color: var(--gray-400, #9ca3af) !important;
+    text-decoration: line-through !important;
+}
+
+/* Gantt legend */
+.gantt-legend {
+    display: flex;
+    gap: 16px;
+    padding: 12px 20px;
+    border-top: 1px solid var(--gray-200, #e5e7eb);
+    font-size: 12px;
+    color: var(--gray-600, #4b5563);
+    flex-wrap: wrap;
+}
+.gantt-legend__item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+.gantt-legend__swatch {
+    width: 14px;
+    height: 14px;
+    border-radius: 3px;
 }
 
 /* ==============================
    Responsive Tweaks
    ============================== */
 @media (max-width: 767px) {
-    #header {
-        padding: 10px 16px !important;
-        flex-direction: column;
-        align-items: stretch;
-    }
-    #site-name {
-        text-align: center;
-        margin-bottom: 6px;
-    }
-    #site-name a {
-        font-size: 15px !important;
-    }
-    #user-tools {
-        font-size: 12px;
-    }
-    #user-tools-inner {
-        justify-content: space-between;
-    }
-    .user-greeting {
-        font-size: 12px;
-    }
-    .user-actions {
-        gap: 6px;
-    }
-    .user-action-link {
-        font-size: 11px;
-        padding: 3px 8px;
-    }
-    .tw-lang-select {
-        font-size: 11px;
-        padding: 3px 6px;
-    }
-    #content {
-        padding: 16px !important;
-    }
-    .admin-topbar {
-        gap: 6px;
-    }
+    .admin-topbar { gap: 6px; }
     .admin-topbar__item {
         padding: 8px 12px;
         font-size: 12px;
         flex: 1;
         justify-content: center;
     }
-    .admin-account-bar {
-        gap: 6px;
-    }
+    .admin-account-bar { gap: 6px; }
     .admin-account-bar__item {
         padding: 6px 12px;
         font-size: 12px;

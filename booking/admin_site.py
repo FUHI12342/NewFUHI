@@ -127,6 +127,38 @@ def _get_allowed_models_for_role(role):
 
 
 class RoleBasedAdminSite(AdminSite):
+    def each_context(self, request):
+        ctx = super().each_context(request)
+        ctx['sidebar_groups'] = self._get_sidebar_groups(request)
+        ctx['sidebar_special_links'] = [
+            {'url': '/admin/', 'label': _('ダッシュボード'), 'icon': 'home'},
+            {'url': '/admin/calendar/', 'label': _('カレンダー'), 'icon': 'calendar'},
+            {'url': '/admin/gantt/', 'label': _('シフト管理'), 'icon': 'gantt'},
+        ]
+        return ctx
+
+    def _get_sidebar_groups(self, request):
+        """Build sidebar menu groups from the app list."""
+        try:
+            app_list = self.get_app_list(request)
+        except Exception:
+            app_list = []
+        groups = []
+        for app in app_list:
+            group = {
+                'name': str(app.get('name', '')),
+                'slug': app.get('slug', app.get('app_label', '')),
+                'models': [],
+            }
+            for model in app.get('models', []):
+                group['models'].append({
+                    'name': str(model.get('name', '')),
+                    'admin_url': model.get('admin_url', ''),
+                    'add_url': model.get('add_url', ''),
+                })
+            groups.append(group)
+        return groups
+
     def get_app_list(self, request, app_label=None):
         role = get_user_role(request)
         logger.info(

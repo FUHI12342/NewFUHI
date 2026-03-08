@@ -1,0 +1,164 @@
+{% extends "admin/base_site.html" %}
+{% load i18n static %}
+
+{% block title %}{% trans "シフト管理" %} | {% trans 'サイト管理' %}{% endblock %}
+
+{% block content %}
+<div class="gantt-wrapper">
+    <!-- Toolbar -->
+    <div class="gantt-toolbar">
+        <div class="gantt-toolbar__nav">
+            <button class="gantt-toolbar__nav-btn" id="gantt-prev" type="button">←</button>
+            <span class="gantt-toolbar__title" id="gantt-title"></span>
+            <button class="gantt-toolbar__nav-btn" id="gantt-next" type="button">→</button>
+        </div>
+        <div class="gantt-toolbar__views">
+            <button class="gantt-toolbar__view-btn active" data-view="month" type="button">{% trans "月表示" %}</button>
+            <button class="gantt-toolbar__view-btn" data-view="week" type="button">{% trans "週表示" %}</button>
+        </div>
+    </div>
+
+    <!-- Grid container -->
+    <div style="overflow-x: auto;">
+        <div class="gantt-grid" id="gantt-grid"></div>
+    </div>
+
+    <!-- Legend -->
+    <div class="gantt-legend">
+        <div class="gantt-legend__item">
+            <div class="gantt-legend__swatch" style="background: #20AEE5;"></div>
+            <span>{% trans "確定" %}</span>
+        </div>
+        <div class="gantt-legend__item">
+            <div class="gantt-legend__swatch" style="background: rgba(32,174,229,0.15); border: 1px dashed #20AEE5;"></div>
+            <span>{% trans "出勤可能" %}</span>
+        </div>
+        <div class="gantt-legend__item">
+            <div class="gantt-legend__swatch" style="background: rgba(59,130,246,0.15); border: 1px dashed #3b82f6;"></div>
+            <span>{% trans "希望" %}</span>
+        </div>
+        <div class="gantt-legend__item">
+            <div class="gantt-legend__swatch" style="background: #f3f4f6;"></div>
+            <span>{% trans "出勤不可" %}</span>
+        </div>
+    </div>
+</div>
+
+<script>
+(function() {
+    var now = new Date();
+    var currentYear = now.getFullYear();
+    var currentMonth = now.getMonth() + 1;
+    var todayStr = now.toISOString().slice(0, 10);
+
+    var titleEl = document.getElementById('gantt-title');
+    var gridEl = document.getElementById('gantt-grid');
+
+    // weekday_num: 0=Mon ... 6=Sun (Python weekday)
+    var WEEKDAY_JA_MAP = ['月', '火', '水', '木', '金', '土', '日'];
+
+    function updateTitle() {
+        titleEl.textContent = currentYear + '年' + currentMonth + '月';
+    }
+
+    function loadData() {
+        updateTitle();
+        fetch('/api/gantt/data/?year=' + currentYear + '&month=' + currentMonth)
+            .then(function(r) { return r.json(); })
+            .then(function(data) { renderGrid(data); })
+            .catch(function() { gridEl.innerHTML = '<p style="padding:20px;">データ取得に失敗しました</p>'; });
+    }
+
+    function renderGrid(data) {
+        var days = data.days;
+        var staff = data.staff;
+        var cols = days.length + 1; // +1 for staff name column
+
+        gridEl.style.gridTemplateColumns = '120px repeat(' + days.length + ', minmax(48px, 1fr))';
+        gridEl.innerHTML = '';
+
+        // Header row
+        var staffHeader = document.createElement('div');
+        staffHeader.className = 'gantt-grid__header-cell gantt-grid__header-cell--staff';
+        staffHeader.textContent = 'スタッフ';
+        gridEl.appendChild(staffHeader);
+
+        days.forEach(function(day) {
+            var cell = document.createElement('div');
+            cell.className = 'gantt-grid__header-cell';
+            if (day.date === todayStr) cell.classList.add('gantt-grid__header-cell--today');
+            if (day.weekday_num === 6) cell.classList.add('gantt-grid__header-cell--sun');
+            if (day.weekday_num === 5) cell.classList.add('gantt-grid__header-cell--sat');
+            cell.innerHTML = '<div>' + day.day + '</div><div style="font-size:10px;font-weight:400;">' + WEEKDAY_JA_MAP[day.weekday_num] + '</div>';
+            gridEl.appendChild(cell);
+        });
+
+        // Staff rows
+        staff.forEach(function(s) {
+            var nameCell = document.createElement('div');
+            nameCell.className = 'gantt-grid__staff-cell';
+            nameCell.textContent = s.name;
+            gridEl.appendChild(nameCell);
+
+            s.cells.forEach(function(cell) {
+                var cellEl = document.createElement('div');
+                cellEl.className = 'gantt-grid__cell';
+                if (cell.date === todayStr) cellEl.classList.add('gantt-grid__cell--today');
+
+                if (cell.type === 'assignment') {
+                    var block = document.createElement('span');
+                    block.className = 'gantt-block gantt-block--assignment';
+                    block.textContent = cell.start_hour + '-' + cell.end_hour;
+                    block.title = s.name + ': ' + cell.start_hour + ':00 - ' + cell.end_hour + ':00 (確定)';
+                    cellEl.appendChild(block);
+                } else if (cell.type === 'request') {
+                    var block = document.createElement('span');
+                    var pref = cell.preference || 'available';
+                    block.className = 'gantt-block gantt-block--' + pref;
+                    if (pref === 'unavailable') {
+                        block.textContent = '✕';
+                    } else {
+                        block.textContent = cell.start_hour + '-' + cell.end_hour;
+                    }
+                    var prefLabel = pref === 'available' ? '出勤可能' : pref === 'preferred' ? '希望' : '出勤不可';
+                    block.title = s.name + ': ' + cell.start_hour + ':00 - ' + cell.end_hour + ':00 (' + prefLabel + ')';
+                    cellEl.appendChild(block);
+                }
+
+                gridEl.appendChild(cellEl);
+            });
+        });
+
+        if (staff.length === 0) {
+            var empty = document.createElement('div');
+            empty.style.cssText = 'grid-column: 1 / -1; padding: 40px; text-align: center; color: #9ca3af;';
+            empty.textContent = 'スタッフデータがありません';
+            gridEl.appendChild(empty);
+        }
+    }
+
+    // Navigation
+    document.getElementById('gantt-prev').addEventListener('click', function() {
+        currentMonth--;
+        if (currentMonth < 1) { currentMonth = 12; currentYear--; }
+        loadData();
+    });
+    document.getElementById('gantt-next').addEventListener('click', function() {
+        currentMonth++;
+        if (currentMonth > 12) { currentMonth = 1; currentYear++; }
+        loadData();
+    });
+
+    // View toggle (month/week — for now both show month data)
+    document.querySelectorAll('.gantt-toolbar__view-btn').forEach(function(btn) {
+        btn.addEventListener('click', function() {
+            document.querySelectorAll('.gantt-toolbar__view-btn').forEach(function(b) { b.classList.remove('active'); });
+            btn.classList.add('active');
+        });
+    });
+
+    // Initial load
+    loadData();
+})();
+</script>
+{% endblock %}
