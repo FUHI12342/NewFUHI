@@ -82,6 +82,22 @@ tailwind.config = {
 </script>
 <link rel="stylesheet" href="{% static 'css/admin_tailwind.css' %}">
 <style>
+    /* ===== 最近行った操作・サイドバー完全削除 ===== */
+    #content-related,
+    #recent-actions-module,
+    [id*="recent-actions"],
+    .module#recent-actions-module,
+    #nav-sidebar,
+    .toggle-nav-sidebar {
+        display: none !important;
+        visibility: hidden !important;
+        width: 0 !important;
+        height: 0 !important;
+        overflow: hidden !important;
+        position: absolute !important;
+        left: -9999px !important;
+    }
+
     /* ===== FORCE LIGHT MODE — ダークモード完全無効化 ===== */
     html, :root {
         color-scheme: light only !important;
