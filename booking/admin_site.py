@@ -45,10 +45,10 @@ GROUPS = [
     {'slug': 'user_account', 'name': _('ユーザーアカウント管理'), 'models': ['user', 'group']},
 ]
 
-GROUP_MAP = {g['name']: g['models'] for g in GROUPS}
-GROUP_ORDER = [g['name'] for g in GROUPS]
-GROUP_SLUG_MAP = {str(g['name']): g['slug'] for g in GROUPS}
-HIDDEN_GROUPS = {g['name'] for g in GROUPS if g.get('hidden')}
+GROUP_BY_SLUG = {g['slug']: g for g in GROUPS}
+GROUP_MAP = {g['slug']: g['models'] for g in GROUPS}
+GROUP_ORDER = [g['slug'] for g in GROUPS]
+HIDDEN_GROUPS = {g['slug'] for g in GROUPS if g.get('hidden')}
 HIDDEN_MODELS = set()
 for g in GROUPS:
     if g.get('hidden'):
@@ -241,13 +241,14 @@ class RoleBasedAdminSite(AdminSite):
                 key = model['object_name'].lower()
                 all_models[key] = model
 
-        # GROUP_MAP に従って再グループ化
+        # GROUP_MAP に従って再グループ化 (slug-based to avoid i18n key mismatch)
         result = []
         used_keys = set()
-        for group_name in GROUP_ORDER:
-            model_keys = GROUP_MAP[group_name]
-            # 非表示グループはスキップ（コードは残すが管理画面に表示しない）
-            if group_name in HIDDEN_GROUPS:
+        for slug in GROUP_ORDER:
+            group_def = GROUP_BY_SLUG[slug]
+            model_keys = group_def['models']
+            # 非表示グループはスキップ
+            if slug in HIDDEN_GROUPS:
                 used_keys.update(k for k in model_keys if k in all_models)
                 continue
             group_models = []
@@ -256,14 +257,8 @@ class RoleBasedAdminSite(AdminSite):
                     group_models.append(all_models[key])
                     used_keys.add(key)
             if group_models:
-                # Get slug from original Japanese key
-                slug = ''
-                for g in GROUPS:
-                    if g['name'] == group_name:
-                        slug = g['slug']
-                        break
                 result.append({
-                    'name': group_name,
+                    'name': group_def['name'],
                     'slug': slug,
                     'app_label': 'booking',
                     'app_url': '/admin/booking/',

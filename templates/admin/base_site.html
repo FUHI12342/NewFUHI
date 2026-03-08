@@ -3,9 +3,6 @@
 
 {% block title %}{{ title }} | {% trans 'サイト管理' %}{% endblock %}
 
-{# Disable Django's built-in nav sidebar #}
-{% block nav-sidebar %}{% endblock %}
-
 {% block branding %}
 <h1 id="site-name">
     <a href="{% url 'admin:index' %}">
@@ -19,10 +16,14 @@
 <div id="user-tools">
     {% trans 'ようこそ' %},
     <strong>{% firstof user.get_short_name user.get_username %}</strong>。
-    <a href="/">{% trans 'サイトを表示' %}</a> /
+    {% if user.has_usable_password %}
     <a href="{% url 'admin:password_change' %}">{% trans 'パスワード変更' %}</a> /
-    <a href="{% url 'admin:logout' %}">{% trans 'ログアウト' %}</a>
-    <form action="{% url 'set_language' %}" method="post" style="display:inline;margin:0;">
+    {% endif %}
+    <form id="logout-form" method="post" action="{% url 'admin:logout' %}" style="display:inline">
+        {% csrf_token %}
+        <button type="submit" style="background:none;border:none;color:inherit;cursor:pointer;padding:0;font:inherit;text-decoration:underline;">{% trans 'ログアウト' %}</button>
+    </form>
+    <form action="{% url 'set_language' %}" method="post" style="display:inline;margin-left:8px;">
         {% csrf_token %}
         <input type="hidden" name="next" value="{{ request.get_full_path }}">
         <select name="language" onchange="this.form.submit()" class="wp-lang-select">
