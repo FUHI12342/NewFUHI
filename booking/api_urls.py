@@ -8,13 +8,10 @@ from .views_debug import AdminDebugPanelAPIView, LogLevelControlAPIView
 from .views_dashboard import SensorDataAPIView, PIREventsAPIView, PIRStatusAPIView
 from .views_restaurant_dashboard import (
     DashboardLayoutAPIView,
-    DashboardSummaryAPIView,
     ReservationStatsAPIView,
     SalesStatsAPIView,
     StaffPerformanceAPIView,
     ShiftSummaryAPIView,
-    CalendarEventsAPIView,
-    GanttDataAPIView,
 )
 from .views_property import PropertyStatusAPIView, PropertyAlertResolveAPIView
 from .views import CheckinAPIView, CartAddAPIView, CartUpdateAPIView, CartRemoveAPIView
@@ -58,16 +55,11 @@ urlpatterns = [
     path('iot/ir/send/', IRSendAPIView.as_view(), name='ir_send_api'),
 
     # Restaurant Dashboard APIs
-    path('dashboard/summary/', DashboardSummaryAPIView.as_view(), name='dashboard_summary_api'),
     path('dashboard/layout/', DashboardLayoutAPIView.as_view(), name='dashboard_layout_api'),
     path('dashboard/reservations/', ReservationStatsAPIView.as_view(), name='reservation_stats_api'),
     path('dashboard/sales/', SalesStatsAPIView.as_view(), name='sales_stats_api'),
     path('dashboard/staff-performance/', StaffPerformanceAPIView.as_view(), name='staff_performance_api'),
     path('dashboard/shift-summary/', ShiftSummaryAPIView.as_view(), name='shift_summary_api'),
-
-    # Calendar & Gantt APIs
-    path('calendar/events/', CalendarEventsAPIView.as_view(), name='calendar_events_api'),
-    path('gantt/data/', GanttDataAPIView.as_view(), name='gantt_data_api'),
 
     # Property APIs
     path('properties/<int:pk>/status/', PropertyStatusAPIView.as_view(), name='property_status_api'),

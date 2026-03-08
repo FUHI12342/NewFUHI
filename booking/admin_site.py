@@ -45,10 +45,10 @@ GROUPS = [
     {'slug': 'user_account', 'name': _('ユーザーアカウント管理'), 'models': ['user', 'group']},
 ]
 
-GROUP_BY_SLUG = {g['slug']: g for g in GROUPS}
-GROUP_MAP = {g['slug']: g['models'] for g in GROUPS}
-GROUP_ORDER = [g['slug'] for g in GROUPS]
-HIDDEN_GROUPS = {g['slug'] for g in GROUPS if g.get('hidden')}
+GROUP_MAP = {g['name']: g['models'] for g in GROUPS}
+GROUP_ORDER = [g['name'] for g in GROUPS]
+GROUP_SLUG_MAP = {str(g['name']): g['slug'] for g in GROUPS}
+HIDDEN_GROUPS = {g['name'] for g in GROUPS if g.get('hidden')}
 HIDDEN_MODELS = set()
 for g in GROUPS:
     if g.get('hidden'):
@@ -127,50 +127,6 @@ def _get_allowed_models_for_role(role):
 
 
 class RoleBasedAdminSite(AdminSite):
-    enable_nav_sidebar = False  # Disable Django's built-in sidebar
-
-    def each_context(self, request):
-        ctx = super().each_context(request)
-        ctx['sidebar_groups'] = self._get_sidebar_groups(request)
-
-        role = get_user_role(request)
-        is_dev = role in ('superuser', 'developer')
-
-        links = [
-            {'url': '/admin/', 'label': _('ダッシュボード'), 'icon': 'home'},
-            {'url': '/admin/calendar/', 'label': _('カレンダー'), 'icon': 'calendar'},
-            {'url': '/admin/gantt/', 'label': _('シフト管理'), 'icon': 'gantt'},
-            {'url': '/admin/dashboard/sales/', 'label': _('売上分析'), 'icon': 'sales'},
-        ]
-        if is_dev:
-            links.append({'url': '/admin/debug/', 'label': _('デバッグ'), 'icon': 'debug'})
-            links.append({'url': '/admin/iot/mq9/', 'label': _('センサー'), 'icon': 'sensor'})
-
-        ctx['sidebar_special_links'] = links
-        return ctx
-
-    def _get_sidebar_groups(self, request):
-        """Build sidebar menu groups from the app list."""
-        try:
-            app_list = self.get_app_list(request)
-        except Exception:
-            app_list = []
-        groups = []
-        for app in app_list:
-            group = {
-                'name': str(app.get('name', '')),
-                'slug': app.get('slug', app.get('app_label', '')),
-                'models': [],
-            }
-            for model in app.get('models', []):
-                group['models'].append({
-                    'name': str(model.get('name', '')),
-                    'admin_url': model.get('admin_url', ''),
-                    'add_url': model.get('add_url', ''),
-                })
-            groups.append(group)
-        return groups
-
     def get_app_list(self, request, app_label=None):
         role = get_user_role(request)
         logger.info(
@@ -251,14 +207,13 @@ class RoleBasedAdminSite(AdminSite):
                 key = model['object_name'].lower()
                 all_models[key] = model
 
-        # GROUP_MAP に従って再グループ化 (slug-based to avoid i18n key mismatch)
+        # GROUP_MAP に従って再グループ化
         result = []
         used_keys = set()
-        for slug in GROUP_ORDER:
-            group_def = GROUP_BY_SLUG[slug]
-            model_keys = group_def['models']
-            # 非表示グループはスキップ
-            if slug in HIDDEN_GROUPS:
+        for group_name in GROUP_ORDER:
+            model_keys = GROUP_MAP[group_name]
+            # 非表示グループはスキップ（コードは残すが管理画面に表示しない）
+            if group_name in HIDDEN_GROUPS:
                 used_keys.update(k for k in model_keys if k in all_models)
                 continue
             group_models = []
@@ -267,8 +222,14 @@ class RoleBasedAdminSite(AdminSite):
                     group_models.append(all_models[key])
                     used_keys.add(key)
             if group_models:
+                # Get slug from original Japanese key
+                slug = ''
+                for g in GROUPS:
+                    if g['name'] == group_name:
+                        slug = g['slug']
+                        break
                 result.append({
-                    'name': group_def['name'],
+                    'name': group_name,
                     'slug': slug,
                     'app_label': 'booking',
                     'app_url': '/admin/booking/',

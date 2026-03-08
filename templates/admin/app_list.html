@@ -42,7 +42,7 @@ GROUP_ICONS: SVG icons for sidebar group labels (matched by slug for i18n compat
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
         {% endif %}
         </span>
-        <span class="collapse-icon" style="display:inline-block;transition:transform 0.2s;font-size:10px;opacity:0.4;color:var(--brand-primary,#465fff);">&#x25BC;</span>
+        <span class="collapse-icon" style="display:inline-block;transition:transform 0.2s;font-size:10px;opacity:0.5;">&#x25BC;</span>
         <span class="group-label">{{ app.name }}</span>
     </h2>
     <table class="group-content tw-group-table">
@@ -95,20 +95,18 @@ GROUP_ICONS: SVG icons for sidebar group labels (matched by slug for i18n compat
     padding: 10px 14px !important;
     font-size: 13px !important;
     font-weight: 600 !important;
-    color: var(--brand-primary, #465fff) !important;
-    background: var(--gray-50, #f9fafb) !important;
-    border-bottom: 1px solid var(--gray-200, #e5e7eb);
-    border-left: 3px solid var(--brand-primary, #465fff);
+    color: #fff !important;
+    background: var(--brand-primary, #465fff) !important;
     border-radius: 0 !important;
     margin: 0 !important;
 }
 .tw-group-icon {
     display: inline-flex;
     align-items: center;
-    opacity: 0.85;
+    opacity: 0.9;
 }
 .tw-group-icon svg {
-    stroke: var(--brand-primary, #465fff);
+    stroke: #fff;
 }
 
 .tw-group-table {
@@ -130,20 +128,9 @@ GROUP_ICONS: SVG icons for sidebar group labels (matched by slug for i18n compat
     font-weight: 500;
     font-size: 13px;
 }
-.tw-model-row th a,
-.tw-model-row th a:link,
-.tw-model-row th a:visited {
-    color: var(--gray-800, #1f2937) !important;
-    text-decoration: none;
-}
-.tw-model-row th a:hover {
-    color: var(--brand-primary, #465fff) !important;
-    text-decoration: underline;
-}
 .tw-model-row td {
     padding: 8px 10px;
     font-size: 12px;
-    text-align: right;
 }
 .tw-model-row a.addlink,
 .tw-model-row a.changelink,
@@ -152,7 +139,6 @@ GROUP_ICONS: SVG icons for sidebar group labels (matched by slug for i18n compat
     padding: 2px 8px;
     border-radius: 4px;
     text-decoration: none;
-    color: var(--brand-primary, #465fff) !important;
 }
 .tw-model-row a.addlink:hover,
 .tw-model-row a.changelink:hover,
