@@ -1,8 +1,9 @@
 {% extends "booking/table_base.html" %}
-{% block title %}注文履歴 - {{ store.name }}{% endblock %}
+{% load i18n %}
+{% block title %}{% trans "注文履歴" %} - {{ store.name }}{% endblock %}
 
 {% block content %}
-<h2 class="text-lg font-bold mb-4">注文履歴</h2>
+<h2 class="text-lg font-bold mb-4">{% trans "注文履歴" %}</h2>
 
 {% if orders %}
 <div class="space-y-4">
@@ -10,7 +11,7 @@
     <div class="bg-white rounded-lg shadow-sm overflow-hidden">
         <div class="bg-salon-beige px-4 py-2 flex items-center justify-between">
             <div>
-                <span class="text-xs text-gray-500">注文 #{{ order.id }}</span>
+                <span class="text-xs text-gray-500">{% trans "注文" %} #{{ order.id }}</span>
                 <span class="text-xs text-gray-400 ml-2">{{ order.created_at|date:"H:i" }}</span>
             </div>
             <span class="text-xs px-2 py-0.5 rounded-full {% if order.status == 'OPEN' %}bg-green-100 text-green-700{% else %}bg-gray-100 text-gray-500{% endif %}">
@@ -30,9 +31,9 @@
                         {% elif item.status == 'PREPARING' %}bg-blue-100 text-blue-700
                         {% elif item.status == 'SERVED' %}bg-green-100 text-green-700
                         {% else %}bg-gray-100 text-gray-500{% endif %}">
-                        {% if item.status == 'ORDERED' %}注文済
-                        {% elif item.status == 'PREPARING' %}調理中
-                        {% elif item.status == 'SERVED' %}提供済
+                        {% if item.status == 'ORDERED' %}{% trans "注文済" %}
+                        {% elif item.status == 'PREPARING' %}{% trans "調理中" %}
+                        {% elif item.status == 'SERVED' %}{% trans "提供済" %}
                         {% else %}{{ item.status }}{% endif %}
                     </span>
                     <span class="text-sm font-bold">&yen;{{ item.subtotal|stringformat:",.0f" }}</span>
@@ -41,7 +42,7 @@
             {% endfor %}
         </div>
         <div class="px-4 py-2 bg-gray-50 flex justify-between text-sm font-bold">
-            <span>小計</span>
+            <span>{% trans "小計" %}</span>
             <span>&yen;{{ order.order_total|stringformat:",.0f" }}</span>
         </div>
     </div>
@@ -51,7 +52,7 @@
 <!-- Grand Total -->
 <div class="mt-6 bg-white rounded-lg shadow-sm p-4">
     <div class="flex justify-between items-center text-lg font-bold">
-        <span>合計金額</span>
+        <span>{% trans "合計金額" %}</span>
         <span class="text-salon-brown">&yen;{{ grand_total|stringformat:",.0f" }}</span>
     </div>
 </div>
@@ -61,8 +62,8 @@
     <svg class="w-16 h-16 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
     </svg>
-    <p class="mb-4">まだ注文がありません</p>
-    <a href="{% url 'table:table_menu' table_id=seat.id %}" class="inline-block bg-salon-brown text-white px-6 py-2 rounded-lg text-sm">メニューを見る</a>
+    <p class="mb-4">{% trans "まだ注文がありません" %}</p>
+    <a href="{% url 'table:table_menu' table_id=seat.id %}" class="inline-block bg-salon-brown text-white px-6 py-2 rounded-lg text-sm">{% trans "メニューを見る" %}</a>
 </div>
 {% endif %}
 {% endblock %}

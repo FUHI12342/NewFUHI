@@ -1,13 +1,14 @@
 {% extends "booking/table_base.html" %}
-{% block title %}お会計 - {{ store.name }}{% endblock %}
+{% load i18n %}
+{% block title %}{% trans "お会計" %} - {{ store.name }}{% endblock %}
 
 {% block content %}
-<h2 class="text-lg font-bold mb-4">お会計</h2>
+<h2 class="text-lg font-bold mb-4">{% trans "お会計" %}</h2>
 
 {% if orders %}
 <!-- Order Summary -->
 <div class="bg-white rounded-lg shadow-sm p-4 mb-4">
-    <h3 class="text-sm font-bold mb-2 text-gray-600">ご注文内容</h3>
+    <h3 class="text-sm font-bold mb-2 text-gray-600">{% trans "ご注文内容" %}</h3>
     <div class="divide-y divide-gray-100">
         {% for order in orders %}
         {% for item in order.items.all %}
@@ -19,13 +20,13 @@
         {% endfor %}
     </div>
     <div class="border-t border-gray-200 mt-2 pt-2 flex justify-between text-lg font-bold">
-        <span>合計</span>
+        <span>{% trans "合計" %}</span>
         <span class="text-salon-brown">&yen;{{ grand_total|stringformat:",.0f" }}</span>
     </div>
 </div>
 
 <!-- Payment Methods -->
-<h3 class="text-sm font-bold mb-3 text-gray-600">お支払い方法を選択</h3>
+<h3 class="text-sm font-bold mb-3 text-gray-600">{% trans "お支払い方法を選択" %}</h3>
 <div class="space-y-3">
     {% for method in payment_methods %}
     <form method="post" action="{% url 'table:table_checkout' table_id=seat.id %}">
@@ -52,16 +53,16 @@
     </form>
     {% empty %}
     <div class="text-center py-8 text-gray-400">
-        <p>決済方法が設定されていません</p>
-        <p class="text-xs mt-1">スタッフにお声がけください</p>
+        <p>{% trans "決済方法が設定されていません" %}</p>
+        <p class="text-xs mt-1">{% trans "スタッフにお声がけください" %}</p>
     </div>
     {% endfor %}
 </div>
 
 {% else %}
 <div class="text-center py-16 text-gray-400">
-    <p class="mb-4">まだ注文がありません</p>
-    <a href="{% url 'table:table_menu' table_id=seat.id %}" class="inline-block bg-salon-brown text-white px-6 py-2 rounded-lg text-sm">メニューを見る</a>
+    <p class="mb-4">{% trans "まだ注文がありません" %}</p>
+    <a href="{% url 'table:table_menu' table_id=seat.id %}" class="inline-block bg-salon-brown text-white px-6 py-2 rounded-lg text-sm">{% trans "メニューを見る" %}</a>
 </div>
 {% endif %}
 {% endblock %}

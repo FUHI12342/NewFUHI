@@ -20,11 +20,11 @@
         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
         </svg>
-        前週
+        {% trans "前週" %}
     </a>
     <a href="{% url 'booking:my_page_calendar' staff.pk next.year next.month next.day %}"
        class="inline-flex items-center gap-1 text-sm font-medium text-salon-brown hover:text-salon-dark transition-colors duration-200">
-        次週
+        {% trans "次週" %}
         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
         </svg>
@@ -49,7 +49,7 @@
                         <div>{{ day|date:"d(D)" }}</div>
                         <a href="{% url 'booking:my_page_day_detail' staff.pk day.year day.month day.day %}"
                            class="inline-block mt-1 text-[10px] font-medium text-salon-brown hover:text-salon-dark underline decoration-salon-brown/40 hover:decoration-salon-dark transition">
-                            詳細
+                            {% trans "詳細" %}
                         </a>
                     </th>
                     {% endfor %}

@@ -1,8 +1,9 @@
 {% extends "booking/table_base.html" %}
-{% block title %}カート - {{ store.name }}{% endblock %}
+{% load i18n %}
+{% block title %}{% trans "カート" %} - {{ store.name }}{% endblock %}
 
 {% block content %}
-<h2 class="text-lg font-bold mb-4">カート</h2>
+<h2 class="text-lg font-bold mb-4">{% trans "カート" %}</h2>
 
 {% if cart_items %}
 <div class="space-y-3 mb-6">
@@ -34,7 +35,7 @@
 <!-- Total -->
 <div class="bg-white rounded-lg shadow-sm p-4 mb-6">
     <div class="flex justify-between items-center text-lg font-bold">
-        <span>合計</span>
+        <span>{% trans "合計" %}</span>
         <span class="text-salon-brown">&yen;{{ total|stringformat:",.0f" }}</span>
     </div>
 </div>
@@ -44,7 +45,7 @@
     {% csrf_token %}
     <button type="submit"
             class="w-full bg-salon-brown text-white py-3 rounded-lg font-bold text-base hover:opacity-90 transition">
-        注文を確定する
+        {% trans "注文を確定する" %}
     </button>
 </form>
 
@@ -53,8 +54,8 @@
     <svg class="w-16 h-16 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 100 4 2 2 0 000-4z"/>
     </svg>
-    <p class="mb-4">カートは空です</p>
-    <a href="{% url 'table:table_menu' table_id=seat.id %}" class="inline-block bg-salon-brown text-white px-6 py-2 rounded-lg text-sm">メニューへ戻る</a>
+    <p class="mb-4">{% trans "カートは空です" %}</p>
+    <a href="{% url 'table:table_menu' table_id=seat.id %}" class="inline-block bg-salon-brown text-white px-6 py-2 rounded-lg text-sm">{% trans "メニューへ戻る" %}</a>
 </div>
 {% endif %}
 {% endblock %}

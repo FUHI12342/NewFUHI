@@ -1,16 +1,20 @@
-<!DOCTYPE html>
-<html lang="ja">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>予約キャンセル完了</title>
-</head>
-<body>
-    <h1>予約キャンセル完了</h1>
-    <p>予約のキャンセルが完了しました。</p>
+{% extends 'booking/base.html' %}
+{% load i18n %}
+
+{% block title %}{% trans "予約キャンセル完了" %}{% endblock %}
+
+{% block content %}
+<div class="max-w-lg mx-auto text-center py-12">
+    <div class="w-20 h-20 mx-auto mb-6 rounded-full bg-green-100 flex items-center justify-center">
+        <svg class="w-10 h-10 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+        </svg>
+    </div>
+    <h1 class="text-2xl font-bold text-salon-dark mb-4">{% trans "予約キャンセル完了" %}</h1>
+    <p class="text-gray-600 mb-4">{% trans "予約のキャンセルが完了しました。" %}</p>
     {% if schedule %}
-    <p>キャンセルされた予約: {{ schedule.staff }} - {{ schedule.start }}</p>
+    <p class="text-sm text-gray-500 mb-6">{% trans "キャンセルされた予約:" %} {{ schedule.staff }} - {{ schedule.start }}</p>
     {% endif %}
-    <a href="{% url 'booking:booking_top' %}">トップへ戻る</a>
-</body>
-</html>
+    <a href="{% url 'booking:booking_top' %}" class="inline-block bg-salon-brown text-white px-6 py-2 rounded-lg text-sm hover:opacity-80 transition">{% trans "トップへ戻る" %}</a>
+</div>
+{% endblock %}

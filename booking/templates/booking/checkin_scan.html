@@ -78,9 +78,9 @@ function doCheckin(reservationNumber) {
     .then(function(resp) { return resp.json(); })
     .then(function(data) {
         if (data.status === 'ok') {
-            showResult(true, data.message || 'チェックイン成功');
+            showResult(true, data.message || '{% trans "チェックイン成功" %}');
         } else {
-            showResult(false, data.message || 'エラーが発生しました');
+            showResult(false, data.message || '{% trans "エラーが発生しました" %}');
         }
     })
     .catch(function(err) {
@@ -107,7 +107,7 @@ document.addEventListener('DOMContentLoaded', function() {
     ).catch(function(err) {
         console.log('Camera start failed:', err);
         document.getElementById('reader').innerHTML =
-            '<p class="text-center text-gray-500 p-4">カメラを利用できません。手動入力をご利用ください。</p>';
+            '<p class="text-center text-gray-500 p-4">{% trans "カメラを利用できません。手動入力をご利用ください。" %}</p>';
     });
 });
 </script>
