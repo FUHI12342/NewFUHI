@@ -1,6 +1,6 @@
 # booking/api_urls.py
 # API endpoints separated from i18n_patterns (no language prefix needed)
-from django.urls import path
+from django.urls import path, include
 
 from . import views
 from .views import IRSendAPIView
@@ -12,11 +12,16 @@ from .views_restaurant_dashboard import (
     SalesStatsAPIView,
     StaffPerformanceAPIView,
     ShiftSummaryAPIView,
+    LowStockAlertAPIView,
 )
 from .views_property import PropertyStatusAPIView, PropertyAlertResolveAPIView
 from .views import CheckinAPIView, CartAddAPIView, CartUpdateAPIView, CartRemoveAPIView
 from .views import TableCartAddAPI, TableCartUpdateAPI, TableCartRemoveAPI, TableOrderCreateAPI, TableOrderStatusAPI
 from .views_chat import AdminChatAPIView, GuideChatAPIView
+from .views_attendance import AttendanceStampAPIView, AttendanceTOTPRefreshAPI, AttendanceDayStatusAPI, AttendancePINStampAPIView
+from .views_pos import POSOrderAPIView, POSOrderItemAPIView, POSCheckoutAPIView, KitchenOrderStatusAPI
+from .views_analytics import VisitorCountAPIView, VisitorHeatmapAPIView, ConversionAnalyticsAPIView
+from .views_ai_recommend import AIRecommendationAPIView, AITrainModelAPIView, AIModelStatusAPIView
 
 app_name = 'booking_api'
 
@@ -60,6 +65,7 @@ urlpatterns = [
     path('dashboard/sales/', SalesStatsAPIView.as_view(), name='sales_stats_api'),
     path('dashboard/staff-performance/', StaffPerformanceAPIView.as_view(), name='staff_performance_api'),
     path('dashboard/shift-summary/', ShiftSummaryAPIView.as_view(), name='shift_summary_api'),
+    path('dashboard/low-stock/', LowStockAlertAPIView.as_view(), name='low_stock_api'),
 
     # Property APIs
     path('properties/<int:pk>/status/', PropertyStatusAPIView.as_view(), name='property_status_api'),
@@ -83,4 +89,32 @@ urlpatterns = [
     path('table/<uuid:table_id>/cart/remove/', TableCartRemoveAPI.as_view(), name='table_cart_remove'),
     path('table/<uuid:table_id>/order/create/', TableOrderCreateAPI.as_view(), name='table_order_create'),
     path('table/<uuid:table_id>/orders/status/', TableOrderStatusAPI.as_view(), name='table_order_status'),
+
+    # Air統合: シフトAPI
+    path('shift/', include('booking.shift_api_urls')),
+
+    # Air統合: 勤怠API
+    path('attendance/stamp/', AttendanceStampAPIView.as_view(), name='attendance_stamp'),
+    path('attendance/totp/refresh/', AttendanceTOTPRefreshAPI.as_view(), name='attendance_totp_refresh'),
+    path('attendance/day-status/', AttendanceDayStatusAPI.as_view(), name='attendance_day_status'),
+
+    # PIN打刻API
+    path('attendance/pin-stamp/', AttendancePINStampAPIView.as_view(), name='attendance_pin_stamp'),
+
+    # Air統合: POS API
+    path('pos/orders/', POSOrderAPIView.as_view(), name='pos_orders'),
+    path('pos/order-items/', POSOrderItemAPIView.as_view(), name='pos_order_items'),
+    path('pos/order-items/<int:pk>/', POSOrderItemAPIView.as_view(), name='pos_order_item_detail'),
+    path('pos/checkout/', POSCheckoutAPIView.as_view(), name='pos_checkout'),
+    path('pos/order-item/<int:pk>/status/', KitchenOrderStatusAPI.as_view(), name='pos_order_item_status'),
+
+    # Air統合: 分析API
+    path('analytics/visitors/', VisitorCountAPIView.as_view(), name='analytics_visitors'),
+    path('analytics/heatmap/', VisitorHeatmapAPIView.as_view(), name='analytics_heatmap'),
+    path('analytics/conversion/', ConversionAnalyticsAPIView.as_view(), name='analytics_conversion'),
+
+    # Air統合: AI推薦API
+    path('ai/recommendations/', AIRecommendationAPIView.as_view(), name='ai_recommendations'),
+    path('ai/train/', AITrainModelAPIView.as_view(), name='ai_train'),
+    path('ai/model-status/', AIModelStatusAPIView.as_view(), name='ai_model_status'),
 ]

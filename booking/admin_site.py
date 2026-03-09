@@ -29,17 +29,19 @@ def get_user_role(request):
 # 仮想アプリグループ定義 (superuser/developer/owner 向け)
 GROUPS = [
     {'slug': 'reservation', 'name': _('予約管理'), 'models': ['schedule']},
-    {'slug': 'shift', 'name': _('シフト管理'), 'models': ['shiftperiod', 'shiftrequest', 'shiftassignment']},
-    {'slug': 'cast', 'name': _('キャスト管理'), 'models': ['staff', 'store', 'storescheduleconfig']},
+    {'slug': 'shift', 'name': _('シフト管理'), 'models': ['shiftperiod', 'shiftrequest', 'shiftassignment', 'shifttemplate', 'shiftpublishhistory']},
+    {'slug': 'cast', 'name': _('キャスト管理'), 'models': ['staff', 'storescheduleconfig']},
     {'slug': 'payroll', 'name': _('給与管理'), 'models': ['payrollperiod', 'payrollentry', 'employmentcontract', 'salarystructure'], 'hidden': True},
-    {'slug': 'attendance', 'name': _('勤怠管理'), 'models': ['workattendance'], 'hidden': True},
+    {'slug': 'attendance', 'name': _('勤怠管理'), 'models': ['workattendance', 'attendancetotpconfig', 'attendancestamp'], 'hidden': True},
     {'slug': 'inventory', 'name': _('在庫管理'), 'models': ['category', 'product'], 'hidden': True},
-    {'slug': 'order', 'name': _('注文管理'), 'models': ['order']},
-    {'slug': 'table_order', 'name': _('テーブル注文'), 'models': ['tableseat', 'paymentmethod']},
+    {'slug': 'order', 'name': _('注文管理'), 'models': ['order', 'postransaction']},
+    {'slug': 'table_order', 'name': _('店舗管理'), 'models': ['store', 'tableseat']},
     {'slug': 'iot', 'name': _('IoT管理'), 'models': ['iotdevice']},
+    {'slug': 'payment', 'name': _('決済'), 'models': ['paymentmethod'], 'hidden': True},
     {'slug': 'property', 'name': _('物件管理'), 'models': ['property'], 'hidden': True},
-    {'slug': 'booking_page', 'name': _('予約ページ情報'), 'models': ['company', 'notice', 'media']},
-    {'slug': 'page_settings', 'name': _('ページ設定'), 'models': ['sitesettings', 'homepagecustomblock', 'herobanner', 'bannerad', 'externallink']},
+    {'slug': 'analytics', 'name': _('分析'), 'models': ['visitorcount', 'visitoranalyticsconfig', 'staffrecommendationmodel', 'staffrecommendationresult'], 'hidden': True},
+    {'slug': 'page_settings', 'name': _('ページ設定'), 'models': ['sitesettings']},
+    {'slug': 'page_settings_sub', 'name': _('ページ設定(サブ)'), 'models': ['company', 'notice', 'media', 'homepagecustomblock', 'herobanner', 'bannerad', 'externallink'], 'hidden': True},
     {'slug': 'system', 'name': _('システム'), 'models': ['systemconfig', 'admintheme', 'dashboardlayout', 'adminmenuconfig']},
     {'slug': 'security', 'name': _('セキュリティ'), 'models': ['securityaudit', 'securitylog', 'costreport']},
     {'slug': 'user_account', 'name': _('ユーザーアカウント管理'), 'models': ['user', 'group']},
@@ -56,6 +58,27 @@ for g in GROUPS:
 # 後方互換: forms.py / admin.py から参照される GROUP_MAP（slug→models）
 GROUP_MAP = {g['slug']: g['models'] for g in GROUPS}
 
+# サイドバーに注入するカスタムリンク（slug → リンクリスト）
+SIDEBAR_CUSTOM_LINKS = {
+    'reservation': [
+        {'name': _('売上ダッシュボード'), 'admin_url': '/admin/dashboard/sales/', 'icon': 'fas fa-chart-line'},
+        {'name': _('顧客分析'), 'admin_url': '/admin/analytics/visitors/', 'icon': 'fas fa-chart-bar'},
+        {'name': _('AI推薦'), 'admin_url': '/admin/ai/recommendation/', 'icon': 'fas fa-robot'},
+    ],
+    'shift': [
+        {'name': _('シフトカレンダー'), 'admin_url': '/admin/shift/calendar/', 'icon': 'fas fa-calendar-alt'},
+        {'name': _('PIN打刻'), 'admin_url': '/admin/attendance/pin/', 'icon': 'fas fa-key'},
+        {'name': _('出退勤ボード'), 'admin_url': '/admin/attendance/board/', 'icon': 'fas fa-clipboard-check'},
+    ],
+    'order': [
+        {'name': _('POS'), 'admin_url': '/admin/pos/', 'icon': 'fas fa-cash-register'},
+        {'name': _('オーダー履歴'), 'admin_url': '/admin/pos/kitchen/', 'icon': 'fas fa-utensils'},
+    ],
+    'system': [
+        {'name': _('デバッグパネル'), 'admin_url': '/admin/debug/', 'icon': 'fas fa-bug'},
+    ],
+}
+
 
 # ==============================
 # デフォルト許可モデル定数（DB未設定時のフォールバック）
@@ -70,12 +93,16 @@ DEFAULT_ALLOWED_MODELS = {
         'property', 'propertydevice',
         'systemconfig',
         'shiftperiod', 'shiftrequest', 'shiftassignment',
+        'shifttemplate', 'shiftpublishhistory',
         'storescheduleconfig', 'admintheme',
         'sitesettings', 'homepagecustomblock',
         'herobanner', 'bannerad', 'externallink',
         'payrollperiod', 'payrollentry', 'employmentcontract',
         'salarystructure', 'workattendance',
-        'tableseat', 'paymentmethod',
+        'attendancetotpconfig', 'attendancestamp',
+        'tableseat', 'paymentmethod', 'postransaction',
+        'visitorcount', 'visitoranalyticsconfig',
+        'staffrecommendationmodel', 'staffrecommendationresult',
     ],
     'staff': [
         'schedule', 'order', 'staff',
@@ -226,6 +253,15 @@ class RoleBasedAdminSite(AdminSite):
                 if key in all_models:
                     group_models.append(all_models[key])
                     used_keys.add(key)
+            # カスタムリンクをモデルエントリとして追加
+            for link in SIDEBAR_CUSTOM_LINKS.get(slug, []):
+                group_models.append({
+                    'name': str(link['name']),
+                    'object_name': '',
+                    'perms': {'view': True},
+                    'admin_url': link['admin_url'],
+                    'view_only': True,
+                })
             if group_models:
                 result.append({
                     'name': g['name'],

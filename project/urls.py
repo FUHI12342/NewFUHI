@@ -11,6 +11,11 @@ from booking.admin_site import custom_site
 from booking.health import healthz
 from booking.views_debug import AdminDebugPanelView, IoTDeviceDebugView
 from booking.views_restaurant_dashboard import RestaurantDashboardView
+from booking.views_shift_manager import ManagerShiftCalendarView
+from booking.views_attendance import AttendanceQRDisplayView, AttendanceBoardView, AttendancePINDisplayView
+from booking.views_pos import POSView, KitchenDisplayView
+from booking.views_analytics import VisitorAnalyticsDashboardView
+from booking.views_ai_recommend import AIRecommendationView
 import booking.admin
 
 # Non-i18n URLs (APIs, health check)
@@ -35,9 +40,9 @@ urlpatterns = [
 urlpatterns += i18n_patterns(
     # Admin custom views (before admin/ catch-all)
     path(
-        "admin/iot/mq9/",
+        "admin/iot/sensors/",
         custom_site.admin_view(booking_views.IoTMQ9GraphView.as_view()),
-        name="admin_iot_mq9",
+        name="admin_iot_sensors",
     ),
     path(
         "admin/debug/",
@@ -59,6 +64,56 @@ urlpatterns += i18n_patterns(
         "admin/dashboard/restaurant/",
         custom_site.admin_view(RestaurantDashboardView.as_view()),
         name="admin_restaurant_dashboard",
+    ),
+
+    # Air統合: シフトカレンダー
+    path(
+        "admin/shift/calendar/",
+        custom_site.admin_view(ManagerShiftCalendarView.as_view()),
+        name="admin_shift_calendar",
+    ),
+
+    # Air統合: QR勤怠
+    path(
+        "admin/attendance/qr/",
+        custom_site.admin_view(AttendanceQRDisplayView.as_view()),
+        name="admin_attendance_qr",
+    ),
+    path(
+        "admin/attendance/pin/",
+        custom_site.admin_view(AttendancePINDisplayView.as_view()),
+        name="admin_attendance_pin",
+    ),
+    path(
+        "admin/attendance/board/",
+        custom_site.admin_view(AttendanceBoardView.as_view()),
+        name="admin_attendance_board",
+    ),
+
+    # Air統合: POS
+    path(
+        "admin/pos/",
+        custom_site.admin_view(POSView.as_view()),
+        name="admin_pos",
+    ),
+    path(
+        "admin/pos/kitchen/",
+        custom_site.admin_view(KitchenDisplayView.as_view()),
+        name="admin_kitchen_display",
+    ),
+
+    # Air統合: 来客分析
+    path(
+        "admin/analytics/visitors/",
+        custom_site.admin_view(VisitorAnalyticsDashboardView.as_view()),
+        name="admin_visitor_analytics",
+    ),
+
+    # Air統合: AI推薦
+    path(
+        "admin/ai/recommendation/",
+        custom_site.admin_view(AIRecommendationView.as_view()),
+        name="admin_ai_recommendation",
     ),
 
     # Admin site

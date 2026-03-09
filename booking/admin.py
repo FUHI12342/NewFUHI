@@ -33,6 +33,8 @@ from .models import (
     ShiftPeriod,
     ShiftRequest,
     ShiftAssignment,
+    ShiftTemplate,
+    ShiftPublishHistory,
     AdminTheme,
     SiteSettings,
     HomepageCustomBlock,
@@ -51,6 +53,13 @@ from .models import (
     SecurityAudit,
     SecurityLog,
     CostReport,
+    AttendanceTOTPConfig,
+    AttendanceStamp,
+    POSTransaction,
+    VisitorCount,
+    VisitorAnalyticsConfig,
+    StaffRecommendationModel,
+    StaffRecommendationResult,
 )
 
 
@@ -111,10 +120,11 @@ class ScheduleAdmin(admin.ModelAdmin):
 # スタッフ / 店舗
 # ==============================
 class StaffAdmin(admin.ModelAdmin):
-    list_display = ('name', 'store', 'staff_type', 'is_store_manager', 'is_owner', 'is_recommended', 'display_thumbnail')
+    list_display = ('name', 'store', 'staff_type', 'is_store_manager', 'is_owner', 'is_recommended', 'attendance_pin', 'display_thumbnail')
 
     list_editable = ('is_recommended',)
     search_fields = ('name', 'store__name')
+    readonly_fields = ('attendance_pin',)
 
     def display_thumbnail(self, obj):
         if obj.thumbnail:
@@ -234,6 +244,13 @@ class IoTEventInline(admin.TabularInline):
     max_num = 50
 
 
+class IRCodeInline(admin.TabularInline):
+    model = IRCode
+    extra = 0
+    readonly_fields = ('created_at',)
+    fields = ('name', 'protocol', 'code', 'address', 'command', 'created_at')
+
+
 class IoTDeviceAdmin(admin.ModelAdmin):
     list_display = (
         'name',
@@ -251,7 +268,7 @@ class IoTDeviceAdmin(admin.ModelAdmin):
 
     search_fields = ('name', 'external_id', 'store__name')
     readonly_fields = ('last_seen_at',)
-    inlines = [IoTEventInline]
+    inlines = [IoTEventInline, IRCodeInline]
 
 
 class IoTEventAdmin(admin.ModelAdmin):
@@ -628,7 +645,6 @@ custom_site.register(Notice, NoticeAdmin)
 custom_site.register(Company, CompanyAdmin)
 custom_site.register(Media, MediaAdmin)
 custom_site.register(IoTDevice, IoTDeviceAdmin)
-custom_site.register(IRCode, IRCodeAdmin)
 custom_site.register(Category, CategoryAdmin)
 custom_site.register(Product, ProductAdmin)
 custom_site.register(Order, OrderAdmin)
@@ -759,6 +775,8 @@ custom_site.register(ShiftAssignment, ShiftAssignmentAdmin)
 # ==============================
 class SiteSettingsAdmin(admin.ModelAdmin):
     """シングルトン設定 — 一覧は常にpk=1へリダイレクト"""
+    change_form_template = 'admin/booking/sitesettings/change_form.html'
+
     fieldsets = (
         (_('基本設定'), {'fields': ('site_name', 'staff_label')}),
         (_('ホームページカード表示'), {'fields': (
@@ -791,6 +809,30 @@ class SiteSettingsAdmin(admin.ModelAdmin):
         obj = SiteSettings.load()
         from django.shortcuts import redirect
         return redirect(f'/admin/booking/sitesettings/{obj.pk}/change/')
+
+    def change_view(self, request, object_id, form_url='', extra_context=None):
+        extra_context = extra_context or {}
+        sub_models = [
+            {'name': '運営会社', 'model': Company, 'key': 'company'},
+            {'name': 'お知らせ', 'model': Notice, 'key': 'notice'},
+            {'name': 'メディア掲載', 'model': Media, 'key': 'media'},
+            {'name': 'カスタムブロック', 'model': HomepageCustomBlock, 'key': 'homepagecustomblock'},
+            {'name': 'ヒーローバナー', 'model': HeroBanner, 'key': 'herobanner'},
+            {'name': 'バナー広告', 'model': BannerAd, 'key': 'bannerad'},
+            {'name': '外部リンク', 'model': ExternalLink, 'key': 'externallink'},
+        ]
+        sub_model_tabs = []
+        for sm in sub_models:
+            model = sm['model']
+            meta = model._meta
+            sub_model_tabs.append({
+                'name': sm['name'],
+                'count': model.objects.count(),
+                'changelist_url': f'/admin/{meta.app_label}/{meta.model_name}/',
+                'add_url': f'/admin/{meta.app_label}/{meta.model_name}/add/',
+            })
+        extra_context['sub_model_tabs'] = sub_model_tabs
+        return super().change_view(request, object_id, form_url, extra_context)
 
 
 custom_site.register(SiteSettings, SiteSettingsAdmin)
@@ -1248,6 +1290,95 @@ class CostReportAdmin(admin.ModelAdmin):
 custom_site.register(SecurityAudit, SecurityAuditAdmin)
 custom_site.register(SecurityLog, SecurityLogAdmin)
 custom_site.register(CostReport, CostReportAdmin)
+
+
+# ==============================
+# Air統合: シフトテンプレート・公開履歴
+# ==============================
+class ShiftTemplateAdmin(admin.ModelAdmin):
+    list_display = ('store', 'name', 'start_time', 'end_time', 'color', 'is_active', 'sort_order')
+    list_editable = ('sort_order', 'is_active')
+    search_fields = ('name', 'store__name')
+    list_filter = ('store', 'is_active')
+
+
+class ShiftPublishHistoryAdmin(admin.ModelAdmin):
+    list_display = ('period', 'published_by', 'published_at', 'assignment_count')
+    readonly_fields = ('published_at',)
+    search_fields = ('period__store__name',)
+
+
+custom_site.register(ShiftTemplate, ShiftTemplateAdmin)
+custom_site.register(ShiftPublishHistory, ShiftPublishHistoryAdmin)
+
+
+# ==============================
+# Air統合: QR勤怠
+# ==============================
+class AttendanceTOTPConfigAdmin(admin.ModelAdmin):
+    list_display = ('store', 'totp_interval', 'require_geo_check', 'is_active')
+    list_filter = ('is_active',)
+
+
+class AttendanceStampAdmin(admin.ModelAdmin):
+    list_display = ('staff', 'stamp_type', 'stamped_at', 'is_valid', 'ip_address')
+    list_filter = ('stamp_type', 'is_valid')
+    search_fields = ('staff__name',)
+    readonly_fields = ('stamped_at',)
+    date_hierarchy = 'stamped_at'
+
+
+custom_site.register(AttendanceTOTPConfig, AttendanceTOTPConfigAdmin)
+custom_site.register(AttendanceStamp, AttendanceStampAdmin)
+
+
+# ==============================
+# Air統合: POS決済
+# ==============================
+class POSTransactionAdmin(admin.ModelAdmin):
+    list_display = ('receipt_number', 'order', 'total_amount', 'payment_method', 'staff', 'completed_at')
+    search_fields = ('receipt_number',)
+    readonly_fields = ('completed_at',)
+    date_hierarchy = 'completed_at'
+
+
+custom_site.register(POSTransaction, POSTransactionAdmin)
+
+
+# ==============================
+# Air統合: 来客分析
+# ==============================
+class VisitorCountAdmin(admin.ModelAdmin):
+    list_display = ('store', 'date', 'hour', 'estimated_visitors', 'order_count', 'pir_count')
+    list_filter = ('store',)
+    date_hierarchy = 'date'
+
+
+class VisitorAnalyticsConfigAdmin(admin.ModelAdmin):
+    list_display = ('store', 'session_gap_seconds', 'pir_device')
+
+
+custom_site.register(VisitorCount, VisitorCountAdmin)
+custom_site.register(VisitorAnalyticsConfig, VisitorAnalyticsConfigAdmin)
+
+
+# ==============================
+# Air統合: AI推薦
+# ==============================
+class StaffRecommendationModelAdmin(admin.ModelAdmin):
+    list_display = ('store', 'model_type', 'mae_score', 'training_samples', 'trained_at', 'is_active')
+    list_filter = ('is_active', 'model_type')
+    readonly_fields = ('trained_at',)
+
+
+class StaffRecommendationResultAdmin(admin.ModelAdmin):
+    list_display = ('store', 'date', 'hour', 'recommended_staff_count', 'confidence')
+    list_filter = ('store',)
+    date_hierarchy = 'date'
+
+
+custom_site.register(StaffRecommendationModel, StaffRecommendationModelAdmin)
+custom_site.register(StaffRecommendationResult, StaffRecommendationResultAdmin)
 
 
 print("booking.admin loaded")

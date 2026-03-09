@@ -1,0 +1,155 @@
+{% extends "admin/base_site.html" %}
+{% load i18n %}
+{% block title %}{{ title }}{% endblock %}
+{% block extrastyle %}
+<style>
+  .pin-container { max-width: 500px; margin: 40px auto; padding: 30px; }
+  .pin-title { text-align: center; font-size: 24px; margin-bottom: 8px; }
+  .store-name { text-align: center; font-size: 18px; color: #666; margin-bottom: 30px; }
+  .form-group { margin-bottom: 20px; }
+  .form-group label { display: block; font-weight: bold; margin-bottom: 6px; font-size: 14px; }
+  .form-group select, .form-group input {
+    width: 100%; padding: 12px; font-size: 16px;
+    border: 2px solid #ccc; border-radius: 6px; box-sizing: border-box;
+  }
+  .form-group input:focus, .form-group select:focus {
+    border-color: #417690; outline: none;
+  }
+  .stamp-buttons { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 24px; }
+  .stamp-btn {
+    padding: 16px; font-size: 16px; font-weight: bold; border: none;
+    border-radius: 8px; cursor: pointer; color: #fff; transition: opacity 0.2s;
+  }
+  .stamp-btn:hover { opacity: 0.85; }
+  .stamp-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+  .btn-clock-in { background: #28a745; }
+  .btn-clock-out { background: #dc3545; }
+  .btn-break-start { background: #ffc107; color: #333; }
+  .btn-break-end { background: #17a2b8; }
+  .result-msg {
+    margin-top: 20px; padding: 14px; border-radius: 6px;
+    text-align: center; font-size: 15px; display: none;
+  }
+  .result-msg.success { background: #d4edda; color: #155724; display: block; }
+  .result-msg.error { background: #f8d7da; color: #721c24; display: block; }
+  .stamp-log { margin-top: 30px; }
+  .stamp-log h3 { font-size: 16px; margin-bottom: 10px; border-bottom: 2px solid #417690; padding-bottom: 6px; }
+  .stamp-log table { width: 100%; border-collapse: collapse; }
+  .stamp-log th, .stamp-log td { padding: 8px 12px; text-align: left; border-bottom: 1px solid #eee; font-size: 14px; }
+  .stamp-log th { background: #f5f5f5; font-weight: bold; }
+</style>
+{% endblock %}
+{% block content %}
+<div class="pin-container">
+  <div class="pin-title">{% trans "PIN打刻" %}</div>
+  <div class="store-name">{{ store.name }}</div>
+
+  <div class="form-group">
+    <label for="staff-select">{% trans "スタッフ" %}</label>
+    <select id="staff-select">
+      <option value="">-- {% trans "選択してください" %} --</option>
+      {% for s in staffs %}
+      <option value="{{ s.id }}">{{ s.name }}</option>
+      {% endfor %}
+    </select>
+  </div>
+
+  <div class="form-group">
+    <label for="pin-input">{% trans "4桁PIN" %}</label>
+    <input type="password" id="pin-input" maxlength="4" pattern="\d{4}" inputmode="numeric"
+           placeholder="****" autocomplete="off">
+  </div>
+
+  <div class="stamp-buttons">
+    <button class="stamp-btn btn-clock-in" onclick="doStamp('clock_in')">{% trans "出勤" %}</button>
+    <button class="stamp-btn btn-clock-out" onclick="doStamp('clock_out')">{% trans "退勤" %}</button>
+    <button class="stamp-btn btn-break-start" onclick="doStamp('break_start')">{% trans "休憩開始" %}</button>
+    <button class="stamp-btn btn-break-end" onclick="doStamp('break_end')">{% trans "休憩終了" %}</button>
+  </div>
+
+  <div id="result-msg" class="result-msg"></div>
+
+  <div class="stamp-log">
+    <h3>{% trans "本日の打刻ログ" %}</h3>
+    <table>
+      <thead><tr><th>{% trans "スタッフ" %}</th><th>{% trans "種別" %}</th><th>{% trans "時刻" %}</th></tr></thead>
+      <tbody id="stamp-log-body">
+        <tr><td colspan="3" style="text-align:center;color:#999;">{% trans "読込中..." %}</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<script>
+const STAMP_LABELS = {clock_in:'出勤',clock_out:'退勤',break_start:'休憩開始',break_end:'休憩終了'};
+const STORE_ID = '{{ store.id }}';
+
+function getCookie(name) {
+  const v = document.cookie.match('(^|;)\\s*' + name + '\\s*=\\s*([^;]+)');
+  return v ? v.pop() : '';
+}
+
+function showMsg(type, text) {
+  const el = document.getElementById('result-msg');
+  el.className = 'result-msg ' + type;
+  el.textContent = text;
+  el.style.display = 'block';
+  setTimeout(() => { el.style.display = 'none'; }, 5000);
+}
+
+function doStamp(stampType) {
+  const staffId = document.getElementById('staff-select').value;
+  const pin = document.getElementById('pin-input').value;
+  if (!staffId) { showMsg('error', 'スタッフを選択してください'); return; }
+  if (!pin || pin.length !== 4) { showMsg('error', '4桁PINを入力してください'); return; }
+
+  const btns = document.querySelectorAll('.stamp-btn');
+  btns.forEach(b => b.disabled = true);
+
+  fetch('/api/attendance/pin-stamp/', {
+    method: 'POST',
+    headers: {'Content-Type':'application/json','X-CSRFToken': getCookie('csrftoken')},
+    body: JSON.stringify({staff_id: staffId, pin: pin, stamp_type: stampType, store_id: STORE_ID})
+  })
+  .then(r => r.json())
+  .then(data => {
+    btns.forEach(b => b.disabled = false);
+    if (data.success) {
+      showMsg('success', data.staff_name + ' - ' + STAMP_LABELS[stampType] + ' 完了');
+      document.getElementById('pin-input').value = '';
+      refreshLog();
+    } else {
+      showMsg('error', data.error || 'エラーが発生しました');
+    }
+  })
+  .catch(() => {
+    btns.forEach(b => b.disabled = false);
+    showMsg('error', '通信エラーが発生しました');
+  });
+}
+
+function refreshLog() {
+  fetch('/api/attendance/day-status/?store_id=' + STORE_ID)
+  .then(r => r.json())
+  .then(data => {
+    const tbody = document.getElementById('stamp-log-body');
+    if (!data.length) {
+      tbody.innerHTML = '<tr><td colspan="3" style="text-align:center;color:#999;">打刻なし</td></tr>';
+      return;
+    }
+    let html = '';
+    data.forEach(s => {
+      s.stamps.forEach(st => {
+        const t = new Date(st.at);
+        const time = t.getHours().toString().padStart(2,'0') + ':' + t.getMinutes().toString().padStart(2,'0');
+        html += '<tr><td>' + s.staff_name + '</td><td>' + (STAMP_LABELS[st.type]||st.type) + '</td><td>' + time + '</td></tr>';
+      });
+    });
+    tbody.innerHTML = html;
+  })
+  .catch(() => {});
+}
+
+document.addEventListener('DOMContentLoaded', refreshLog);
+</script>
+{% endblock %}

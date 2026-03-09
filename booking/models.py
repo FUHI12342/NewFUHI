@@ -4,6 +4,7 @@ from django.db.models import F
 from django.utils.translation import gettext_lazy as _
 from django.utils import timezone
 from django.core.exceptions import ImproperlyConfigured
+from django.core.validators import RegexValidator
 
 from rest_framework import serializers
 from django.contrib.auth.models import User
@@ -120,6 +121,12 @@ class Staff(models.Model):
     introduction = models.TextField(_('自己紹介文'), null=True, blank=True)
     price = models.IntegerField(_('価格'), default=0)
 
+    attendance_pin = models.CharField(
+        _('勤怠PIN'), max_length=4, blank=True, default='',
+        help_text=_('4桁の打刻用PINコード'),
+        validators=[RegexValidator(r'^\d{4}$', _('4桁の数字を入力してください'))],
+    )
+
     class Meta:
         app_label = 'booking'
         verbose_name = _('キャスト')
@@ -176,7 +183,7 @@ class Schedule(models.Model):
     class Meta:
         app_label = 'booking'
         verbose_name = _('予約確定済みのスケジュール')
-        verbose_name_plural = _('予約確定済みのスケジュール')
+        verbose_name_plural = _('確定予約一覧')
         indexes = [
             models.Index(fields=['staff', 'start']),
             models.Index(fields=['staff', 'is_temporary', 'start']),
@@ -413,8 +420,8 @@ class IoTDevice(models.Model):
 
     class Meta:
         app_label = 'booking'
-        verbose_name = _('IoTデバイス')
-        verbose_name_plural = _('IoTデバイス')
+        verbose_name = _('店舗センサー')
+        verbose_name_plural = _('店舗センサー')
 
     def __str__(self):
         return f'{self.store.name} / {self.name}'
@@ -580,6 +587,12 @@ class Order(models.Model):
         (STATUS_OPEN, 'Open'),
         (STATUS_CLOSED, 'Closed'),
     )
+    PAYMENT_STATUS_CHOICES = [
+        ('pending', '未払い'),
+        ('partial', '一部支払'),
+        ('paid', '支払済'),
+        ('refunded', '返金済'),
+    ]
 
     store = models.ForeignKey(Store, verbose_name=_('店舗'), on_delete=models.CASCADE, related_name='orders')
     schedule = models.ForeignKey(
@@ -599,14 +612,17 @@ class Order(models.Model):
     )
 
     status = models.CharField(_('状態'), max_length=10, choices=STATUS_CHOICES, default=STATUS_OPEN, db_index=True)
+    payment_status = models.CharField(_('支払状態'), max_length=20, choices=PAYMENT_STATUS_CHOICES, default='pending')
+    discount_amount = models.IntegerField(_('割引額'), default=0)
+    tax_amount = models.IntegerField(_('税額'), default=0)
 
     created_at = models.DateTimeField(auto_now_add=True, db_index=True)
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
         app_label = 'booking'
-        verbose_name = _('注文')
-        verbose_name_plural = _('注文')
+        verbose_name = _('注文履歴')
+        verbose_name_plural = _('注文履歴')
         indexes = [
             models.Index(fields=['store', 'status', 'created_at']),
             models.Index(fields=['customer_line_user_hash', 'created_at']),
@@ -932,8 +948,8 @@ class TableSeat(models.Model):
 
     class Meta:
         app_label = 'booking'
-        verbose_name = _('テーブル/席')
-        verbose_name_plural = _('テーブル/席')
+        verbose_name = _('テーブルQR登録・管理')
+        verbose_name_plural = _('テーブルQR登録・管理')
         unique_together = (('store', 'label'),)
         ordering = ('store', 'label')
 
@@ -1012,6 +1028,8 @@ class ShiftRequest(models.Model):
     date = models.DateField(_('日付'))
     start_hour = models.IntegerField(_('開始時間'))
     end_hour = models.IntegerField(_('終了時間'))
+    start_time = models.TimeField(_('開始時刻'), null=True, blank=True)
+    end_time = models.TimeField(_('終了時刻'), null=True, blank=True)
     preference = models.CharField(_('希望区分'), max_length=20, choices=PREF_CHOICES, default='available')
     note = models.TextField(_('備考'), blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -1033,6 +1051,10 @@ class ShiftAssignment(models.Model):
     date = models.DateField(_('日付'))
     start_hour = models.IntegerField(_('開始時間'))
     end_hour = models.IntegerField(_('終了時間'))
+    start_time = models.TimeField(_('開始時刻'), null=True, blank=True)
+    end_time = models.TimeField(_('終了時刻'), null=True, blank=True)
+    color = models.CharField(_('表示色'), max_length=7, default='#3B82F6')
+    note = models.TextField(_('備考'), blank=True, default='')
     is_synced = models.BooleanField(_('Schedule同期済み'), default=False)
     created_at = models.DateTimeField(auto_now_add=True)
 
@@ -1044,6 +1066,44 @@ class ShiftAssignment(models.Model):
 
     def __str__(self):
         return f"{self.staff.name} {self.date} {self.start_hour}:00-{self.end_hour}:00"
+
+
+class ShiftTemplate(models.Model):
+    """定型シフトパターン（早番・遅番・通し等）"""
+    store = models.ForeignKey(Store, verbose_name=_('店舗'), on_delete=models.CASCADE, related_name='shift_templates')
+    name = models.CharField(_('テンプレート名'), max_length=100)
+    start_time = models.TimeField(_('開始時刻'))
+    end_time = models.TimeField(_('終了時刻'))
+    color = models.CharField(_('表示色'), max_length=7, default='#3B82F6')
+    is_active = models.BooleanField(_('有効'), default=True)
+    sort_order = models.IntegerField(_('並び順'), default=0)
+
+    class Meta:
+        app_label = 'booking'
+        verbose_name = _('シフトテンプレート')
+        verbose_name_plural = _('シフトテンプレート')
+        ordering = ('store', 'sort_order', 'name')
+
+    def __str__(self):
+        return f"{self.store.name} / {self.name} ({self.start_time}-{self.end_time})"
+
+
+class ShiftPublishHistory(models.Model):
+    """シフト公開履歴"""
+    period = models.ForeignKey(ShiftPeriod, verbose_name=_('シフト期間'), on_delete=models.CASCADE, related_name='publish_history')
+    published_by = models.ForeignKey(Staff, verbose_name=_('公開者'), on_delete=models.SET_NULL, null=True, blank=True)
+    published_at = models.DateTimeField(_('公開日時'), auto_now_add=True)
+    assignment_count = models.IntegerField(_('シフト数'), default=0)
+    note = models.TextField(_('備考'), blank=True, default='')
+
+    class Meta:
+        app_label = 'booking'
+        verbose_name = _('シフト公開履歴')
+        verbose_name_plural = _('シフト公開履歴')
+        ordering = ('-published_at',)
+
+    def __str__(self):
+        return f"{self.period} - {self.published_at}"
 
 
 class AdminTheme(models.Model):
@@ -1118,8 +1178,8 @@ class SiteSettings(models.Model):
 
     class Meta:
         app_label = 'booking'
-        verbose_name = _('サイト設定')
-        verbose_name_plural = _('サイト設定')
+        verbose_name = _('メインサイト設定')
+        verbose_name_plural = _('メインサイト設定')
 
     def __str__(self):
         return self.site_name
@@ -1329,6 +1389,7 @@ class WorkAttendance(models.Model):
         ('shift', 'シフトから自動生成'),
         ('manual', '手動入力'),
         ('corrected', '修正済み'),
+        ('qr', 'QR打刻'),
     ]
 
     staff = models.ForeignKey(Staff, verbose_name=_('スタッフ'), on_delete=models.CASCADE, related_name='attendances')
@@ -1341,6 +1402,9 @@ class WorkAttendance(models.Model):
     late_night_minutes = models.IntegerField(_('深夜勤務（分）'), default=0)
     holiday_minutes = models.IntegerField(_('休日勤務（分）'), default=0)
     break_minutes = models.IntegerField(_('休憩（分）'), default=0)
+
+    qr_clock_in = models.DateTimeField(_('QR出勤日時'), null=True, blank=True)
+    qr_clock_out = models.DateTimeField(_('QR退勤日時'), null=True, blank=True)
 
     source = models.CharField(_('データソース'), max_length=20, choices=SOURCE_CHOICES, default='shift')
     source_assignment = models.ForeignKey(
@@ -1633,8 +1697,183 @@ class AdminMenuConfig(models.Model):
 
     class Meta:
         app_label = 'booking'
-        verbose_name = _('メニュー権限設定')
-        verbose_name_plural = _('メニュー権限設定')
+        verbose_name = _('権限設定')
+        verbose_name_plural = _('権限設定')
 
     def __str__(self):
         return f'{self.get_role_display()} メニュー設定'
+
+
+# ==============================
+# Phase 2: QR TOTP 勤怠
+# ==============================
+
+class AttendanceTOTPConfig(models.Model):
+    """店舗ごとのTOTP設定（QR勤怠用）"""
+    store = models.OneToOneField(Store, verbose_name=_('店舗'), on_delete=models.CASCADE, related_name='totp_config')
+    totp_secret = models.CharField(_('TOTPシークレット'), max_length=64)
+    totp_interval = models.IntegerField(_('TOTP間隔(秒)'), default=30)
+    location_lat = models.FloatField(_('緯度'), null=True, blank=True)
+    location_lng = models.FloatField(_('経度'), null=True, blank=True)
+    geo_fence_radius_m = models.IntegerField(_('ジオフェンス半径(m)'), default=200)
+    require_geo_check = models.BooleanField(_('位置確認必須'), default=False)
+    is_active = models.BooleanField(_('有効'), default=True)
+
+    class Meta:
+        app_label = 'booking'
+        verbose_name = _('TOTP勤怠設定')
+        verbose_name_plural = _('TOTP勤怠設定')
+
+    def __str__(self):
+        return f'{self.store.name} TOTP設定'
+
+
+class AttendanceStamp(models.Model):
+    """打刻ログ"""
+    STAMP_TYPE_CHOICES = [
+        ('clock_in', '出勤'),
+        ('clock_out', '退勤'),
+        ('break_start', '休憩開始'),
+        ('break_end', '休憩終了'),
+    ]
+    staff = models.ForeignKey(Staff, verbose_name=_('スタッフ'), on_delete=models.CASCADE, related_name='attendance_stamps')
+    stamp_type = models.CharField(_('打刻種別'), max_length=20, choices=STAMP_TYPE_CHOICES)
+    stamped_at = models.DateTimeField(_('打刻日時'), auto_now_add=True)
+    totp_used = models.CharField(_('使用TOTP'), max_length=10, blank=True, default='')
+    ip_address = models.GenericIPAddressField(_('IPアドレス'), null=True, blank=True)
+    user_agent = models.TextField(_('User-Agent'), blank=True, default='')
+    latitude = models.FloatField(_('緯度'), null=True, blank=True)
+    longitude = models.FloatField(_('経度'), null=True, blank=True)
+    is_valid = models.BooleanField(_('有効'), default=True)
+    invalidation_reason = models.CharField(_('無効理由'), max_length=100, blank=True, default='')
+
+    class Meta:
+        app_label = 'booking'
+        verbose_name = _('打刻ログ')
+        verbose_name_plural = _('打刻ログ')
+        ordering = ('-stamped_at',)
+        indexes = [
+            models.Index(fields=['staff', 'stamped_at']),
+            models.Index(fields=['stamp_type', 'stamped_at']),
+        ]
+
+    def __str__(self):
+        return f'{self.staff.name} {self.get_stamp_type_display()} {self.stamped_at}'
+
+
+# ==============================
+# Phase 3: POS拡張
+# ==============================
+
+class POSTransaction(models.Model):
+    """POS決済記録"""
+    order = models.OneToOneField(Order, verbose_name=_('注文'), on_delete=models.CASCADE, related_name='pos_transaction')
+    payment_method = models.ForeignKey(PaymentMethod, verbose_name=_('決済方法'), on_delete=models.SET_NULL, null=True, blank=True)
+    total_amount = models.IntegerField(_('合計金額'), default=0)
+    tax_amount = models.IntegerField(_('税額'), default=0)
+    discount_amount = models.IntegerField(_('割引額'), default=0)
+    cash_received = models.IntegerField(_('受取金額'), null=True, blank=True)
+    change_given = models.IntegerField(_('お釣り'), null=True, blank=True)
+    receipt_number = models.CharField(_('レシート番号'), max_length=20, unique=True)
+    staff = models.ForeignKey(Staff, verbose_name=_('担当'), on_delete=models.SET_NULL, null=True, blank=True)
+    completed_at = models.DateTimeField(_('完了日時'), null=True, blank=True)
+
+    class Meta:
+        app_label = 'booking'
+        verbose_name = _('POS決済')
+        verbose_name_plural = _('POS決済')
+        indexes = [
+            models.Index(fields=['receipt_number']),
+            models.Index(fields=['completed_at']),
+        ]
+
+    def __str__(self):
+        return f'POS#{self.receipt_number} ¥{self.total_amount:,}'
+
+
+# ==============================
+# Phase 4: 来客分析
+# ==============================
+
+class VisitorCount(models.Model):
+    """時間帯別来客集計"""
+    store = models.ForeignKey(Store, verbose_name=_('店舗'), on_delete=models.CASCADE, related_name='visitor_counts')
+    date = models.DateField(_('日付'), db_index=True)
+    hour = models.IntegerField(_('時間帯'))  # 0-23
+    pir_count = models.IntegerField(_('PIR検知数'), default=0)
+    estimated_visitors = models.IntegerField(_('推定来客数'), default=0)
+    order_count = models.IntegerField(_('注文数'), default=0)
+
+    class Meta:
+        app_label = 'booking'
+        verbose_name = _('来客数')
+        verbose_name_plural = _('来客数')
+        unique_together = ('store', 'date', 'hour')
+        indexes = [
+            models.Index(fields=['store', 'date']),
+        ]
+
+    def __str__(self):
+        return f'{self.store.name} {self.date} {self.hour}時 来客:{self.estimated_visitors}'
+
+
+class VisitorAnalyticsConfig(models.Model):
+    """店舗ごとの来客分析設定"""
+    store = models.OneToOneField(Store, verbose_name=_('店舗'), on_delete=models.CASCADE, related_name='visitor_config')
+    pir_device = models.ForeignKey(IoTDevice, verbose_name=_('PIRデバイス'), on_delete=models.SET_NULL, null=True, blank=True)
+    session_gap_seconds = models.IntegerField(_('セッション間隔(秒)'), default=300,
+        help_text=_('この秒数以内の連続検知は同一来客とカウント'))
+
+    class Meta:
+        app_label = 'booking'
+        verbose_name = _('来客分析設定')
+        verbose_name_plural = _('来客分析設定')
+
+    def __str__(self):
+        return f'{self.store.name} 来客分析設定'
+
+
+# ==============================
+# Phase 5: AIシフト推薦
+# ==============================
+
+class StaffRecommendationModel(models.Model):
+    """学習済みMLモデル保存"""
+    store = models.ForeignKey(Store, verbose_name=_('店舗'), on_delete=models.CASCADE, related_name='recommendation_models')
+    model_file = models.FileField(_('モデルファイル'), upload_to='ml_models/')
+    model_type = models.CharField(_('モデル種別'), max_length=50, default='random_forest')
+    feature_names = models.JSONField(_('特徴量名'), default=list)
+    accuracy_score = models.FloatField(_('精度スコア'), default=0)
+    mae_score = models.FloatField(_('MAEスコア'), default=0)
+    training_samples = models.IntegerField(_('学習サンプル数'), default=0)
+    trained_at = models.DateTimeField(_('学習日時'), auto_now_add=True)
+    is_active = models.BooleanField(_('有効'), default=True)
+
+    class Meta:
+        app_label = 'booking'
+        verbose_name = _('AI推薦モデル')
+        verbose_name_plural = _('AI推薦モデル')
+        ordering = ('-trained_at',)
+
+    def __str__(self):
+        return f'{self.store.name} {self.model_type} (MAE:{self.mae_score:.2f})'
+
+
+class StaffRecommendationResult(models.Model):
+    """AIスタッフ推薦結果"""
+    store = models.ForeignKey(Store, verbose_name=_('店舗'), on_delete=models.CASCADE, related_name='recommendation_results')
+    date = models.DateField(_('日付'))
+    hour = models.IntegerField(_('時間帯'))  # 0-23
+    recommended_staff_count = models.IntegerField(_('推薦スタッフ数'))
+    confidence = models.FloatField(_('信頼度'), default=0)
+    factors = models.JSONField(_('特徴量重要度'), default=dict)
+    created_at = models.DateTimeField(_('作成日時'), auto_now_add=True)
+
+    class Meta:
+        app_label = 'booking'
+        verbose_name = _('AI推薦結果')
+        verbose_name_plural = _('AI推薦結果')
+        unique_together = ('store', 'date', 'hour')
+
+    def __str__(self):
+        return f'{self.store.name} {self.date} {self.hour}時 推薦:{self.recommended_staff_count}人'

@@ -1,0 +1,26 @@
+{% extends "admin/change_form.html" %}
+{% load i18n %}
+
+{% block after_related_objects %}
+<div class="sub-models-section" style="margin-top: 30px;">
+  <h2 style="font-size: 18px; border-bottom: 2px solid #417690; padding-bottom: 8px; margin-bottom: 16px;">
+    {% trans "関連ページ設定" %}
+  </h2>
+  <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px;">
+    {% for tab in sub_model_tabs %}
+    <div style="border: 1px solid #ddd; border-radius: 8px; padding: 16px; background: #fafafa;">
+      <div style="font-weight: bold; font-size: 15px; margin-bottom: 8px;">{{ tab.name }}</div>
+      <div style="color: #666; font-size: 13px; margin-bottom: 12px;">{{ tab.count }} 件登録</div>
+      <div style="display: flex; gap: 8px;">
+        <a href="{{ tab.changelist_url }}" class="button" style="padding: 6px 14px; font-size: 13px; text-decoration: none; background: #417690; color: #fff; border-radius: 4px;">
+          {% trans "管理" %}
+        </a>
+        <a href="{{ tab.add_url }}" class="button" style="padding: 6px 14px; font-size: 13px; text-decoration: none; background: #79aec8; color: #fff; border-radius: 4px;">
+          {% trans "追加" %}
+        </a>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+{% endblock %}
