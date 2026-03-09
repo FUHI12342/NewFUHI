@@ -70,6 +70,13 @@
             form.submit();
         });
     }
+    // Force lang select color (override browser dark mode)
+    if (sel) {
+        sel.style.setProperty('color', '#465fff', 'important');
+        sel.style.setProperty('background', '#fff', 'important');
+        sel.style.setProperty('-webkit-text-fill-color', '#465fff', 'important');
+        sel.style.setProperty('color-scheme', 'light', 'important');
+    }
     var btn = document.getElementById('header-hamburger');
     var menu = document.getElementById('header-mobile-menu');
     if (btn && menu) {
@@ -257,7 +264,7 @@ tailwind.config = {
         #result_list tbody tr:nth-child(odd) {
             background: #f9fafb !important;
         }
-        select, input, textarea {
+        select:not(#lang-select), input, textarea {
             background: #fff !important;
             color: #111827 !important;
             border-color: #e5e7eb !important;
