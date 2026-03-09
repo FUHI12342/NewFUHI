@@ -262,10 +262,14 @@ tailwind.config = {
             color: #111827 !important;
             border-color: #e5e7eb !important;
         }
-        #header .tw-lang-select {
+        #header .tw-lang-select,
+        #header select.tw-lang-select,
+        select#lang-select,
+        #header #lang-select {
             background: #fff !important;
             color: #465fff !important;
             border-color: rgba(255,255,255,0.5) !important;
+            -webkit-text-fill-color: #465fff !important;
         }
         #header a:link, #header a:visited {
             color: #fff !important;
@@ -278,7 +282,10 @@ tailwind.config = {
     }
 
     /* ===== 言語セレクタ強制上書き ===== */
-    #header .tw-lang-select {
+    #header .tw-lang-select,
+    #header select.tw-lang-select,
+    select#lang-select,
+    #header #lang-select {
         background: #fff !important;
         color: #465fff !important;
         border-color: rgba(255,255,255,0.5) !important;
@@ -418,7 +425,10 @@ tailwind.config = {
     }
 
     /* Language selector */
-    .tw-lang-select {
+    .tw-lang-select,
+    select.tw-lang-select,
+    select#lang-select,
+    #header select#lang-select {
         padding: 4px 8px;
         border-radius: 6px;
         border: 1px solid rgba(255,255,255,0.5) !important;
@@ -427,10 +437,13 @@ tailwind.config = {
         color: #465fff !important;
         font-weight: 600;
         cursor: pointer;
+        -webkit-text-fill-color: #465fff !important;
     }
-    .tw-lang-select option {
+    .tw-lang-select option,
+    select#lang-select option {
         color: #333 !important;
         background: #fff !important;
+        -webkit-text-fill-color: #333 !important;
     }
 
     /* Content area */
