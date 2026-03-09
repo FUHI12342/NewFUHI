@@ -1,0 +1,112 @@
+{% extends "admin/base_site.html" %}
+{% load i18n %}
+{% block title %}{{ title }}{% endblock %}
+{% block extrastyle %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://unpkg.com/htmx.org@1.9.10"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+<style>
+  .analytics-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; padding: 16px; }
+  .kpi-card { background: #fff; border: 1px solid #ddd; border-radius: 8px; padding: 20px; text-align: center; }
+  .kpi-value { font-size: 36px; font-weight: 700; color: #3B82F6; }
+  .kpi-label { color: #666; font-size: 14px; }
+  .chart-container { background: #fff; border: 1px solid #ddd; border-radius: 8px; padding: 16px; grid-column: 1 / -1; }
+  .heatmap-container { grid-column: 1 / -1; }
+  .heatmap-table { border-collapse: collapse; width: 100%; }
+  .heatmap-table th, .heatmap-table td { padding: 6px; text-align: center; font-size: 12px; }
+  .heatmap-cell { width: 30px; height: 30px; border-radius: 4px; }
+  .toolbar { padding: 16px; display: flex; gap: 12px; align-items: center; }
+  .toolbar select { padding: 6px 12px; border: 1px solid #ccc; border-radius: 4px; }
+</style>
+{% endblock %}
+{% block content %}
+<div x-data="{range: '7'}">
+  <div class="toolbar">
+    <select x-model="range" @change="loadChart()">
+      <option value="7">1週間</option>
+      <option value="14">2週間</option>
+      <option value="30">1ヶ月</option>
+      <option value="90">3ヶ月</option>
+    </select>
+    {% if stores %}
+    <select name="store_id" onchange="location.search='?store_id='+this.value">
+      {% for s in stores %}
+      <option value="{{ s.id }}" {% if s.id == store.id %}selected{% endif %}>{{ s.name }}</option>
+      {% endfor %}
+    </select>
+    {% endif %}
+  </div>
+
+  <div class="analytics-grid">
+    <div class="kpi-card">
+      <div class="kpi-value">{{ today_visitors }}</div>
+      <div class="kpi-label">{% trans "今日の来客数" %}</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-value">{{ today_orders }}</div>
+      <div class="kpi-label">{% trans "今日の注文数" %}</div>
+    </div>
+
+    <div class="chart-container">
+      <h3>{% trans "来客推移" %}</h3>
+      <canvas id="visitorChart" height="100"></canvas>
+    </div>
+
+    <div class="chart-container heatmap-container">
+      <h3>{% trans "曜日×時間ヒートマップ" %}</h3>
+      <div id="heatmap-content">{% trans "データ読込中..." %}</div>
+    </div>
+  </div>
+</div>
+
+<script>
+let visitorChart = null;
+function loadChart() {
+  const range = document.querySelector('[x-model="range"]')?.value || '7';
+  fetch('/api/analytics/visitors/?range=' + range + '{% if store %}&store_id={{ store.id }}{% endif %}')
+    .then(r => r.json())
+    .then(data => {
+      const dates = [...new Set(data.map(d => d.date))];
+      const visitors = dates.map(dt => data.filter(d => d.date === dt).reduce((s, d) => s + d.estimated_visitors, 0));
+      const orders = dates.map(dt => data.filter(d => d.date === dt).reduce((s, d) => s + d.order_count, 0));
+      const ctx = document.getElementById('visitorChart').getContext('2d');
+      if (visitorChart) visitorChart.destroy();
+      visitorChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: dates,
+          datasets: [
+            {label: '来客数', data: visitors, backgroundColor: 'rgba(59,130,246,0.6)'},
+            {label: '注文数', data: orders, backgroundColor: 'rgba(16,185,129,0.6)'},
+          ]
+        },
+        options: {responsive: true, scales: {y: {beginAtZero: true}}}
+      });
+    });
+  // Heatmap
+  fetch('/api/analytics/heatmap/{% if store %}?store_id={{ store.id }}{% endif %}')
+    .then(r => r.json())
+    .then(data => {
+      const days = ['月', '火', '水', '木', '金', '土', '日'];
+      let html = '<table class="heatmap-table"><tr><th></th>';
+      for (let h = 9; h <= 21; h++) html += '<th>' + h + '</th>';
+      html += '</tr>';
+      for (let d = 0; d < 7; d++) {
+        html += '<tr><th>' + days[d] + '</th>';
+        for (let h = 9; h <= 21; h++) {
+          const val = (data[d] && data[d][h]) || 0;
+          const intensity = Math.min(val / 10, 1);
+          const r = Math.round(59 + (239-59) * (1-intensity));
+          const g = Math.round(130 + (239-130) * (1-intensity));
+          const b = Math.round(246 + (239-246) * (1-intensity));
+          html += '<td><div class="heatmap-cell" style="background:rgb(' + r + ',' + g + ',' + b + ');margin:auto;" title="' + val + '人"></div></td>';
+        }
+        html += '</tr>';
+      }
+      html += '</table>';
+      document.getElementById('heatmap-content').innerHTML = html;
+    });
+}
+document.addEventListener('DOMContentLoaded', loadChart);
+</script>
+{% endblock %}

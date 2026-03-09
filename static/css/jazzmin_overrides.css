@@ -1,0 +1,15 @@
+/* jazzmin navbar: bg-body が背景を白にしてしまうのを上書き */
+#jazzy-navbar.navbar-dark {
+    background-color: #3c4b64 !important;  /* ダークネイビー */
+    color: #fff !important;
+}
+
+#jazzy-navbar.navbar-dark .nav-link,
+#jazzy-navbar.navbar-dark .nav-link i,
+#jazzy-navbar.navbar-dark .nav-link .btn {
+    color: rgba(255, 255, 255, 0.85) !important;
+}
+
+#jazzy-navbar.navbar-dark .nav-link:hover {
+    color: #fff !important;
+}

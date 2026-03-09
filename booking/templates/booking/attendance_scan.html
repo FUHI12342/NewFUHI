@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>勤怠打刻</title>
+  <style>
+    body { font-family: sans-serif; max-width: 400px; margin: 40px auto; padding: 0 16px; }
+    .btn { display: block; width: 100%; padding: 16px; margin: 8px 0; font-size: 18px; border: none; border-radius: 8px; cursor: pointer; color: #fff; }
+    .btn-in { background: #10B981; }
+    .btn-out { background: #EF4444; }
+    .btn-break-start { background: #F59E0B; }
+    .btn-break-end { background: #3B82F6; }
+    .result { margin-top: 16px; padding: 16px; border-radius: 8px; text-align: center; }
+    .result.success { background: #D1FAE5; color: #065F46; }
+    .result.error { background: #FEE2E2; color: #991B1B; }
+    input { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; }
+  </style>
+</head>
+<body>
+  <h1>勤怠打刻</h1>
+  <div id="result"></div>
+  <input type="hidden" id="staff-id" value="">
+  <input type="text" id="totp-code" placeholder="TOTPコードを入力" maxlength="6">
+  <button class="btn btn-in" onclick="stamp('clock_in')">出勤</button>
+  <button class="btn btn-out" onclick="stamp('clock_out')">退勤</button>
+  <button class="btn btn-break-start" onclick="stamp('break_start')">休憩開始</button>
+  <button class="btn btn-break-end" onclick="stamp('break_end')">休憩終了</button>
+  <script>
+    function stamp(type) {
+      var staffId = document.getElementById('staff-id').value;
+      var totp = document.getElementById('totp-code').value;
+      if (!staffId) { alert('スタッフIDを設定してください'); return; }
+      fetch('/api/attendance/stamp/', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json', 'X-CSRFToken': getCookie('csrftoken')},
+        body: JSON.stringify({staff_id: parseInt(staffId), stamp_type: type, totp_code: totp})
+      })
+      .then(r => r.json())
+      .then(data => {
+        var el = document.getElementById('result');
+        if (data.success) {
+          el.className = 'result success';
+          el.innerHTML = data.staff_name + ': ' + type + ' OK (' + new Date(data.stamped_at).toLocaleTimeString() + ')';
+        } else {
+          el.className = 'result error';
+          el.innerHTML = data.error || 'エラー';
+        }
+      });
+    }
+    function getCookie(name) {
+      var v = document.cookie.match('(^|;) ?' + name + '=([^;]*)(;|$)');
+      return v ? v[2] : '';
+    }
+  </script>
+</body>
+</html>

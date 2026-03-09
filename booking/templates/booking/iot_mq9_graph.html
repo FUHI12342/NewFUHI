@@ -5,114 +5,537 @@
   {{ block.super }}
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
-    .mq9-chart-wrap {
-      max-width: 960px;
-      margin: 1.5rem auto 2rem;
+    /* ── Reset & Layout ─────────────────────────────────── */
+    #content-main { max-width: 1100px; margin: 0 auto; padding: 1rem; }
+
+    .sm-header {
+      display: flex; align-items: center; gap: 1rem;
+      flex-wrap: wrap; margin-bottom: 1.2rem;
     }
-    .mq9-chart-wrap-inner {
-      position: relative;
-      width: 100%;
-      aspect-ratio: 16 / 7;
+    .sm-header h1 { margin: 0; font-size: 1.5rem; font-weight: 700; }
+
+    .sm-controls {
+      display: flex; align-items: center; gap: 0.6rem;
+      margin-left: auto; flex-wrap: wrap;
     }
-    .mq9-meta {
-      font-size: 0.9rem;
-      color: #ccc;
-      margin-bottom: 0.5rem;
+
+    /* Device selector */
+    #device-select {
+      padding: 0.35rem 0.6rem; border-radius: 6px;
+      border: 1px solid #4b5563; background: #1f2937; color: #e5e7eb;
+      font-size: 0.85rem; cursor: pointer;
     }
-    table.mq9-table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 1rem;
-      font-size: 0.85rem;
+
+    /* Range buttons */
+    .range-btn {
+      padding: 0.3rem 0.75rem; border-radius: 6px;
+      border: 1px solid #4b5563; background: #374151; color: #d1d5db;
+      font-size: 0.8rem; cursor: pointer; transition: all 0.15s;
     }
-    table.mq9-table th,
-    table.mq9-table td {
-      border: 1px solid #444;
-      padding: 0.3rem 0.5rem;
-      white-space: nowrap;
+    .range-btn:hover { background: #4b5563; }
+    .range-btn.active { background: #2563eb; border-color: #2563eb; color: #fff; }
+
+    /* ── Tabs ────────────────────────────────────────────── */
+    .sm-tabs {
+      display: flex; gap: 0.25rem; border-bottom: 2px solid #374151;
+      margin-bottom: 1.2rem;
     }
-    table.mq9-table th {
-      background: #222;
+    .sm-tab {
+      padding: 0.5rem 1rem; border: none; background: transparent;
+      color: #9ca3af; font-size: 0.9rem; cursor: pointer;
+      border-bottom: 2px solid transparent; margin-bottom: -2px;
+      display: flex; align-items: center; gap: 0.4rem;
+      transition: all 0.15s;
+    }
+    .sm-tab:hover { color: #e5e7eb; }
+    .sm-tab.active { color: #fff; border-bottom-color: #2563eb; }
+
+    .sm-tab-dot {
+      width: 8px; height: 8px; border-radius: 50%; display: inline-block;
+    }
+    .dot-gas { background: #f97316; }
+    .dot-light { background: #eab308; }
+    .dot-sound { background: #22d3ee; }
+    .dot-pir { background: #ef4444; }
+
+    .sm-panel { display: none; }
+    .sm-panel.active { display: block; }
+
+    /* ── Status Card ─────────────────────────────────────── */
+    .status-card {
+      background: #1f2937; border-radius: 12px; padding: 1rem 1.25rem;
+      margin-bottom: 1rem; display: flex; align-items: center;
+      gap: 1rem; flex-wrap: wrap;
+    }
+    .status-value {
+      font-size: 2rem; font-weight: 700; color: #f9fafb;
+      min-width: 100px;
+    }
+    .status-info { flex: 1; min-width: 200px; }
+    .status-badge {
+      display: inline-block; padding: 0.2rem 0.7rem; border-radius: 999px;
+      font-size: 0.75rem; font-weight: 600; margin-bottom: 0.3rem;
+    }
+    .badge-green { background: #065f46; color: #6ee7b7; }
+    .badge-yellow { background: #713f12; color: #fde047; }
+    .badge-red { background: #7f1d1d; color: #fca5a5; }
+    .badge-blue { background: #1e3a5f; color: #93c5fd; }
+    .badge-gray { background: #374151; color: #9ca3af; }
+
+    .badge-red.blink { animation: pulse-red 1s infinite; }
+    @keyframes pulse-red {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.4; }
+    }
+
+    .status-text { color: #9ca3af; font-size: 0.85rem; margin: 0; }
+
+    /* ── Chart Card ──────────────────────────────────────── */
+    .chart-card {
+      background: #1f2937; border-radius: 12px; padding: 1rem 1.25rem;
+    }
+    .chart-card canvas { width: 100% !important; max-height: 360px; }
+
+    /* ── Loading indicator ───────────────────────────────── */
+    .sm-loading {
+      text-align: center; padding: 3rem; color: #6b7280; font-size: 0.9rem;
     }
   </style>
 {% endblock %}
 
 {% block content %}
 <div id="content-main">
-  <h1>{% trans "センサーモニタ" %}</h1>
 
-  <p class="mq9-meta">
-    {% trans "表示件数" %}: {{ labels|length }} {% trans "件" %}
-  </p>
-
-  <div class="mq9-chart-wrap">
-    <div class="mq9-chart-wrap-inner">
-      <canvas id="mq9Chart"></canvas>
+  <!-- Header -->
+  <div class="sm-header">
+    <h1>センサーモニター</h1>
+    <div class="sm-controls">
+      <select id="device-select"><option value="">読み込み中…</option></select>
+      <button class="range-btn active" data-range="1h">1h</button>
+      <button class="range-btn" data-range="6h">6h</button>
+      <button class="range-btn" data-range="24h">24h</button>
+      <button class="range-btn" data-range="7d">7d</button>
     </div>
   </div>
 
-  <h2>{% trans "ライブデータ" %}</h2>
-  <table class="mq9-table">
-    <thead>
-      <tr>
-        <th>{% trans "時刻" %}</th>
-        <th>{% trans "MQ-9 値" %}</th>
-      </tr>
-    </thead>
-    <tbody>
-      {% for ts, val in labels_values %}
-        <tr>
-          <td>{{ ts }}</td>
-          <td>{{ val }}</td>
-        </tr>
-      {% empty %}
-        <tr><td colspan="2">{% trans "データがありません。" %}</td></tr>
-      {% endfor %}
-    </tbody>
-  </table>
+  <!-- Tabs -->
+  <div class="sm-tabs">
+    <button class="sm-tab active" data-tab="gas">
+      <span class="sm-tab-dot dot-gas"></span> MQ-9 Gas
+    </button>
+    <button class="sm-tab" data-tab="light">
+      <span class="sm-tab-dot dot-light"></span> Light
+    </button>
+    <button class="sm-tab" data-tab="sound">
+      <span class="sm-tab-dot dot-sound"></span> Sound
+    </button>
+    <button class="sm-tab" data-tab="pir">
+      <span class="sm-tab-dot dot-pir"></span> PIR Motion
+    </button>
+  </div>
 
-  <script>
-    (function () {
-      const labels = JSON.parse('{{ labels_json|escapejs }}');
-      const values = JSON.parse('{{ values_json|escapejs }}');
+  <!-- Gas Panel -->
+  <div class="sm-panel active" id="panel-gas">
+    <div class="status-card">
+      <div class="status-value" id="val-gas">--</div>
+      <div class="status-info">
+        <span class="status-badge badge-gray" id="badge-gas">--</span>
+        <p class="status-text" id="text-gas">データを取得中…</p>
+      </div>
+    </div>
+    <div class="chart-card"><canvas id="chart-gas"></canvas></div>
+  </div>
 
-      const ctx = document.getElementById('mq9Chart').getContext('2d');
+  <!-- Light Panel -->
+  <div class="sm-panel" id="panel-light">
+    <div class="status-card">
+      <div class="status-value" id="val-light">--</div>
+      <div class="status-info">
+        <span class="status-badge badge-gray" id="badge-light">--</span>
+        <p class="status-text" id="text-light">データを取得中…</p>
+      </div>
+    </div>
+    <div class="chart-card"><canvas id="chart-light"></canvas></div>
+  </div>
 
-      new Chart(ctx, {
-        type: 'line',
-        data: {
-          labels: labels,
-          datasets: [{
-            label: 'MQ-9 value',
-            data: values,
-            borderWidth: 1,
-            pointRadius: 0,
-            tension: 0.1
-          }]
+  <!-- Sound Panel -->
+  <div class="sm-panel" id="panel-sound">
+    <div class="status-card">
+      <div class="status-value" id="val-sound">--</div>
+      <div class="status-info">
+        <span class="status-badge badge-gray" id="badge-sound">--</span>
+        <p class="status-text" id="text-sound">データを取得中…</p>
+      </div>
+    </div>
+    <div class="chart-card"><canvas id="chart-sound"></canvas></div>
+  </div>
+
+  <!-- PIR Panel -->
+  <div class="sm-panel" id="panel-pir">
+    <div class="status-card">
+      <div class="status-value" id="val-pir">--</div>
+      <div class="status-info">
+        <span class="status-badge badge-gray" id="badge-pir">--</span>
+        <p class="status-text" id="text-pir">データを取得中…</p>
+      </div>
+    </div>
+    <div class="chart-card"><canvas id="chart-pir"></canvas></div>
+  </div>
+
+</div>
+
+<script>
+(function() {
+  'use strict';
+
+  // ── State ──────────────────────────────────────────────
+  var currentTab = 'gas';
+  var currentRange = '1h';
+  var currentDevice = '';
+  var pollTimer = null;
+  var charts = {};
+
+  // ── DOM refs ───────────────────────────────────────────
+  var deviceSelect = document.getElementById('device-select');
+  var rangeBtns = document.querySelectorAll('.range-btn');
+  var tabs = document.querySelectorAll('.sm-tab');
+  var panels = document.querySelectorAll('.sm-panel');
+
+  // ── Chart.js defaults ──────────────────────────────────
+  Chart.defaults.color = '#9ca3af';
+  Chart.defaults.borderColor = '#374151';
+
+  // ── Sensor config ──────────────────────────────────────
+  var SENSORS = {
+    gas: {
+      apiSensor: 'mq9', color: '#f97316', unit: '',
+      thresholds: [
+        { max: 100,  badge: 'badge-green',  label: '正常',       text: '空気はきれいです' },
+        { max: 300,  badge: 'badge-yellow', label: 'やや高め',   text: '換気を推奨します' },
+        { max: Infinity, badge: 'badge-red', label: '危険',      text: 'すぐに換気してください！' }
+      ]
+    },
+    light: {
+      apiSensor: 'light', color: '#eab308', unit: ' lux',
+      thresholds: [
+        { max: 50,   badge: 'badge-blue',   label: '暗い',           text: '照明がOFFの可能性' },
+        { max: 500,  badge: 'badge-green',  label: '通常',           text: '適切な明るさです' },
+        { max: Infinity, badge: 'badge-yellow', label: '非常に明るい', text: '直射日光？' }
+      ]
+    },
+    sound: {
+      apiSensor: 'sound', color: '#22d3ee', unit: '',
+      thresholds: [
+        { max: 100,  badge: 'badge-blue',   label: '静か',       text: '人がいない可能性' },
+        { max: 500,  badge: 'badge-green',  label: '通常',       text: '普通の環境音です' },
+        { max: Infinity, badge: 'badge-red', label: '騒がしい',   text: '異常な音量' }
+      ]
+    }
+  };
+
+  // ── Helpers ────────────────────────────────────────────
+  function fetchJSON(url) {
+    return fetch(url).then(function(r) { return r.json(); });
+  }
+
+  function sensorUrl(sensor) {
+    var url = '/api/iot/sensors/data/?sensor=' + encodeURIComponent(sensor)
+            + '&range=' + encodeURIComponent(currentRange);
+    if (currentDevice) url += '&device_id=' + encodeURIComponent(currentDevice);
+    return url;
+  }
+
+  function pirEventsUrl() {
+    var url = '/api/iot/sensors/pir-events/?range=' + encodeURIComponent(currentRange);
+    if (currentDevice) url += '&device_id=' + encodeURIComponent(currentDevice);
+    return url;
+  }
+
+  function pirStatusUrl() {
+    if (!currentDevice) return null;
+    return '/api/iot/sensors/pir-status/?device_id=' + encodeURIComponent(currentDevice);
+  }
+
+  // ── Create gradient ────────────────────────────────────
+  function makeGradient(ctx, color) {
+    var g = ctx.createLinearGradient(0, 0, 0, 360);
+    g.addColorStop(0, color + '40');
+    g.addColorStop(1, color + '00');
+    return g;
+  }
+
+  // ── Chart options (shared) ─────────────────────────────
+  function lineOpts() {
+    return {
+      responsive: true,
+      maintainAspectRatio: false,
+      interaction: { mode: 'index', intersect: false },
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          backgroundColor: '#1f2937',
+          titleColor: '#f9fafb',
+          bodyColor: '#d1d5db',
+          borderColor: '#374151',
+          borderWidth: 1,
+          cornerRadius: 8,
+          padding: 10
+        }
+      },
+      scales: {
+        x: {
+          ticks: { maxTicksLimit: 10, font: { size: 11 } },
+          grid: { color: '#374151' }
         },
-        options: {
-          responsive: true,
-          maintainAspectRatio: true,
-          scales: {
-            x: {
-              ticks: {
-                maxTicksLimit: 8,
-                autoSkip: true
-              }
-            },
-            y: {
-              beginAtZero: true
+        y: {
+          beginAtZero: true,
+          ticks: { font: { size: 11 } },
+          grid: { color: '#374151' }
+        }
+      }
+    };
+  }
+
+  // ── Update status badge for gas/light/sound ────────────
+  function updateStatus(key, value) {
+    var cfg = SENSORS[key];
+    var valEl = document.getElementById('val-' + key);
+    var badgeEl = document.getElementById('badge-' + key);
+    var textEl = document.getElementById('text-' + key);
+
+    if (value === null || value === undefined) {
+      valEl.textContent = '--';
+      badgeEl.className = 'status-badge badge-gray';
+      badgeEl.textContent = 'N/A';
+      textEl.textContent = 'データがありません';
+      return;
+    }
+
+    valEl.textContent = Math.round(value) + (cfg.unit || '');
+
+    for (var i = 0; i < cfg.thresholds.length; i++) {
+      var t = cfg.thresholds[i];
+      if (value < t.max) {
+        badgeEl.className = 'status-badge ' + t.badge;
+        badgeEl.textContent = t.label;
+        textEl.textContent = t.text;
+        break;
+      }
+    }
+  }
+
+  // ── Update PIR status ──────────────────────────────────
+  function updatePIRStatus(active) {
+    var valEl = document.getElementById('val-pir');
+    var badgeEl = document.getElementById('badge-pir');
+    var textEl = document.getElementById('text-pir');
+
+    if (active) {
+      valEl.textContent = '検知中';
+      badgeEl.className = 'status-badge badge-red blink';
+      badgeEl.textContent = '人の動きを検知中';
+      textEl.textContent = 'モーションセンサーが反応しています';
+    } else {
+      valEl.textContent = '静止';
+      badgeEl.className = 'status-badge badge-gray';
+      badgeEl.textContent = '動きなし';
+      textEl.textContent = '静止状態 — 動きは検知されていません';
+    }
+  }
+
+  // ── Render/update line chart ───────────────────────────
+  function renderLineChart(key, labels, values, color) {
+    var canvasId = 'chart-' + key;
+    var canvas = document.getElementById(canvasId);
+    if (!canvas) return;
+    var ctx = canvas.getContext('2d');
+
+    if (charts[key]) {
+      charts[key].data.labels = labels;
+      charts[key].data.datasets[0].data = values;
+      charts[key].update('none');
+      return;
+    }
+
+    charts[key] = new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels: labels,
+        datasets: [{
+          data: values,
+          borderColor: color,
+          borderWidth: 2,
+          backgroundColor: makeGradient(ctx, color),
+          fill: true,
+          pointRadius: 0,
+          pointHitRadius: 8,
+          tension: 0.4
+        }]
+      },
+      options: lineOpts()
+    });
+  }
+
+  // ── Render/update PIR bar chart ────────────────────────
+  function renderPIRChart(labels, values) {
+    var canvas = document.getElementById('chart-pir');
+    if (!canvas) return;
+    var ctx = canvas.getContext('2d');
+
+    if (charts.pir) {
+      charts.pir.data.labels = labels;
+      charts.pir.data.datasets[0].data = values;
+      charts.pir.update('none');
+      return;
+    }
+
+    charts.pir = new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: labels,
+        datasets: [{
+          data: values,
+          backgroundColor: '#ef444480',
+          borderColor: '#ef4444',
+          borderWidth: 1,
+          borderRadius: 4
+        }]
+      },
+      options: Object.assign({}, lineOpts(), {
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            backgroundColor: '#1f2937',
+            titleColor: '#f9fafb',
+            bodyColor: '#d1d5db',
+            borderColor: '#374151',
+            borderWidth: 1,
+            cornerRadius: 8,
+            padding: 10,
+            callbacks: {
+              label: function(ctx) { return ctx.parsed.y + ' 件'; }
             }
-          },
-          plugins: {
-            legend: { display: false }
           }
         }
-      });
-    })();
+      })
+    });
+  }
 
-    // Auto-refresh every 30 seconds
-    setTimeout(function() { location.reload(); }, 30000);
-  </script>
-</div>
+  // ── Fetch & render active tab ──────────────────────────
+  function refresh() {
+    if (currentTab === 'pir') {
+      // PIR events (bar chart)
+      fetchJSON(pirEventsUrl()).then(function(d) {
+        var labels = (d.labels || []);
+        var values = (d.values || []);
+        renderPIRChart(labels, values);
+      }).catch(function() {});
+
+      // PIR status
+      var pUrl = pirStatusUrl();
+      if (pUrl) {
+        fetchJSON(pUrl).then(function(d) {
+          updatePIRStatus(!!d.active);
+        }).catch(function() {
+          updatePIRStatus(false);
+        });
+      } else {
+        updatePIRStatus(false);
+      }
+    } else {
+      // gas / light / sound
+      var cfg = SENSORS[currentTab];
+      fetchJSON(sensorUrl(cfg.apiSensor)).then(function(d) {
+        var labels = d.labels || [];
+        var values = d.values || [];
+        var last = values.length > 0 ? values[values.length - 1] : null;
+        updateStatus(currentTab, last);
+        renderLineChart(currentTab, labels, values, cfg.color);
+      }).catch(function() {
+        updateStatus(currentTab, null);
+      });
+    }
+  }
+
+  // ── Polling ────────────────────────────────────────────
+  function startPolling() {
+    stopPolling();
+    refresh();
+    pollTimer = setInterval(refresh, 10000);
+  }
+
+  function stopPolling() {
+    if (pollTimer) { clearInterval(pollTimer); pollTimer = null; }
+  }
+
+  // Pause when tab hidden
+  document.addEventListener('visibilitychange', function() {
+    if (document.hidden) { stopPolling(); } else { startPolling(); }
+  });
+
+  // ── Tab switching ──────────────────────────────────────
+  tabs.forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      tabs.forEach(function(t) { t.classList.remove('active'); });
+      panels.forEach(function(p) { p.classList.remove('active'); });
+      btn.classList.add('active');
+      currentTab = btn.getAttribute('data-tab');
+      document.getElementById('panel-' + currentTab).classList.add('active');
+      startPolling();
+    });
+  });
+
+  // ── Range switching ────────────────────────────────────
+  rangeBtns.forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      rangeBtns.forEach(function(b) { b.classList.remove('active'); });
+      btn.classList.add('active');
+      currentRange = btn.getAttribute('data-range');
+      // Destroy all charts to force re-render with new data
+      Object.keys(charts).forEach(function(k) {
+        if (charts[k]) { charts[k].destroy(); delete charts[k]; }
+      });
+      startPolling();
+    });
+  });
+
+  // ── Device switching ───────────────────────────────────
+  deviceSelect.addEventListener('change', function() {
+    currentDevice = deviceSelect.value;
+    Object.keys(charts).forEach(function(k) {
+      if (charts[k]) { charts[k].destroy(); delete charts[k]; }
+    });
+    startPolling();
+  });
+
+  // ── Load device list ───────────────────────────────────
+  function loadDevices() {
+    fetchJSON('/api/iot/sensors/data/?list_devices=1').then(function(d) {
+      var devices = d.devices || [];
+      deviceSelect.innerHTML = '';
+      if (devices.length === 0) {
+        var opt = document.createElement('option');
+        opt.value = '';
+        opt.textContent = 'デバイスなし';
+        deviceSelect.appendChild(opt);
+        return;
+      }
+      devices.forEach(function(dev, i) {
+        var opt = document.createElement('option');
+        opt.value = dev.external_id || dev.id;
+        opt.textContent = dev.name || ('Device ' + (dev.external_id || dev.id));
+        deviceSelect.appendChild(opt);
+      });
+      currentDevice = deviceSelect.value;
+      startPolling();
+    }).catch(function() {
+      deviceSelect.innerHTML = '<option value="">取得失敗</option>';
+    });
+  }
+
+  // ── Init ───────────────────────────────────────────────
+  loadDevices();
+
+})();
+</script>
 {% endblock %}

@@ -1,0 +1,41 @@
+{% load i18n %}
+<table class="shift-grid">
+  <thead>
+    <tr>
+      <th>{% trans "スタッフ" %}</th>
+      {% for d in week_dates %}
+      <th class="{% if d == today %}today-col{% endif %}">
+        {{ d|date:"m/d" }}<br>
+        <small>{{ d|date:"D" }}</small>
+      </th>
+      {% endfor %}
+    </tr>
+  </thead>
+  <tbody>
+    {% for staff in staffs %}
+    <tr>
+      <td class="staff-name">{{ staff.name }}</td>
+      {% for d in week_dates %}
+      <td class="shift-cell"
+          id="cell-{{ staff.id }}-{{ d|date:'Y-m-d' }}"
+          hx-get="{% if grid|default_if_none:'' %}{% with assignment=grid|default_if_none:'' %}{% endwith %}{% endif %}"
+          hx-target="#sidebar-content"
+          hx-swap="innerHTML"
+          @click="showSidebar = true; selectedStaff = {{ staff.id }}; selectedDate = '{{ d|date:'Y-m-d' }}'">
+        {% with date_str=d|date:"Y-m-d" %}
+          {% for sid, dates in grid.items %}
+            {% if sid == staff.id %}
+              {% for ds, assignment in dates.items %}
+                {% if ds == date_str %}
+                  {% include "admin/booking/partials/shift_cell.html" with assignment=assignment date=d staff=staff %}
+                {% endif %}
+              {% endfor %}
+            {% endif %}
+          {% endfor %}
+        {% endwith %}
+      </td>
+      {% endfor %}
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>

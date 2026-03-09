@@ -13,6 +13,7 @@ from rest_framework import status
 
 from django.http import HttpResponseForbidden
 
+from .views_restaurant_dashboard import AdminSidebarMixin
 from .models import IoTDevice, IoTEvent, SystemConfig
 
 logger = logging.getLogger(__name__)
@@ -30,7 +31,7 @@ def _is_developer_or_superuser(user):
         return False
 
 
-class AdminDebugPanelView(TemplateView):
+class AdminDebugPanelView(AdminSidebarMixin, TemplateView):
     """Admin debug panel — superuser/developer only."""
     template_name = 'admin/booking/debug_panel.html'
 

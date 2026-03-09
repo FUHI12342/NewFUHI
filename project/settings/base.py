@@ -190,11 +190,11 @@ PUBLIC_HOLIDAYS = [
 # django-jazzmin (Admin UI theme)
 # ====================================
 JAZZMIN_SETTINGS = {
-    "site_title": "FUHI Admin",
-    "site_header": "FUHI",
-    "site_brand": "FUHI",
-    "welcome_sign": "FUHI管理画面へようこそ",
-    "copyright": "FUHI",
+    "site_title": "占いサロンチャンス 管理画面",
+    "site_header": "占いサロンチャンス 管理画面",
+    "site_brand": "占いサロンチャンス",
+    "welcome_sign": "占いサロンチャンス 管理画面へようこそ",
+    "copyright": "占いサロンチャンス",
 
     # サイドバーナビ設定
     "show_sidebar": True,
@@ -222,6 +222,7 @@ JAZZMIN_SETTINGS = {
             "url": "/admin/debug/",
             "icon": "fas fa-bug",
         }],
+        "iot": [],
     },
 
     # トップメニュー
@@ -233,6 +234,7 @@ JAZZMIN_SETTINGS = {
     # UI設定
     "changeform_format": "horizontal_tabs",
     "language_chooser": True,
+    "custom_css": "css/jazzmin_overrides.css",
 }
 
 JAZZMIN_UI_TWEAKS = {
@@ -240,9 +242,9 @@ JAZZMIN_UI_TWEAKS = {
     "footer_small_text": False,
     "body_small_text": False,
     "brand_small_text": False,
-    "brand_colour": "navbar-indigo",
+    "brand_colour": False,
     "accent": "accent-primary",
-    "navbar": "navbar-indigo navbar-dark",
+    "navbar": "navbar-dark navbar-primary",
     "no_navbar_border": False,
     "navbar_fixed": True,
     "layout_boxed": False,

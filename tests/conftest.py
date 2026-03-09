@@ -27,9 +27,13 @@ from booking.models import (
     Store, Staff, IoTDevice,
     Category, Product, Order, OrderItem, StockMovement,
     StoreScheduleConfig, ShiftPeriod, ShiftRequest, ShiftAssignment,
+    ShiftTemplate, ShiftPublishHistory,
     EmploymentContract, SalaryStructure, PayrollPeriod, WorkAttendance,
     Property, PropertyDevice, TableSeat,
     SiteSettings, SecurityAudit, SecurityLog, CostReport,
+    AttendanceTOTPConfig, AttendanceStamp, POSTransaction,
+    PaymentMethod, VisitorCount, VisitorAnalyticsConfig,
+    StaffRecommendationModel, StaffRecommendationResult,
 )
 
 User = get_user_model()
@@ -393,3 +397,70 @@ def mail_outbox(settings):
     from django.core import mail
     mail.outbox = []
     return mail.outbox
+
+
+# ==============================
+# Air統合フィクスチャ
+# ==============================
+
+@pytest.fixture
+def shift_template(db, store):
+    """Create and return a ShiftTemplate."""
+    return ShiftTemplate.objects.create(
+        store=store,
+        name="早番",
+        start_time=time(9, 0),
+        end_time=time(14, 0),
+        color='#10B981',
+    )
+
+
+@pytest.fixture
+def totp_config(db, store):
+    """Create and return an AttendanceTOTPConfig."""
+    from booking.services.totp_service import generate_totp_secret
+    return AttendanceTOTPConfig.objects.create(
+        store=store,
+        totp_secret=generate_totp_secret(),
+        totp_interval=30,
+        is_active=True,
+    )
+
+
+@pytest.fixture
+def payment_method(db, store):
+    """Create and return a PaymentMethod."""
+    return PaymentMethod.objects.create(
+        store=store,
+        method_type='cash',
+        display_name='現金',
+        is_enabled=True,
+    )
+
+
+@pytest.fixture
+def visitor_count(db, store):
+    """Create and return a VisitorCount."""
+    return VisitorCount.objects.create(
+        store=store,
+        date=date.today(),
+        hour=12,
+        pir_count=20,
+        estimated_visitors=8,
+        order_count=5,
+    )
+
+
+@pytest.fixture
+def manager_client(db, store):
+    """Return a Django test Client logged in as store manager."""
+    user = User.objects.create_user(
+        username="manager",
+        password="managerpass123",
+        email="manager@example.com",
+        is_staff=True,
+    )
+    Staff.objects.create(name="店長", store=store, user=user, is_store_manager=True)
+    client = Client()
+    client.login(username="manager", password="managerpass123")
+    return client

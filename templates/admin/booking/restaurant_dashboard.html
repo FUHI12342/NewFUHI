@@ -111,6 +111,30 @@
   }
   .tab-content { display: none; }
   .tab-content.active { display: block; }
+
+  /* Quick links */
+  .quick-link-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.375rem;
+    padding: 0.75rem 0.5rem;
+    border-radius: 0.75rem;
+    border: 1px solid var(--border-color);
+    background: var(--bg-card);
+    text-decoration: none;
+    color: var(--text-primary);
+    font-size: 0.75rem;
+    font-weight: 600;
+    transition: all 0.15s;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+  }
+  .quick-link-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    border-color: #818cf8;
+  }
+  .quick-link-card i { font-size: 1.25rem; }
 </style>
 {% endblock %}
 
@@ -118,6 +142,38 @@
 
 {% block content %}
 <div class="dashboard-wrap" id="dashboard-root">
+
+  {# ===== Quick Links ===== #}
+  <div class="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-2 mb-4">
+    <a href="/admin/shift/calendar/" class="quick-link-card">
+      <i class="fas fa-calendar-alt text-indigo-500"></i>
+      <span>シフトカレンダー</span>
+    </a>
+    <a href="/admin/attendance/qr/" class="quick-link-card">
+      <i class="fas fa-qrcode text-emerald-500"></i>
+      <span>QR勤怠</span>
+    </a>
+    <a href="/admin/attendance/board/" class="quick-link-card">
+      <i class="fas fa-clipboard-check text-sky-500"></i>
+      <span>出退勤ボード</span>
+    </a>
+    <a href="/admin/pos/" class="quick-link-card">
+      <i class="fas fa-cash-register text-amber-500"></i>
+      <span>POS</span>
+    </a>
+    <a href="/admin/pos/kitchen/" class="quick-link-card">
+      <i class="fas fa-utensils text-rose-500"></i>
+      <span>キッチン</span>
+    </a>
+    <a href="/admin/analytics/visitors/" class="quick-link-card">
+      <i class="fas fa-chart-bar text-violet-500"></i>
+      <span>来客分析</span>
+    </a>
+    <a href="/admin/ai/recommendation/" class="quick-link-card">
+      <i class="fas fa-robot text-pink-500"></i>
+      <span>AI推薦</span>
+    </a>
+  </div>
 
   {# ===== Toolbar ===== #}
   <div class="flex items-center gap-3 mb-4 flex-wrap">
@@ -132,11 +188,13 @@
   </div>
 
   {# ===== Tabs ===== #}
-  <div class="flex gap-1 border-b border-gray-200 mb-4" id="dashboard-tabs">
+  <div class="flex gap-1 border-b border-gray-200 mb-4 flex-wrap" id="dashboard-tabs">
     <button class="tab-btn active" data-tab="overview" onclick="switchTab('overview')">概要</button>
     <button class="tab-btn" data-tab="sales" onclick="switchTab('sales')">売上</button>
     <button class="tab-btn" data-tab="staff" onclick="switchTab('staff')">スタッフ</button>
     <button class="tab-btn" data-tab="shift" onclick="switchTab('shift')">シフト</button>
+    <button class="tab-btn" data-tab="attendance" onclick="switchTab('attendance')">勤怠</button>
+    <button class="tab-btn" data-tab="operations" onclick="switchTab('operations')">運営</button>
   </div>
 
   {# ===== Tab: 概要 ===== #}
@@ -203,7 +261,12 @@
   {# ===== Tab: シフト ===== #}
   <div class="tab-content" id="tab-shift">
     <div class="db-card">
-      <h3 class="text-lg font-semibold mb-3">今月のシフト状況</h3>
+      <div class="flex items-center justify-between mb-3">
+        <h3 class="text-lg font-semibold">今月のシフト状況</h3>
+        <a href="/admin/shift/calendar/" class="inline-flex items-center gap-1 px-4 py-2 bg-indigo-500 text-white text-sm font-medium rounded-lg hover:bg-indigo-600 transition" style="text-decoration:none;">
+          <i class="fas fa-calendar-alt"></i> シフトカレンダーを開く
+        </a>
+      </div>
       <div id="shift-summary" class="grid grid-cols-1 md:grid-cols-3 gap-4">
         <div class="text-center p-4 bg-indigo-50 rounded-lg">
           <span class="text-sm text-gray-500">確定シフト数</span>
@@ -236,6 +299,132 @@
     </div>
   </div>
 
+  {# ===== Tab: 勤怠 ===== #}
+  <div class="tab-content" id="tab-attendance">
+    <div class="db-card">
+      <div class="flex items-center justify-between mb-3">
+        <h3 class="text-lg font-semibold">本日の出退勤状況</h3>
+        <div class="flex gap-2">
+          <a href="/admin/attendance/board/" class="inline-flex items-center gap-1 px-3 py-1.5 bg-sky-500 text-white text-sm font-medium rounded-lg hover:bg-sky-600 transition" style="text-decoration:none;">
+            <i class="fas fa-clipboard-check"></i> 出退勤ボード
+          </a>
+          <a href="/admin/attendance/qr/" class="inline-flex items-center gap-1 px-3 py-1.5 bg-emerald-500 text-white text-sm font-medium rounded-lg hover:bg-emerald-600 transition" style="text-decoration:none;">
+            <i class="fas fa-qrcode"></i> QR勤怠
+          </a>
+        </div>
+      </div>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+        <div class="text-center p-4 bg-emerald-50 rounded-lg">
+          <span class="text-sm text-gray-500">出勤中</span>
+          <div id="att-clocked-in" class="text-3xl font-extrabold text-emerald-500">--</div>
+        </div>
+        <div class="text-center p-4 bg-gray-50 rounded-lg">
+          <span class="text-sm text-gray-500">退勤済み</span>
+          <div id="att-clocked-out" class="text-3xl font-extrabold text-gray-500">--</div>
+        </div>
+        <div class="text-center p-4 bg-amber-50 rounded-lg">
+          <span class="text-sm text-gray-500">未出勤</span>
+          <div id="att-not-yet" class="text-3xl font-extrabold text-amber-500">--</div>
+        </div>
+      </div>
+      <table class="w-full text-sm border border-gray-200 rounded">
+        <thead>
+          <tr class="bg-gray-50">
+            <th class="px-4 py-2 text-left">スタッフ</th>
+            <th class="px-4 py-2 text-center">状態</th>
+            <th class="px-4 py-2 text-right">出勤</th>
+            <th class="px-4 py-2 text-right">退勤</th>
+          </tr>
+        </thead>
+        <tbody id="att-staff-tbody">
+          <tr><td colspan="4" class="px-4 py-2 text-gray-400 text-center">読み込み中...</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  {# ===== Tab: 運営 ===== #}
+  <div class="tab-content" id="tab-operations">
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+      {# 来客分析サマリー #}
+      <div class="db-card">
+        <div class="flex items-center justify-between mb-3">
+          <h3 class="text-lg font-semibold">来客分析</h3>
+          <a href="/admin/analytics/visitors/" class="inline-flex items-center gap-1 px-3 py-1.5 bg-violet-500 text-white text-sm font-medium rounded-lg hover:bg-violet-600 transition" style="text-decoration:none;">
+            <i class="fas fa-chart-bar"></i> 詳細を見る
+          </a>
+        </div>
+        <div class="grid grid-cols-2 gap-4 mb-4">
+          <div class="text-center p-4 bg-violet-50 rounded-lg">
+            <span class="text-sm text-gray-500">今日の来客数</span>
+            <div id="ops-visitors-today" class="text-3xl font-extrabold text-violet-500">--</div>
+          </div>
+          <div class="text-center p-4 bg-teal-50 rounded-lg">
+            <span class="text-sm text-gray-500">コンバージョン率</span>
+            <div id="ops-conversion" class="text-3xl font-extrabold text-teal-500">--%</div>
+          </div>
+        </div>
+      </div>
+
+      {# AI推薦サマリー #}
+      <div class="db-card">
+        <div class="flex items-center justify-between mb-3">
+          <h3 class="text-lg font-semibold">AI推薦</h3>
+          <a href="/admin/ai/recommendation/" class="inline-flex items-center gap-1 px-3 py-1.5 bg-pink-500 text-white text-sm font-medium rounded-lg hover:bg-pink-600 transition" style="text-decoration:none;">
+            <i class="fas fa-robot"></i> 詳細を見る
+          </a>
+        </div>
+        <div class="grid grid-cols-2 gap-4 mb-4">
+          <div class="text-center p-4 bg-pink-50 rounded-lg">
+            <span class="text-sm text-gray-500">モデル精度</span>
+            <div id="ops-ai-accuracy" class="text-3xl font-extrabold text-pink-500">--%</div>
+          </div>
+          <div class="text-center p-4 bg-indigo-50 rounded-lg">
+            <span class="text-sm text-gray-500">今日の推薦スタッフ数</span>
+            <div id="ops-ai-recommend" class="text-3xl font-extrabold text-indigo-500">--</div>
+          </div>
+        </div>
+      </div>
+
+      {# リアルタイム注文 #}
+      <div class="db-card">
+        <div class="flex items-center justify-between mb-3">
+          <h3 class="text-lg font-semibold">進行中の注文</h3>
+          <div class="flex gap-2">
+            <a href="/admin/pos/" class="inline-flex items-center gap-1 px-3 py-1.5 bg-amber-500 text-white text-sm font-medium rounded-lg hover:bg-amber-600 transition" style="text-decoration:none;">
+              <i class="fas fa-cash-register"></i> POS
+            </a>
+            <a href="/admin/pos/kitchen/" class="inline-flex items-center gap-1 px-3 py-1.5 bg-rose-500 text-white text-sm font-medium rounded-lg hover:bg-rose-600 transition" style="text-decoration:none;">
+              <i class="fas fa-utensils"></i> キッチン
+            </a>
+          </div>
+        </div>
+        <div class="grid grid-cols-3 gap-4 mb-4">
+          <div class="text-center p-4 bg-amber-50 rounded-lg">
+            <span class="text-sm text-gray-500">未処理</span>
+            <div id="ops-orders-open" class="text-3xl font-extrabold text-amber-500">--</div>
+          </div>
+          <div class="text-center p-4 bg-sky-50 rounded-lg">
+            <span class="text-sm text-gray-500">調理中</span>
+            <div id="ops-orders-preparing" class="text-3xl font-extrabold text-sky-500">--</div>
+          </div>
+          <div class="text-center p-4 bg-emerald-50 rounded-lg">
+            <span class="text-sm text-gray-500">配膳済み</span>
+            <div id="ops-orders-served" class="text-3xl font-extrabold text-emerald-500">--</div>
+          </div>
+        </div>
+      </div>
+
+      {# 在庫アラート #}
+      <div class="db-card">
+        <h3 class="text-lg font-semibold mb-3">在庫アラート</h3>
+        <div id="ops-low-stock" class="space-y-2">
+          <p class="text-gray-400 text-sm text-center">読み込み中...</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
 </div>
 
 <script>
@@ -261,11 +450,15 @@ document.addEventListener('DOMContentLoaded', function () {
     if (tabName === 'sales' && !salesLoaded) { loadSales(document.getElementById('sales-period').value); salesLoaded = true; }
     if (tabName === 'staff' && !staffLoaded) { loadStaffPerformance(); staffLoaded = true; }
     if (tabName === 'shift' && !shiftLoaded) { loadShiftData(); shiftLoaded = true; }
+    if (tabName === 'attendance' && !attendanceLoaded) { loadAttendance(); attendanceLoaded = true; }
+    if (tabName === 'operations' && !operationsLoaded) { loadOperations(); operationsLoaded = true; }
   };
 
   var salesLoaded = false;
   var staffLoaded = false;
   var shiftLoaded = false;
+  var attendanceLoaded = false;
+  var operationsLoaded = false;
 
   /* ------------------------------------------------------------------ */
   /*  Sub-tab switching (within a main tab)                              */
@@ -566,6 +759,131 @@ document.addEventListener('DOMContentLoaded', function () {
       document.getElementById('shift-synced').textContent = '0';
       document.getElementById('shift-open-periods').textContent = '0';
     });
+  }
+
+  /* ------------------------------------------------------------------ */
+  /*  5. Attendance (lazy loaded)                                        */
+  /* ------------------------------------------------------------------ */
+  function loadAttendance() {
+    apiFetch('/api/attendance/day-status/').then(function (data) {
+      var stamps = data.stamps || [];
+      var clockedIn = 0, clockedOut = 0, notYet = 0;
+      var rows = [];
+      stamps.forEach(function (s) {
+        var status = '--';
+        var statusClass = 'text-gray-400';
+        if (s.clock_out) {
+          status = '退勤済み';
+          statusClass = 'text-gray-500';
+          clockedOut++;
+        } else if (s.clock_in) {
+          status = '出勤中';
+          statusClass = 'text-emerald-600 font-bold';
+          clockedIn++;
+        } else {
+          status = '未出勤';
+          statusClass = 'text-amber-500';
+          notYet++;
+        }
+        rows.push('<tr><td class="px-4 py-2">' + (s.staff_name || '--') + '</td>'
+          + '<td class="px-4 py-2 text-center ' + statusClass + '">' + status + '</td>'
+          + '<td class="px-4 py-2 text-right">' + (s.clock_in || '--') + '</td>'
+          + '<td class="px-4 py-2 text-right">' + (s.clock_out || '--') + '</td></tr>');
+      });
+      document.getElementById('att-clocked-in').textContent = clockedIn;
+      document.getElementById('att-clocked-out').textContent = clockedOut;
+      document.getElementById('att-not-yet').textContent = notYet;
+      var tbody = document.getElementById('att-staff-tbody');
+      tbody.innerHTML = rows.length > 0 ? rows.join('') : '<tr><td colspan="4" class="px-4 py-2 text-gray-400 text-center">本日の勤怠データなし</td></tr>';
+    }).catch(function (err) {
+      console.error('Failed to load attendance:', err);
+      document.getElementById('att-clocked-in').textContent = '0';
+      document.getElementById('att-clocked-out').textContent = '0';
+      document.getElementById('att-not-yet').textContent = '0';
+      document.getElementById('att-staff-tbody').innerHTML = '<tr><td colspan="4" class="px-4 py-2 text-gray-400 text-center">データ取得エラー</td></tr>';
+    });
+  }
+
+  /* ------------------------------------------------------------------ */
+  /*  6. Operations (lazy loaded)                                        */
+  /* ------------------------------------------------------------------ */
+  function loadOperations() {
+    // 来客データ
+    apiFetch('/api/analytics/visitors/?range=today').then(function (data) {
+      var total = 0;
+      (data.data || []).forEach(function (d) { total += (d.estimated_visitors || 0); });
+      document.getElementById('ops-visitors-today').textContent = total;
+      var orders = 0;
+      (data.data || []).forEach(function (d) { orders += (d.order_count || 0); });
+      var conv = total > 0 ? ((orders / total) * 100).toFixed(1) : '0.0';
+      document.getElementById('ops-conversion').textContent = conv + '%';
+    }).catch(function () {
+      document.getElementById('ops-visitors-today').textContent = '0';
+      document.getElementById('ops-conversion').textContent = '--%';
+    });
+
+    // AI推薦
+    apiFetch('/api/ai/model-status/').then(function (data) {
+      var accuracy = data.accuracy_score ? (data.accuracy_score * 100).toFixed(1) : '--';
+      document.getElementById('ops-ai-accuracy').textContent = accuracy + (accuracy !== '--' ? '%' : '');
+    }).catch(function () {
+      document.getElementById('ops-ai-accuracy').textContent = '--%';
+    });
+    apiFetch('/api/ai/recommendations/?date_from=' + new Date().toISOString().slice(0,10) + '&date_to=' + new Date().toISOString().slice(0,10)).then(function (data) {
+      var results = data.results || [];
+      var maxStaff = 0;
+      results.forEach(function (r) { if (r.recommended_staff_count > maxStaff) maxStaff = r.recommended_staff_count; });
+      document.getElementById('ops-ai-recommend').textContent = maxStaff > 0 ? maxStaff : '--';
+    }).catch(function () {
+      document.getElementById('ops-ai-recommend').textContent = '--';
+    });
+
+    // 進行中注文
+    apiFetch('/api/pos/orders/?status=open').then(function (data) {
+      var orders = data.orders || [];
+      var open = 0, preparing = 0, served = 0;
+      orders.forEach(function (o) {
+        (o.items || []).forEach(function (item) {
+          if (item.status === 'ordered') open++;
+          else if (item.status === 'preparing') preparing++;
+          else if (item.status === 'served') served++;
+        });
+      });
+      document.getElementById('ops-orders-open').textContent = open;
+      document.getElementById('ops-orders-preparing').textContent = preparing;
+      document.getElementById('ops-orders-served').textContent = served;
+    }).catch(function () {
+      document.getElementById('ops-orders-open').textContent = '0';
+      document.getElementById('ops-orders-preparing').textContent = '0';
+      document.getElementById('ops-orders-served').textContent = '0';
+    });
+
+    // 在庫アラート
+    apiFetch('/api/pos/orders/').then(function () {
+      // Low stock check via products
+    }).catch(function () {});
+    // Simple low-stock check
+    fetch('/api/dashboard/low-stock/', { credentials: 'same-origin', headers: { 'X-CSRFToken': getCookie('csrftoken') || '' } })
+      .then(function (r) { return r.json(); })
+      .then(function (data) {
+        var items = data.products || [];
+        var container = document.getElementById('ops-low-stock');
+        if (items.length === 0) {
+          container.innerHTML = '<p class="text-emerald-500 text-sm text-center font-medium">在庫アラートなし</p>';
+        } else {
+          container.innerHTML = items.map(function (p) {
+            var pct = p.low_stock_threshold > 0 ? Math.round((p.stock / p.low_stock_threshold) * 100) : 0;
+            var color = pct <= 50 ? 'bg-rose-500' : 'bg-amber-400';
+            return '<div class="flex items-center gap-3 p-2 border border-gray-100 rounded-lg">'
+              + '<span class="text-sm font-medium flex-1">' + p.name + '</span>'
+              + '<span class="text-xs text-gray-500">残 ' + p.stock + '</span>'
+              + '<div class="w-20 h-2 bg-gray-200 rounded-full"><div class="h-2 rounded-full ' + color + '" style="width:' + Math.min(pct, 100) + '%"></div></div>'
+              + '</div>';
+          }).join('');
+        }
+      }).catch(function () {
+        document.getElementById('ops-low-stock').innerHTML = '<p class="text-gray-400 text-sm text-center">取得エラー</p>';
+      });
   }
 
 });

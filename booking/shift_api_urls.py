@@ -1,0 +1,27 @@
+"""シフトAPI URLconf"""
+from django.urls import path
+from .views_shift_manager import (
+    ShiftWeekGridView,
+    ShiftCellDetailView,
+    ShiftAssignmentAPIView,
+    ShiftApplyTemplateAPIView,
+    ShiftTemplateAPIView,
+    ShiftBulkAssignAPIView,
+    ShiftAutoScheduleAPIView,
+    ShiftPublishAPIView,
+)
+
+app_name = 'shift_api'
+
+urlpatterns = [
+    path('week-grid/', ShiftWeekGridView.as_view(), name='shift_week_grid'),
+    path('detail/<int:pk>/', ShiftCellDetailView.as_view(), name='shift_cell_detail'),
+    path('assignments/', ShiftAssignmentAPIView.as_view(), name='shift_assignment_create'),
+    path('assignments/<int:pk>/', ShiftAssignmentAPIView.as_view(), name='shift_assignment_detail'),
+    path('apply-template/', ShiftApplyTemplateAPIView.as_view(), name='shift_apply_template'),
+    path('templates/', ShiftTemplateAPIView.as_view(), name='shift_template_list'),
+    path('templates/<int:pk>/', ShiftTemplateAPIView.as_view(), name='shift_template_detail'),
+    path('bulk-assign/', ShiftBulkAssignAPIView.as_view(), name='shift_bulk_assign'),
+    path('auto-schedule/', ShiftAutoScheduleAPIView.as_view(), name='shift_auto_schedule'),
+    path('publish/', ShiftPublishAPIView.as_view(), name='shift_publish'),
+]

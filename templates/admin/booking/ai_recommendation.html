@@ -1,0 +1,115 @@
+{% extends "admin/base_site.html" %}
+{% load i18n %}
+{% block title %}{{ title }}{% endblock %}
+{% block extrastyle %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://unpkg.com/htmx.org@1.9.10"></script>
+<style>
+  .ai-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; padding: 16px; }
+  .model-card { background: #fff; border: 1px solid #ddd; border-radius: 8px; padding: 20px; }
+  .model-status { display: flex; align-items: center; gap: 8px; }
+  .model-status .dot { width: 12px; height: 12px; border-radius: 50%; }
+  .dot-active { background: #10B981; }
+  .dot-inactive { background: #EF4444; }
+  .rec-table { width: 100%; border-collapse: collapse; grid-column: 1 / -1; }
+  .rec-table th, .rec-table td { border: 1px solid #ddd; padding: 6px 10px; text-align: center; }
+  .rec-table th { background: #f5f5f5; }
+  .insufficient { background: #FEE2E2; }
+  .sufficient { background: #D1FAE5; }
+  .chart-container { grid-column: 1 / -1; background: #fff; border: 1px solid #ddd; border-radius: 8px; padding: 16px; }
+  .toolbar { padding: 16px; display: flex; gap: 12px; }
+  .btn { padding: 8px 16px; border: none; border-radius: 4px; cursor: pointer; color: #fff; }
+  .btn-train { background: #8B5CF6; }
+</style>
+{% endblock %}
+{% block content %}
+<div class="toolbar">
+  {% if stores %}
+  <select name="store_id" onchange="location.search='?store_id='+this.value">
+    {% for s in stores %}
+    <option value="{{ s.id }}" {% if s.id == store.id %}selected{% endif %}>{{ s.name }}</option>
+    {% endfor %}
+  </select>
+  {% endif %}
+  <button class="btn btn-train"
+          hx-post="/api/ai/train/{% if store %}?store_id={{ store.id }}{% endif %}"
+          hx-swap="none"
+          hx-confirm="モデルの再学習を実行しますか？（数分かかる場合があります）">
+    モデル再学習
+  </button>
+</div>
+
+<div class="ai-grid">
+  <div class="model-card">
+    <h3>{% trans "モデル情報" %}</h3>
+    {% if active_model %}
+    <div class="model-status"><span class="dot dot-active"></span> アクティブ</div>
+    <p>種別: {{ active_model.model_type }}</p>
+    <p>MAE: {{ active_model.mae_score|floatformat:3 }}</p>
+    <p>学習サンプル: {{ active_model.training_samples }}</p>
+    <p>学習日時: {{ active_model.trained_at|date:"Y/m/d H:i" }}</p>
+    {% else %}
+    <div class="model-status"><span class="dot dot-inactive"></span> 未学習</div>
+    <p>「モデル再学習」ボタンを押して学習を開始してください。</p>
+    {% endif %}
+  </div>
+
+  <div class="model-card">
+    <h3>{% trans "特徴量重要度" %}</h3>
+    <canvas id="featureChart" height="200"></canvas>
+  </div>
+
+  <div class="chart-container">
+    <h3>{% trans "今週の推薦結果" %} ({{ week_start|date:"m/d" }} 〜 {{ week_end|date:"m/d" }})</h3>
+    <table class="rec-table">
+      <thead>
+        <tr>
+          <th>日付</th>
+          {% for h in "9 10 11 12 13 14 15 16 17 18 19 20"|make_list %}{% endfor %}
+          <th>9</th><th>10</th><th>11</th><th>12</th><th>13</th><th>14</th><th>15</th><th>16</th><th>17</th><th>18</th><th>19</th><th>20</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% regroup recommendations by date as date_groups %}
+        {% for group in date_groups %}
+        <tr>
+          <td>{{ group.grouper|date:"m/d (D)" }}</td>
+          {% for rec in group.list %}
+            {% if rec.hour >= 9 and rec.hour <= 20 %}
+            <td class="{% if rec.recommended_staff_count < 2 %}insufficient{% else %}sufficient{% endif %}">
+              {{ rec.recommended_staff_count }}
+            </td>
+            {% endif %}
+          {% endfor %}
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  fetch('/api/ai/model-status/{% if store %}?store_id={{ store.id }}{% endif %}')
+    .then(r => r.json())
+    .then(data => {
+      if (!data.has_model) return;
+      // Feature importance chart from recommendations
+      fetch('/api/ai/recommendations/{% if store %}?store_id={{ store.id }}{% endif %}')
+        .then(r => r.json())
+        .then(recs => {
+          if (recs.length === 0) return;
+          const factors = recs[0].factors || {};
+          const labels = Object.keys(factors);
+          const values = Object.values(factors);
+          if (labels.length === 0) return;
+          new Chart(document.getElementById('featureChart').getContext('2d'), {
+            type: 'bar',
+            data: {labels: labels, datasets: [{label: '重要度', data: values, backgroundColor: 'rgba(139,92,246,0.6)'}]},
+            options: {indexAxis: 'y', responsive: true}
+          });
+        });
+    });
+});
+</script>
+{% endblock %}

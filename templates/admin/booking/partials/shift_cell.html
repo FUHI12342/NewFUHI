@@ -1,0 +1,12 @@
+{% if assignment %}
+<div class="shift-block" style="background:{{ assignment.color }}"
+     hx-get="/api/shift/detail/{{ assignment.id }}/"
+     hx-target="#sidebar-content" hx-swap="innerHTML">
+  {% if assignment.start_time %}
+    {{ assignment.start_time|time:"H:i" }}-{{ assignment.end_time|time:"H:i" }}
+  {% else %}
+    {{ assignment.start_hour }}:00-{{ assignment.end_hour }}:00
+  {% endif %}
+  {% if assignment.note %}<br><small>{{ assignment.note|truncatechars:15 }}</small>{% endif %}
+</div>
+{% endif %}

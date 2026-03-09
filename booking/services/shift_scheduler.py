@@ -74,12 +74,15 @@ def auto_schedule(period):
         if req.staff_id in assigned_slots[slot_key]:
             continue  # 既にこのスタッフはこのスロットにアサイン済み
 
+        import datetime as _dt
         ShiftAssignment.objects.create(
             period=period,
             staff=req.staff,
             date=req.date,
             start_hour=req.start_hour,
             end_hour=req.end_hour,
+            start_time=req.start_time or _dt.time(req.start_hour, 0),
+            end_time=req.end_time or _dt.time(req.end_hour, 0),
         )
         assigned_slots[slot_key].add(req.staff_id)
         created_count += 1

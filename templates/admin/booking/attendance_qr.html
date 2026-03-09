@@ -1,0 +1,38 @@
+{% extends "admin/base_site.html" %}
+{% load i18n %}
+{% block title %}{{ title }}{% endblock %}
+{% block extrastyle %}
+<script src="https://unpkg.com/htmx.org@1.9.10"></script>
+<style>
+  .qr-container { display: flex; flex-direction: column; align-items: center; padding: 40px; }
+  .qr-image { width: 300px; height: 300px; border: 2px solid #333; border-radius: 8px; margin: 20px 0; }
+  .qr-code-text { font-size: 48px; font-weight: bold; letter-spacing: 8px; margin: 16px 0; }
+  .timer-bar { width: 300px; height: 4px; background: #e5e7eb; border-radius: 2px; overflow: hidden; }
+  .timer-fill { height: 100%; background: #3B82F6; transition: width 1s linear; }
+  .store-name { font-size: 24px; color: #333; margin-bottom: 8px; }
+</style>
+{% endblock %}
+{% block content %}
+<div class="qr-container" x-data="{countdown: 30}">
+  <div class="store-name">{{ store.name }}</div>
+  <h2>{% trans "QR勤怠打刻" %}</h2>
+  <div id="qr-display"
+       hx-get="/api/attendance/totp/refresh/{% if store %}?store_id={{ store.id }}{% endif %}"
+       hx-trigger="load, every 30s"
+       hx-swap="innerHTML">
+    <p>{% trans "QRコード読込中..." %}</p>
+  </div>
+  <div class="timer-bar">
+    <div class="timer-fill" id="timer-fill" style="width: 100%;"></div>
+  </div>
+  <p style="color:#666;margin-top:20px;">{% trans "30秒ごとにQRコードが更新されます" %}</p>
+</div>
+<script>
+  document.body.addEventListener('htmx:afterSwap', function(evt) {
+    if (evt.detail.target.id === 'qr-display') {
+      var fill = document.getElementById('timer-fill');
+      if (fill) { fill.style.width = '100%'; fill.offsetHeight; fill.style.transition = 'width 30s linear'; fill.style.width = '0%'; }
+    }
+  });
+</script>
+{% endblock %}

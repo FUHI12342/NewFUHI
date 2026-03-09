@@ -475,38 +475,9 @@ class IoTMQ9GraphView(LoginRequiredMixin, generic.TemplateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context.update(custom_site.each_context(self.request))
-
-        device_external_id = self.request.GET.get("device")
-
-        date_str = self.request.GET.get("date")
-        if date_str:
-            try:
-                target_date = datetime.datetime.strptime(date_str, "%Y-%m-%d").date()
-            except ValueError:
-                target_date = timezone.localdate()
-        else:
-            target_date = timezone.localdate()
-
-        qs = IoTEvent.objects.filter(mq9_value__isnull=False, created_at__date=target_date)
-        if device_external_id:
-            qs = qs.filter(device__external_id=device_external_id)
-        qs = qs.order_by("created_at")
-
-        labels = [timezone.localtime(ev.created_at).strftime("%H:%M:%S") for ev in qs]
-        values = [ev.mq9_value for ev in qs]
-
-        context["labels_json"] = json.dumps(labels, ensure_ascii=False)
-        context["values_json"] = json.dumps(values)
-        context["labels"] = labels
-        context["labels_values"] = list(zip(labels, values))[::-1][:10]
-
-        live_qs = IoTEvent.objects.filter(mq9_value__isnull=False)
-        if device_external_id:
-            live_qs = live_qs.filter(device__external_id=device_external_id)
-        context["live_events"] = live_qs.order_by("-created_at")[:20]
-
-        context["device_external_id"] = device_external_id
-        context["target_date"] = target_date
+        context["devices"] = list(
+            IoTDevice.objects.filter(is_active=True).values("id", "name", "external_id")
+        )
         return context
 
 

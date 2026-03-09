@@ -164,3 +164,18 @@ def check_aws_costs():
     from django.core.management import call_command
     call_command('check_aws_costs', '--threshold', '50')
     logger.info('AWS cost check completed')
+
+
+@shared_task
+def aggregate_visitor_data():
+    """毎時実行: PIR IoTEvent → VisitorCount 集計"""
+    from booking.models import Store
+    from booking.services.visitor_analytics import aggregate_visitor_counts
+    from datetime import date
+
+    today = date.today()
+    total = 0
+    for store in Store.objects.all():
+        count = aggregate_visitor_counts(store, today, today)
+        total += count
+    logger.info('Visitor data aggregation completed: %d records', total)

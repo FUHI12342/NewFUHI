@@ -11,11 +11,21 @@ from rest_framework.response import Response
 from rest_framework import status
 
 from .models import (
-    Schedule, Order, OrderItem, Staff, DashboardLayout, DEFAULT_DASHBOARD_LAYOUT,
+    Schedule, Order, OrderItem, Staff, Product, DashboardLayout, DEFAULT_DASHBOARD_LAYOUT,
     ShiftPeriod, ShiftAssignment,
 )
 
 logger = logging.getLogger(__name__)
+
+
+class AdminSidebarMixin:
+    """Jazzminサイドバー表示に必要なコンテキストを注入"""
+    def get_context_data(self, **kwargs):
+        ctx = super().get_context_data(**kwargs)
+        from booking.admin_site import custom_site
+        ctx['available_apps'] = custom_site.get_app_list(self.request)
+        ctx['has_permission'] = True
+        return ctx
 
 
 def _get_store_scope(request):
@@ -29,7 +39,7 @@ def _get_store_scope(request):
         return {'pk': -1}  # No results
 
 
-class RestaurantDashboardView(TemplateView):
+class RestaurantDashboardView(AdminSidebarMixin, TemplateView):
     """Restaurant activity dashboard (admin)."""
     template_name = 'admin/booking/restaurant_dashboard.html'
 
@@ -268,3 +278,36 @@ class ShiftSummaryAPIView(APIView):
             'open_periods': open_periods,
             'staff_shifts': staff_list,
         })
+
+
+class LowStockAlertAPIView(APIView):
+    """GET /api/dashboard/low-stock/ — products below low_stock_threshold."""
+
+    def get(self, request):
+        if not request.user.is_authenticated:
+            return Response({'detail': 'login required'}, status=status.HTTP_403_FORBIDDEN)
+
+        scope = {}
+        if not request.user.is_superuser:
+            try:
+                s = request.user.staff
+                scope = {'store': s.store}
+            except Exception:
+                return Response({'detail': 'no store access'}, status=status.HTTP_403_FORBIDDEN)
+
+        low_stock = Product.objects.filter(
+            is_active=True,
+            stock__lte=F('low_stock_threshold'),
+            **scope,
+        ).order_by('stock')[:20]
+
+        products = [
+            {
+                'name': p.name,
+                'stock': p.stock,
+                'low_stock_threshold': p.low_stock_threshold,
+            }
+            for p in low_stock
+        ]
+
+        return Response({'products': products})
