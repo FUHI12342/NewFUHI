@@ -230,8 +230,8 @@ class RoleBasedAdminSite(AdminSite):
                 result.append({
                     'name': g['name'],
                     'slug': slug,
-                    'app_label': 'booking',
-                    'app_url': '/admin/booking/',
+                    'app_label': slug,
+                    'app_url': f'/admin/{slug}/',
                     'has_module_perms': True,
                     'models': group_models,
                 })
@@ -246,8 +246,8 @@ class RoleBasedAdminSite(AdminSite):
             result.append({
                 'name': _('その他'),
                 'slug': 'other',
-                'app_label': 'booking',
-                'app_url': '/admin/booking/',
+                'app_label': 'other',
+                'app_url': '/admin/other/',
                 'has_module_perms': True,
                 'models': other_models,
             })

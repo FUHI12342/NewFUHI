@@ -1,0 +1,40 @@
+# systemd service file for NewFUHI dev environment
+# Location: /etc/systemd/system/newfuhi-dev.service
+
+[Unit]
+Description=NewFUHI Django Application (Dev)
+After=network.target
+Wants=network.target
+
+[Service]
+Type=notify
+User=ubuntu
+Group=www-data
+WorkingDirectory=/home/ubuntu/NewFUHI-dev
+
+# Environment
+Environment=DJANGO_ENVIRONMENT=dev
+Environment=PYTHONPATH=/home/ubuntu/NewFUHI-dev
+Environment=PYTHONUNBUFFERED=1
+EnvironmentFile=/home/ubuntu/NewFUHI-dev/.env.dev
+
+# Command
+ExecStart=/home/ubuntu/NewFUHI-dev/venv/bin/gunicorn \
+    --config /home/ubuntu/NewFUHI-dev/config/gunicorn/dev.conf.py \
+    project.wsgi:application
+ExecReload=/bin/kill -s HUP $MAINPID
+
+# Process management
+Restart=always
+RestartSec=3
+KillMode=mixed
+TimeoutStartSec=60
+TimeoutStopSec=30
+
+# Logging
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=newfuhi-dev
+
+[Install]
+WantedBy=multi-user.target

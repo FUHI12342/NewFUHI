@@ -101,6 +101,8 @@ if 'test' in sys.argv or 'shell' in sys.argv:
 # Applications
 # ====================================
 INSTALLED_APPS = [
+    "jazzmin",
+
     "social_django",
     "booking.apps.BookingConfig",
 
@@ -372,3 +374,85 @@ if not DEBUG:
     # SECURE_HSTS_SECONDS = 31536000
     # SECURE_HSTS_INCLUDE_SUBDOMAINS = True
     # SECURE_HSTS_PRELOAD = True
+
+
+# ====================================
+# django-jazzmin (Admin UI theme)
+# ====================================
+JAZZMIN_SETTINGS = {
+    "site_title": "FUHI Admin",
+    "site_header": "FUHI",
+    "site_brand": "FUHI",
+    "welcome_sign": "FUHI管理画面へようこそ",
+    "copyright": "FUHI",
+
+    # サイドバーナビ設定
+    "show_sidebar": True,
+    "navigation_expanded": False,
+    "icons": {
+        "booking.Schedule": "fas fa-calendar-alt",
+        "booking.Staff": "fas fa-users",
+        "booking.Menu": "fas fa-utensils",
+        "booking.Shop": "fas fa-store",
+        "booking.ShiftPeriod": "fas fa-clock",
+        "booking.ShiftAssignment": "fas fa-tasks",
+        "booking.TableOrder": "fas fa-receipt",
+        "auth.User": "fas fa-user",
+        "auth.Group": "fas fa-users-cog",
+    },
+
+    # カスタムリンク（ダッシュボード等）
+    "custom_links": {
+        "booking": [{
+            "name": "売上ダッシュボード",
+            "url": "/admin/dashboard/sales/",
+            "icon": "fas fa-chart-line",
+        }, {
+            "name": "デバッグパネル",
+            "url": "/admin/debug/",
+            "icon": "fas fa-bug",
+        }],
+    },
+
+    # トップメニュー
+    "topmenu_links": [
+        {"name": "ホーム", "url": "admin:index", "permissions": ["auth.view_user"]},
+        {"name": "本番サイト", "url": "/", "new_window": True},
+    ],
+
+    # UI設定
+    "changeform_format": "horizontal_tabs",
+    "language_chooser": True,
+}
+
+JAZZMIN_UI_TWEAKS = {
+    "navbar_small_text": False,
+    "footer_small_text": False,
+    "body_small_text": False,
+    "brand_small_text": False,
+    "brand_colour": "navbar-indigo",
+    "accent": "accent-primary",
+    "navbar": "navbar-indigo navbar-dark",
+    "no_navbar_border": False,
+    "navbar_fixed": True,
+    "layout_boxed": False,
+    "footer_fixed": False,
+    "sidebar_fixed": True,
+    "sidebar": "sidebar-dark-indigo",
+    "sidebar_nav_small_text": False,
+    "sidebar_disable_expand": False,
+    "sidebar_nav_child_indent": True,
+    "sidebar_nav_compact_style": False,
+    "sidebar_nav_legacy_style": False,
+    "sidebar_nav_flat_style": False,
+    "theme": "default",
+    "dark_mode_theme": None,
+    "button_classes": {
+        "primary": "btn-outline-primary",
+        "secondary": "btn-outline-secondary",
+        "info": "btn-info",
+        "warning": "btn-warning",
+        "danger": "btn-danger",
+        "success": "btn-success",
+    },
+}
