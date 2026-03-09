@@ -30,7 +30,7 @@
         <form action="{% url 'set_language' %}" method="post" class="lang-form" id="lang-switch-form">
             {% csrf_token %}
             <input type="hidden" name="next" value="{{ request.get_full_path }}" id="lang-next">
-            <select name="language" class="tw-lang-select" id="lang-select">
+            <select name="language" class="tw-lang-select" id="lang-select" style="color:#465fff;background:#fff;color-scheme:light;-webkit-text-fill-color:#465fff;">
                 {% for lang_code, lang_name in available_languages %}
                 <option value="{{ lang_code }}" {% if lang_code == current_language %}selected{% endif %}>{{ lang_name }}</option>
                 {% endfor %}
@@ -331,42 +331,53 @@ tailwind.config = {
         display: flex !important;
         align-items: center;
         justify-content: space-between;
-        flex-wrap: wrap;
+        flex-wrap: nowrap;
         background: var(--brand-primary) !important;
         padding: 12px 24px !important;
         box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        gap: 16px;
         {% if admin_theme and admin_theme.header_image %}
         background-image: url('{{ admin_theme.header_image.url }}') !important;
         background-size: cover !important;
         background-position: center !important;
         {% endif %}
     }
-    #site-name { flex-shrink: 0; }
+    #site-name {
+        flex-shrink: 0;
+        white-space: nowrap;
+    }
     #site-name a {
         font-size: 18px !important;
         font-weight: 600 !important;
         letter-spacing: -0.025em;
     }
     #user-tools {
-        width: 100%;
+        flex: 1;
+        min-width: 0;
         font-size: 13px;
         margin: 0;
         padding: 0;
         float: none;
+        text-align: right;
     }
     #user-tools-inner {
         display: flex;
-        justify-content: space-between;
+        justify-content: flex-end;
         align-items: center;
-        width: 100%;
+        gap: 8px;
     }
     .user-greeting {
         white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        flex-shrink: 1;
+        min-width: 0;
     }
     .user-actions {
         display: flex;
         align-items: center;
         gap: 8px;
+        flex-shrink: 0;
     }
     .user-action-link {
         padding: 4px 10px;
@@ -505,6 +516,11 @@ tailwind.config = {
     }
     /* Mobile: hide desktop links, show hamburger */
     @media (max-width: 768px) {
+        #header {
+            flex-wrap: wrap;
+            gap: 4px;
+        }
+        #site-name a { font-size: 15px !important; }
         .header-desktop-link { display: none !important; }
         .header-hamburger { display: inline-flex !important; }
         .user-greeting { display: none; }
