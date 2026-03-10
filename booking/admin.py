@@ -778,7 +778,7 @@ class SiteSettingsAdmin(admin.ModelAdmin):
     change_form_template = 'admin/booking/sitesettings/change_form.html'
 
     fieldsets = (
-        (_('基本設定'), {'fields': ('site_name', 'staff_label')}),
+        (_('基本設定'), {'fields': ('site_name', 'staff_label', 'staff_label_i18n')}),
         (_('ホームページカード表示'), {'fields': (
             'show_card_store', 'show_card_fortune_teller',
             'show_card_calendar', 'show_card_shop',

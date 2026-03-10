@@ -1165,6 +1165,8 @@ class SiteSettings(models.Model):
     # スタッフ呼称設定
     staff_label = models.CharField(_('スタッフの呼称'), max_length=50, default='キャスト',
         help_text=_('管理画面・フロントで「占い師」「スタッフ」の代わりに表示する名称（例: キャスト、セラピスト）'))
+    staff_label_i18n = models.JSONField(_('スタッフ呼称（多言語）'), default=dict, blank=True,
+        help_text=_('言語コードをキーとした翻訳辞書。例: {"en": "Cast", "ko": "캐스트", "zh-hant": "演員"}。未設定の言語はデフォルト呼称を使用。'))
 
     # AIチャットウィジェット
     show_ai_chat = models.BooleanField(_('AIアシスタント表示'), default=False,

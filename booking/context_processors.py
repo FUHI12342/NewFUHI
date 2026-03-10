@@ -5,9 +5,21 @@ from django.utils.translation import get_language
 from .models import Store, Company, Notice, Media, ExternalLink, SiteSettings
 
 
+def _get_localized_staff_label(site_settings):
+    """現在の言語に対応する staff_label を返す。未設定なら日本語デフォルト。"""
+    lang = get_language() or settings.LANGUAGE_CODE
+    if lang == 'ja' or not site_settings.staff_label_i18n:
+        return site_settings.staff_label
+    i18n = site_settings.staff_label_i18n
+    # 完全一致 → ベース言語フォールバック → デフォルト
+    return i18n.get(lang) or i18n.get(lang.split('-')[0], site_settings.staff_label)
+
+
 def global_context(request):
     """全テンプレートで共通して使う値を提供する"""
     site_settings = SiteSettings.load()
+    # staff_label を現在の言語に合わせて上書きしたコピーを作成
+    localized_staff_label = _get_localized_staff_label(site_settings)
     return {
         'stores': Store.objects.all(),
         'company': Company.objects.first(),
@@ -17,6 +29,7 @@ def global_context(request):
         'current_language': get_language() or settings.LANGUAGE_CODE,
         'available_languages': settings.LANGUAGES,
         'site_settings': site_settings,
+        'staff_label': localized_staff_label,
     }
 
 

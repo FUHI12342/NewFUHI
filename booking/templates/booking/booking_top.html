@@ -110,7 +110,7 @@
         </div>
         <div class="p-5">
             <h3 class="text-lg font-bold text-salon-dark mb-2">{% trans "店舗から選ぶ" %}</h3>
-            <p class="text-sm text-gray-600">{% blocktrans with staff_label=site_settings.staff_label %}お近くの店舗を選んで、在籍する{{ staff_label }}の中から予約できます。{% endblocktrans %}</p>
+            <p class="text-sm text-gray-600">{% blocktrans with staff_label=staff_label %}お近くの店舗を選んで、在籍する{{ staff_label }}の中から予約できます。{% endblocktrans %}</p>
         </div>
         <div class="px-5 py-3 bg-gray-50 border-t text-right">
             <span class="text-xs font-medium text-salon-brown">{% trans "店舗一覧へ" %} &rarr;</span>
@@ -126,11 +126,11 @@
             </svg>
         </div>
         <div class="p-5">
-            <h3 class="text-lg font-bold text-salon-dark mb-2">{% blocktrans with staff_label=site_settings.staff_label %}{{ staff_label }}から選ぶ{% endblocktrans %}</h3>
-            <p class="text-sm text-gray-600">{% blocktrans with staff_label=site_settings.staff_label %}全店舗の{{ staff_label }}一覧から、お気に入りの{{ staff_label }}を見つけて予約できます。{% endblocktrans %}</p>
+            <h3 class="text-lg font-bold text-salon-dark mb-2">{% blocktrans with staff_label=staff_label %}{{ staff_label }}から選ぶ{% endblocktrans %}</h3>
+            <p class="text-sm text-gray-600">{% blocktrans with staff_label=staff_label %}全店舗の{{ staff_label }}一覧から、お気に入りの{{ staff_label }}を見つけて予約できます。{% endblocktrans %}</p>
         </div>
         <div class="px-5 py-3 bg-gray-50 border-t text-right">
-            <span class="text-xs font-medium text-salon-brown">{% blocktrans with staff_label=site_settings.staff_label %}{{ staff_label }}一覧へ{% endblocktrans %} &rarr;</span>
+            <span class="text-xs font-medium text-salon-brown">{% blocktrans with staff_label=staff_label %}{{ staff_label }}一覧へ{% endblocktrans %} &rarr;</span>
         </div>
     </a>
 
@@ -144,7 +144,7 @@
         </div>
         <div class="p-5">
             <h3 class="text-lg font-bold text-salon-dark mb-2">{% trans "日付から選ぶ" %}</h3>
-            <p class="text-sm text-gray-600">{% blocktrans with staff_label=site_settings.staff_label %}ご希望の日付を選んで、その日に空きのある{{ staff_label }}を探せます。{% endblocktrans %}</p>
+            <p class="text-sm text-gray-600">{% blocktrans with staff_label=staff_label %}ご希望の日付を選んで、その日に空きのある{{ staff_label }}を探せます。{% endblocktrans %}</p>
         </div>
         <div class="px-5 py-3 bg-gray-50 border-t text-right">
             <span class="text-xs font-medium text-salon-brown">{% trans "カレンダーへ" %} &rarr;</span>
@@ -180,7 +180,7 @@
     <!-- Tab buttons -->
     <div class="flex gap-2 mb-4" id="rankingTabs">
         <button type="button" class="ranking-tab px-4 py-2 rounded-full text-sm font-medium bg-salon-brown text-white" data-tab="tab-staff" onclick="switchRankingTab('tab-staff')">
-            {% blocktrans with staff_label=site_settings.staff_label %}人気{{ staff_label }}{% endblocktrans %}
+            {% blocktrans with staff_label=staff_label %}人気{{ staff_label }}{% endblocktrans %}
         </button>
         <button type="button" class="ranking-tab px-4 py-2 rounded-full text-sm font-medium bg-gray-200 text-gray-600" data-tab="tab-store" onclick="switchRankingTab('tab-store')">
             {% trans "人気店舗" %}
@@ -269,7 +269,7 @@
                 <div class="min-w-0 flex-1">
                     <p class="font-bold text-salon-dark truncate">{{ staff.name }}</p>
                     <p class="text-xs text-gray-500">{{ staff.store.name }}</p>
-                    <span class="inline-block mt-1 px-2 py-0.5 text-xs bg-rose-100 text-rose-600 rounded-full">{% blocktrans with staff_label=site_settings.staff_label %}おすすめ{{ staff_label }}{% endblocktrans %}</span>
+                    <span class="inline-block mt-1 px-2 py-0.5 text-xs bg-rose-100 text-rose-600 rounded-full">{% blocktrans with staff_label=staff_label %}おすすめ{{ staff_label }}{% endblocktrans %}</span>
                 </div>
             </a>
             {% endfor %}
