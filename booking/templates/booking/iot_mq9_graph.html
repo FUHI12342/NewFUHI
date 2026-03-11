@@ -4,6 +4,7 @@
 {% block extrahead %}
   {{ block.super }}
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation"></script>
   <style>
     /* ── Reset & Layout ─────────────────────────────────── */
     #content-main { max-width: 1100px; margin: 0 auto; padding: 1rem; background: #111827 !important; color: #e5e7eb; }
@@ -212,10 +213,18 @@
   var SENSORS = {
     gas: {
       apiSensor: 'mq9', color: '#f97316', unit: '',
+      suggestedMax: 1000,
       thresholds: [
-        { max: 100,  badge: 'badge-green',  label: '正常',       text: '空気はきれいです' },
-        { max: 300,  badge: 'badge-yellow', label: 'やや高め',   text: '換気を推奨します' },
-        { max: Infinity, badge: 'badge-red', label: '危険',      text: 'すぐに換気してください！' }
+        { max: 200,  badge: 'badge-green',  label: '正常',       text: '空気はきれいです' },
+        { max: 400,  badge: 'badge-yellow', label: 'やや高め',   text: '換気を推奨します' },
+        { max: 600,  badge: 'badge-yellow', label: '注意',       text: 'CO濃度が上昇中 — 換気扇を確認' },
+        { max: 800,  badge: 'badge-red',    label: '危険',       text: 'すぐに換気してください！' },
+        { max: Infinity, badge: 'badge-red', label: '緊急',      text: '即座に退避・換気が必要！' }
+      ],
+      annotations: [
+        { value: 200, color: '#22c55e80', label: 'OFF閾値 (200)' },
+        { value: 400, color: '#f9731680', label: 'ON閾値 (400)' },
+        { value: 800, color: '#ef444480', label: '警報レベル (800)' }
       ]
     },
     light: {
@@ -346,6 +355,48 @@
     }
   }
 
+  // ── Build annotation config for a sensor key ──────────
+  function buildAnnotations(key) {
+    var cfg = SENSORS[key];
+    if (!cfg || !cfg.annotations) return {};
+    var annots = {};
+    cfg.annotations.forEach(function(a, i) {
+      annots['line' + i] = {
+        type: 'line',
+        yMin: a.value,
+        yMax: a.value,
+        borderColor: a.color,
+        borderWidth: 1.5,
+        borderDash: [6, 4],
+        label: {
+          display: true,
+          content: a.label,
+          position: 'start',
+          backgroundColor: a.color,
+          color: '#fff',
+          font: { size: 10, weight: 'bold' },
+          padding: { top: 2, bottom: 2, left: 6, right: 6 },
+          borderRadius: 4
+        }
+      };
+    });
+    return annots;
+  }
+
+  // ── Build chart options per sensor ───────────────────
+  function chartOpts(key) {
+    var opts = lineOpts();
+    var cfg = SENSORS[key];
+    if (cfg && cfg.suggestedMax) {
+      opts.scales.y.suggestedMax = cfg.suggestedMax;
+    }
+    var annots = buildAnnotations(key);
+    if (Object.keys(annots).length > 0) {
+      opts.plugins.annotation = { annotations: annots };
+    }
+    return opts;
+  }
+
   // ── Render/update line chart ───────────────────────────
   function renderLineChart(key, labels, values, color) {
     var canvasId = 'chart-' + key;
@@ -375,7 +426,7 @@
           tension: 0.4
         }]
       },
-      options: lineOpts()
+      options: chartOpts(key)
     });
   }
 

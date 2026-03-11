@@ -453,6 +453,44 @@ class IoTEvent(models.Model):
         return f'{self.device} @ {self.created_at}'
 
 
+class VentilationAutoControl(models.Model):
+    """CO閾値連動 換気扇自動制御ルール（SwitchBot スマートプラグ経由）"""
+    device = models.ForeignKey(IoTDevice, verbose_name=_('対象デバイス'),
+                               on_delete=models.CASCADE, related_name='ventilation_rules')
+    name = models.CharField(_('ルール名'), max_length=100, default='換気扇自動制御')
+    is_active = models.BooleanField(_('有効'), default=True)
+
+    # 閾値設定（生ADC値）
+    threshold_on = models.IntegerField(_('ON閾値（MQ-9 ADC値）'), default=400,
+        help_text=_('この値を連続で超えたら換気扇ON'))
+    threshold_off = models.IntegerField(_('OFF閾値（MQ-9 ADC値）'), default=200,
+        help_text=_('この値以下になったら換気扇OFF'))
+    consecutive_count = models.IntegerField(_('連続超過回数'), default=3,
+        help_text=_('ON閾値をこの回数連続で超えたらON実行（20秒間隔×3=約1分）'))
+
+    # SwitchBot設定
+    switchbot_token = models.CharField(_('SwitchBotトークン'), max_length=200)
+    switchbot_secret = models.CharField(_('SwitchBotシークレット'), max_length=200)
+    switchbot_device_id = models.CharField(_('SwitchBotデバイスID'), max_length=100,
+        help_text=_('スマートプラグのデバイスID'))
+
+    # 状態トラッキング
+    fan_state = models.CharField(_('現在の状態'), max_length=10,
+        choices=[('off', 'OFF'), ('on', 'ON'), ('unknown', '不明')], default='unknown')
+    last_on_at = models.DateTimeField(_('最後にONした日時'), null=True, blank=True)
+    last_off_at = models.DateTimeField(_('最後にOFFした日時'), null=True, blank=True)
+    cooldown_seconds = models.IntegerField(_('クールダウン（秒）'), default=60,
+        help_text=_('ON/OFF切替後、次の切替までの最小待機時間'))
+
+    class Meta:
+        app_label = 'booking'
+        verbose_name = _('換気扇自動制御')
+        verbose_name_plural = _('換気扇自動制御')
+
+    def __str__(self):
+        return f'{self.name} ({self.device.name})'
+
+
 class IRCode(models.Model):
     """学習済みIRリモコンコード"""
     device = models.ForeignKey(IoTDevice, verbose_name=_('デバイス'), on_delete=models.CASCADE, related_name='ir_codes')

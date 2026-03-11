@@ -36,7 +36,7 @@ GROUPS = [
     {'slug': 'inventory', 'name': _('在庫管理'), 'models': ['category', 'product'], 'hidden': True},
     {'slug': 'order', 'name': _('注文管理'), 'models': ['order', 'postransaction']},
     {'slug': 'table_order', 'name': _('店舗管理'), 'models': ['store', 'tableseat']},
-    {'slug': 'iot', 'name': _('IoT管理'), 'models': ['iotdevice']},
+    {'slug': 'iot', 'name': _('IoT管理'), 'models': ['iotdevice', 'ventilationautocontrol']},
     {'slug': 'payment', 'name': _('決済'), 'models': ['paymentmethod'], 'hidden': True},
     {'slug': 'property', 'name': _('物件管理'), 'models': ['property'], 'hidden': True},
     {'slug': 'analytics', 'name': _('分析'), 'models': ['visitorcount', 'visitoranalyticsconfig', 'staffrecommendationmodel', 'staffrecommendationresult'], 'hidden': True},

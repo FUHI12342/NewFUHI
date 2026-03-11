@@ -60,6 +60,7 @@ from .models import (
     VisitorAnalyticsConfig,
     StaffRecommendationModel,
     StaffRecommendationResult,
+    VentilationAutoControl,
 )
 
 
@@ -319,6 +320,22 @@ class IRCodeAdmin(admin.ModelAdmin):
             device.save(update_fields=['pending_ir_command'])
             count += 1
         self.message_user(request, f'{count} 件のIRコード送信をキューしました。')
+
+
+class VentilationAutoControlAdmin(admin.ModelAdmin):
+    list_display = ('name', 'device', 'is_active', 'threshold_on', 'threshold_off',
+                    'consecutive_count', 'fan_state', 'last_on_at', 'last_off_at')
+    list_filter = ('is_active', 'fan_state')
+    readonly_fields = ('fan_state', 'last_on_at', 'last_off_at')
+    fieldsets = (
+        ('基本設定', {'fields': ('device', 'name', 'is_active')}),
+        ('閾値設定', {
+            'fields': ('threshold_on', 'threshold_off', 'consecutive_count', 'cooldown_seconds'),
+            'description': 'MQ-9の生ADC値で設定。平常時≒200-250、CO検出時は上昇。',
+        }),
+        ('SwitchBot設定', {'fields': ('switchbot_token', 'switchbot_secret', 'switchbot_device_id')}),
+        ('状態（自動更新）', {'fields': ('fan_state', 'last_on_at', 'last_off_at')}),
+    )
 
 
 # ==============================
@@ -645,6 +662,7 @@ custom_site.register(Notice, NoticeAdmin)
 custom_site.register(Company, CompanyAdmin)
 custom_site.register(Media, MediaAdmin)
 custom_site.register(IoTDevice, IoTDeviceAdmin)
+custom_site.register(VentilationAutoControl, VentilationAutoControlAdmin)
 custom_site.register(Category, CategoryAdmin)
 custom_site.register(Product, ProductAdmin)
 custom_site.register(Order, OrderAdmin)

@@ -353,6 +353,14 @@ class IoTEventAPIView(APIView):
         device.last_seen_at = timezone.now()
         device.save(update_fields=["last_seen_at"])
 
+        # 換気扇自動制御チェック
+        if mq9_value is not None:
+            from .ventilation_control import check_ventilation_rules
+            try:
+                check_ventilation_rules(device, mq9_value)
+            except Exception as vent_err:
+                logger.warning(f"Ventilation check failed: {vent_err}")
+
         # MQ-9 alarm: LINE push notification
         if event_type == "mq9_alarm" and device.alert_enabled and device.alert_line_user_id:
             try:
