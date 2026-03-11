@@ -224,6 +224,10 @@ JAZZMIN_SETTINGS = {
         }],
     },
 
+    # Jazzmin が自動検出する app グループを非表示にする
+    # （RoleBasedAdminSite の GROUPS で「IoT管理」として管理するため）
+    "hide_apps": ["iot"],
+
     # トップメニュー
     "topmenu_links": [
         {"name": "ホーム", "url": "admin:index", "permissions": ["auth.view_user"]},
