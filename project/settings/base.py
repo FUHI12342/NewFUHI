@@ -222,7 +222,11 @@ JAZZMIN_SETTINGS = {
             "url": "/admin/debug/",
             "icon": "fas fa-bug",
         }],
-        "iot": [],
+        "iot": [{
+            "name": "センサーグラフ",
+            "url": "/admin/iot/sensors/",
+            "icon": "fas fa-chart-area",
+        }],
     },
 
     # トップメニュー
