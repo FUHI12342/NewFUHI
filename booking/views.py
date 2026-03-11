@@ -382,18 +382,21 @@ class IoTEventAPIView(APIView):
             except Exception as line_err:
                 logger.warning(f"LINE push failed for device {device.external_id}: {line_err}")
 
-        # IR learned: auto-save IRCode
+        # IR learned: auto-save IRCode (RAW + NEC support)
         if event_type == "ir_learned":
             try:
                 payload_data = json.loads(evt.payload) if evt.payload else {}
+                protocol = str(payload_data.get('protocol', 'UNKNOWN'))
+                # RAW: save full pulse array; NEC: save code/address/command
+                raw_pulses = payload_data.get('raw', payload_data.get('raw_sample', []))
                 IRCode.objects.create(
                     device=device,
                     name=f'学習コード {timezone.now():%Y%m%d_%H%M%S}',
-                    protocol=str(payload_data.get('protocol', 'UNKNOWN')),
+                    protocol=protocol,
                     code=str(payload_data.get('code', '')),
                     address=str(payload_data.get('address', '')),
                     command=str(payload_data.get('command', '')),
-                    raw_data=json.dumps(payload_data.get('raw_sample', [])),
+                    raw_data=json.dumps(raw_pulses),
                 )
             except Exception as ir_err:
                 logger.warning(f"IRCode auto-save failed for device {device.external_id}: {ir_err}")
@@ -468,11 +471,15 @@ class IRSendAPIView(APIView):
             return Response({'detail': 'IRCode not found'}, status=status.HTTP_404_NOT_FOUND)
 
         device = ir_code.device
-        device.pending_ir_command = json.dumps({
+        cmd = {
             'action': 'send_ir',
-            'code': ir_code.code,
             'protocol': ir_code.protocol,
-        })
+        }
+        if ir_code.protocol == 'RAW' and ir_code.raw_data:
+            cmd['raw_data'] = ir_code.raw_data  # JSON string of pulse array
+        else:
+            cmd['code'] = ir_code.code
+        device.pending_ir_command = json.dumps(cmd)
         device.save(update_fields=['pending_ir_command'])
         return Response({'status': 'queued', 'device': device.external_id, 'ir_code': ir_code.name})
 

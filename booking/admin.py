@@ -300,11 +300,22 @@ class IoTEventAdmin(admin.ModelAdmin):
 
 
 class IRCodeAdmin(admin.ModelAdmin):
-    list_display = ('name', 'device', 'protocol', 'code', 'created_at')
+    list_display = ('name', 'device', 'protocol', 'code', 'pulse_count', 'created_at')
 
     search_fields = ('name', 'device__name', 'code')
-    readonly_fields = ('created_at',)
+    readonly_fields = ('created_at', 'pulse_count')
     actions = ['send_ir_code']
+
+    def pulse_count(self, obj):
+        if obj.raw_data:
+            try:
+                data = json.loads(obj.raw_data)
+                if isinstance(data, list):
+                    return len(data)
+            except (json.JSONDecodeError, TypeError):
+                pass
+        return '-'
+    pulse_count.short_description = _('パルス数')
 
     @admin.action(description=_('IRコードを送信'))
     def send_ir_code(self, request, queryset):
@@ -312,11 +323,15 @@ class IRCodeAdmin(admin.ModelAdmin):
         count = 0
         for ir_code in queryset:
             device = ir_code.device
-            device.pending_ir_command = _json.dumps({
+            cmd = {
                 'action': 'send_ir',
-                'code': ir_code.code,
                 'protocol': ir_code.protocol,
-            })
+            }
+            if ir_code.protocol == 'RAW' and ir_code.raw_data:
+                cmd['raw_data'] = ir_code.raw_data
+            else:
+                cmd['code'] = ir_code.code
+            device.pending_ir_command = _json.dumps(cmd)
             device.save(update_fields=['pending_ir_command'])
             count += 1
         self.message_user(request, f'{count} 件のIRコード送信をキューしました。')
