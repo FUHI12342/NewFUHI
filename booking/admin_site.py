@@ -74,6 +74,9 @@ SIDEBAR_CUSTOM_LINKS = {
         {'name': _('POS'), 'admin_url': '/admin/pos/', 'icon': 'fas fa-cash-register'},
         {'name': _('オーダー履歴'), 'admin_url': '/admin/pos/kitchen/', 'icon': 'fas fa-utensils'},
     ],
+    'iot': [
+        {'name': _('センサーグラフ'), 'admin_url': '/admin/iot/sensors/', 'icon': 'fas fa-chart-area'},
+    ],
     'system': [
         {'name': _('デバッグパネル'), 'admin_url': '/admin/debug/', 'icon': 'fas fa-bug'},
     ],
