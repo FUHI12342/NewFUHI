@@ -606,15 +606,15 @@ class Command(BaseCommand):
             total_late = sum(a.late_night_minutes for a in attendances) / 60
 
             base_pay = int(total_regular * hourly)
-            overtime_pay = int(total_overtime * hourly * Decimal('1.25'))
-            late_night_pay = int(total_late * hourly * Decimal('1.35'))
+            overtime_pay = int(total_overtime * hourly * 1.25)
+            late_night_pay = int(total_late * hourly * 1.35)
             gross = base_pay + overtime_pay + late_night_pay
             if contract:
                 gross += contract.commute_allowance * work_days
 
             # 簡易控除計算
-            income_tax = int(gross * Decimal('0.05'))
-            employment_ins = int(gross * Decimal('0.006'))
+            income_tax = int(gross * 0.05)
+            employment_ins = int(gross * 0.006)
             total_deductions = income_tax + employment_ins
             net = gross - total_deductions
 
