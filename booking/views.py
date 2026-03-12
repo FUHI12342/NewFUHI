@@ -65,6 +65,7 @@ from booking.models import (
     StoreScheduleConfig,
     ShiftPeriod,
     ShiftRequest,
+    ShiftTemplate,
     # ===== Round4: CMS =====
     SiteSettings,
     HeroBanner,
@@ -2002,12 +2003,56 @@ class StaffShiftSubmitView(LoginRequiredMixin, View):
             period=period, staff=staff,
         ).order_by('date', 'start_hour')
 
+        # テンプレート一覧
+        templates = ShiftTemplate.objects.filter(
+            store=staff.store, is_active=True,
+        ).order_by('sort_order', 'name')
+
+        # カレンダー用: 対象月の日付リスト
+        year_month = period.year_month
+        import calendar
+        _, days_in_month = calendar.monthrange(year_month.year, year_month.month)
+        month_dates = [
+            datetime.date(year_month.year, year_month.month, d)
+            for d in range(1, days_in_month + 1)
+        ]
+
+        # 既存リクエストを日付→リスト辞書に変換（JSON用）
+        existing_map = {}
+        for req in existing:
+            key = req.date.isoformat()
+            if key not in existing_map:
+                existing_map[key] = []
+            existing_map[key].append({
+                'start_hour': req.start_hour,
+                'end_hour': req.end_hour,
+                'preference': req.preference,
+                'note': req.note,
+            })
+
+        # テンプレートJSON用
+        templates_json = [
+            {
+                'id': t.id,
+                'name': t.name,
+                'start_hour': t.start_time.hour,
+                'end_hour': t.end_time.hour,
+                'color': t.color,
+            }
+            for t in templates
+        ]
+
         return render(request, 'booking/staff_shift_submit.html', {
             'staff': staff,
             'period': period,
             'existing': existing,
             'open_hour': open_h,
             'close_hour': close_h,
+            'templates': templates,
+            'templates_json': json.dumps(templates_json),
+            'existing_map_json': json.dumps(existing_map),
+            'month_dates': month_dates,
+            'year_month': year_month,
         })
 
     def post(self, request, period_id):
@@ -2057,6 +2102,154 @@ class StaffShiftSubmitView(LoginRequiredMixin, View):
 
         messages.success(request, 'シフト希望を登録しました。')
         return redirect('booking:staff_shift_submit', period_id=period_id)
+
+
+class StaffShiftBulkRequestAPIView(LoginRequiredMixin, View):
+    """スタッフがカレンダーUIからシフト希望を一括登録するAPI"""
+
+    def post(self, request, period_id):
+        staff = get_object_or_404(Staff, user=request.user)
+        period = get_object_or_404(ShiftPeriod, pk=period_id, store=staff.store)
+
+        if period.status != 'open':
+            return JsonResponse({'error': 'この募集期間は締め切られています。'}, status=400)
+
+        try:
+            data = json.loads(request.body)
+        except json.JSONDecodeError:
+            return JsonResponse({'error': 'Invalid JSON'}, status=400)
+
+        entries = data.get('entries', [])
+        if not entries:
+            return JsonResponse({'error': 'entries が空です。'}, status=400)
+
+        open_h, close_h = get_hour_range(staff.store)
+        created = 0
+        updated = 0
+        errors = []
+
+        with transaction.atomic():
+            for entry in entries:
+                try:
+                    date = datetime.date.fromisoformat(entry['date'])
+                    start_h = int(entry['start_hour'])
+                    end_h = int(entry['end_hour'])
+                    preference = entry.get('preference', 'available')
+                    note = entry.get('note', '')
+                except (KeyError, ValueError, TypeError) as e:
+                    errors.append(f"Invalid entry: {entry} ({e})")
+                    continue
+
+                if start_h < open_h or end_h > close_h or start_h >= end_h:
+                    errors.append(f"{date}: 営業時間外 ({start_h}-{end_h})")
+                    continue
+
+                _, was_created = ShiftRequest.objects.update_or_create(
+                    period=period,
+                    staff=staff,
+                    date=date,
+                    start_hour=start_h,
+                    defaults={
+                        'end_hour': end_h,
+                        'preference': preference,
+                        'note': note,
+                    },
+                )
+                if was_created:
+                    created += 1
+                else:
+                    updated += 1
+
+        return JsonResponse({
+            'created': created,
+            'updated': updated,
+            'errors': errors,
+        })
+
+    def delete(self, request, period_id):
+        """指定日のシフト希望を削除"""
+        staff = get_object_or_404(Staff, user=request.user)
+        period = get_object_or_404(ShiftPeriod, pk=period_id, store=staff.store)
+
+        if period.status != 'open':
+            return JsonResponse({'error': 'この募集期間は締め切られています。'}, status=400)
+
+        try:
+            data = json.loads(request.body)
+        except json.JSONDecodeError:
+            return JsonResponse({'error': 'Invalid JSON'}, status=400)
+
+        dates = data.get('dates', [])
+        if not dates:
+            return JsonResponse({'error': 'dates が空です。'}, status=400)
+
+        parsed_dates = []
+        for d in dates:
+            try:
+                parsed_dates.append(datetime.date.fromisoformat(d))
+            except (ValueError, TypeError):
+                pass
+
+        deleted_count, _ = ShiftRequest.objects.filter(
+            period=period, staff=staff, date__in=parsed_dates,
+        ).delete()
+
+        return JsonResponse({'deleted': deleted_count})
+
+
+class StaffShiftCopyWeekAPIView(LoginRequiredMixin, View):
+    """前週のシフト希望を翌週にコピーするAPI"""
+
+    def post(self, request, period_id):
+        staff = get_object_or_404(Staff, user=request.user)
+        period = get_object_or_404(ShiftPeriod, pk=period_id, store=staff.store)
+
+        if period.status != 'open':
+            return JsonResponse({'error': 'この募集期間は締め切られています。'}, status=400)
+
+        try:
+            data = json.loads(request.body)
+        except json.JSONDecodeError:
+            return JsonResponse({'error': 'Invalid JSON'}, status=400)
+
+        source_start = data.get('source_week_start')  # e.g. "2026-03-09"
+        target_start = data.get('target_week_start')   # e.g. "2026-03-16"
+
+        if not source_start or not target_start:
+            return JsonResponse({'error': 'source_week_start と target_week_start が必要です。'}, status=400)
+
+        try:
+            src_start = datetime.date.fromisoformat(source_start)
+            tgt_start = datetime.date.fromisoformat(target_start)
+        except ValueError:
+            return JsonResponse({'error': '日付形式が不正です。'}, status=400)
+
+        src_end = src_start + timedelta(days=6)
+        source_requests = ShiftRequest.objects.filter(
+            period=period, staff=staff,
+            date__gte=src_start, date__lte=src_end,
+        )
+
+        created = 0
+        for req in source_requests:
+            day_offset = (req.date - src_start).days
+            new_date = tgt_start + timedelta(days=day_offset)
+
+            _, was_created = ShiftRequest.objects.update_or_create(
+                period=period,
+                staff=staff,
+                date=new_date,
+                start_hour=req.start_hour,
+                defaults={
+                    'end_hour': req.end_hour,
+                    'preference': req.preference,
+                    'note': req.note,
+                },
+            )
+            if was_created:
+                created += 1
+
+        return JsonResponse({'created': created})
 
 
 # ===== Round2: 静的ページ =====

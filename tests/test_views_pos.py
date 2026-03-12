@@ -3,6 +3,7 @@ import json
 import pytest
 from django.test import Client
 from booking.models import Order, OrderItem, POSTransaction
+from booking.admin_site import GROUPS, HIDDEN_SLUGS
 
 
 @pytest.mark.django_db
@@ -137,3 +138,36 @@ class TestKitchenDisplay:
             content_type='application/json',
         )
         assert resp.status_code == 400
+
+    def test_kitchen_html_fragment_returns_html(self, admin_client, order, order_item):
+        """HTMX auto-refresh用エンドポイントがHTMLを返すことを確認"""
+        resp = admin_client.get('/api/pos/kitchen-orders/?status=OPEN')
+        assert resp.status_code == 200
+        assert resp['Content-Type'].startswith('text/html')
+
+    def test_kitchen_html_fragment_contains_order(self, admin_client, order, order_item):
+        """HTMLフラグメントに注文カードが含まれることを確認"""
+        resp = admin_client.get('/api/pos/kitchen-orders/?status=OPEN')
+        content = resp.content.decode()
+        assert 'order-card' in content
+        assert order_item.product.name in content
+
+    def test_kitchen_html_fragment_empty(self, admin_client, store):
+        """注文がない場合のHTMLフラグメント"""
+        resp = admin_client.get('/api/pos/kitchen-orders/?status=OPEN')
+        assert resp.status_code == 200
+        content = resp.content.decode()
+        assert '注文はありません' in content
+
+
+class TestIoTMenuHidden:
+    """IoTメニューがサイドバーに表示されないことを確認"""
+
+    def test_iot_group_is_hidden(self):
+        """GROUPS内のiotグループにhidden: Trueが設定されていること"""
+        iot_group = next(g for g in GROUPS if g['slug'] == 'iot')
+        assert iot_group.get('hidden') is True
+
+    def test_iot_in_hidden_slugs(self):
+        """HIDDEN_SLUGSにiotが含まれていること"""
+        assert 'iot' in HIDDEN_SLUGS

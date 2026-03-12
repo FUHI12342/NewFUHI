@@ -4,15 +4,22 @@
 {% block title %}{% trans "シフト希望入力" %} | {{ block.super }}{% endblock %}
 
 {% block content %}
-<div class="max-w-2xl mx-auto">
-    <h1 class="text-2xl font-bold text-salon-dark mb-2 border-b-2 border-salon-brown pb-3">
-        {% trans "シフト希望入力" %}
-    </h1>
+<div class="max-w-5xl mx-auto">
+    <div class="flex items-center justify-between mb-2 border-b-2 border-salon-brown pb-3">
+        <h1 class="text-2xl font-bold text-salon-dark">{% trans "シフト希望入力" %}</h1>
+        <a href="{% url 'booking:staff_shift_calendar' %}" class="text-sm text-salon-brown hover:underline">
+            &larr; {% trans "シフト管理に戻る" %}
+        </a>
+    </div>
 
-    <p class="text-sm text-gray-500 mb-6">
+    <p class="text-sm text-gray-500 mb-4">
         {{ staff.store.name }} &mdash; {{ staff.name }}
         &mdash; {{ period.year_month|date:"Y年n月" }}
+        &mdash; 締切: {{ period.deadline|date:"m/d H:i" }}
     </p>
+
+    <!-- 通知エリア -->
+    <div id="toast" class="hidden fixed top-4 right-4 z-50 rounded-lg px-4 py-3 text-sm shadow-lg transition-all"></div>
 
     {% if messages %}
     <div class="mb-4 space-y-2">
@@ -27,119 +34,346 @@
     </div>
     {% endif %}
 
-    <!-- 入力フォーム -->
-    <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-8">
-        <form method="post">
-            {% csrf_token %}
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
-                <div>
-                    <label class="block text-sm font-semibold text-salon-dark mb-1">{% trans "日付" %}</label>
-                    <input type="date" name="date" required
-                           class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-salon-brown focus:border-salon-brown">
-                </div>
-                <div>
-                    <label class="block text-sm font-semibold text-salon-dark mb-1">{% trans "希望区分" %}</label>
-                    <select name="preference" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
-                        <option value="preferred">{% trans "希望" %}</option>
-                        <option value="available">{% trans "出勤可能" %}</option>
-                        <option value="unavailable">{% trans "出勤不可" %}</option>
-                    </select>
-                </div>
-                <div>
-                    <label class="block text-sm font-semibold text-salon-dark mb-1">{% trans "開始時間" %}</label>
-                    <select name="start_hour" required class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
-                        {% for h in open_hour|default:9 %}
-                        <option value="{{ h }}">{{ h }}:00</option>
-                        {% endfor %}
-                    </select>
-                    <!-- JS で動的に選択肢を生成 -->
-                </div>
-                <div>
-                    <label class="block text-sm font-semibold text-salon-dark mb-1">{% trans "終了時間" %}</label>
-                    <select name="end_hour" required class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
-                    </select>
-                </div>
-            </div>
-            <div class="mb-4">
-                <label class="block text-sm font-semibold text-salon-dark mb-1">{% trans "備考" %}</label>
-                <textarea name="note" rows="2" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm" placeholder="{% trans '任意のメモ' %}"></textarea>
-            </div>
-            <button type="submit"
-                    class="bg-salon-brown text-white px-6 py-2.5 rounded-lg hover:bg-salon-dark transition font-medium text-sm">
-                {% trans "登録する" %}
+    <!-- テンプレートチップ + アクション -->
+    <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4 mb-4">
+        <div class="flex flex-wrap items-center gap-2 mb-3">
+            <span class="text-sm font-semibold text-salon-dark mr-2">テンプレート:</span>
+            {% for t in templates %}
+            <button type="button" class="tmpl-chip px-3 py-1.5 rounded-full text-xs font-medium border-2 transition cursor-pointer"
+                    data-tmpl-id="{{ t.id }}"
+                    style="border-color: {{ t.color }}; color: {{ t.color }}; background: white;"
+                    onclick="selectTemplate({{ t.id }})">
+                {{ t.name }}
+                <span class="text-gray-400 ml-1">{{ t.start_time|time:"H:i" }}-{{ t.end_time|time:"H:i" }}</span>
             </button>
-        </form>
+            {% empty %}
+            <span class="text-xs text-gray-400">テンプレート未設定</span>
+            {% endfor %}
+            <button type="button" class="tmpl-chip px-3 py-1.5 rounded-full text-xs font-medium border-2 transition cursor-pointer border-red-400 text-red-400 bg-white"
+                    data-tmpl-id="unavailable"
+                    onclick="selectTemplate('unavailable')">
+                休み
+            </button>
+        </div>
+        <div class="flex flex-wrap items-center gap-2">
+            <button type="button" onclick="copyPreviousWeek()" class="text-xs px-3 py-1.5 bg-gray-100 hover:bg-gray-200 rounded-lg transition">
+                前週コピー
+            </button>
+            <button type="button" onclick="clearSelected()" class="text-xs px-3 py-1.5 bg-gray-100 hover:bg-gray-200 rounded-lg transition">
+                選択解除
+            </button>
+            <button type="button" onclick="saveBulk()" class="text-xs px-3 py-1.5 bg-salon-brown text-white hover:bg-salon-dark rounded-lg transition font-medium">
+                一括保存
+            </button>
+            <span id="selected-count" class="text-xs text-gray-500 ml-2">0日選択中</span>
+        </div>
     </div>
 
-    <!-- 既存の希望一覧 -->
-    {% if existing %}
-    <h2 class="text-lg font-bold text-salon-dark mb-4">{% trans "登録済みの希望" %}</h2>
+    <!-- カレンダーグリッド -->
     <div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden mb-6">
-        <table class="w-full text-sm">
-            <thead>
-                <tr class="bg-salon-beige">
-                    <th class="px-4 py-2 text-left">{% trans "日付" %}</th>
-                    <th class="px-4 py-2 text-left">{% trans "時間" %}</th>
-                    <th class="px-4 py-2 text-left">{% trans "希望区分" %}</th>
-                    <th class="px-4 py-2 text-left">{% trans "備考" %}</th>
-                </tr>
-            </thead>
-            <tbody class="divide-y divide-gray-100">
-                {% for req in existing %}
-                <tr>
-                    <td class="px-4 py-2">{{ req.date|date:"m/d (D)" }}</td>
-                    <td class="px-4 py-2">{{ req.start_hour }}:00 - {{ req.end_hour }}:00</td>
-                    <td class="px-4 py-2">
-                        <span class="inline-block px-2 py-0.5 rounded text-xs
-                            {% if req.preference == 'preferred' %}bg-green-100 text-green-700
-                            {% elif req.preference == 'available' %}bg-blue-100 text-blue-700
-                            {% else %}bg-red-100 text-red-700{% endif %}">
-                            {{ req.get_preference_display }}
-                        </span>
-                    </td>
-                    <td class="px-4 py-2 text-gray-500">{{ req.note|truncatechars:30 }}</td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+        <div class="grid grid-cols-7 text-center text-xs font-bold bg-salon-beige">
+            <div class="py-2 text-red-500">日</div>
+            <div class="py-2">月</div>
+            <div class="py-2">火</div>
+            <div class="py-2">水</div>
+            <div class="py-2">木</div>
+            <div class="py-2">金</div>
+            <div class="py-2 text-blue-500">土</div>
+        </div>
+        <div id="calendar-grid" class="grid grid-cols-7">
+            <!-- JS で描画 -->
+        </div>
     </div>
-    {% endif %}
 
-    <a href="{% url 'booking:staff_shift_calendar' %}" class="text-sm text-salon-brown hover:underline">
-        &larr; {% trans "シフト管理に戻る" %}
-    </a>
+    <!-- 凡例 -->
+    <div class="flex flex-wrap gap-4 text-xs text-gray-500 mb-6">
+        {% for t in templates %}
+        <div class="flex items-center gap-1">
+            <span class="inline-block w-3 h-3 rounded" style="background: {{ t.color }};"></span>
+            {{ t.name }}
+        </div>
+        {% endfor %}
+        <div class="flex items-center gap-1">
+            <span class="inline-block w-3 h-3 rounded bg-red-400"></span>
+            休み
+        </div>
+        <div class="flex items-center gap-1">
+            <span class="inline-block w-3 h-3 rounded border-2 border-salon-brown"></span>
+            選択中
+        </div>
+    </div>
 </div>
 
 <script>
-// 動的に開始/終了時間の選択肢を生成
-const openHour = {{ open_hour }};
-const closeHour = {{ close_hour }};
-const startSelect = document.querySelector('select[name="start_hour"]');
-const endSelect = document.querySelector('select[name="end_hour"]');
+const CSRF_TOKEN = '{{ csrf_token }}';
+const PERIOD_ID = {{ period.pk }};
+const OPEN_HOUR = {{ open_hour }};
+const CLOSE_HOUR = {{ close_hour }};
+const YEAR = {{ year_month.year }};
+const MONTH = {{ year_month.month }};
+const TEMPLATES = {{ templates_json|safe }};
+const EXISTING = {{ existing_map_json|safe }};
 
-// Clear existing options
-startSelect.innerHTML = '';
-endSelect.innerHTML = '';
+let selectedDates = new Set();
+let activeTmplId = null;
+let pendingChanges = {}; // date -> {start_hour, end_hour, preference, template_name}
 
-for (let h = openHour; h < closeHour; h++) {
-    const opt = document.createElement('option');
-    opt.value = h;
-    opt.textContent = h + ':00';
-    startSelect.appendChild(opt);
+function getCSRFHeaders() {
+    return {'Content-Type': 'application/json', 'X-CSRFToken': CSRF_TOKEN};
 }
 
-function updateEndOptions() {
-    const startVal = parseInt(startSelect.value);
-    endSelect.innerHTML = '';
-    for (let h = startVal + 1; h <= closeHour; h++) {
-        const opt = document.createElement('option');
-        opt.value = h;
-        opt.textContent = h + ':00';
-        endSelect.appendChild(opt);
+function showToast(msg, isError) {
+    const el = document.getElementById('toast');
+    el.textContent = msg;
+    el.className = 'fixed top-4 right-4 z-50 rounded-lg px-4 py-3 text-sm shadow-lg transition-all ' +
+        (isError ? 'bg-red-50 border border-red-300 text-red-700' : 'bg-green-50 border border-green-300 text-green-700');
+    setTimeout(() => el.className = 'hidden', 3000);
+}
+
+function selectTemplate(id) {
+    // Toggle active template
+    if (activeTmplId === id) {
+        activeTmplId = null;
+    } else {
+        activeTmplId = id;
+    }
+    // Update chip styles
+    document.querySelectorAll('.tmpl-chip').forEach(chip => {
+        const chipId = chip.dataset.tmplId;
+        const isActive = (String(activeTmplId) === chipId);
+        if (isActive) {
+            if (chipId === 'unavailable') {
+                chip.style.background = '#F87171';
+                chip.style.color = 'white';
+            } else {
+                const tmpl = TEMPLATES.find(t => t.id === parseInt(chipId));
+                if (tmpl) {
+                    chip.style.background = tmpl.color;
+                    chip.style.color = 'white';
+                }
+            }
+        } else {
+            chip.style.background = 'white';
+            if (chipId === 'unavailable') {
+                chip.style.color = '#F87171';
+            } else {
+                const tmpl = TEMPLATES.find(t => t.id === parseInt(chipId));
+                if (tmpl) chip.style.color = tmpl.color;
+            }
+        }
+    });
+}
+
+function toggleDate(dateStr) {
+    if (!activeTmplId) {
+        showToast('先にテンプレートを選択してください', true);
+        return;
+    }
+
+    if (pendingChanges[dateStr] && String(pendingChanges[dateStr]._tmplId) === String(activeTmplId)) {
+        // Same template clicked again -> deselect
+        delete pendingChanges[dateStr];
+        selectedDates.delete(dateStr);
+    } else {
+        selectedDates.add(dateStr);
+        if (activeTmplId === 'unavailable') {
+            pendingChanges[dateStr] = {
+                start_hour: OPEN_HOUR,
+                end_hour: CLOSE_HOUR,
+                preference: 'unavailable',
+                _tmplId: 'unavailable',
+                _color: '#F87171',
+                _name: '休み',
+            };
+        } else {
+            const tmpl = TEMPLATES.find(t => t.id === activeTmplId);
+            if (!tmpl) return;
+            pendingChanges[dateStr] = {
+                start_hour: tmpl.start_hour,
+                end_hour: tmpl.end_hour,
+                preference: 'preferred',
+                _tmplId: tmpl.id,
+                _color: tmpl.color,
+                _name: tmpl.name,
+            };
+        }
+    }
+    renderCalendar();
+}
+
+function clearSelected() {
+    selectedDates.clear();
+    pendingChanges = {};
+    renderCalendar();
+}
+
+function renderCalendar() {
+    const grid = document.getElementById('calendar-grid');
+    grid.innerHTML = '';
+
+    // 月初の曜日オフセット
+    const firstDay = new Date(YEAR, MONTH - 1, 1).getDay(); // 0=Sunday
+    for (let i = 0; i < firstDay; i++) {
+        grid.appendChild(createEmptyCell());
+    }
+
+    const daysInMonth = new Date(YEAR, MONTH, 0).getDate();
+    const today = new Date().toISOString().split('T')[0];
+
+    for (let d = 1; d <= daysInMonth; d++) {
+        const dateStr = `${YEAR}-${String(MONTH).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+        const dow = new Date(YEAR, MONTH - 1, d).getDay();
+        const cell = document.createElement('div');
+        cell.className = 'border border-gray-100 p-1 min-h-[70px] cursor-pointer transition hover:bg-gray-50';
+        if (dateStr === today) cell.classList.add('bg-yellow-50');
+
+        // 日付番号
+        const dayNum = document.createElement('div');
+        dayNum.className = 'text-xs font-medium mb-1 ' + (dow === 0 ? 'text-red-500' : dow === 6 ? 'text-blue-500' : 'text-gray-700');
+        dayNum.textContent = d;
+        cell.appendChild(dayNum);
+
+        // 既存の登録表示
+        const existingReqs = EXISTING[dateStr] || [];
+        for (const req of existingReqs) {
+            // pendingChangesで上書きされていない場合のみ表示
+            if (!pendingChanges[dateStr]) {
+                const tag = document.createElement('div');
+                tag.className = 'text-[10px] rounded px-1 py-0.5 mb-0.5 truncate';
+                if (req.preference === 'unavailable') {
+                    tag.style.background = '#FEE2E2';
+                    tag.style.color = '#B91C1C';
+                    tag.textContent = '休み';
+                } else {
+                    const matchTmpl = TEMPLATES.find(t => t.start_hour === req.start_hour && t.end_hour === req.end_hour);
+                    if (matchTmpl) {
+                        tag.style.background = matchTmpl.color + '20';
+                        tag.style.color = matchTmpl.color;
+                        tag.textContent = matchTmpl.name;
+                    } else {
+                        tag.style.background = '#DBEAFE';
+                        tag.style.color = '#1D4ED8';
+                        tag.textContent = req.start_hour + '-' + req.end_hour;
+                    }
+                }
+                cell.appendChild(tag);
+            }
+        }
+
+        // ペンディング変更表示
+        if (pendingChanges[dateStr]) {
+            const pc = pendingChanges[dateStr];
+            const tag = document.createElement('div');
+            tag.className = 'text-[10px] rounded px-1 py-0.5 mb-0.5 truncate font-bold';
+            tag.style.background = pc._color + '30';
+            tag.style.color = pc._color;
+            tag.style.border = '2px solid ' + pc._color;
+            tag.textContent = pc._name;
+            cell.appendChild(tag);
+        }
+
+        cell.onclick = () => toggleDate(dateStr);
+        grid.appendChild(cell);
+    }
+
+    // 末尾の空セル
+    const totalCells = firstDay + daysInMonth;
+    const remainder = totalCells % 7;
+    if (remainder > 0) {
+        for (let i = 0; i < 7 - remainder; i++) {
+            grid.appendChild(createEmptyCell());
+        }
+    }
+
+    // 選択数カウント
+    document.getElementById('selected-count').textContent = Object.keys(pendingChanges).length + '日選択中';
+}
+
+function createEmptyCell() {
+    const cell = document.createElement('div');
+    cell.className = 'border border-gray-100 min-h-[70px] bg-gray-50';
+    return cell;
+}
+
+async function saveBulk() {
+    const entries = Object.entries(pendingChanges).map(([date, data]) => ({
+        date: date,
+        start_hour: data.start_hour,
+        end_hour: data.end_hour,
+        preference: data.preference,
+    }));
+
+    if (entries.length === 0) {
+        showToast('保存する変更がありません', true);
+        return;
+    }
+
+    try {
+        const resp = await fetch(`/api/shift/requests/${PERIOD_ID}/bulk/`, {
+            method: 'POST',
+            headers: getCSRFHeaders(),
+            body: JSON.stringify({entries}),
+        });
+        const result = await resp.json();
+        if (resp.ok) {
+            showToast(`${result.created}件登録、${result.updated}件更新しました`, false);
+            // 既存データを更新
+            for (const [date, data] of Object.entries(pendingChanges)) {
+                if (!EXISTING[date]) EXISTING[date] = [];
+                // 既存を上書き
+                EXISTING[date] = [{
+                    start_hour: data.start_hour,
+                    end_hour: data.end_hour,
+                    preference: data.preference,
+                    note: '',
+                }];
+            }
+            pendingChanges = {};
+            selectedDates.clear();
+            renderCalendar();
+        } else {
+            showToast(result.error || 'エラーが発生しました', true);
+        }
+    } catch (e) {
+        showToast('通信エラー: ' + e.message, true);
     }
 }
 
-startSelect.addEventListener('change', updateEndOptions);
-updateEndOptions();
+async function copyPreviousWeek() {
+    // 今日が属する週の月曜日を算出
+    const today = new Date();
+    const dow = today.getDay();
+    const mondayOffset = dow === 0 ? -6 : 1 - dow;
+    const thisMonday = new Date(today);
+    thisMonday.setDate(today.getDate() + mondayOffset);
+    const prevMonday = new Date(thisMonday);
+    prevMonday.setDate(thisMonday.getDate() - 7);
+
+    const fmt = d => d.toISOString().split('T')[0];
+
+    try {
+        const resp = await fetch(`/api/shift/requests/${PERIOD_ID}/copy-week/`, {
+            method: 'POST',
+            headers: getCSRFHeaders(),
+            body: JSON.stringify({
+                source_week_start: fmt(prevMonday),
+                target_week_start: fmt(thisMonday),
+            }),
+        });
+        const result = await resp.json();
+        if (resp.ok) {
+            showToast(`前週から${result.created}件コピーしました`, false);
+            // ページリロードで反映
+            setTimeout(() => location.reload(), 1000);
+        } else {
+            showToast(result.error || 'コピーに失敗しました', true);
+        }
+    } catch (e) {
+        showToast('通信エラー: ' + e.message, true);
+    }
+}
+
+// 初期描画
+renderCalendar();
 </script>
 {% endblock %}

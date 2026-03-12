@@ -3,7 +3,7 @@
 from django.urls import path, include
 
 from . import views
-from .views import IRSendAPIView
+from .views import IRSendAPIView, StaffShiftBulkRequestAPIView, StaffShiftCopyWeekAPIView
 from .views_debug import AdminDebugPanelAPIView, LogLevelControlAPIView
 from .views_dashboard import SensorDataAPIView, PIREventsAPIView, PIRStatusAPIView
 from .views_restaurant_dashboard import (
@@ -13,13 +13,25 @@ from .views_restaurant_dashboard import (
     StaffPerformanceAPIView,
     ShiftSummaryAPIView,
     LowStockAlertAPIView,
+    MenuEngineeringAPIView,
+    ABCAnalysisAPIView,
+    SalesForecastAPIView,
+    SalesHeatmapAPIView,
+    AOVTrendAPIView,
+    CohortAnalysisAPIView,
+    RFMAnalysisAPIView,
+    BasketAnalysisAPIView,
+    InsightsAPIView,
+    KPIScoreCardAPIView,
+    CustomerFeedbackAPIView,
+    NPSStatsAPIView,
 )
 from .views_property import PropertyStatusAPIView, PropertyAlertResolveAPIView
 from .views import CheckinAPIView, CartAddAPIView, CartUpdateAPIView, CartRemoveAPIView
 from .views import TableCartAddAPI, TableCartUpdateAPI, TableCartRemoveAPI, TableOrderCreateAPI, TableOrderStatusAPI
 from .views_chat import AdminChatAPIView, GuideChatAPIView
 from .views_attendance import AttendanceStampAPIView, AttendanceTOTPRefreshAPI, AttendanceDayStatusAPI, AttendancePINStampAPIView
-from .views_pos import POSOrderAPIView, POSOrderItemAPIView, POSCheckoutAPIView, KitchenOrderStatusAPI
+from .views_pos import POSOrderAPIView, POSOrderItemAPIView, POSCheckoutAPIView, KitchenOrderStatusAPI, KitchenOrdersHTMLView
 from .views_analytics import VisitorCountAPIView, VisitorHeatmapAPIView, ConversionAnalyticsAPIView
 from .views_ai_recommend import AIRecommendationAPIView, AITrainModelAPIView, AIModelStatusAPIView
 
@@ -66,6 +78,18 @@ urlpatterns = [
     path('dashboard/staff-performance/', StaffPerformanceAPIView.as_view(), name='staff_performance_api'),
     path('dashboard/shift-summary/', ShiftSummaryAPIView.as_view(), name='shift_summary_api'),
     path('dashboard/low-stock/', LowStockAlertAPIView.as_view(), name='low_stock_api'),
+    path('dashboard/menu-engineering/', MenuEngineeringAPIView.as_view(), name='menu_engineering_api'),
+    path('dashboard/abc-analysis/', ABCAnalysisAPIView.as_view(), name='abc_analysis_api'),
+    path('dashboard/forecast/', SalesForecastAPIView.as_view(), name='sales_forecast_api'),
+    path('dashboard/sales-heatmap/', SalesHeatmapAPIView.as_view(), name='sales_heatmap_api'),
+    path('dashboard/aov-trend/', AOVTrendAPIView.as_view(), name='aov_trend_api'),
+    path('dashboard/cohort/', CohortAnalysisAPIView.as_view(), name='cohort_analysis_api'),
+    path('dashboard/rfm/', RFMAnalysisAPIView.as_view(), name='rfm_analysis_api'),
+    path('dashboard/basket/', BasketAnalysisAPIView.as_view(), name='basket_analysis_api'),
+    path('dashboard/insights/', InsightsAPIView.as_view(), name='insights_api'),
+    path('dashboard/kpi-scorecard/', KPIScoreCardAPIView.as_view(), name='kpi_scorecard_api'),
+    path('dashboard/feedback/', CustomerFeedbackAPIView.as_view(), name='customer_feedback_api'),
+    path('dashboard/nps/', NPSStatsAPIView.as_view(), name='nps_stats_api'),
 
     # Property APIs
     path('properties/<int:pk>/status/', PropertyStatusAPIView.as_view(), name='property_status_api'),
@@ -92,6 +116,8 @@ urlpatterns = [
 
     # Air統合: シフトAPI
     path('shift/', include('booking.shift_api_urls')),
+    path('shift/requests/<int:period_id>/bulk/', StaffShiftBulkRequestAPIView.as_view(), name='shift_requests_bulk'),
+    path('shift/requests/<int:period_id>/copy-week/', StaffShiftCopyWeekAPIView.as_view(), name='shift_copy_week'),
 
     # Air統合: 勤怠API
     path('attendance/stamp/', AttendanceStampAPIView.as_view(), name='attendance_stamp'),
@@ -107,6 +133,7 @@ urlpatterns = [
     path('pos/order-items/<int:pk>/', POSOrderItemAPIView.as_view(), name='pos_order_item_detail'),
     path('pos/checkout/', POSCheckoutAPIView.as_view(), name='pos_checkout'),
     path('pos/order-item/<int:pk>/status/', KitchenOrderStatusAPI.as_view(), name='pos_order_item_status'),
+    path('pos/kitchen-orders/', KitchenOrdersHTMLView.as_view(), name='pos_kitchen_orders_html'),
 
     # Air統合: 分析API
     path('analytics/visitors/', VisitorCountAPIView.as_view(), name='analytics_visitors'),

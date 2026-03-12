@@ -64,6 +64,8 @@ from .models import (
     StaffRecommendationModel,
     StaffRecommendationResult,
     VentilationAutoControl,
+    BusinessInsight,
+    CustomerFeedback,
 )
 
 
@@ -1415,6 +1417,31 @@ class StaffRecommendationResultAdmin(admin.ModelAdmin):
 
 custom_site.register(StaffRecommendationModel, StaffRecommendationModelAdmin)
 custom_site.register(StaffRecommendationResult, StaffRecommendationResultAdmin)
+
+
+# ==============================
+# Phase 4-1: ビジネスインサイト
+# ==============================
+class BusinessInsightAdmin(admin.ModelAdmin):
+    list_display = ('severity', 'category', 'title', 'store', 'is_read', 'created_at')
+    list_filter = ('severity', 'category', 'is_read', 'store')
+    search_fields = ('title', 'message')
+    readonly_fields = ('created_at',)
+    date_hierarchy = 'created_at'
+    list_per_page = 50
+
+custom_site.register(BusinessInsight, BusinessInsightAdmin)
+
+
+class CustomerFeedbackAdmin(admin.ModelAdmin):
+    list_display = ('store', 'nps_score', 'food_rating', 'service_rating', 'ambiance_rating', 'sentiment', 'created_at')
+    list_filter = ('store', 'sentiment', 'nps_score')
+    search_fields = ('comment',)
+    readonly_fields = ('created_at',)
+    date_hierarchy = 'created_at'
+    list_per_page = 50
+
+custom_site.register(CustomerFeedback, CustomerFeedbackAdmin)
 
 
 logger.debug("booking.admin loaded")

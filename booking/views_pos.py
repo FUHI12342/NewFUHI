@@ -278,6 +278,22 @@ class KitchenDisplayView(AdminSidebarMixin, TemplateView):
         return ctx
 
 
+class KitchenOrdersHTMLView(View):
+    """キッチンディスプレイ用 HTML フラグメント（HTMX auto-refresh 向け）"""
+
+    def get(self, request):
+        store = _get_user_store(request)
+        open_orders = Order.objects.filter(
+            store=store, status=Order.STATUS_OPEN,
+        ).prefetch_related('items__product').order_by('created_at') if store else []
+        html = render_to_string(
+            'admin/booking/_kitchen_orders_fragment.html',
+            {'open_orders': open_orders, 'csrf_token': request.META.get('CSRF_COOKIE', '')},
+            request=request,
+        )
+        return HttpResponse(html)
+
+
 class KitchenOrderStatusAPI(View):
     """OrderItemステータス更新"""
 

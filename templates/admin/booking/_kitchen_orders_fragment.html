@@ -1,0 +1,28 @@
+{% for order in open_orders %}
+<div class="order-card">
+  <div class="header">#{{ order.id }} <span class="table-name">{{ order.table_label|default:"POS" }}</span></div>
+  {% for item in order.items.all %}
+  <div class="order-item">
+    <div>
+      <span class="status-dot dot-{{ item.status }}"></span>
+      {{ item.product.name }} x{{ item.qty }}
+    </div>
+    {% if item.status == "ORDERED" %}
+    <button class="action-btn btn-prepare"
+            hx-put="/api/pos/order-item/{{ item.id }}/status/"
+            hx-vals='{"status":"PREPARING"}'
+            hx-swap="none">調理開始</button>
+    {% elif item.status == "PREPARING" %}
+    <button class="action-btn btn-serve"
+            hx-put="/api/pos/order-item/{{ item.id }}/status/"
+            hx-vals='{"status":"SERVED"}'
+            hx-swap="none">配膳完了</button>
+    {% elif item.status == "SERVED" %}
+    <span style="color:#10B981;">&#10003;</span>
+    {% endif %}
+  </div>
+  {% endfor %}
+</div>
+{% empty %}
+<div style="grid-column:1/-1;text-align:center;padding:40px;color:#999;">注文はありません</div>
+{% endfor %}

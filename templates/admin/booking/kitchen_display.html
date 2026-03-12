@@ -21,7 +21,7 @@
 {% endblock %}
 {% block content %}
 <div class="auto-refresh">自動更新: 5秒 | 🔴=注文済 🟡=調理中 🟢=配膳済</div>
-<div class="kitchen-grid" hx-get="/api/pos/orders/?status=OPEN{% if store %}&store_id={{ store.id }}{% endif %}" hx-trigger="every 5s" hx-target="#kitchen-orders" hx-swap="innerHTML" hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'>
+<div class="kitchen-grid" hx-get="/api/pos/kitchen-orders/?status=OPEN{% if store %}&store_id={{ store.id }}{% endif %}" hx-trigger="every 5s" hx-target="#kitchen-orders" hx-swap="innerHTML" hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'>
   <div id="kitchen-orders">
     {% for order in open_orders %}
     <div class="order-card">

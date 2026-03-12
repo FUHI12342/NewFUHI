@@ -51,6 +51,11 @@
   }
   .sub-tab-content { display: none; }
   .sub-tab-content.active { display: block; }
+  .insight-card { padding: 12px; border-radius: 8px; border-left: 4px solid #ccc; }
+  .insight-card.severity-critical { border-left-color: #ef4444; background: #fef2f2; }
+  .insight-card.severity-warning { border-left-color: #f59e0b; background: #fffbeb; }
+  .insight-card.severity-info { border-left-color: #3b82f6; background: #eff6ff; }
+  .insight-card.is-read { opacity: 0.6; }
 
   /* ===== CSS variables (light mode only) ===== */
   :root {
@@ -135,6 +140,43 @@
     border-color: #818cf8;
   }
   .quick-link-card i { font-size: 1.25rem; }
+
+  /* Tutorial overlay */
+  .tour-overlay {
+    position: fixed; inset: 0; z-index: 9998;
+    background: rgba(0,0,0,0.5);
+    transition: opacity 0.3s;
+  }
+  .tour-highlight {
+    position: relative; z-index: 9999;
+    box-shadow: 0 0 0 4px #6366f1, 0 0 0 9999px rgba(0,0,0,0.5);
+    border-radius: 8px;
+    transition: box-shadow 0.3s;
+  }
+  .tour-tooltip {
+    position: fixed; z-index: 10000;
+    background: white; border-radius: 12px;
+    padding: 16px 20px; max-width: 340px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+    font-size: 14px; line-height: 1.6;
+  }
+  .tour-tooltip h4 { font-size: 16px; font-weight: 700; margin-bottom: 6px; color: #312e81; }
+  .tour-tooltip p { color: #4b5563; margin-bottom: 12px; }
+  .tour-tooltip-footer { display: flex; align-items: center; justify-content: space-between; }
+  .tour-tooltip-footer .tour-step-info { font-size: 12px; color: #9ca3af; }
+  .tour-tooltip-footer .tour-btns { display: flex; gap: 8px; }
+  .tour-btn { padding: 6px 14px; border-radius: 6px; font-size: 13px; cursor: pointer; border: none; }
+  .tour-btn-skip { background: #f3f4f6; color: #6b7280; }
+  .tour-btn-skip:hover { background: #e5e7eb; }
+  .tour-btn-next { background: #6366f1; color: white; font-weight: 600; }
+  .tour-btn-next:hover { background: #4f46e5; }
+  .tour-help-btn {
+    display: inline-flex; align-items: center; gap: 4px;
+    padding: 5px 12px; border-radius: 6px; font-size: 13px;
+    background: #eef2ff; color: #4f46e5; border: 1px solid #c7d2fe;
+    cursor: pointer; font-weight: 500;
+  }
+  .tour-help-btn:hover { background: #e0e7ff; }
 </style>
 {% endblock %}
 
@@ -177,6 +219,7 @@
 
   {# ===== Toolbar ===== #}
   <div class="flex items-center gap-3 mb-4 flex-wrap">
+    <button class="tour-help-btn" onclick="startTour();" title="操作ガイドを表示">? ガイド</button>
     <div class="flex items-center gap-2 ml-auto">
       <label for="sales-period" class="text-sm font-medium db-text-secondary">期間:</label>
       <select id="sales-period" class="toolbar-btn">
@@ -191,6 +234,7 @@
   <div class="flex gap-1 border-b border-gray-200 mb-4 flex-wrap" id="dashboard-tabs">
     <button class="tab-btn active" data-tab="overview" onclick="switchTab('overview')">概要</button>
     <button class="tab-btn" data-tab="sales" onclick="switchTab('sales')">売上</button>
+    <button class="tab-btn" data-tab="customers" onclick="switchTab('customers')">顧客</button>
     <button class="tab-btn" data-tab="staff" onclick="switchTab('staff')">スタッフ</button>
     <button class="tab-btn" data-tab="shift" onclick="switchTab('shift')">シフト</button>
     <button class="tab-btn" data-tab="attendance" onclick="switchTab('attendance')">勤怠</button>
@@ -202,6 +246,8 @@
     <div class="sub-tab-bar" id="overview-sub-tabs">
       <button class="sub-tab-btn active" data-subtab="overview-kpi" onclick="switchSubTab('overview', 'overview-kpi')">予約KPI</button>
       <button class="sub-tab-btn" data-subtab="overview-chart" onclick="switchSubTab('overview', 'overview-chart')">日別予約グラフ</button>
+      <button class="sub-tab-btn" data-subtab="overview-insights" onclick="switchSubTab('overview', 'overview-insights'); loadInsights();">インサイト <span id="insight-badge" class="inline-flex items-center justify-center px-2 py-0.5 text-xs font-bold rounded-full bg-rose-500 text-white" style="display:none;">0</span></button>
+      <button class="sub-tab-btn" data-subtab="overview-kpi-score" onclick="switchSubTab('overview', 'overview-kpi-score'); loadKPIScorecard();">KPIスコアカード</button>
     </div>
     <div class="sub-tab-content active" id="subtab-overview-kpi">
       <div class="db-card">
@@ -228,6 +274,28 @@
         <div class="chart-viewport"><canvas id="reservationChart"></canvas></div>
       </div>
     </div>
+    <div class="sub-tab-content" id="subtab-overview-insights">
+      <div class="db-card">
+        <div class="flex items-center justify-between mb-3">
+          <h3 class="text-lg font-semibold">ビジネスインサイト</h3>
+          <div class="flex gap-2">
+            <button onclick="markAllInsightsRead()" class="px-3 py-1 text-xs bg-gray-200 hover:bg-gray-300 rounded">すべて既読</button>
+            <button onclick="generateInsights()" id="btn-generate-insights" class="px-3 py-1 text-xs bg-indigo-500 hover:bg-indigo-600 text-white rounded">分析実行</button>
+          </div>
+        </div>
+        <div id="insights-list" class="space-y-2">
+          <p class="text-gray-400 text-sm text-center">読み込み中...</p>
+        </div>
+      </div>
+    </div>
+    <div class="sub-tab-content" id="subtab-overview-kpi-score">
+      <div class="db-card">
+        <h3 class="text-lg font-semibold mb-4">KPIスコアカード</h3>
+        <div id="kpi-scorecard-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+          <p class="text-gray-400 text-sm text-center col-span-full">読み込み中...</p>
+        </div>
+      </div>
+    </div>
   </div>
 
   {# ===== Tab: 売上 ===== #}
@@ -235,6 +303,11 @@
     <div class="sub-tab-bar" id="sales-sub-tabs">
       <button class="sub-tab-btn active" data-subtab="sales-trend" onclick="switchSubTab('sales', 'sales-trend')">売上推移</button>
       <button class="sub-tab-btn" data-subtab="sales-products" onclick="switchSubTab('sales', 'sales-products')">人気商品 TOP10</button>
+      <button class="sub-tab-btn" data-subtab="sales-menu-eng" onclick="switchSubTab('sales', 'sales-menu-eng'); loadMenuEngineering();">メニュー分析</button>
+      <button class="sub-tab-btn" data-subtab="sales-abc" onclick="switchSubTab('sales', 'sales-abc'); loadABCAnalysis();">ABC分析</button>
+      <button class="sub-tab-btn" data-subtab="sales-forecast" onclick="switchSubTab('sales', 'sales-forecast'); loadForecast();">売上予測</button>
+      <button class="sub-tab-btn" data-subtab="sales-heatmap" onclick="switchSubTab('sales', 'sales-heatmap'); loadSalesHeatmap();">時間帯別売上</button>
+      <button class="sub-tab-btn" data-subtab="sales-aov" onclick="switchSubTab('sales', 'sales-aov'); loadAOVTrend();">客単価推移</button>
     </div>
     <div class="sub-tab-content active" id="subtab-sales-trend">
       <div class="db-card">
@@ -246,6 +319,178 @@
       <div class="db-card">
         <h3 class="text-lg font-semibold mb-3">人気商品 TOP10</h3>
         <div class="chart-viewport"><canvas id="topProductsChart"></canvas></div>
+      </div>
+    </div>
+    <div class="sub-tab-content" id="subtab-sales-menu-eng">
+      <div class="db-card">
+        <div class="flex items-center justify-between mb-3">
+          <h3 class="text-lg font-semibold">メニューエンジニアリング マトリクス</h3>
+          <div class="flex items-center gap-3">
+            <div class="flex flex-wrap gap-2 text-xs">
+              <span class="inline-flex items-center gap-1"><span class="w-3 h-3 rounded-full" style="background: rgba(16,185,129,0.8);"></span> Star</span>
+              <span class="inline-flex items-center gap-1"><span class="w-3 h-3 rounded-full" style="background: rgba(14,165,233,0.8);"></span> Plowhorse</span>
+              <span class="inline-flex items-center gap-1"><span class="w-3 h-3 rounded-full" style="background: rgba(245,158,11,0.8);"></span> Puzzle</span>
+              <span class="inline-flex items-center gap-1"><span class="w-3 h-3 rounded-full" style="background: rgba(244,63,94,0.7);"></span> Dog</span>
+            </div>
+          </div>
+        </div>
+        <div class="chart-viewport"><canvas id="menuEngChart"></canvas></div>
+        <div id="menu-eng-table" class="mt-4">
+          <table class="w-full text-sm border border-gray-200 rounded">
+            <thead>
+              <tr class="bg-gray-50">
+                <th class="px-3 py-2 text-left">商品名</th>
+                <th class="px-3 py-2 text-right">販売数</th>
+                <th class="px-3 py-2 text-right">利益率</th>
+                <th class="px-3 py-2 text-right">売上</th>
+                <th class="px-3 py-2 text-center">分類</th>
+              </tr>
+            </thead>
+            <tbody id="menu-eng-tbody">
+              <tr><td colspan="5" class="px-3 py-2 text-gray-400 text-center">読み込み中...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+    <div class="sub-tab-content" id="subtab-sales-abc">
+      <div class="db-card">
+        <div class="flex items-center justify-between mb-3">
+          <h3 class="text-lg font-semibold">ABC分析（パレート）</h3>
+          <div class="flex flex-wrap gap-2 text-xs">
+            <span class="inline-flex items-center gap-1"><span class="w-3 h-3 rounded-full bg-emerald-500"></span> A (上位80%)</span>
+            <span class="inline-flex items-center gap-1"><span class="w-3 h-3 rounded-full bg-amber-500"></span> B (80-95%)</span>
+            <span class="inline-flex items-center gap-1"><span class="w-3 h-3 rounded-full bg-gray-400"></span> C (95-100%)</span>
+          </div>
+        </div>
+        <div class="chart-viewport"><canvas id="abcChart"></canvas></div>
+        <div id="abc-table" class="mt-4">
+          <table class="w-full text-sm border border-gray-200 rounded">
+            <thead>
+              <tr class="bg-gray-50">
+                <th class="px-3 py-2 text-left">商品名</th>
+                <th class="px-3 py-2 text-right">売上</th>
+                <th class="px-3 py-2 text-right">構成比</th>
+                <th class="px-3 py-2 text-right">累積</th>
+                <th class="px-3 py-2 text-center">ランク</th>
+              </tr>
+            </thead>
+            <tbody id="abc-tbody">
+              <tr><td colspan="5" class="px-3 py-2 text-gray-400 text-center">読み込み中...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+    <div class="sub-tab-content" id="subtab-sales-forecast">
+      <div class="db-card">
+        <div class="flex items-center justify-between mb-3">
+          <h3 class="text-lg font-semibold">売上予測</h3>
+          <span id="forecast-method" class="text-xs px-2 py-1 bg-indigo-100 text-indigo-700 rounded-full font-medium"></span>
+        </div>
+        <div class="chart-viewport"><canvas id="forecastChart"></canvas></div>
+      </div>
+    </div>
+    <div class="sub-tab-content" id="subtab-sales-heatmap">
+      <div class="db-card">
+        <div class="flex items-center justify-between mb-3">
+          <h3 class="text-lg font-semibold">時間帯別売上ヒートマップ</h3>
+          <span class="text-xs text-gray-400">曜日 × 時間帯（過去90日）</span>
+        </div>
+        <div class="chart-viewport" style="height:320px; min-height:280px;"><canvas id="salesHeatmapChart"></canvas></div>
+      </div>
+    </div>
+    <div class="sub-tab-content" id="subtab-sales-aov">
+      <div class="db-card">
+        <div class="flex items-center justify-between mb-3">
+          <h3 class="text-lg font-semibold">客単価（AOV）推移</h3>
+          <select id="aov-period-select" onchange="loadAOVTrend(true)" class="text-sm border border-gray-300 rounded px-2 py-1">
+            <option value="daily">日別</option>
+            <option value="weekly">週別</option>
+            <option value="monthly">月別</option>
+          </select>
+        </div>
+        <div class="chart-viewport"><canvas id="aovTrendChart"></canvas></div>
+      </div>
+    </div>
+  </div>
+
+  {# ===== Tab: 顧客分析 ===== #}
+  <div class="tab-content" id="tab-customers">
+    <div class="sub-tab-bar" id="customers-sub-tabs">
+      <button class="sub-tab-btn active" data-subtab="cust-cohort" onclick="switchSubTab('customers', 'cust-cohort'); loadCohort();">コホート分析</button>
+      <button class="sub-tab-btn" data-subtab="cust-rfm" onclick="switchSubTab('customers', 'cust-rfm'); loadRFM();">RFM分析</button>
+      <button class="sub-tab-btn" data-subtab="cust-basket" onclick="switchSubTab('customers', 'cust-basket'); loadBasket();">バスケット分析</button>
+      <button class="sub-tab-btn" data-subtab="cust-nps" onclick="switchSubTab('customers', 'cust-nps'); loadNPS();">NPS・満足度</button>
+    </div>
+    <div class="sub-tab-content active" id="subtab-cust-cohort">
+      <div class="db-card">
+        <div class="flex items-center justify-between mb-3">
+          <h3 class="text-lg font-semibold">月別コホート リテンション</h3>
+          <span class="text-xs text-gray-400">初回来店月ごとの継続率</span>
+        </div>
+        <div id="cohort-table" class="overflow-x-auto">
+          <p class="text-gray-400 text-center py-8">読み込み中...</p>
+        </div>
+      </div>
+    </div>
+    <div class="sub-tab-content" id="subtab-cust-rfm">
+      <div class="db-card">
+        <div class="flex items-center justify-between mb-3">
+          <h3 class="text-lg font-semibold">RFMセグメンテーション</h3>
+          <div class="flex flex-wrap gap-2 text-xs">
+            <span class="inline-flex items-center gap-1"><span class="w-3 h-3 rounded-full bg-emerald-500"></span> Champion</span>
+            <span class="inline-flex items-center gap-1"><span class="w-3 h-3 rounded-full bg-blue-500"></span> Loyal</span>
+            <span class="inline-flex items-center gap-1"><span class="w-3 h-3 rounded-full bg-cyan-500"></span> New</span>
+            <span class="inline-flex items-center gap-1"><span class="w-3 h-3 rounded-full bg-amber-500"></span> At Risk</span>
+            <span class="inline-flex items-center gap-1"><span class="w-3 h-3 rounded-full bg-rose-500"></span> Lost</span>
+          </div>
+        </div>
+        <div class="chart-viewport"><canvas id="rfmChart"></canvas></div>
+        <div id="rfm-segments" class="mt-4 grid grid-cols-2 md:grid-cols-4 gap-3"></div>
+      </div>
+    </div>
+    <div class="sub-tab-content" id="subtab-cust-basket">
+      <div class="db-card">
+        <div class="flex items-center justify-between mb-3">
+          <h3 class="text-lg font-semibold">バスケット分析（併売ルール）</h3>
+          <span id="basket-method" class="text-xs px-2 py-1 bg-purple-100 text-purple-700 rounded-full font-medium"></span>
+        </div>
+        <div id="basket-table" class="overflow-x-auto">
+          <p class="text-gray-400 text-center py-8">読み込み中...</p>
+        </div>
+        <p id="basket-total" class="text-xs text-gray-400 mt-2"></p>
+      </div>
+    </div>
+    <div class="sub-tab-content" id="subtab-cust-nps">
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <div class="db-card">
+          <h3 class="text-lg font-semibold mb-3">NPSスコア</h3>
+          <div id="nps-gauge" class="flex flex-col items-center py-4">
+            <div id="nps-score-display" class="text-5xl font-bold mb-1">--</div>
+            <div class="text-sm text-gray-500 mb-3">Net Promoter Score</div>
+            <div id="nps-breakdown" class="flex gap-4 text-sm">
+              <span class="text-emerald-600">推奨者: <b id="nps-promoters">0</b></span>
+              <span class="text-gray-500">中立者: <b id="nps-passives">0</b></span>
+              <span class="text-rose-600">批判者: <b id="nps-detractors">0</b></span>
+            </div>
+            <div class="text-xs text-gray-400 mt-2">回答数: <span id="nps-total">0</span></div>
+          </div>
+        </div>
+        <div class="db-card">
+          <h3 class="text-lg font-semibold mb-3">カテゴリ別評価</h3>
+          <div class="chart-viewport" style="max-height:250px;"><canvas id="npsRadarChart"></canvas></div>
+        </div>
+      </div>
+      <div class="db-card mt-4">
+        <h3 class="text-lg font-semibold mb-3">NPS推移</h3>
+        <div class="chart-viewport"><canvas id="npsTrendChart"></canvas></div>
+      </div>
+      <div class="db-card mt-4">
+        <h3 class="text-lg font-semibold mb-3">最新フィードバック</h3>
+        <div id="feedback-list" class="space-y-2">
+          <p class="text-gray-400 text-sm text-center">読み込み中...</p>
+        </div>
       </div>
     </div>
   </div>
@@ -451,6 +696,7 @@ document.addEventListener('DOMContentLoaded', function () {
     if (tabName === 'staff' && !staffLoaded) { loadStaffPerformance(); staffLoaded = true; }
     if (tabName === 'shift' && !shiftLoaded) { loadShiftData(); shiftLoaded = true; }
     if (tabName === 'attendance' && !attendanceLoaded) { loadAttendance(); attendanceLoaded = true; }
+    if (tabName === 'customers' && !customersLoaded) { loadCohort(); customersLoaded = true; }
     if (tabName === 'operations' && !operationsLoaded) { loadOperations(); operationsLoaded = true; }
   };
 
@@ -459,6 +705,7 @@ document.addEventListener('DOMContentLoaded', function () {
   var shiftLoaded = false;
   var attendanceLoaded = false;
   var operationsLoaded = false;
+  var customersLoaded = false;
 
   /* ------------------------------------------------------------------ */
   /*  Sub-tab switching (within a main tab)                              */
@@ -705,6 +952,817 @@ document.addEventListener('DOMContentLoaded', function () {
   });
 
   /* ------------------------------------------------------------------ */
+  /*  2b. Menu Engineering Matrix (lazy loaded)                          */
+  /* ------------------------------------------------------------------ */
+  var menuEngChart = null;
+  var menuEngLoaded = false;
+
+  window.loadMenuEngineering = function() {
+    if (menuEngLoaded) return;
+    menuEngLoaded = true;
+
+    apiFetch('/api/dashboard/menu-engineering/').then(function (data) {
+      var products = data.products || [];
+      var avgPop = data.avg_popularity || 0;
+      var avgMargin = data.avg_margin || 0;
+
+      // Demo data if empty
+      if (products.length === 0) {
+        avgPop = 60; avgMargin = 0.35;
+        products = [
+          {name: 'ビール', qty_sold: 156, margin_rate: 0.45, revenue: 62400, quadrant: 'star'},
+          {name: 'ハイボール', qty_sold: 132, margin_rate: 0.50, revenue: 52800, quadrant: 'star'},
+          {name: '枝豆', qty_sold: 98, margin_rate: 0.60, revenue: 29400, quadrant: 'star'},
+          {name: '唐揚げ', qty_sold: 87, margin_rate: 0.30, revenue: 43500, quadrant: 'plowhorse'},
+          {name: '焼き鳥', qty_sold: 76, margin_rate: 0.25, revenue: 38000, quadrant: 'plowhorse'},
+          {name: 'ワイン', qty_sold: 32, margin_rate: 0.55, revenue: 32000, quadrant: 'puzzle'},
+          {name: '刺身', qty_sold: 28, margin_rate: 0.40, revenue: 42000, quadrant: 'puzzle'},
+          {name: 'サラダ', qty_sold: 38, margin_rate: 0.15, revenue: 11400, quadrant: 'dog'},
+          {name: 'ポテトフライ', qty_sold: 48, margin_rate: 0.20, revenue: 14400, quadrant: 'dog'}
+        ];
+      }
+
+      // Color map
+      var quadColors = {star: COLORS.emerald, plowhorse: COLORS.sky, puzzle: COLORS.amber, dog: COLORS.rose};
+      var quadLabels = {star: 'Star', plowhorse: 'Plowhorse', puzzle: 'Puzzle', dog: 'Dog'};
+      var quadBadge = {
+        star: 'bg-emerald-100 text-emerald-700',
+        plowhorse: 'bg-sky-100 text-sky-700',
+        puzzle: 'bg-amber-100 text-amber-700',
+        dog: 'bg-rose-100 text-rose-700'
+      };
+
+      // Build scatter datasets grouped by quadrant
+      var datasets = {};
+      products.forEach(function (p) {
+        var q = p.quadrant || 'dog';
+        if (!datasets[q]) {
+          datasets[q] = {
+            label: quadLabels[q] || q,
+            data: [],
+            backgroundColor: quadColors[q] || COLORS.rose,
+            pointRadius: 6,
+            pointHoverRadius: 9,
+          };
+        }
+        datasets[q].data.push({
+          x: p.qty_sold,
+          y: p.margin_rate * 100,
+          label: p.name,
+        });
+      });
+
+      if (menuEngChart) menuEngChart.destroy();
+      var ctx = document.getElementById('menuEngChart').getContext('2d');
+      menuEngChart = new Chart(ctx, {
+        type: 'scatter',
+        data: { datasets: Object.values(datasets) },
+        options: {
+          responsive: true, maintainAspectRatio: false,
+          plugins: {
+            legend: { position: 'top' },
+            tooltip: {
+              callbacks: {
+                label: function(context) {
+                  var pt = context.raw;
+                  return pt.label + ' (販売: ' + pt.x + ', 利益率: ' + pt.y.toFixed(1) + '%)';
+                }
+              }
+            },
+            annotation: undefined
+          },
+          scales: {
+            x: {
+              title: { display: true, text: '販売数量 (人気度)' },
+              beginAtZero: true,
+              grid: { color: function(context) { return context.tick && context.tick.value === Math.round(avgPop) ? 'rgba(107,114,128,0.4)' : 'rgba(229,231,235,0.5)'; } }
+            },
+            y: {
+              title: { display: true, text: '利益率 (%)' },
+              beginAtZero: true,
+              grid: { color: function(context) { return context.tick && Math.abs(context.tick.value - avgMargin * 100) < 1 ? 'rgba(107,114,128,0.4)' : 'rgba(229,231,235,0.5)'; } }
+            }
+          }
+        }
+      });
+
+      // Table
+      var tbody = document.getElementById('menu-eng-tbody');
+      if (products.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="5" class="px-3 py-2 text-gray-400 text-center">データなし</td></tr>';
+      } else {
+        tbody.innerHTML = products.sort(function(a,b) { return b.qty_sold - a.qty_sold; }).map(function(p) {
+          var badge = quadBadge[p.quadrant] || '';
+          return '<tr class="border-t border-gray-100">'
+            + '<td class="px-3 py-2">' + escapeHtml(p.name) + '</td>'
+            + '<td class="px-3 py-2 text-right">' + p.qty_sold + '</td>'
+            + '<td class="px-3 py-2 text-right">' + (p.margin_rate * 100).toFixed(1) + '%</td>'
+            + '<td class="px-3 py-2 text-right">' + Number(p.revenue).toLocaleString() + ' 円</td>'
+            + '<td class="px-3 py-2 text-center"><span class="px-2 py-0.5 rounded-full text-xs font-semibold ' + badge + '">' + (quadLabels[p.quadrant] || p.quadrant) + '</span></td>'
+            + '</tr>';
+        }).join('');
+      }
+    }).catch(function (err) {
+      console.error('Failed to load menu engineering:', err);
+      document.getElementById('menu-eng-tbody').innerHTML = '<tr><td colspan="5" class="px-3 py-2 text-gray-400 text-center">取得エラー</td></tr>';
+    });
+  };
+
+  /* ------------------------------------------------------------------ */
+  /*  2c. ABC Analysis / Pareto (lazy loaded)                            */
+  /* ------------------------------------------------------------------ */
+  var abcChart = null;
+  var abcLoaded = false;
+
+  window.loadABCAnalysis = function() {
+    if (abcLoaded) return;
+    abcLoaded = true;
+
+    apiFetch('/api/dashboard/abc-analysis/').then(function (data) {
+      var products = data.products || [];
+      var totalRevenue = data.total_revenue || 0;
+
+      // Demo data if empty
+      if (products.length === 0) {
+        totalRevenue = 289200;
+        products = [
+          {name: 'ビール', revenue: 78000, share_pct: 27.0, cumulative_pct: 27.0, rank: 'A'},
+          {name: 'ハイボール', revenue: 52800, share_pct: 18.3, cumulative_pct: 45.3, rank: 'A'},
+          {name: '刺身盛り', revenue: 42000, share_pct: 14.5, cumulative_pct: 59.8, rank: 'A'},
+          {name: '唐揚げ', revenue: 43500, share_pct: 15.0, cumulative_pct: 74.8, rank: 'A'},
+          {name: '焼き鳥', revenue: 30400, share_pct: 10.5, cumulative_pct: 85.3, rank: 'B'},
+          {name: '枝豆', revenue: 19600, share_pct: 6.8, cumulative_pct: 92.1, rank: 'B'},
+          {name: 'サラダ', revenue: 11400, share_pct: 3.9, cumulative_pct: 96.0, rank: 'C'},
+          {name: 'ポテトフライ', revenue: 11500, share_pct: 4.0, cumulative_pct: 100.0, rank: 'C'}
+        ];
+      }
+
+      var rankColors = {A: COLORS.emerald, B: COLORS.amber, C: 'rgba(156,163,175,0.6)'};
+      var rankBadge = {
+        A: 'bg-emerald-100 text-emerald-700',
+        B: 'bg-amber-100 text-amber-700',
+        C: 'bg-gray-100 text-gray-600'
+      };
+
+      var labels = products.map(function(p) { return p.name; });
+      var revenues = products.map(function(p) { return p.revenue; });
+      var cumPcts = products.map(function(p) { return p.cumulative_pct; });
+      var barColors = products.map(function(p) { return rankColors[p.rank] || rankColors.C; });
+
+      if (abcChart) abcChart.destroy();
+      var ctx = document.getElementById('abcChart').getContext('2d');
+      abcChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: labels,
+          datasets: [
+            {
+              label: '売上 (円)',
+              data: revenues,
+              backgroundColor: barColors,
+              borderRadius: 4,
+              yAxisID: 'y',
+              order: 2,
+            },
+            {
+              label: '累積構成比 (%)',
+              data: cumPcts,
+              type: 'line',
+              borderColor: COLORS.rose,
+              backgroundColor: 'transparent',
+              borderWidth: 2,
+              pointRadius: 4,
+              pointBackgroundColor: COLORS.rose,
+              tension: 0.2,
+              yAxisID: 'y1',
+              order: 1,
+            }
+          ]
+        },
+        options: {
+          responsive: true, maintainAspectRatio: false,
+          plugins: {
+            legend: { position: 'top' },
+            tooltip: {
+              callbacks: {
+                label: function(context) {
+                  if (context.dataset.yAxisID === 'y1') return '累積: ' + context.parsed.y.toFixed(1) + '%';
+                  return '売上: ' + Number(context.parsed.y).toLocaleString() + ' 円';
+                }
+              }
+            }
+          },
+          scales: {
+            x: { ticks: { maxRotation: 45, font: { size: 11 } } },
+            y: {
+              type: 'linear', position: 'left', beginAtZero: true,
+              title: { display: true, text: '売上 (円)' },
+              ticks: { callback: function(v) { return Number(v).toLocaleString(); } }
+            },
+            y1: {
+              type: 'linear', position: 'right', min: 0, max: 105,
+              title: { display: true, text: '累積構成比 (%)' },
+              grid: { drawOnChartArea: false },
+              ticks: { callback: function(v) { return v + '%'; } }
+            }
+          }
+        }
+      });
+
+      // Table
+      var tbody = document.getElementById('abc-tbody');
+      if (products.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="5" class="px-3 py-2 text-gray-400 text-center">データなし</td></tr>';
+      } else {
+        tbody.innerHTML = products.map(function(p) {
+          var badge = rankBadge[p.rank] || '';
+          return '<tr class="border-t border-gray-100">'
+            + '<td class="px-3 py-2">' + escapeHtml(p.name) + '</td>'
+            + '<td class="px-3 py-2 text-right">' + Number(p.revenue).toLocaleString() + ' 円</td>'
+            + '<td class="px-3 py-2 text-right">' + p.share_pct + '%</td>'
+            + '<td class="px-3 py-2 text-right">' + p.cumulative_pct + '%</td>'
+            + '<td class="px-3 py-2 text-center"><span class="px-2 py-0.5 rounded-full text-xs font-bold ' + badge + '">' + p.rank + '</span></td>'
+            + '</tr>';
+        }).join('');
+      }
+    }).catch(function (err) {
+      console.error('Failed to load ABC analysis:', err);
+      document.getElementById('abc-tbody').innerHTML = '<tr><td colspan="5" class="px-3 py-2 text-gray-400 text-center">取得エラー</td></tr>';
+    });
+  };
+
+  /* ------------------------------------------------------------------ */
+  /*  2d. Sales Forecast (lazy loaded)                                   */
+  /* ------------------------------------------------------------------ */
+  var forecastChart = null;
+  var forecastLoaded = false;
+
+  window.loadForecast = function() {
+    if (forecastLoaded) return;
+    forecastLoaded = true;
+
+    apiFetch('/api/dashboard/forecast/?days=14').then(function (data) {
+      var historical = data.historical || [];
+      var forecast = data.forecast || [];
+      var method = data.method || 'moving_average';
+
+      // Demo data if empty
+      if (historical.length === 0 && forecast.length === 0) {
+        method = 'moving_average';
+        var now = new Date();
+        for (var i = 29; i >= 0; i--) {
+          var d = new Date(now); d.setDate(d.getDate() - i);
+          historical.push({date: d.toISOString().slice(0,10), revenue: Math.floor(Math.random()*50000)+20000});
+        }
+        var lastRev = historical[historical.length-1].revenue;
+        for (var j = 1; j <= 14; j++) {
+          var fd = new Date(now); fd.setDate(fd.getDate() + j);
+          var pred = lastRev + Math.floor(Math.random()*10000-5000);
+          forecast.push({date: fd.toISOString().slice(0,10), predicted: pred, lower: Math.round(pred*0.7), upper: Math.round(pred*1.3)});
+        }
+      }
+
+      document.getElementById('forecast-method').textContent = method === 'prophet' ? 'Prophet' : '移動平均+曜日係数';
+
+      // Combine labels
+      var allLabels = historical.map(function(h) { return h.date; }).concat(forecast.map(function(f) { return f.date; }));
+
+      // Historical data (null-pad for forecast period)
+      var histData = historical.map(function(h) { return h.revenue; });
+      for (var k = 0; k < forecast.length; k++) histData.push(null);
+
+      // Forecast data (null-pad for historical period)
+      var predData = [];
+      for (var m = 0; m < historical.length; m++) predData.push(null);
+      // Connect: use last historical point as first forecast point
+      if (historical.length > 0) {
+        predData[predData.length - 1] = historical[historical.length - 1].revenue;
+      }
+      forecast.forEach(function(f) { predData.push(f.predicted); });
+
+      // Confidence interval
+      var upperData = [];
+      var lowerData = [];
+      for (var n = 0; n < historical.length; n++) { upperData.push(null); lowerData.push(null); }
+      if (historical.length > 0) {
+        upperData[upperData.length - 1] = historical[historical.length - 1].revenue;
+        lowerData[lowerData.length - 1] = historical[historical.length - 1].revenue;
+      }
+      forecast.forEach(function(f) { upperData.push(f.upper); lowerData.push(f.lower); });
+
+      if (forecastChart) forecastChart.destroy();
+      var ctx = document.getElementById('forecastChart').getContext('2d');
+      forecastChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: allLabels,
+          datasets: [
+            {
+              label: '実績',
+              data: histData,
+              borderColor: COLORS.emerald,
+              backgroundColor: 'rgba(16,185,129,0.1)',
+              fill: false,
+              tension: 0.3,
+              pointRadius: 2,
+              borderWidth: 2,
+            },
+            {
+              label: '予測',
+              data: predData,
+              borderColor: COLORS.indigo,
+              borderDash: [5, 5],
+              fill: false,
+              tension: 0.3,
+              pointRadius: 3,
+              borderWidth: 2,
+            },
+            {
+              label: '上限',
+              data: upperData,
+              borderColor: 'transparent',
+              backgroundColor: 'rgba(99,102,241,0.1)',
+              fill: '+1',
+              pointRadius: 0,
+              borderWidth: 0,
+            },
+            {
+              label: '下限',
+              data: lowerData,
+              borderColor: 'transparent',
+              backgroundColor: 'rgba(99,102,241,0.1)',
+              fill: '-1',
+              pointRadius: 0,
+              borderWidth: 0,
+            }
+          ]
+        },
+        options: {
+          responsive: true, maintainAspectRatio: false,
+          plugins: {
+            legend: {
+              position: 'top',
+              labels: { filter: function(item) { return item.text !== '上限' && item.text !== '下限'; } }
+            },
+            tooltip: {
+              callbacks: {
+                label: function(context) {
+                  if (context.dataset.label === '上限' || context.dataset.label === '下限') return null;
+                  return context.dataset.label + ': ' + Number(context.parsed.y).toLocaleString() + ' 円';
+                }
+              }
+            }
+          },
+          scales: {
+            x: { ticks: { maxTicksLimit: 12, maxRotation: 45, font: { size: 10 } } },
+            y: {
+              beginAtZero: true,
+              title: { display: true, text: '売上 (円)' },
+              ticks: { callback: function(v) { return Number(v).toLocaleString(); } }
+            }
+          }
+        }
+      });
+    }).catch(function (err) {
+      console.error('Failed to load forecast:', err);
+    });
+  };
+
+  /* ------------------------------------------------------------------ */
+  /*  2e. Sales Heatmap (lazy loaded)                                    */
+  /* ------------------------------------------------------------------ */
+  var salesHeatmapChart = null;
+  var salesHeatmapLoaded = false;
+
+  window.loadSalesHeatmap = function() {
+    if (salesHeatmapLoaded) return;
+    salesHeatmapLoaded = true;
+
+    var WEEKDAY_LABELS = ['日', '月', '火', '水', '木', '金', '土'];
+
+    apiFetch('/api/dashboard/sales-heatmap/').then(function (data) {
+      var heatmap = data.heatmap || [];
+
+      // Demo data if empty
+      if (heatmap.length === 0) {
+        for (var wd = 1; wd <= 7; wd++) {
+          for (var hr = 0; hr < 24; hr++) {
+            var base = (hr >= 11 && hr <= 14) || (hr >= 17 && hr <= 22) ? 15000 : 2000;
+            if (wd >= 6) base *= 1.3;
+            heatmap.push({weekday: wd, hour: hr, revenue: Math.floor(base + Math.random()*10000), orders: Math.floor(Math.random()*10)});
+          }
+        }
+      }
+
+      // Find max revenue for color scaling
+      var maxRev = 1;
+      heatmap.forEach(function(c) { if (c.revenue > maxRev) maxRev = c.revenue; });
+
+      // Build dataset for bubble chart (scatter)
+      var points = heatmap.map(function(c) {
+        var intensity = c.revenue / maxRev;
+        var r = Math.max(3, Math.sqrt(intensity) * 18);
+        return {
+          x: c.hour,
+          y: c.weekday - 1,
+          r: r,
+          revenue: c.revenue,
+          orders: c.orders,
+        };
+      });
+
+      if (salesHeatmapChart) salesHeatmapChart.destroy();
+      var ctx = document.getElementById('salesHeatmapChart').getContext('2d');
+      salesHeatmapChart = new Chart(ctx, {
+        type: 'bubble',
+        data: {
+          datasets: [{
+            label: '売上',
+            data: points,
+            backgroundColor: points.map(function(p) {
+              var i = p.revenue / maxRev;
+              return 'rgba(79,70,229,' + (0.15 + i * 0.75) + ')';
+            }),
+            borderColor: 'rgba(79,70,229,0.3)',
+            borderWidth: 1,
+          }]
+        },
+        options: {
+          responsive: true, maintainAspectRatio: false,
+          plugins: {
+            legend: { display: false },
+            tooltip: {
+              callbacks: {
+                label: function(ctx) {
+                  var p = ctx.raw;
+                  return WEEKDAY_LABELS[p.y] + ' ' + p.x + '時 — ' + Number(p.revenue).toLocaleString() + '円 / ' + p.orders + '件';
+                }
+              }
+            }
+          },
+          scales: {
+            x: {
+              min: -0.5, max: 23.5,
+              title: { display: true, text: '時間帯' },
+              ticks: { stepSize: 1, callback: function(v) { return v + '時'; } }
+            },
+            y: {
+              min: -0.5, max: 6.5,
+              reverse: true,
+              title: { display: true, text: '曜日' },
+              ticks: { stepSize: 1, callback: function(v) { return WEEKDAY_LABELS[v] || ''; } }
+            }
+          }
+        }
+      });
+    }).catch(function(err) {
+      console.error('Failed to load sales heatmap:', err);
+    });
+  };
+
+  /* ------------------------------------------------------------------ */
+  /*  2f. AOV Trend (lazy loaded)                                        */
+  /* ------------------------------------------------------------------ */
+  var aovChart = null;
+  var aovLoaded = false;
+
+  window.loadAOVTrend = function(forceReload) {
+    if (aovLoaded && !forceReload) return;
+    aovLoaded = true;
+
+    var period = document.getElementById('aov-period-select').value;
+
+    apiFetch('/api/dashboard/aov-trend/?period=' + period).then(function (data) {
+      var trend = data.trend || [];
+
+      // Demo data if empty
+      if (trend.length === 0) {
+        var now = new Date();
+        for (var i = 29; i >= 0; i--) {
+          var d = new Date(now); d.setDate(d.getDate() - i);
+          var aov = 1500 + Math.floor(Math.random()*1000);
+          trend.push({date: d.toISOString().slice(0,10), aov: aov, order_count: Math.floor(Math.random()*20)+5, total_revenue: aov * (Math.floor(Math.random()*20)+5)});
+        }
+      }
+
+      var labels = trend.map(function(t) { return t.date; });
+      var aovData = trend.map(function(t) { return t.aov; });
+      var orderData = trend.map(function(t) { return t.order_count; });
+
+      if (aovChart) aovChart.destroy();
+      var ctx = document.getElementById('aovTrendChart').getContext('2d');
+      aovChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: labels,
+          datasets: [
+            {
+              label: '客単価 (円)',
+              data: aovData,
+              borderColor: COLORS.indigo,
+              backgroundColor: 'rgba(99,102,241,0.1)',
+              fill: true,
+              tension: 0.3,
+              pointRadius: 2,
+              borderWidth: 2,
+              yAxisID: 'y',
+            },
+            {
+              label: '注文数',
+              data: orderData,
+              type: 'bar',
+              backgroundColor: 'rgba(16,185,129,0.3)',
+              borderColor: COLORS.emerald,
+              borderWidth: 1,
+              borderRadius: 3,
+              yAxisID: 'y1',
+            }
+          ]
+        },
+        options: {
+          responsive: true, maintainAspectRatio: false,
+          plugins: {
+            legend: { position: 'top' },
+            tooltip: {
+              callbacks: {
+                label: function(context) {
+                  if (context.dataset.yAxisID === 'y') return '客単価: ' + Number(context.parsed.y).toLocaleString() + ' 円';
+                  return '注文数: ' + context.parsed.y;
+                }
+              }
+            }
+          },
+          scales: {
+            x: { ticks: { maxTicksLimit: 12, maxRotation: 45, font: { size: 10 } } },
+            y: {
+              type: 'linear', position: 'left', beginAtZero: true,
+              title: { display: true, text: '客単価 (円)' },
+              ticks: { callback: function(v) { return Number(v).toLocaleString(); } }
+            },
+            y1: {
+              type: 'linear', position: 'right', beginAtZero: true,
+              title: { display: true, text: '注文数' },
+              grid: { drawOnChartArea: false },
+              ticks: { precision: 0 }
+            }
+          }
+        }
+      });
+    }).catch(function(err) {
+      console.error('Failed to load AOV trend:', err);
+    });
+  };
+
+  /* ------------------------------------------------------------------ */
+  /*  2g. Cohort Analysis (lazy loaded)                                  */
+  /* ------------------------------------------------------------------ */
+  var cohortLoaded = false;
+
+  window.loadCohort = function() {
+    if (cohortLoaded) return;
+    cohortLoaded = true;
+
+    apiFetch('/api/dashboard/cohort/?months=6').then(function (data) {
+      var cohorts = data.cohorts || [];
+      var container = document.getElementById('cohort-table');
+
+      if (cohorts.length === 0) {
+        // Demo data
+        var months = ['2025-10', '2025-11', '2025-12', '2026-01', '2026-02', '2026-03'];
+        cohorts = months.map(function(m, i) {
+          var ret = {};
+          for (var j = 0; j <= months.length - i - 1; j++) {
+            var rate = Math.max(0.1, 1.0 - j * 0.15 - Math.random() * 0.1);
+            ret[String(j)] = {count: Math.round(20 * rate), rate: Math.round(rate * 1000) / 1000};
+          }
+          return {cohort: m + '-01', size: 20 + Math.floor(Math.random() * 15), retention: ret};
+        });
+      }
+
+      // Find max month offset
+      var maxOffset = 0;
+      cohorts.forEach(function(c) {
+        Object.keys(c.retention).forEach(function(k) {
+          var n = parseInt(k);
+          if (n > maxOffset) maxOffset = n;
+        });
+      });
+
+      var html = '<table class="w-full text-sm border border-gray-200 rounded">';
+      html += '<thead><tr class="bg-gray-50"><th class="px-3 py-2 text-left">コホート</th><th class="px-3 py-2 text-right">人数</th>';
+      for (var i = 0; i <= maxOffset; i++) {
+        html += '<th class="px-3 py-2 text-center">M+' + i + '</th>';
+      }
+      html += '</tr></thead><tbody>';
+
+      cohorts.forEach(function(c) {
+        html += '<tr><td class="px-3 py-2 font-medium">' + c.cohort.slice(0, 7) + '</td>';
+        html += '<td class="px-3 py-2 text-right">' + c.size + '</td>';
+        for (var j = 0; j <= maxOffset; j++) {
+          var cell = c.retention[String(j)];
+          if (cell) {
+            var pct = Math.round(cell.rate * 100);
+            var intensity = cell.rate;
+            var bg = 'rgba(79,70,229,' + (0.05 + intensity * 0.55) + ')';
+            var textColor = intensity > 0.5 ? '#fff' : '#374151';
+            html += '<td class="px-3 py-2 text-center text-xs font-medium" style="background:' + bg + ';color:' + textColor + '">' + pct + '%</td>';
+          } else {
+            html += '<td class="px-3 py-2 text-center text-gray-300">-</td>';
+          }
+        }
+        html += '</tr>';
+      });
+
+      html += '</tbody></table>';
+      container.innerHTML = html;
+    }).catch(function(err) {
+      console.error('Failed to load cohort:', err);
+      document.getElementById('cohort-table').innerHTML = '<p class="text-gray-400 text-center">データ取得エラー</p>';
+    });
+  };
+
+  /* ------------------------------------------------------------------ */
+  /*  2h. RFM Analysis (lazy loaded)                                     */
+  /* ------------------------------------------------------------------ */
+  var rfmChart = null;
+  var rfmLoaded = false;
+
+  var SEGMENT_LABELS = {
+    champion: {label: 'Champion', color: 'rgba(16,185,129,0.8)', bg: 'bg-emerald-100 text-emerald-700'},
+    loyal: {label: 'Loyal', color: 'rgba(59,130,246,0.8)', bg: 'bg-blue-100 text-blue-700'},
+    new: {label: 'New', color: 'rgba(6,182,212,0.8)', bg: 'bg-cyan-100 text-cyan-700'},
+    potential: {label: 'Potential', color: 'rgba(139,92,246,0.8)', bg: 'bg-purple-100 text-purple-700'},
+    at_risk: {label: 'At Risk', color: 'rgba(245,158,11,0.8)', bg: 'bg-amber-100 text-amber-700'},
+    cant_lose: {label: "Can't Lose", color: 'rgba(249,115,22,0.8)', bg: 'bg-orange-100 text-orange-700'},
+    lost: {label: 'Lost', color: 'rgba(244,63,94,0.8)', bg: 'bg-rose-100 text-rose-700'},
+    other: {label: 'Other', color: 'rgba(156,163,175,0.8)', bg: 'bg-gray-100 text-gray-700'},
+  };
+
+  window.loadRFM = function() {
+    if (rfmLoaded) return;
+    rfmLoaded = true;
+
+    apiFetch('/api/dashboard/rfm/').then(function (data) {
+      var customers = data.customers || [];
+      var segments = data.segments || [];
+
+      // Demo data if empty
+      if (customers.length === 0) {
+        var segs = ['champion','loyal','new','potential','at_risk','lost'];
+        for (var i = 0; i < 30; i++) {
+          var seg = segs[Math.floor(Math.random()*segs.length)];
+          customers.push({
+            customer_id: 'demo-' + i,
+            r_score: Math.ceil(Math.random()*5),
+            f_score: Math.ceil(Math.random()*5),
+            m_score: Math.ceil(Math.random()*5),
+            monetary: Math.floor(Math.random()*50000)+5000,
+            segment: seg,
+          });
+        }
+        var segCounts = {};
+        customers.forEach(function(c) { segCounts[c.segment] = (segCounts[c.segment]||0)+1; });
+        segments = Object.keys(segCounts).map(function(s) { return {segment:s, count:segCounts[s]}; });
+      }
+
+      // Bubble chart: x=Frequency, y=Recency, size=Monetary
+      var datasets = {};
+      customers.forEach(function(c) {
+        var seg = c.segment;
+        if (!datasets[seg]) datasets[seg] = [];
+        datasets[seg].push({
+          x: c.f_score,
+          y: c.r_score,
+          r: Math.max(4, Math.sqrt(c.monetary / 1000) * 3),
+          monetary: c.monetary,
+          customer_id: c.customer_id,
+        });
+      });
+
+      var chartDatasets = Object.keys(datasets).map(function(seg) {
+        var info = SEGMENT_LABELS[seg] || SEGMENT_LABELS.other;
+        return {
+          label: info.label,
+          data: datasets[seg],
+          backgroundColor: info.color,
+          borderColor: info.color.replace('0.8', '1'),
+          borderWidth: 1,
+        };
+      });
+
+      if (rfmChart) rfmChart.destroy();
+      var ctx = document.getElementById('rfmChart').getContext('2d');
+      rfmChart = new Chart(ctx, {
+        type: 'bubble',
+        data: { datasets: chartDatasets },
+        options: {
+          responsive: true, maintainAspectRatio: false,
+          plugins: {
+            legend: { position: 'top' },
+            tooltip: {
+              callbacks: {
+                label: function(context) {
+                  var p = context.raw;
+                  return context.dataset.label + ' — F:' + p.x + ' R:' + p.y + ' ¥' + Number(p.monetary).toLocaleString();
+                }
+              }
+            }
+          },
+          scales: {
+            x: {
+              min: 0.5, max: 5.5,
+              title: { display: true, text: 'Frequency Score' },
+              ticks: { stepSize: 1 }
+            },
+            y: {
+              min: 0.5, max: 5.5,
+              title: { display: true, text: 'Recency Score' },
+              ticks: { stepSize: 1 }
+            }
+          }
+        }
+      });
+
+      // Segment summary cards
+      var segHtml = segments.map(function(s) {
+        var info = SEGMENT_LABELS[s.segment] || SEGMENT_LABELS.other;
+        return '<div class="text-center p-3 rounded-lg ' + info.bg + '">'
+          + '<div class="text-xs font-medium">' + info.label + '</div>'
+          + '<div class="text-2xl font-bold mt-1">' + s.count + '</div>'
+          + '</div>';
+      }).join('');
+      document.getElementById('rfm-segments').innerHTML = segHtml;
+    }).catch(function(err) {
+      console.error('Failed to load RFM:', err);
+    });
+  };
+
+  /* ------------------------------------------------------------------ */
+  /*  2i. Basket Analysis (lazy loaded)                                  */
+  /* ------------------------------------------------------------------ */
+  var basketLoaded = false;
+
+  window.loadBasket = function() {
+    if (basketLoaded) return;
+    basketLoaded = true;
+
+    apiFetch('/api/dashboard/basket/').then(function (data) {
+      var rules = data.rules || [];
+      var total = data.total_transactions || 0;
+      var method = data.method || 'none';
+
+      document.getElementById('basket-method').textContent = method === 'apriori' ? 'Apriori' : method === 'pairwise' ? 'ペアワイズ分析' : '--';
+      document.getElementById('basket-total').textContent = '対象トランザクション: ' + total + '件';
+
+      var container = document.getElementById('basket-table');
+
+      if (rules.length === 0) {
+        // Demo data
+        rules = [
+          {antecedent: ['シーシャ(ミント)'], consequent: ['チャイ'], support: 0.35, confidence: 0.72, lift: 2.1},
+          {antecedent: ['ビール'], consequent: ['枝豆'], support: 0.28, confidence: 0.65, lift: 1.9},
+          {antecedent: ['ハイボール'], consequent: ['唐揚げ'], support: 0.22, confidence: 0.58, lift: 1.7},
+          {antecedent: ['枝豆'], consequent: ['ビール'], support: 0.28, confidence: 0.55, lift: 1.6},
+          {antecedent: ['サラダ'], consequent: ['ハイボール'], support: 0.15, confidence: 0.48, lift: 1.4},
+        ];
+        document.getElementById('basket-method').textContent = 'デモ';
+        document.getElementById('basket-total').textContent = '対象トランザクション: 100件（デモ）';
+      }
+
+      var html = '<table class="w-full text-sm border border-gray-200 rounded">';
+      html += '<thead><tr class="bg-gray-50">';
+      html += '<th class="px-3 py-2 text-left">前提商品</th>';
+      html += '<th class="px-3 py-2 text-center">→</th>';
+      html += '<th class="px-3 py-2 text-left">結論商品</th>';
+      html += '<th class="px-3 py-2 text-right">Support</th>';
+      html += '<th class="px-3 py-2 text-right">Confidence</th>';
+      html += '<th class="px-3 py-2 text-right">Lift</th>';
+      html += '</tr></thead><tbody>';
+
+      rules.forEach(function(r) {
+        var liftColor = r.lift >= 2.0 ? 'text-emerald-600 font-bold' : r.lift >= 1.5 ? 'text-blue-600' : 'text-gray-700';
+        var confBar = Math.round(r.confidence * 100);
+        html += '<tr class="border-t border-gray-100">';
+        html += '<td class="px-3 py-2 font-medium">' + escapeHtml(r.antecedent.join(', ')) + '</td>';
+        html += '<td class="px-3 py-2 text-center text-gray-400">→</td>';
+        html += '<td class="px-3 py-2 font-medium">' + escapeHtml(r.consequent.join(', ')) + '</td>';
+        html += '<td class="px-3 py-2 text-right">' + (r.support * 100).toFixed(1) + '%</td>';
+        html += '<td class="px-3 py-2 text-right"><div class="flex items-center gap-2 justify-end">';
+        html += '<div class="w-16 h-2 bg-gray-200 rounded-full"><div class="h-2 rounded-full bg-indigo-500" style="width:' + confBar + '%"></div></div>';
+        html += confBar + '%</div></td>';
+        html += '<td class="px-3 py-2 text-right ' + liftColor + '">' + r.lift.toFixed(2) + '</td>';
+        html += '</tr>';
+      });
+
+      html += '</tbody></table>';
+      container.innerHTML = html;
+    }).catch(function(err) {
+      console.error('Failed to load basket analysis:', err);
+      document.getElementById('basket-table').innerHTML = '<p class="text-gray-400 text-center">データ取得エラー</p>';
+    });
+  };
+
+  /* ------------------------------------------------------------------ */
   /*  3. Staff Performance (lazy loaded)                                 */
   /* ------------------------------------------------------------------ */
   var staffChart = null;
@@ -893,6 +1951,391 @@ document.addEventListener('DOMContentLoaded', function () {
         document.getElementById('ops-low-stock').innerHTML = '<p class="text-gray-400 text-sm text-center">取得エラー</p>';
       });
   }
+
+  /* ------------------------------------------------------------------ */
+  /*  2j) Insights                                                        */
+  /* ------------------------------------------------------------------ */
+  var insightsLoaded = false;
+
+  window.loadInsights = function() {
+    if (insightsLoaded) return;
+    insightsLoaded = true;
+    fetch('/api/dashboard/insights/', { credentials: 'same-origin', headers: { 'X-CSRFToken': getCookie('csrftoken') || '' } })
+      .then(function(r) { return r.json(); })
+      .then(function(data) {
+        renderInsights(data.insights || []);
+      }).catch(function() {
+        document.getElementById('insights-list').innerHTML = '<p class="text-gray-400 text-sm text-center">取得エラー</p>';
+      });
+  };
+
+  function renderInsights(insights) {
+    var container = document.getElementById('insights-list');
+    if (insights.length === 0) {
+      container.innerHTML = '<p class="text-gray-400 text-sm text-center py-8">インサイトはありません。「分析実行」ボタンで最新の分析を行えます。</p>';
+      return;
+    }
+    var severityLabel = { critical: '重要', warning: '注意', info: '情報' };
+    container.innerHTML = insights.map(function(ins) {
+      var readClass = ins.is_read ? ' is-read' : '';
+      var badge = '<span class="text-xs font-bold px-2 py-0.5 rounded ' +
+        (ins.severity === 'critical' ? 'bg-rose-100 text-rose-700' : ins.severity === 'warning' ? 'bg-amber-100 text-amber-700' : 'bg-blue-100 text-blue-700') +
+        '">' + (severityLabel[ins.severity] || ins.severity) + '</span>';
+      var catLabel = { sales: '売上', inventory: '在庫', staffing: 'スタッフ', menu: 'メニュー', customer: '顧客' };
+      return '<div class="insight-card severity-' + ins.severity + readClass + '" data-insight-id="' + ins.id + '">'
+        + '<div class="flex items-center gap-2 mb-1">' + badge
+        + '<span class="text-xs text-gray-500">' + (catLabel[ins.category] || ins.category) + '</span>'
+        + '<span class="text-xs text-gray-400 ml-auto">' + new Date(ins.created_at).toLocaleString('ja-JP') + '</span>'
+        + '</div>'
+        + '<div class="text-sm font-semibold">' + escapeHtml(ins.title) + '</div>'
+        + '<div class="text-xs text-gray-600 mt-1">' + escapeHtml(ins.message) + '</div>'
+        + (!ins.is_read ? '<button onclick="markInsightRead(' + ins.id + ', this)" class="text-xs text-indigo-500 hover:underline mt-1">既読にする</button>' : '')
+        + '</div>';
+    }).join('');
+    // Update badge
+    var unreadCount = insights.filter(function(i) { return !i.is_read; }).length;
+    updateInsightBadge(unreadCount);
+  }
+
+  function updateInsightBadge(count) {
+    var badge = document.getElementById('insight-badge');
+    if (count > 0) {
+      badge.textContent = count;
+      badge.style.display = 'inline-flex';
+    } else {
+      badge.style.display = 'none';
+    }
+  }
+
+  window.markInsightRead = function(id, btn) {
+    fetch('/api/dashboard/insights/', {
+      method: 'POST',
+      credentials: 'same-origin',
+      headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCookie('csrftoken') || '' },
+      body: JSON.stringify({ action: 'mark_read', insight_id: id })
+    }).then(function() {
+      var card = btn.closest('.insight-card');
+      card.classList.add('is-read');
+      btn.remove();
+      var remaining = document.querySelectorAll('.insight-card:not(.is-read)').length;
+      updateInsightBadge(remaining);
+    });
+  };
+
+  window.markAllInsightsRead = function() {
+    fetch('/api/dashboard/insights/', {
+      method: 'POST',
+      credentials: 'same-origin',
+      headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCookie('csrftoken') || '' },
+      body: JSON.stringify({ action: 'mark_read' })
+    }).then(function() {
+      document.querySelectorAll('.insight-card').forEach(function(el) { el.classList.add('is-read'); });
+      document.querySelectorAll('.insight-card button').forEach(function(el) { el.remove(); });
+      updateInsightBadge(0);
+    });
+  };
+
+  window.generateInsights = function() {
+    var btn = document.getElementById('btn-generate-insights');
+    btn.disabled = true;
+    btn.textContent = '分析中...';
+    fetch('/api/dashboard/insights/', {
+      method: 'POST',
+      credentials: 'same-origin',
+      headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCookie('csrftoken') || '' },
+      body: JSON.stringify({ action: 'generate' })
+    }).then(function(r) { return r.json(); })
+    .then(function(data) {
+      btn.disabled = false;
+      btn.textContent = '分析実行';
+      insightsLoaded = false;
+      loadInsights();
+    }).catch(function() {
+      btn.disabled = false;
+      btn.textContent = '分析実行';
+    });
+  };
+
+  // ===== NPS / Customer Satisfaction =====
+  var npsLoaded = false;
+  var npsTrendChartInst = null;
+  var npsRadarChartInst = null;
+  window.loadNPS = function() {
+    if (npsLoaded) return;
+    npsLoaded = true;
+    // Load stats
+    fetch('/api/dashboard/nps/', { credentials: 'same-origin', headers: { 'X-CSRFToken': getCookie('csrftoken') || '' } })
+      .then(function(r) { return r.json(); })
+      .then(function(data) {
+        // NPS gauge
+        var scoreEl = document.getElementById('nps-score-display');
+        if (scoreEl) {
+          scoreEl.textContent = data.nps_score;
+          scoreEl.style.color = data.nps_score >= 50 ? '#10b981' : data.nps_score >= 0 ? '#f59e0b' : '#ef4444';
+        }
+        var el = function(id) { return document.getElementById(id); };
+        if (el('nps-promoters')) el('nps-promoters').textContent = data.promoters;
+        if (el('nps-passives')) el('nps-passives').textContent = data.passives;
+        if (el('nps-detractors')) el('nps-detractors').textContent = data.detractors;
+        if (el('nps-total')) el('nps-total').textContent = data.total;
+
+        // Radar chart
+        var radarCtx = document.getElementById('npsRadarChart');
+        if (radarCtx && typeof Chart !== 'undefined') {
+          if (npsRadarChartInst) npsRadarChartInst.destroy();
+          npsRadarChartInst = new Chart(radarCtx, {
+            type: 'radar',
+            data: {
+              labels: ['料理', 'サービス', '雰囲気'],
+              datasets: [{
+                label: '平均評価',
+                data: [data.avg_food, data.avg_service, data.avg_ambiance],
+                backgroundColor: 'rgba(99,102,241,0.2)',
+                borderColor: 'rgba(99,102,241,1)',
+                pointBackgroundColor: 'rgba(99,102,241,1)',
+              }]
+            },
+            options: {
+              scales: { r: { min: 0, max: 5, ticks: { stepSize: 1 } } },
+              plugins: { legend: { display: false } }
+            }
+          });
+        }
+
+        // Trend chart
+        var trendCtx = document.getElementById('npsTrendChart');
+        if (trendCtx && typeof Chart !== 'undefined' && data.trend.length > 0) {
+          if (npsTrendChartInst) npsTrendChartInst.destroy();
+          npsTrendChartInst = new Chart(trendCtx, {
+            type: 'line',
+            data: {
+              labels: data.trend.map(function(t) { return t.week; }),
+              datasets: [{
+                label: 'NPS',
+                data: data.trend.map(function(t) { return t.nps; }),
+                borderColor: '#6366f1',
+                backgroundColor: 'rgba(99,102,241,0.1)',
+                fill: true,
+                tension: 0.3,
+              }]
+            },
+            options: {
+              scales: {
+                y: { min: -100, max: 100, title: { display: true, text: 'NPS' } }
+              }
+            }
+          });
+        }
+      }).catch(function() {});
+
+    // Load recent feedbacks
+    fetch('/api/dashboard/feedback/', { credentials: 'same-origin', headers: { 'X-CSRFToken': getCookie('csrftoken') || '' } })
+      .then(function(r) { return r.json(); })
+      .then(function(data) {
+        var list = document.getElementById('feedback-list');
+        if (!list) return;
+        if (!data.feedbacks || data.feedbacks.length === 0) {
+          list.innerHTML = '<p class="text-gray-400 text-sm text-center">フィードバックがありません</p>';
+          return;
+        }
+        var html = '';
+        data.feedbacks.slice(0, 20).forEach(function(fb) {
+          var catColor = fb.nps_category === 'promoter' ? '#10b981' : fb.nps_category === 'passive' ? '#f59e0b' : '#ef4444';
+          var sentBadge = fb.sentiment === 'positive' ? 'bg-emerald-100 text-emerald-700' : fb.sentiment === 'negative' ? 'bg-rose-100 text-rose-700' : 'bg-gray-100 text-gray-600';
+          html += '<div class="p-3 border rounded-lg">';
+          html += '<div class="flex items-center justify-between mb-1">';
+          html += '<span class="font-bold" style="color:' + catColor + ';">NPS: ' + fb.nps_score + '</span>';
+          html += '<span class="text-xs ' + sentBadge + ' px-2 py-0.5 rounded-full">' + (fb.sentiment || '-') + '</span>';
+          html += '</div>';
+          html += '<div class="text-xs text-gray-500 mb-1">料理:' + fb.food_rating + ' サービス:' + fb.service_rating + ' 雰囲気:' + fb.ambiance_rating + '</div>';
+          if (fb.comment) html += '<p class="text-sm text-gray-700">' + _esc(fb.comment) + '</p>';
+          html += '<div class="text-xs text-gray-400 mt-1">' + fb.created_at.slice(0, 10) + '</div>';
+          html += '</div>';
+        });
+        list.innerHTML = html;
+      }).catch(function() {});
+  };
+
+  // ===== KPI Scorecard =====
+  var kpiLoaded = false;
+  function _esc(s) { var d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
+  window.loadKPIScorecard = function() {
+    if (kpiLoaded) return;
+    kpiLoaded = true;
+    var grid = document.getElementById('kpi-scorecard-grid');
+    if (!grid) return;
+    grid.innerHTML = '<p class="text-gray-400 text-sm text-center col-span-full">読み込み中...</p>';
+    fetch('/api/dashboard/kpi-scorecard/', { credentials: 'same-origin', headers: { 'X-CSRFToken': getCookie('csrftoken') || '' } })
+      .then(function(r) { return r.json(); })
+      .then(function(data) {
+        if (!data.kpis || data.kpis.length === 0) {
+          grid.innerHTML = '<p class="text-gray-400 text-sm text-center col-span-full">データがありません</p>';
+          return;
+        }
+        var html = '';
+        data.kpis.forEach(function(kpi) {
+          var borderColor = kpi.status === 'good' ? '#10b981' : kpi.status === 'warn' ? '#f59e0b' : '#ef4444';
+          var statusIcon = kpi.status === 'good' ? '&#9679;' : kpi.status === 'warn' ? '&#9650;' : '&#9660;';
+          var statusLabel = kpi.status === 'good' ? '良好' : kpi.status === 'warn' ? '注意' : '要改善';
+          var fmtValue = typeof kpi.value === 'number' ? (kpi.value % 1 !== 0 ? kpi.value.toFixed(1) : kpi.value.toLocaleString()) : kpi.value;
+          html += '<div class="rounded-lg border-l-4 p-4 bg-white shadow-sm" style="border-color:' + borderColor + ';">';
+          html += '<div class="text-xs text-gray-500 mb-1">' + _esc(kpi.label) + '</div>';
+          html += '<div class="text-2xl font-bold mb-1">' + fmtValue + (kpi.unit ? '<span class="text-sm font-normal text-gray-400 ml-1">' + _esc(kpi.unit) + '</span>' : '') + '</div>';
+          html += '<div class="flex items-center justify-between">';
+          html += '<span style="color:' + borderColor + '; font-size:12px;">' + statusIcon + ' ' + statusLabel + '</span>';
+          if (kpi.benchmark !== undefined && kpi.benchmark !== null) {
+            html += '<span class="text-xs text-gray-400">基準: ' + kpi.benchmark + '</span>';
+          }
+          html += '</div>';
+          html += '</div>';
+        });
+        grid.innerHTML = html;
+      }).catch(function(err) {
+        grid.innerHTML = '<p class="text-red-400 text-sm text-center col-span-full">読み込みエラー</p>';
+      });
+  };
+
+  // Check for unread insights on page load (lightweight badge update)
+  fetch('/api/dashboard/insights/?unread=1', { credentials: 'same-origin', headers: { 'X-CSRFToken': getCookie('csrftoken') || '' } })
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+      var count = (data.insights || []).length;
+      updateInsightBadge(count);
+    }).catch(function() {});
+
+  // ===== Step-by-step Tutorial Tour =====
+  var TOUR_STEPS = [
+    {
+      selector: '#dashboard-tabs',
+      title: 'タブナビゲーション',
+      text: 'ここでダッシュボードの各セクションを切り替えます。概要・売上・顧客・スタッフ・シフト・勤怠・運営の7つのタブがあります。',
+    },
+    {
+      selector: '[data-tab="overview"]',
+      title: '概要タブ',
+      text: '予約KPI、日別予約グラフ、ビジネスインサイト、KPIスコアカードを確認できます。',
+    },
+    {
+      selector: '#sales-period',
+      title: '期間選択',
+      text: '日別・週別・月別でデータの集計期間を切り替えられます。',
+    },
+    {
+      selector: '[data-tab="sales"]',
+      title: '売上タブ',
+      text: '売上推移、人気商品、メニュー分析、ABC分析、売上予測、時間帯別売上、客単価推移を確認できます。',
+      action: function() { switchTab('sales'); }
+    },
+    {
+      selector: '[data-tab="customers"]',
+      title: '顧客分析タブ',
+      text: 'コホート分析、RFMセグメンテーション、バスケット分析、NPS・顧客満足度を確認できます。',
+      action: function() { switchTab('customers'); }
+    },
+    {
+      selector: '[data-tab="operations"]',
+      title: '運営タブ',
+      text: '在庫アラートなど、日常の運営に必要な情報を確認できます。',
+      action: function() { switchTab('operations'); }
+    },
+    {
+      selector: '.tour-help-btn',
+      title: 'ガイドボタン',
+      text: 'このボタンをクリックすると、いつでもこのガイドを再表示できます。',
+      action: function() { switchTab('overview'); }
+    },
+  ];
+
+  var tourCurrentStep = 0;
+  var tourOverlay = null;
+  var tourTooltip = null;
+  var tourPrevHighlight = null;
+
+  function _createTourOverlay() {
+    if (tourOverlay) return;
+    tourOverlay = document.createElement('div');
+    tourOverlay.className = 'tour-overlay';
+    tourOverlay.style.display = 'none';
+    tourOverlay.onclick = function(e) { if (e.target === tourOverlay) endTour(); };
+    document.body.appendChild(tourOverlay);
+
+    tourTooltip = document.createElement('div');
+    tourTooltip.className = 'tour-tooltip';
+    tourTooltip.style.display = 'none';
+    document.body.appendChild(tourTooltip);
+  }
+
+  function _positionTooltip(el) {
+    var rect = el.getBoundingClientRect();
+    var tt = tourTooltip;
+    var ttW = 340, ttH = tt.offsetHeight || 200;
+    var top, left;
+    // Prefer below
+    if (rect.bottom + ttH + 16 < window.innerHeight) {
+      top = rect.bottom + 12;
+    } else {
+      top = Math.max(8, rect.top - ttH - 12);
+    }
+    left = Math.max(8, Math.min(rect.left, window.innerWidth - ttW - 16));
+    tt.style.top = top + 'px';
+    tt.style.left = left + 'px';
+  }
+
+  function _showStep(idx) {
+    if (idx < 0 || idx >= TOUR_STEPS.length) { endTour(); return; }
+    tourCurrentStep = idx;
+    var step = TOUR_STEPS[idx];
+
+    // Execute action if defined
+    if (step.action) step.action();
+
+    // Remove previous highlight
+    if (tourPrevHighlight) tourPrevHighlight.classList.remove('tour-highlight');
+
+    var el = document.querySelector(step.selector);
+    if (!el) { _showStep(idx + 1); return; }
+
+    el.classList.add('tour-highlight');
+    tourPrevHighlight = el;
+    el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+    // Build tooltip
+    tourTooltip.innerHTML = '<h4>' + step.title + '</h4><p>' + step.text + '</p>' +
+      '<div class="tour-tooltip-footer">' +
+        '<span class="tour-step-info">' + (idx + 1) + ' / ' + TOUR_STEPS.length + '</span>' +
+        '<div class="tour-btns">' +
+          '<button class="tour-btn tour-btn-skip" onclick="endTour()">閉じる</button>' +
+          (idx > 0 ? '<button class="tour-btn tour-btn-skip" onclick="_showStep(' + (idx - 1) + ')">戻る</button>' : '') +
+          '<button class="tour-btn tour-btn-next" onclick="_showStep(' + (idx + 1) + ')">' + (idx === TOUR_STEPS.length - 1 ? '完了' : '次へ') + '</button>' +
+        '</div>' +
+      '</div>';
+    tourTooltip.style.display = 'block';
+    tourOverlay.style.display = 'block';
+    tourOverlay.style.background = 'transparent';
+
+    setTimeout(function() { _positionTooltip(el); }, 100);
+  }
+
+  window.startTour = function() {
+    _createTourOverlay();
+    tourCurrentStep = 0;
+    switchTab('overview');
+    _showStep(0);
+  };
+
+  window.endTour = function() {
+    if (tourPrevHighlight) tourPrevHighlight.classList.remove('tour-highlight');
+    if (tourOverlay) tourOverlay.style.display = 'none';
+    if (tourTooltip) tourTooltip.style.display = 'none';
+    try { localStorage.setItem('dashboard_tour_seen', '1'); } catch(e) {}
+  };
+
+  // Auto-show on first visit
+  try {
+    if (!localStorage.getItem('dashboard_tour_seen')) {
+      setTimeout(function() { startTour(); }, 800);
+    }
+  } catch(e) {}
 
 });
 </script>

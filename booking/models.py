@@ -833,6 +833,94 @@ class DashboardLayout(models.Model):
         return f'DashboardLayout({self.user.username})'
 
 
+class BusinessInsight(models.Model):
+    """自動生成されるビジネスインサイト"""
+    SEVERITY_CHOICES = [
+        ('info', '情報'),
+        ('warning', '注意'),
+        ('critical', '重要'),
+    ]
+    CATEGORY_CHOICES = [
+        ('sales', '売上'),
+        ('inventory', '在庫'),
+        ('staffing', 'スタッフ'),
+        ('menu', 'メニュー'),
+        ('customer', '顧客'),
+    ]
+
+    store = models.ForeignKey(
+        'Store', verbose_name=_('店舗'), on_delete=models.CASCADE,
+        related_name='insights', null=True, blank=True,
+    )
+    category = models.CharField(_('カテゴリ'), max_length=20, choices=CATEGORY_CHOICES)
+    severity = models.CharField(_('重要度'), max_length=10, choices=SEVERITY_CHOICES, default='info')
+    title = models.CharField(_('タイトル'), max_length=200)
+    message = models.TextField(_('メッセージ'))
+    data = models.JSONField(_('関連データ'), default=dict, blank=True)
+    is_read = models.BooleanField(_('既読'), default=False)
+    created_at = models.DateTimeField(_('作成日時'), auto_now_add=True, db_index=True)
+
+    class Meta:
+        app_label = 'booking'
+        verbose_name = _('ビジネスインサイト')
+        verbose_name_plural = _('ビジネスインサイト')
+        ordering = ['-created_at']
+        indexes = [
+            models.Index(fields=['store', 'category', '-created_at']),
+        ]
+
+    def __str__(self):
+        return f'[{self.get_severity_display()}] {self.title}'
+
+
+class CustomerFeedback(models.Model):
+    """顧客フィードバック（NPS + 評価 + コメント）"""
+    store = models.ForeignKey(
+        'Store', verbose_name=_('店舗'), on_delete=models.CASCADE,
+        related_name='feedbacks',
+    )
+    order = models.ForeignKey(
+        'Order', verbose_name=_('注文'), on_delete=models.SET_NULL,
+        null=True, blank=True, related_name='feedbacks',
+    )
+    customer_hash = models.CharField(_('顧客ハッシュ'), max_length=64, blank=True, default='')
+    nps_score = models.IntegerField(
+        _('NPS (0-10)'), help_text=_('0=推奨しない 〜 10=強く推奨'),
+    )
+    food_rating = models.IntegerField(_('料理評価 (1-5)'), default=3)
+    service_rating = models.IntegerField(_('サービス評価 (1-5)'), default=3)
+    ambiance_rating = models.IntegerField(_('雰囲気評価 (1-5)'), default=3)
+    comment = models.TextField(_('コメント'), blank=True, default='')
+    SENTIMENT_CHOICES = [
+        ('positive', 'ポジティブ'),
+        ('neutral', 'ニュートラル'),
+        ('negative', 'ネガティブ'),
+    ]
+    sentiment = models.CharField(
+        _('感情分析'), max_length=10, choices=SENTIMENT_CHOICES,
+        blank=True, default='',
+    )
+    created_at = models.DateTimeField(_('作成日時'), auto_now_add=True, db_index=True)
+
+    class Meta:
+        app_label = 'booking'
+        verbose_name = _('顧客フィードバック')
+        verbose_name_plural = _('顧客フィードバック')
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f'NPS:{self.nps_score} {self.store.name} ({self.created_at:%Y-%m-%d})'
+
+    @property
+    def nps_category(self):
+        """NPS category: promoter(9-10), passive(7-8), detractor(0-6)."""
+        if self.nps_score >= 9:
+            return 'promoter'
+        elif self.nps_score >= 7:
+            return 'passive'
+        return 'detractor'
+
+
 # ==============================
 # Phase 2: デバッグ / ランタイム設定
 # ==============================
