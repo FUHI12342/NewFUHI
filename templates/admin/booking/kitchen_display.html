@@ -2,7 +2,6 @@
 {% load i18n %}
 {% block title %}{{ title }}{% endblock %}
 {% block extrastyle %}
-<script src="https://unpkg.com/htmx.org@1.9.10"></script>
 <style>
   .kitchen-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 12px; padding: 16px; }
   .order-card { border: 2px solid #ddd; border-radius: 8px; padding: 12px; }
@@ -21,7 +20,7 @@
 {% endblock %}
 {% block content %}
 <div class="auto-refresh">自動更新: 5秒 | 🔴=注文済 🟡=調理中 🟢=配膳済</div>
-<div class="kitchen-grid" hx-get="/api/pos/kitchen-orders/?status=OPEN{% if store %}&store_id={{ store.id }}{% endif %}" hx-trigger="every 5s" hx-target="#kitchen-orders" hx-swap="innerHTML" hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'>
+<div class="kitchen-grid">
   <div id="kitchen-orders">
     {% for order in open_orders %}
     <div class="order-card">
@@ -34,14 +33,10 @@
         </div>
         {% if item.status == "ORDERED" %}
         <button class="action-btn btn-prepare"
-                hx-put="/api/pos/order-item/{{ item.id }}/status/"
-                hx-vals='{"status":"PREPARING"}'
-                hx-swap="none">調理開始</button>
+                onclick="updateStatus({{ item.id }}, 'PREPARING', this)">調理開始</button>
         {% elif item.status == "PREPARING" %}
         <button class="action-btn btn-serve"
-                hx-put="/api/pos/order-item/{{ item.id }}/status/"
-                hx-vals='{"status":"SERVED"}'
-                hx-swap="none">配膳完了</button>
+                onclick="updateStatus({{ item.id }}, 'SERVED', this)">配膳完了</button>
         {% elif item.status == "SERVED" %}
         <span style="color:#10B981;">✓</span>
         {% endif %}
@@ -53,4 +48,40 @@
     {% endfor %}
   </div>
 </div>
+
+<script>
+var CSRF = '{{ csrf_token }}';
+var REFRESH_URL = '/api/pos/kitchen-orders/{% if store %}?store_id={{ store.id }}{% endif %}';
+
+function refreshKitchen() {
+  fetch(REFRESH_URL, {
+    headers: {'X-Requested-With': 'XMLHttpRequest'}
+  })
+  .then(function(r) { return r.text(); })
+  .then(function(html) {
+    document.getElementById('kitchen-orders').innerHTML = html;
+  })
+  .catch(function(e) { console.error('Kitchen refresh error:', e); });
+}
+
+function updateStatus(itemId, newStatus, btn) {
+  btn.disabled = true;
+  fetch('/api/pos/order-item/' + itemId + '/status/', {
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-CSRFToken': CSRF
+    },
+    body: JSON.stringify({status: newStatus})
+  })
+  .then(function(r) { return r.json(); })
+  .then(function() { refreshKitchen(); })
+  .catch(function(e) {
+    console.error('Status update error:', e);
+    btn.disabled = false;
+  });
+}
+
+setInterval(refreshKitchen, 5000);
+</script>
 {% endblock %}
