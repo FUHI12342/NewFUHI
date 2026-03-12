@@ -34,7 +34,7 @@ class SecurityAuditMiddleware:
         response = self.get_response(request)
 
         # ログイン結果の判定
-        if request.method == 'POST' and '/login/' in request.path:
+        if request.method == 'POST' and request.path.endswith('/login/'):
             self._handle_login_result(request, response, ip)
 
         # API認証失敗

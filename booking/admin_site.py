@@ -181,7 +181,7 @@ class RoleBasedAdminSite(AdminSite):
         # role-based ユーザー (developer/owner/manager/staff):
         # Django の権限システムを迂回し、レジストリから全モデルを取得。
         # 表示制御は独自のロールベースフィルタで行う。
-        raw = self._build_full_app_list(app_label)
+        raw = self._build_full_app_list(app_label, role=role)
 
         allowed = _get_allowed_models_for_role(role)
 
@@ -200,8 +200,18 @@ class RoleBasedAdminSite(AdminSite):
 
         return self._regroup_apps(filtered)
 
-    def _build_full_app_list(self, app_label=None):
+    # Role-based permission mapping for admin sidebar display.
+    # staff: view only. manager: add/change/view. owner/developer: all.
+    _ROLE_PERMS = {
+        'staff':     {'add': False, 'change': False, 'delete': False, 'view': True},
+        'manager':   {'add': True,  'change': True,  'delete': False, 'view': True},
+        'owner':     {'add': True,  'change': True,  'delete': True,  'view': True},
+        'developer': {'add': True,  'change': True,  'delete': True,  'view': True},
+    }
+
+    def _build_full_app_list(self, app_label=None, role=None):
         """レジストリから全モデルのリストを構築（Django の権限チェックを迂回）"""
+        perms = self._ROLE_PERMS.get(role, {'add': False, 'change': False, 'delete': False, 'view': True})
         app_dict = {}
         for model, model_admin in self._registry.items():
             lbl = model._meta.app_label
@@ -212,10 +222,10 @@ class RoleBasedAdminSite(AdminSite):
                 'model': model,
                 'name': str(model._meta.verbose_name_plural),
                 'object_name': model._meta.object_name,
-                'perms': {'add': True, 'change': True, 'delete': True, 'view': True},
+                'perms': perms.copy(),
                 'admin_url': reverse('%s:%s_%s_changelist' % info),
                 'add_url': reverse('%s:%s_%s_add' % info),
-                'view_only': False,
+                'view_only': not perms.get('change', False),
             }
             if lbl in app_dict:
                 app_dict[lbl]['models'].append(model_dict)

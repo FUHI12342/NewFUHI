@@ -20,8 +20,8 @@ class DjangoAPIClient:
     Django backend API client for IoT device
     Handles:
     - WiFi connection management
-    - Config fetching from /booking/api/iot/config/
-    - Event posting to /booking/api/iot/events/
+    - Config fetching from /api/iot/config/
+    - Event posting to /api/iot/events/
     -Auto-retry with exponential backoff
     """
     
@@ -32,8 +32,8 @@ class DjangoAPIClient:
         - api_key (X-API-KEY header)
         - device (device identifier)
         - server_base (e.g., "https://example.com")
-        - events_endpoint (optional, default: "/booking/api/iot/events/")
-        - config_endpoint (optional, default: "/booking/api/iot/config/")
+        - events_endpoint (optional, default: "/api/iot/events/")
+        - config_endpoint (optional, default: "/api/iot/config/")
 
         Also supports keyword arguments (WiFi Hardening compatibility):
           DjangoAPIClient(server_url=..., api_key=..., device_id=...)
@@ -53,8 +53,8 @@ class DjangoAPIClient:
         self.server_url = secrets_dict.get("server_url") or secrets_dict.get("server_base", "")
         self.server_url = self.server_url.rstrip("/")
         
-        self.events_endpoint = secrets_dict.get("events_endpoint", "/booking/api/iot/events/")
-        self.config_endpoint = secrets_dict.get("config_endpoint", "/booking/api/iot/config/")
+        self.events_endpoint = secrets_dict.get("events_endpoint", "/api/iot/events/")
+        self.config_endpoint = secrets_dict.get("config_endpoint", "/api/iot/config/")
         
         # Stricter Guard: Check for placeholders or invalid URLs
         self.server_configured = True
@@ -223,7 +223,7 @@ class DjangoAPIClient:
     
     def fetch_config(self, save_to_file=True):
         """
-        Fetch config from Django backend: GET /booking/api/iot/config/?device=...
+        Fetch config from Django backend: GET /api/iot/config/?device=...
         Returns dict with config or None on failure.
         """
         if not self.server_configured:

@@ -5,7 +5,7 @@
 
 {% block extrastyle %}
 <script src="https://unpkg.com/htmx.org@1.9.10"></script>
-<script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.14.9/dist/cdn.min.js"></script>
 <style>
   .shift-grid { width: 100%; border-collapse: collapse; }
   .shift-grid th, .shift-grid td { border: 1px solid #ddd; padding: 4px 8px; text-align: center; min-width: 100px; }
@@ -35,7 +35,7 @@
   selectedDate: null,
   confirmPublish: false,
   filterStaffType: 'all'
-}">
+}" hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'>
 
   {# ツールバー #}
   <div class="toolbar">

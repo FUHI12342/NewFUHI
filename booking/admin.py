@@ -4,8 +4,11 @@ from django.db.models import F
 from django.utils.html import format_html
 from django.utils.translation import gettext_lazy as _
 import json
+import logging
 
 from social_django.models import Association, Nonce, UserSocialAuth
+
+logger = logging.getLogger(__name__)
 
 from .admin_site import custom_site
 
@@ -121,7 +124,7 @@ class ScheduleAdmin(admin.ModelAdmin):
 # スタッフ / 店舗
 # ==============================
 class StaffAdmin(admin.ModelAdmin):
-    list_display = ('name', 'store', 'staff_type', 'is_store_manager', 'is_owner', 'is_recommended', 'attendance_pin', 'display_thumbnail')
+    list_display = ('name', 'store', 'staff_type', 'is_store_manager', 'is_owner', 'is_recommended', 'display_thumbnail')
 
     list_editable = ('is_recommended',)
     search_fields = ('name', 'store__name')
@@ -1414,4 +1417,4 @@ custom_site.register(StaffRecommendationModel, StaffRecommendationModelAdmin)
 custom_site.register(StaffRecommendationResult, StaffRecommendationResultAdmin)
 
 
-print("booking.admin loaded")
+logger.debug("booking.admin loaded")

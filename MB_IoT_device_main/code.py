@@ -275,16 +275,23 @@ class IoTDevice:
     def _setup_mode_loop(self):
         """Loop while in setup mode"""
         log("Setup mode active - waiting for configuration...")
-        
+
+        # Create LED once before the loop to avoid resource leak
+        setup_led = None
+        if hasattr(board, 'LED'):
+            try:
+                import digitalio
+                setup_led = digitalio.DigitalInOut(board.LED)
+                setup_led.direction = digitalio.Direction.OUTPUT
+            except Exception as e:
+                log(f"Setup LED init error: {e}")
+
         while True:
             try:
                 # Blink LED to indicate setup mode (if available)
-                if hasattr(board, 'LED'):
-                    import digitalio
-                    led = digitalio.DigitalInOut(board.LED)
-                    led.direction = digitalio.Direction.OUTPUT
-                    led.value = not led.value
-                
+                if setup_led:
+                    setup_led.value = not setup_led.value
+
                 time.sleep(0.5)
                 
                 # Check for configuration updates
@@ -477,7 +484,13 @@ class IoTDevice:
                 
                  # Log protocol-specific details
                 if protocol == "NEC":
-                    log(f"  addr={ir_data.get('address', '?'):#x}, cmd={ir_data.get('command', '?'):#x}, code={ir_data.get('code', '?'):#x}")
+                    addr = ir_data.get('address', '?')
+                    cmd = ir_data.get('command', '?')
+                    code = ir_data.get('code', '?')
+                    addr_s = f"{addr:#x}" if isinstance(addr, int) else str(addr)
+                    cmd_s = f"{cmd:#x}" if isinstance(cmd, int) else str(cmd)
+                    code_s = f"{code:#x}" if isinstance(code, int) else str(code)
+                    log(f"  addr={addr_s}, cmd={cmd_s}, code={code_s}")
                 elif protocol == "RAW":
                     raw_len = len(ir_data.get("raw", []))
                     log(f"  raw_pulses={raw_len}")
@@ -498,10 +511,10 @@ class IoTDevice:
                     event_data["payload"]["code"] = ir_data.get("code")
                     event_data["payload"]["bits"] = ir_data.get("bits", 32)
                 elif protocol == "RAW":
-                    # For RAW, send pulse count and first few pulses (don't overflow)
+                    # For RAW, send all pulses (Daikin AC needs ~600 pulses)
                     raw_pulses = ir_data.get("raw", [])
                     event_data["payload"]["pulse_count"] = len(raw_pulses)
-                    event_data["payload"]["raw_sample"] = raw_pulses[:20]  # First 20 pulses
+                    event_data["payload"]["raw"] = raw_pulses
                 
                 # Post to Django
                 if self.api:
@@ -724,9 +737,20 @@ class IoTDevice:
                             ir_cmd = server_config.get("ir_command")
                             if ir_cmd and ir_cmd.get("action") == "send_ir":
                                 try:
-                                    code = int(ir_cmd["code"], 0)
-                                    log(f"Executing IR command: code={ir_cmd['code']}")
-                                    self.send_ir_test(code)
+                                    protocol = ir_cmd.get("protocol", "NEC")
+                                    if protocol == "RAW":
+                                        # RAW protocol: send raw pulse data
+                                        raw_data = ir_cmd.get("raw", ir_cmd.get("pulses", []))
+                                        if raw_data and self.ir_tx:
+                                            log(f"Executing RAW IR command: {len(raw_data)} pulses")
+                                            self.ir_tx.send_raw(raw_data)
+                                        else:
+                                            log("RAW IR command: no data or IR TX unavailable")
+                                    else:
+                                        # NEC protocol: send code
+                                        code = int(ir_cmd["code"], 0)
+                                        log(f"Executing IR command: code={ir_cmd['code']}")
+                                        self.send_ir_test(code)
                                 except Exception as ir_e:
                                     log(f"IR command execution error: {ir_e}")
                     except Exception as e:

@@ -1,5 +1,6 @@
 # booking/context_processors.py
 from django.conf import settings
+from django.core.cache import cache
 from django.utils.translation import get_language
 
 from .models import Store, Company, Notice, Media, ExternalLink, SiteSettings
@@ -17,20 +18,28 @@ def _get_localized_staff_label(site_settings):
 
 def global_context(request):
     """全テンプレートで共通して使う値を提供する"""
+    lang = get_language() or settings.LANGUAGE_CODE
+    cache_key = f'global_context:{lang}'
+    cached = cache.get(cache_key)
+    if cached:
+        return cached
+
     site_settings = SiteSettings.load()
     # staff_label を現在の言語に合わせて上書きしたコピーを作成
     localized_staff_label = _get_localized_staff_label(site_settings)
-    return {
-        'stores': Store.objects.all(),
+    context = {
+        'stores': list(Store.objects.all()),
         'company': Company.objects.first(),
-        'notices': Notice.objects.order_by('-updated_at')[:5],
-        'medias': Media.objects.order_by('-created_at')[:5],
-        'external_links': ExternalLink.objects.filter(is_active=True),
-        'current_language': get_language() or settings.LANGUAGE_CODE,
+        'notices': list(Notice.objects.order_by('-updated_at')[:5]),
+        'medias': list(Media.objects.order_by('-created_at')[:5]),
+        'external_links': list(ExternalLink.objects.filter(is_active=True)),
+        'current_language': lang,
         'available_languages': settings.LANGUAGES,
         'site_settings': site_settings,
         'staff_label': localized_staff_label,
     }
+    cache.set(cache_key, context, 60)
+    return context
 
 
 def _is_admin_path(path):

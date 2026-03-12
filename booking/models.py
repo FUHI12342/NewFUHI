@@ -138,6 +138,9 @@ class Staff(models.Model):
 
 class Schedule(models.Model):
     """予約スケジュール."""
+    # TODO: max_length=255 is excessive for UUID (36 chars).
+    # Consider changing to max_length=36 with a migration once confirmed
+    # no non-UUID values exist in production data.
     reservation_number = models.CharField(
         _('予約番号'),
         max_length=255,
@@ -309,7 +312,9 @@ class Media(models.Model):
             ip = ipaddress.ip_address(socket.gethostbyname(hostname))
             if ip.is_private or ip.is_loopback or ip.is_link_local:
                 return False
-        except (socket.gaierror, ValueError):
+        except socket.gaierror:
+            return False
+        except ValueError:
             pass
         return True
 

@@ -70,7 +70,11 @@
 
 {% block extra_js %}
 <script>
-var csrfToken = '{{ csrf_token }}';
+function getCookie(name) {
+    var v = document.cookie.match('(^|;) ?' + name + '=([^;]*)(;|$)');
+    return v ? v[2] : null;
+}
+var csrfToken = getCookie('csrftoken');
 var cartUpdateUrl = '{% url "booking_api:cart_update_api" %}';
 var cartRemoveUrl = '{% url "booking_api:cart_remove_api" %}';
 

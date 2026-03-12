@@ -3,8 +3,8 @@
 
 {% block extrahead %}
   {{ block.super }}
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@3.1.0"></script>
   <style>
     /* ── Reset & Layout ─────────────────────────────────── */
     #content-main { max-width: 1100px; margin: 0 auto; padding: 1rem; background: #111827 !important; color: #e5e7eb; }
@@ -247,7 +247,10 @@
 
   // ── Helpers ────────────────────────────────────────────
   function fetchJSON(url) {
-    return fetch(url).then(function(r) { return r.json(); });
+    return fetch(url).then(function(r) {
+      if (!r.ok) throw new Error('HTTP ' + r.status);
+      return r.json();
+    });
   }
 
   function sensorUrl(sensor) {

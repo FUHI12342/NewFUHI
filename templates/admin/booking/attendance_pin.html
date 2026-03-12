@@ -84,6 +84,11 @@
 const STAMP_LABELS = {clock_in:'出勤',clock_out:'退勤',break_start:'休憩開始',break_end:'休憩終了'};
 const STORE_ID = '{{ store.id }}';
 
+function escapeHtml(str) {
+  if (!str) return '';
+  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
 function getCookie(name) {
   const v = document.cookie.match('(^|;)\\s*' + name + '\\s*=\\s*([^;]+)');
   return v ? v.pop() : '';
@@ -142,7 +147,7 @@ function refreshLog() {
       s.stamps.forEach(st => {
         const t = new Date(st.at);
         const time = t.getHours().toString().padStart(2,'0') + ':' + t.getMinutes().toString().padStart(2,'0');
-        html += '<tr><td>' + s.staff_name + '</td><td>' + (STAMP_LABELS[st.type]||st.type) + '</td><td>' + time + '</td></tr>';
+        html += '<tr><td>' + escapeHtml(s.staff_name) + '</td><td>' + (STAMP_LABELS[st.type]||st.type) + '</td><td>' + time + '</td></tr>';
       });
     });
     tbody.innerHTML = html;

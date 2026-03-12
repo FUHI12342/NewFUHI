@@ -1,8 +1,14 @@
 # config.py (final / fixed)
 
 # ===== Wi-Fi =====
-WIFI_SSID = "KEMURIBA"
-WIFI_PASSWORD = "kouenji88"
+# Load credentials from secrets.py (never commit secrets.py to git)
+try:
+    from secrets import secrets
+    WIFI_SSID = secrets.get('ssid', '')
+    WIFI_PASSWORD = secrets.get('password', '')
+except ImportError:
+    WIFI_SSID = ''
+    WIFI_PASSWORD = ''
 
 # ===== Provisioning / button =====
 BUTTON_HOLD_SECONDS = 5
@@ -84,4 +90,7 @@ ROOT_CA = ROOT_CA_FILE
 DJANGO_EVENTS_URL = "http://192.168.10.102:8000/api/iot/events/"
 # 本番用（AWS EC2）- 現地デプロイ時にこちらに切り替え:
 # DJANGO_EVENTS_URL = "https://timebaibai.com/api/iot/events/"
-DJANGO_API_KEY = "test-api-key-123"   # Django 側 IoTDevice.api_key と一致
+try:
+    DJANGO_API_KEY = secrets.get('api_key', '')
+except NameError:
+    DJANGO_API_KEY = ''

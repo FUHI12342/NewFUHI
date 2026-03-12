@@ -22,7 +22,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.core.exceptions import ImproperlyConfigured, PermissionDenied
 from django.core.mail import send_mail
-from django.db.models import Q
+from django.db.models import F, Q
 from django.db import transaction
 from django.http import (
     HttpResponse,
@@ -61,7 +61,6 @@ from booking.models import (
     Order,
     OrderItem,
     StockMovement,
-    apply_stock_movement,
     # ===== Round2: シフト管理 =====
     StoreScheduleConfig,
     ShiftPeriod,
@@ -281,7 +280,7 @@ def get_reservation(request, pk):
 
 class CurrentTimeView(APIView):
     def get(self, request):
-        current_time = datetime.datetime.now()
+        current_time = timezone.now()
         return Response({"current_time": str(current_time)})
 
 
@@ -505,9 +504,38 @@ def _get_line_setting(name):
         )
     return value
 
-LINE_CHANNEL_ID = _get_line_setting('LINE_CHANNEL_ID')
-LINE_CHANNEL_SECRET = _get_line_setting('LINE_CHANNEL_SECRET')
-REDIRECT_URL = _get_line_setting('LINE_REDIRECT_URL')
+
+# Lazy LINE settings - fetched on first access to avoid crashing on import
+# when env vars are missing.
+class _LazyLineSetting:
+    """Descriptor that defers _get_line_setting() to first access."""
+    def __init__(self, setting_name):
+        self._setting_name = setting_name
+        self._value = None
+        self._resolved = False
+
+    def __call__(self):
+        if not self._resolved:
+            self._value = _get_line_setting(self._setting_name)
+            self._resolved = True
+        return self._value
+
+
+_lazy_line_channel_id = _LazyLineSetting('LINE_CHANNEL_ID')
+_lazy_line_channel_secret = _LazyLineSetting('LINE_CHANNEL_SECRET')
+_lazy_line_redirect_url = _LazyLineSetting('LINE_REDIRECT_URL')
+
+
+def get_line_channel_id():
+    return _lazy_line_channel_id()
+
+
+def get_line_channel_secret():
+    return _lazy_line_channel_secret()
+
+
+def get_line_redirect_url():
+    return _lazy_line_redirect_url()
 
 
 class LineEnterView(View):
@@ -517,8 +545,8 @@ class LineEnterView(View):
 
         params = {
             'response_type': 'code',
-            'client_id': LINE_CHANNEL_ID,
-            'redirect_uri': REDIRECT_URL,
+            'client_id': get_line_channel_id(),
+            'redirect_uri': get_line_redirect_url(),
             'state': state,
             'scope': 'openid profile email',
         }
@@ -542,9 +570,9 @@ class LineCallbackView(View):
         data_params = {
             "grant_type": "authorization_code",
             "code": code,
-            "redirect_uri": REDIRECT_URL,
-            "client_id": LINE_CHANNEL_ID,
-            "client_secret": LINE_CHANNEL_SECRET
+            "redirect_uri": get_line_redirect_url(),
+            "client_id": get_line_channel_id(),
+            "client_secret": get_line_channel_secret()
         }
         response_post = requests.post(uri_access_token, headers=headers, data=data_params)
 
@@ -556,8 +584,8 @@ class LineCallbackView(View):
 
         user_profile = jwt.decode(
             line_id_token,
-            LINE_CHANNEL_SECRET,
-            audience=LINE_CHANNEL_ID,
+            get_line_channel_secret(),
+            audience=get_line_channel_id(),
             issuer='https://access.line.me',
             algorithms=['HS256'],
             options={'verify_iat': False}
@@ -583,7 +611,7 @@ class LineCallbackView(View):
 
         try:
             from datetime import datetime as dt, timedelta as td
-            now = dt.now()
+            now = timezone.now()
             expired_on = now + td(days=1)
             expired_on_str = expired_on.strftime('%Y-%m-%d')
 
@@ -1127,7 +1155,7 @@ class EmailVerifyView(View):
 
         # Coiney決済URL取得
         from datetime import timedelta as td
-        now = dt.now()
+        now = timezone.now()
         expired_on = now + td(days=1)
         expired_on_str = expired_on.strftime('%Y-%m-%d')
 
@@ -1326,7 +1354,7 @@ def my_page_holiday_add(request, pk, year, month, day, hour):
     staff = get_object_or_404(Staff, pk=pk)
     if staff.user == request.user or request.user.is_superuser:
         start = datetime.datetime(year=year, month=month, day=day, hour=hour)
-        end = datetime.datetime(year=year, month=month, day=day, hour=hour + 1)
+        end = start + datetime.timedelta(hours=1)
         Schedule.objects.create(staff=staff, start=start, end=end, is_temporary=False, price=0)
         return redirect('booking:my_page_day_detail', pk=pk, year=year, month=month, day=day)
     raise PermissionDenied
@@ -1337,6 +1365,8 @@ def my_page_holiday_add(request, pk, year, month, day, hour):
 def my_page_day_add(request, pk, year, month, day):
     staff = get_object_or_404(Staff, pk=pk)
     if staff.user == request.user or request.user.is_superuser:
+        # TODO: range(9) and hour=9 are hardcoded to 9:00-17:00 business hours.
+        # Replace with dynamic store hours from StoreScheduleConfig when available.
         for num in range(9):
             start = datetime.datetime(year=year, month=month, day=day, hour=9 + num)
             end = datetime.datetime(year=year, month=month, day=day, hour=10 + num)
@@ -1350,6 +1380,8 @@ def my_page_day_add(request, pk, year, month, day):
 def my_page_day_delete(request, pk, year, month, day):
     staff = get_object_or_404(Staff, pk=pk)
     if staff.user == request.user or request.user.is_superuser:
+        # TODO: hour=9 and hour=17 are hardcoded business hours.
+        # Replace with dynamic store hours from StoreScheduleConfig when available.
         start = datetime.datetime(year=year, month=month, day=day, hour=9)
         end = datetime.datetime(year=year, month=month, day=day, hour=17)
         # 顧客予約を保護: customer_nameが空のスタッフ作成ブロックのみ削除
@@ -1404,7 +1436,7 @@ def process_payment(payment_response, request, orderId):
             try:
                 line_bot_api.push_message(staff_line_account_id, TextSendMessage(text=message_text))
             except LineBotApiError as e:
-                print('スタッフメッセージにてLineBotApiErrorが発生しました:', e)
+                logger.error('スタッフメッセージにてLineBotApiErrorが発生しました: %s', e)
 
         # ▼顧客通知：Scheduleに保存した暗号化LINE user id を復号してpush
         user_id = None
@@ -1423,7 +1455,7 @@ def process_payment(payment_response, request, orderId):
             try:
                 line_bot_api.push_message(user_id, TextSendMessage(text=message_text))
             except LineBotApiError as e:
-                print('顧客向け決済完了メッセージにてLineBotApiErrorが発生しました:', e)
+                logger.error('顧客向け決済完了メッセージにてLineBotApiErrorが発生しました: %s', e)
 
         # メール予約の場合: 決済完了メールを送信
         if schedule.booking_channel == 'email' and schedule.customer_email:
@@ -1467,7 +1499,8 @@ def coiney_webhook(request, orderId):
             logger.warning('coiney_webhook: 署名検証に失敗しました orderId=%s', orderId)
             return JsonResponse({"error": "Invalid signature"}, status=403)
     else:
-        logger.warning('coiney_webhook: COINEY_WEBHOOK_SECRET が未設定です。署名検証をスキップしています。')
+        logger.error('coiney_webhook: COINEY_WEBHOOK_SECRET が未設定です。Webhook を受け付けられません。')
+        return JsonResponse({"error": "Webhook secret not configured"}, status=500)
 
     # リクエストヘッダーのログ出力（機密情報を除外）
     safe_meta = {k: v for k, v in request.META.items()
@@ -1479,11 +1512,6 @@ def coiney_webhook(request, orderId):
         view._called_from_webhook = True
         return view.post(request, orderId)
     return JsonResponse({"error": "orderId not found in request body"}, status=400)
-
-
-def your_view(request):
-    medias = Media.objects.order_by('-created_at')
-    return render(request, 'booking/base.html', {'medias': medias})
 
 
 # ==========================================================
@@ -1598,12 +1626,47 @@ class OrderCreateAPIView(APIView):
 
     同時更新（多重注文/多重入庫）に耐えるため、対象商品の行をまとめて `select_for_update()` でロックし、
     在庫チェック→出庫→明細作成を同一トランザクションで行う。
+
+    NOTE: authentication_classes is empty because this endpoint is used from
+    unauthenticated table-ordering (QR code). Rate limiting is enforced via
+    _check_order_rate_limit() below.
     """
     authentication_classes = []
     permission_classes = []
 
+    # Simple in-memory per-IP rate limit: max 30 orders per minute
+    _rate_limit_cache: dict = {}
+    _RATE_LIMIT_MAX = 30
+    _RATE_LIMIT_WINDOW = 60  # seconds
+
+    @classmethod
+    def _check_order_rate_limit(cls, request) -> bool:
+        """Return True if the request should be rate-limited (rejected)."""
+        import time as _time
+        ip = request.META.get('REMOTE_ADDR', '')
+        now = _time.time()
+        # Clean old entries
+        cls._rate_limit_cache = {
+            k: v for k, v in cls._rate_limit_cache.items()
+            if now - v['start'] < cls._RATE_LIMIT_WINDOW
+        }
+        entry = cls._rate_limit_cache.get(ip)
+        if entry is None:
+            cls._rate_limit_cache[ip] = {'start': now, 'count': 1}
+            return False
+        if entry['count'] >= cls._RATE_LIMIT_MAX:
+            return True
+        entry['count'] += 1
+        return False
+
     def post(self, request, *args, **kwargs):
-        # セッションベースの簡易保護: store_idの妥当性チェックで不正大量注文を抑止
+        # Per-IP rate limiting for unauthenticated access
+        if self._check_order_rate_limit(request):
+            return Response(
+                {"detail": "Too many requests. Please try again later."},
+                status=status.HTTP_429_TOO_MANY_REQUESTS,
+            )
+
         store_id = request.data.get("store_id")
         items = request.data.get("items", [])
         if not items or len(items) > 50:
@@ -1675,8 +1738,9 @@ class OrderCreateAPIView(APIView):
                     note=f"order#{order.id}",
                 )
 
-                # ロック済みのインスタンスに対して更新
-                apply_stock_movement(p, StockMovement.TYPE_OUT, qty)
+                # 在庫を直接更新（product は既に select_for_update() でロック済み）
+                Product.objects.filter(pk=p.pk).update(stock=F('stock') - abs(int(qty)))
+                p.refresh_from_db(fields=['stock'])
 
                 OrderItem.objects.create(
                     order=order,
@@ -1691,6 +1755,10 @@ class OrderCreateAPIView(APIView):
 class OrderStatusAPIView(APIView):
     """注文状況（客側ポーリング用）
     GET /booking/api/orders/status/?order_id=1
+
+    NOTE: authentication_classes is empty because this endpoint is used from
+    unauthenticated table-ordering (QR code). Read-only status check is
+    low risk but order_id enumeration is mitigated by requiring valid ID.
     """
     authentication_classes = []
     permission_classes = []
@@ -1826,9 +1894,8 @@ class InboundApplyAPIView(LoginRequiredMixin, APIView):
                 note=note,
             )
 
-            apply_stock_movement(product, StockMovement.TYPE_IN, qty)
-
-            # apply_stock_movement が save() するので、ここでは refresh だけして返す
+            # 在庫を直接更新（product は既に select_for_update() でロック済み）
+            Product.objects.filter(pk=product.pk).update(stock=F('stock') + abs(int(qty)))
             product.refresh_from_db(fields=["stock"])
 
         return Response({"ok": True, "sku": sku, "stock": product.stock})
@@ -2132,7 +2199,10 @@ class CartAddAPIView(APIView):
     """カートに商品追加 API"""
     def post(self, request):
         product_id = str(request.data.get('product_id', ''))
-        qty = int(request.data.get('qty', 1))
+        try:
+            qty = int(request.data.get('qty', 1))
+        except (ValueError, TypeError):
+            return Response({'status': 'error', 'message': '数量が不正です'}, status=400)
 
         try:
             product = Product.objects.get(pk=product_id, is_active=True, is_ec_visible=True)
@@ -2163,7 +2233,10 @@ class CartUpdateAPIView(APIView):
     """カート数量変更 API"""
     def post(self, request):
         product_id = str(request.data.get('product_id', ''))
-        qty = int(request.data.get('qty', 0))
+        try:
+            qty = int(request.data.get('qty', 0))
+        except (ValueError, TypeError):
+            return Response({'status': 'error', 'message': '数量が不正です'}, status=400)
 
         cart = request.session.get('ec_cart', {})
         if product_id not in cart:
@@ -2260,12 +2333,10 @@ class ShopCheckoutView(View):
                     unit_price=product.price,
                 )
 
-                # Deduct stock
-                apply_stock_movement(
-                    product=product,
-                    movement_type=StockMovement.TYPE_OUT,
-                    qty=qty,
-                )
+                # Deduct stock (product is already select_for_update locked)
+                Product.objects.filter(pk=product.pk).update(stock=F('stock') - abs(int(qty)))
+                product.refresh_from_db(fields=['stock'])
+
                 StockMovement.objects.create(
                     store=product.store,
                     product=product,
@@ -2434,7 +2505,9 @@ class TableOrderView(View):
                     qty=qty,
                     note=f'table order#{order.id} seat:{seat.label}',
                 )
-                apply_stock_movement(p, StockMovement.TYPE_OUT, qty)
+                # 在庫を直接更新（product は既に select_for_update() でロック済み）
+                Product.objects.filter(pk=p.pk).update(stock=F('stock') - abs(int(qty)))
+                p.refresh_from_db(fields=['stock'])
 
                 OrderItem.objects.create(
                     order=order,
@@ -2744,7 +2817,9 @@ class TableOrderCreateAPI(APIView):
                     qty=qty,
                     note=f'table order#{order.id} seat:{seat.label}',
                 )
-                apply_stock_movement(p, StockMovement.TYPE_OUT, qty)
+                # 在庫を直接更新（product は既に select_for_update() でロック済み）
+                Product.objects.filter(pk=p.pk).update(stock=F('stock') - abs(int(qty)))
+                p.refresh_from_db(fields=['stock'])
 
                 OrderItem.objects.create(
                     order=order,

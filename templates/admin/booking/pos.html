@@ -3,7 +3,7 @@
 {% block title %}{{ title }}{% endblock %}
 {% block extrastyle %}
 <script src="https://unpkg.com/htmx.org@1.9.10"></script>
-<script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.14.9/dist/cdn.min.js"></script>
 <style>
   .pos-layout { display: grid; grid-template-columns: 1fr 350px; gap: 0; height: calc(100vh - 60px); }
   .product-area { padding: 16px; overflow-y: auto; }
@@ -75,7 +75,8 @@
       {% for p in products %}
       <div class="product-card"
            x-show="selectedCategory==='all' || selectedCategory==='{{ p.category_id }}'"
-           @click="addToCart({id:{{ p.id }}, name:'{{ p.name|escapejs }}', price:{{ p.price }}})">
+           {% if p.stock > 0 %}@click="addToCart({id:{{ p.id }}, name:'{{ p.name|escapejs }}', price:{{ p.price }}})"{% endif %}
+           style="{% if p.stock <= 0 %}opacity:0.5;cursor:not-allowed;{% endif %}">
         <div class="name">{{ p.name }}</div>
         <div class="price">¥{{ p.price|floatformat:0 }}</div>
         {% if p.stock <= 0 %}<div style="color:red;font-size:12px;">売切</div>{% endif %}

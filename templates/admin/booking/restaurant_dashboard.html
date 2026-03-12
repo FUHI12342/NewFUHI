@@ -562,6 +562,14 @@ document.addEventListener('DOMContentLoaded', function () {
   }
 
   /* ------------------------------------------------------------------ */
+  /*  Helper: escape HTML to prevent XSS                                 */
+  /* ------------------------------------------------------------------ */
+  function escapeHtml(str) {
+    if (!str) return '';
+    return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  /* ------------------------------------------------------------------ */
   /*  Helper: CSRF-safe fetch                                            */
   /* ------------------------------------------------------------------ */
   function getCookie(name) {
@@ -750,7 +758,7 @@ document.addEventListener('DOMContentLoaded', function () {
         tbody.innerHTML = '<tr><td colspan="3" class="px-4 py-2 text-gray-400 text-center">シフトデータなし</td></tr>';
       } else {
         tbody.innerHTML = staffData.map(function(s) {
-          return '<tr><td class="px-4 py-2">' + s.name + '</td><td class="px-4 py-2 text-right">' + s.total + '</td><td class="px-4 py-2 text-right">' + s.synced + '</td></tr>';
+          return '<tr><td class="px-4 py-2">' + escapeHtml(s.name) + '</td><td class="px-4 py-2 text-right">' + s.total + '</td><td class="px-4 py-2 text-right">' + s.synced + '</td></tr>';
         }).join('');
       }
     }).catch(function (err) {
@@ -785,7 +793,7 @@ document.addEventListener('DOMContentLoaded', function () {
           statusClass = 'text-amber-500';
           notYet++;
         }
-        rows.push('<tr><td class="px-4 py-2">' + (s.staff_name || '--') + '</td>'
+        rows.push('<tr><td class="px-4 py-2">' + escapeHtml(s.staff_name || '--') + '</td>'
           + '<td class="px-4 py-2 text-center ' + statusClass + '">' + status + '</td>'
           + '<td class="px-4 py-2 text-right">' + (s.clock_in || '--') + '</td>'
           + '<td class="px-4 py-2 text-right">' + (s.clock_out || '--') + '</td></tr>');
@@ -875,7 +883,7 @@ document.addEventListener('DOMContentLoaded', function () {
             var pct = p.low_stock_threshold > 0 ? Math.round((p.stock / p.low_stock_threshold) * 100) : 0;
             var color = pct <= 50 ? 'bg-rose-500' : 'bg-amber-400';
             return '<div class="flex items-center gap-3 p-2 border border-gray-100 rounded-lg">'
-              + '<span class="text-sm font-medium flex-1">' + p.name + '</span>'
+              + '<span class="text-sm font-medium flex-1">' + escapeHtml(p.name) + '</span>'
               + '<span class="text-xs text-gray-500">残 ' + p.stock + '</span>'
               + '<div class="w-20 h-2 bg-gray-200 rounded-full"><div class="h-2 rounded-full ' + color + '" style="width:' + Math.min(pct, 100) + '%"></div></div>'
               + '</div>';

@@ -41,10 +41,10 @@
         var el = document.getElementById('result');
         if (data.success) {
           el.className = 'result success';
-          el.innerHTML = data.staff_name + ': ' + type + ' OK (' + new Date(data.stamped_at).toLocaleTimeString() + ')';
+          el.textContent = data.staff_name + ': ' + type + ' OK (' + new Date(data.stamped_at).toLocaleTimeString() + ')';
         } else {
           el.className = 'result error';
-          el.innerHTML = data.error || 'エラー';
+          el.textContent = data.error || 'エラー';
         }
       });
     }
