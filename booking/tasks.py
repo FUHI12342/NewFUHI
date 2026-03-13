@@ -55,7 +55,7 @@ def check_low_stock_and_notify():
     ).exclude(
         models.Q(last_low_stock_notified_at__isnull=False) &
         models.Q(last_low_stock_notified_at__gt=cutoff)
-    )
+    ).select_related('store')
 
     notified_count = 0
     for product in products:

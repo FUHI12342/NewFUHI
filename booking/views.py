@@ -276,8 +276,8 @@ def get_reservation_times(request, pk):
 
 
 def get_reservation(request, pk):
-    schedule = get_object_or_404(Schedule, pk=pk)
-    return JsonResponse({'startTime': schedule.start.isoformat(), 'endTime': schedule.end.isoformat()})
+    """Alias for get_reservation_times (kept for URL compatibility)."""
+    return get_reservation_times(request, pk)
 
 
 class CurrentTimeView(APIView):
@@ -631,8 +631,8 @@ class LineCallbackView(View):
             if getattr(e, "status_code", None) == 404:
                 try:
                     line_bot_api.push_message(user_id, TextSendMessage(text="Please add our bot as a friend to continue."))
-                except Exception:
-                    pass
+                except Exception as e:
+                    logger.warning("LINE bot friend invitation push failed for user_id=%s: %s", user_id, e)
                 return HttpResponseBadRequest()
             return HttpResponseBadRequest()
 
@@ -1434,9 +1434,13 @@ def upload_file(request):
     return render(request, 'upload.html', {'form': form})
 
 
-def process_payment(payment_response, request, orderId):
+def process_payment(payment_response, request, order_id):
     if payment_response.get('type') == 'payment.succeeded':
-        schedule = Schedule.objects.get(reservation_number=orderId)
+        try:
+            schedule = Schedule.objects.get(reservation_number=order_id)
+        except Schedule.DoesNotExist:
+            logger.error("process_payment: Schedule not found for order_id=%s", order_id)
+            return JsonResponse({"error": "reservation not found"}, status=404)
         schedule.is_temporary = False
         schedule.save(update_fields=["is_temporary"])
 
@@ -2415,7 +2419,10 @@ class CartView(View):
 
 
 class CartAddAPIView(APIView):
-    """カートに商品追加 API"""
+    """カートに商品追加 API (公開・セッションベース)"""
+    authentication_classes = []
+    permission_classes = []
+
     def post(self, request):
         product_id = str(request.data.get('product_id', ''))
         try:
@@ -2449,7 +2456,10 @@ class CartAddAPIView(APIView):
 
 
 class CartUpdateAPIView(APIView):
-    """カート数量変更 API"""
+    """カート数量変更 API (公開・セッションベース)"""
+    authentication_classes = []
+    permission_classes = []
+
     def post(self, request):
         product_id = str(request.data.get('product_id', ''))
         try:
@@ -2471,7 +2481,10 @@ class CartUpdateAPIView(APIView):
 
 
 class CartRemoveAPIView(APIView):
-    """カートから商品削除 API"""
+    """カートから商品削除 API (公開・セッションベース)"""
+    authentication_classes = []
+    permission_classes = []
+
     def post(self, request):
         product_id = str(request.data.get('product_id', ''))
 

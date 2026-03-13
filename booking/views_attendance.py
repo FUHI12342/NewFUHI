@@ -5,6 +5,7 @@ import base64
 from io import BytesIO
 from datetime import date, timedelta
 
+from django.contrib.auth.mixins import LoginRequiredMixin
 from django.http import JsonResponse, HttpResponse
 from django.views import View
 from django.views.generic import TemplateView
@@ -88,7 +89,7 @@ class AttendanceBoardView(AdminSidebarMixin, TemplateView):
         return ctx
 
 
-class AttendanceStampAPIView(View):
+class AttendanceStampAPIView(LoginRequiredMixin, View):
     """TOTP検証 → 打刻API"""
 
     def post(self, request):
@@ -179,7 +180,7 @@ class AttendanceStampAPIView(View):
         })
 
 
-class AttendanceTOTPRefreshAPI(View):
+class AttendanceTOTPRefreshAPI(LoginRequiredMixin, View):
     """現在のTOTP QR画像をbase64で返す"""
 
     def get(self, request):
@@ -226,7 +227,7 @@ class AttendancePINDisplayView(AdminSidebarMixin, TemplateView):
         return ctx
 
 
-class AttendancePINStampAPIView(View):
+class AttendancePINStampAPIView(LoginRequiredMixin, View):
     """PIN検証 → 打刻API"""
 
     def post(self, request):
@@ -319,7 +320,7 @@ class AttendancePINStampAPIView(View):
         })
 
 
-class AttendanceDayStatusAPI(View):
+class AttendanceDayStatusAPI(LoginRequiredMixin, View):
     """本日の出退勤状況JSON"""
 
     def get(self, request):

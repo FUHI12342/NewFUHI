@@ -1,4 +1,5 @@
 """セキュリティ監視ミドルウェア"""
+import threading
 import time
 import logging
 from collections import defaultdict
@@ -18,6 +19,7 @@ class SecurityAuditMiddleware:
 
     # インメモリレートカウンター（10,000エントリ上限で自動クリーン）
     _rate_counter = defaultdict(list)
+    _rate_lock = threading.Lock()
     _MAX_ENTRIES = 10000
     _RATE_WINDOW = 60  # seconds
     _RATE_THRESHOLD = 100
@@ -68,23 +70,24 @@ class SecurityAuditMiddleware:
     def _check_rate_limit(self, request, ip):
         now = time.time()
 
-        # エントリ数上限チェック
-        if len(self._rate_counter) > self._MAX_ENTRIES:
-            self._rate_counter.clear()
+        with self._rate_lock:
+            # エントリ数上限チェック
+            if len(self._rate_counter) > self._MAX_ENTRIES:
+                self._rate_counter.clear()
 
-        # 古いエントリを削除
-        timestamps = self._rate_counter[ip]
-        cutoff = now - self._RATE_WINDOW
-        self._rate_counter[ip] = [t for t in timestamps if t > cutoff]
-        self._rate_counter[ip].append(now)
+            # 古いエントリを削除
+            cutoff = now - self._RATE_WINDOW
+            self._rate_counter[ip] = [t for t in self._rate_counter[ip] if t > cutoff]
+            self._rate_counter[ip].append(now)
+            count = len(self._rate_counter[ip])
 
-        if len(self._rate_counter[ip]) > self._RATE_THRESHOLD:
+        if count > self._RATE_THRESHOLD:
             self._log_event(
                 event_type='suspicious_request',
                 severity='critical',
                 request=request,
                 ip=ip,
-                detail=f'レートリミット超過: {ip} から60秒以内に{len(self._rate_counter[ip])}リクエスト',
+                detail=f'レートリミット超過: {ip} から60秒以内に{count}リクエスト',
             )
 
     def _handle_login_result(self, request, response, ip):

@@ -3,6 +3,7 @@ import json
 import logging
 from datetime import datetime
 
+from django.contrib.auth.mixins import LoginRequiredMixin
 from django.db import transaction
 from django.http import JsonResponse, HttpResponse
 from django.views import View
@@ -70,7 +71,7 @@ class POSView(AdminSidebarMixin, TemplateView):
         return ctx
 
 
-class POSOrderAPIView(View):
+class POSOrderAPIView(LoginRequiredMixin, View):
     """注文一覧・作成"""
 
     def get(self, request):
@@ -122,7 +123,7 @@ class POSOrderAPIView(View):
         return JsonResponse({'id': order.id, 'table_label': order.table_label}, status=201)
 
 
-class POSOrderItemAPIView(View):
+class POSOrderItemAPIView(LoginRequiredMixin, View):
     """注文商品追加・更新・削除"""
 
     def post(self, request):
@@ -177,7 +178,7 @@ class POSOrderItemAPIView(View):
         return HttpResponse('', status=204)
 
 
-class POSCheckoutAPIView(View):
+class POSCheckoutAPIView(LoginRequiredMixin, View):
     """決済処理"""
 
     def post(self, request):
@@ -300,7 +301,7 @@ class KitchenOrdersHTMLView(View):
         return HttpResponse(html)
 
 
-class KitchenOrderStatusAPI(View):
+class KitchenOrderStatusAPI(LoginRequiredMixin, View):
     """OrderItemステータス更新"""
 
     def put(self, request, pk=None):

@@ -87,13 +87,25 @@ class AdminDebugPanelView(AdminSidebarMixin, TemplateView):
         return ctx
 
 
+def _is_developer_or_superuser(user):
+    """Check if user is superuser or has developer flag."""
+    if not user.is_authenticated:
+        return False
+    if user.is_superuser:
+        return True
+    try:
+        return bool(user.staff.is_developer)
+    except (AttributeError, Exception):
+        return False
+
+
 class AdminDebugPanelAPIView(APIView):
     """AJAX endpoint for debug panel auto-refresh."""
     authentication_classes = []
     permission_classes = []
 
     def get(self, request):
-        if not request.user.is_authenticated or not (request.user.is_superuser or hasattr(request.user, 'staff') and request.user.staff.is_developer):
+        if not _is_developer_or_superuser(request.user):
             return Response({'detail': 'forbidden'}, status=status.HTTP_403_FORBIDDEN)
 
         now = timezone.now()
@@ -130,13 +142,13 @@ class LogLevelControlAPIView(APIView):
     permission_classes = []
 
     def get(self, request):
-        if not request.user.is_authenticated or not request.user.is_superuser:
+        if not _is_developer_or_superuser(request.user):
             return Response({'detail': 'forbidden'}, status=status.HTTP_403_FORBIDDEN)
         level = SystemConfig.get('log_level', settings.LOG_LEVEL)
         return Response({'log_level': level})
 
     def post(self, request):
-        if not request.user.is_authenticated or not request.user.is_superuser:
+        if not _is_developer_or_superuser(request.user):
             return Response({'detail': 'forbidden'}, status=status.HTTP_403_FORBIDDEN)
 
         level = request.data.get('log_level', '').upper()

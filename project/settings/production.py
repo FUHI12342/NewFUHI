@@ -119,12 +119,18 @@ EMAIL_USE_TLS = env_bool("EMAIL_USE_TLS", True)
 
 # Celery settings
 CELERY_BROKER_URL = os.getenv("CELERY_BROKER_URL", "redis://localhost:6379/0")
-accept_content = env_list("CELERY_ACCEPT_CONTENT", ["json"])
-task_serializer = os.getenv("CELERY_TASK_SERIALIZER", "json")
+CELERY_ACCEPT_CONTENT = env_list("CELERY_ACCEPT_CONTENT", ["json"])
+CELERY_TASK_SERIALIZER = os.getenv("CELERY_TASK_SERIALIZER", "json")
 
 # LINE user ID protection
 LINE_USER_ID_ENCRYPTION_KEY = os.getenv("LINE_USER_ID_ENCRYPTION_KEY", "")
 LINE_USER_ID_HASH_PEPPER = os.getenv("LINE_USER_ID_HASH_PEPPER", "")
+
+# IoT encryption
+IOT_ENCRYPTION_KEY = os.getenv("IOT_ENCRYPTION_KEY", "")
+
+# Webhook secret
+COINEY_WEBHOOK_SECRET = os.getenv("COINEY_WEBHOOK_SECRET", "")
 
 # Log production settings loaded
 import logging

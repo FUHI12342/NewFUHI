@@ -25,7 +25,9 @@ class TestHealthEndpoint(TestCase):
         self.assertEqual(response.status_code, 200)
         data = response.json()
         self.assertEqual(data['status'], 'ok')
-        self.assertIn('django', data)
+        # Minimal response to avoid information leakage
+        self.assertNotIn('django', data)
+        self.assertNotIn('settings', data)
 
     def test_healthz_accepts_get_only(self):
         response = self.client.post('/healthz')

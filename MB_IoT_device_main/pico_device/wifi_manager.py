@@ -24,7 +24,7 @@ class WiFiStatus:
 
 class WiFiManager:
     """Manages WiFi connections with failure tracking and Setup AP activation"""
-    
+
     def __init__(self, config_manager, failure_threshold: int = 3):
         self.config_manager = config_manager
         self.failure_threshold = failure_threshold
@@ -34,36 +34,103 @@ class WiFiManager:
         self.setup_reason = None
         self.last_attempt_time = 0
         self.connection_history = []  # Track connection attempts
+        self.was_connected = False  # Track if we ever connected successfully
+        self.reconnect_attempts = 0  # Track reconnection attempts
+        self.last_reconnect_time = 0  # For backoff timing
     
     def connect_wifi(self) -> bool:
-        """Attempts WiFi connection using valid configuration"""
+        """Attempts WiFi connection using valid configuration.
+
+        Tries multi-SSID fallback if wifi_networks is defined in secrets.
+        Falls back to primary SSID from config if no wifi_networks list.
+        """
         self.last_attempt_time = time.time()
+
+        # Try multi-SSID list first
+        networks = self._get_wifi_networks()
+        if networks:
+            for net in networks:
+                ssid = net.get("ssid", "")
+                password = net.get("password", "")
+                if not ssid or not password:
+                    continue
+                self.connection_state = CONNECTION_STATE_CONNECTING
+                self._log_connection_attempt("CONNECTING", None, f"Trying SSID: {ssid}")
+                try:
+                    success = self._attempt_wifi_connection_raw(ssid, password)
+                    if success:
+                        # Build config for this network
+                        config = self.config_manager.get_valid_config()
+                        if config:
+                            config.wifi_ssid = ssid
+                            config.wifi_password = password
+                        self.current_config = config
+                        self.connection_state = CONNECTION_STATE_CONNECTED
+                        self.was_connected = True
+                        self.reconnect_attempts = 0
+                        self.reset_failure_count()
+                        self._log_connection_attempt("SUCCESS", True, f"Connected to {ssid}")
+                        return True
+                except Exception as e:
+                    self._log_connection_attempt("FAILED", False, f"{ssid}: {e}")
+                    continue
+            # All networks failed
+            self._handle_connection_failure("ALL_NETWORKS_FAILED")
+            return False
+
+        # Fallback: single SSID from config
         config = self.config_manager.get_valid_config()
-        
+
         if not config:
             self.setup_reason = "NO_VALID_CONFIG"
             self._log_connection_attempt("NO_CONFIG", False, "No valid configuration available")
             return False
-        
+
         self.current_config = config
         self.connection_state = CONNECTION_STATE_CONNECTING
         self._log_connection_attempt("CONNECTING", None, f"Attempting connection to {config.wifi_ssid}")
-        
+
         try:
             # Attempt WiFi connection
             success = self._attempt_wifi_connection(config)
-            
+
             if success:
                 self.connection_state = CONNECTION_STATE_CONNECTED
+                self.was_connected = True
+                self.reconnect_attempts = 0
                 self.reset_failure_count()
                 self._log_connection_attempt("SUCCESS", True, f"Connected to {config.wifi_ssid}")
                 return True
             else:
                 self._handle_connection_failure("CONNECTION_FAILED")
                 return False
-                
+
         except Exception as e:
             self._handle_connection_failure(f"EXCEPTION: {str(e)}")
+            return False
+
+    def _get_wifi_networks(self):
+        """Get multi-SSID list from secrets if available."""
+        try:
+            import secrets as secrets_mod
+            data = getattr(secrets_mod, 'secrets', {})
+            networks = data.get('wifi_networks')
+            if isinstance(networks, list) and len(networks) > 0:
+                return networks
+        except Exception:
+            pass
+        return None
+
+    def _attempt_wifi_connection_raw(self, ssid, password) -> bool:
+        """Direct WiFi connection attempt with explicit SSID/password."""
+        try:
+            import wifi
+            if wifi.radio.connected:
+                wifi.radio.stop_station()
+            wifi.radio.connect(ssid, password)
+            return wifi.radio.connected
+        except Exception as e:
+            print(f"[WIFI] Connection to {ssid} failed: {e}")
             return False
     
     def _attempt_wifi_connection(self, config) -> bool:
@@ -233,6 +300,87 @@ class WiFiManager:
         except:
             return self.connection_state == CONNECTION_STATE_CONNECTED
     
+    def reconnect(self) -> bool:
+        """Attempt WiFi reconnection after temporary loss.
+
+        Unlike connect_wifi(), this does NOT increment the failure count
+        toward Setup AP mode. Tries last known good SSID first, then
+        falls back to multi-SSID list.
+        Returns True if reconnected successfully.
+        """
+        self.reconnect_attempts += 1
+        self.last_reconnect_time = time.time()
+        self._log_connection_attempt(
+            "RECONNECT",
+            None,
+            f"Reconnect attempt #{self.reconnect_attempts}",
+        )
+
+        # Try last known good config first
+        config = self.current_config or self.config_manager.get_valid_config()
+        if config:
+            try:
+                success = self._attempt_wifi_connection(config)
+                if success:
+                    self.connection_state = CONNECTION_STATE_CONNECTED
+                    self.reconnect_attempts = 0
+                    self._log_connection_attempt(
+                        "RECONNECT_OK",
+                        True,
+                        f"Reconnected to {config.wifi_ssid}",
+                    )
+                    return True
+            except Exception as e:
+                self._log_connection_attempt(
+                    "RECONNECT_FAIL", False, f"Primary: {e}"
+                )
+
+        # Fallback: try all networks in multi-SSID list
+        networks = self._get_wifi_networks()
+        if networks:
+            for net in networks:
+                ssid = net.get("ssid", "")
+                password = net.get("password", "")
+                if not ssid or not password:
+                    continue
+                # Skip the SSID we already tried
+                if config and ssid == config.wifi_ssid:
+                    continue
+                try:
+                    success = self._attempt_wifi_connection_raw(ssid, password)
+                    if success:
+                        if config:
+                            config.wifi_ssid = ssid
+                            config.wifi_password = password
+                            self.current_config = config
+                        self.connection_state = CONNECTION_STATE_CONNECTED
+                        self.reconnect_attempts = 0
+                        self._log_connection_attempt(
+                            "RECONNECT_OK",
+                            True,
+                            f"Reconnected to fallback SSID: {ssid}",
+                        )
+                        return True
+                except Exception:
+                    continue
+
+        self._log_connection_attempt(
+            "RECONNECT_FAIL",
+            False,
+            f"Attempt #{self.reconnect_attempts} failed (all SSIDs)",
+        )
+        return False
+
+    def get_reconnect_delay(self) -> int:
+        """Return delay in seconds before next reconnect attempt.
+
+        Exponential backoff: 5, 10, 20, 40, 60, 60, 60...
+        Caps at 60 seconds.
+        """
+        base = 5
+        delay = base * (2 ** min(self.reconnect_attempts, 4))
+        return min(delay, 60)
+
     def get_current_ssid(self):
         """Get SSID of current connection"""
         if self.current_config and self.is_connected():

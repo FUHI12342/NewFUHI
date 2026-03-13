@@ -240,6 +240,46 @@ JAZZMIN_SETTINGS = {
     "custom_css": "css/jazzmin_overrides.css",
 }
 
+# ====================================
+# Django REST Framework defaults
+# ====================================
+REST_FRAMEWORK = {
+    "DEFAULT_AUTHENTICATION_CLASSES": [
+        "rest_framework.authentication.SessionAuthentication",
+    ],
+    "DEFAULT_PERMISSION_CLASSES": [
+        "rest_framework.permissions.IsAuthenticated",
+    ],
+    "DEFAULT_THROTTLE_CLASSES": [
+        "rest_framework.throttling.AnonRateThrottle",
+        "rest_framework.throttling.UserRateThrottle",
+    ],
+    "DEFAULT_THROTTLE_RATES": {
+        "anon": "60/min",
+        "user": "300/min",
+    },
+}
+
+# ====================================
+# Session & Cookie security
+# ====================================
+SESSION_COOKIE_HTTPONLY = True
+SESSION_COOKIE_AGE = 28800  # 8 hours
+CSRF_COOKIE_HTTPONLY = True
+SECURE_REFERRER_POLICY = "strict-origin-when-cross-origin"
+
+# ====================================
+# Password hashing
+# ====================================
+# Argon2/BCrypt preferred when libraries are installed.
+# PBKDF2 is always available as fallback.
+PASSWORD_HASHERS = [
+    "django.contrib.auth.hashers.PBKDF2PasswordHasher",
+    "django.contrib.auth.hashers.PBKDF2SHA1PasswordHasher",
+    "django.contrib.auth.hashers.Argon2PasswordHasher",
+    "django.contrib.auth.hashers.BCryptSHA256PasswordHasher",
+]
+
 JAZZMIN_UI_TWEAKS = {
     "navbar_small_text": False,
     "footer_small_text": False,

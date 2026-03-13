@@ -1019,6 +1019,9 @@ class KPIScoreCardAPIView(APIView):
 
 class CustomerFeedbackAPIView(APIView):
     """POST: submit feedback (public), GET: list feedbacks (admin)."""
+    # Allow both authenticated and anonymous access;
+    # POST is public (QR survey), GET checks auth in method body.
+    permission_classes = []
 
     def post(self, request):
         """Submit customer feedback — no auth required (QR survey)."""
