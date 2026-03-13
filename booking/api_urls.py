@@ -33,7 +33,7 @@ from .views_restaurant_dashboard import (
 from .views_property import PropertyStatusAPIView, PropertyAlertResolveAPIView
 from .views import CheckinAPIView, CartAddAPIView, CartUpdateAPIView, CartRemoveAPIView
 from .views import TableCartAddAPI, TableCartUpdateAPI, TableCartRemoveAPI, TableOrderCreateAPI, TableOrderStatusAPI
-from .views_chat import AdminChatAPIView, GuideChatAPIView
+# from .views_chat import AdminChatAPIView  # AI Chat一時無効化
 from .views_attendance import AttendanceStampAPIView, AttendanceTOTPRefreshAPI, AttendanceDayStatusAPI, AttendancePINStampAPIView
 from .views_pos import POSOrderAPIView, POSOrderItemAPIView, POSCheckoutAPIView, KitchenOrderStatusAPI, KitchenOrdersHTMLView
 from .views_analytics import VisitorCountAPIView, VisitorHeatmapAPIView, ConversionAnalyticsAPIView
@@ -111,9 +111,9 @@ urlpatterns = [
     path('shop/cart/update/', CartUpdateAPIView.as_view(), name='cart_update_api'),
     path('shop/cart/remove/', CartRemoveAPIView.as_view(), name='cart_remove_api'),
 
-    # AI Chat APIs
-    path('chat/admin/', AdminChatAPIView.as_view(), name='api_admin_chat'),
-    path('chat/guide/', GuideChatAPIView.as_view(), name='api_guide_chat'),
+    # AI Chat APIs (全チャット機能一時無効化 — Gemini APIキー再発行まで)
+    # path('chat/admin/', AdminChatAPIView.as_view(), name='api_admin_chat'),
+    # GuideChatAPIView removed (公開チャット廃止 — Gemini APIコストリスク対策)
 
     # Table ordering APIs
     path('table/<uuid:table_id>/cart/add/', TableCartAddAPI.as_view(), name='table_cart_add'),
