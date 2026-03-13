@@ -636,6 +636,7 @@ everything-claude-code 導入後、Django バックエンド (55モデル, 53 AP
 | `DEPLOY_PRODUCTION.md` | 本番デプロイ手順 |
 | `GAMMA_WORKFLOW.md` | 開発ワークフロー |
 | `MANUAL.md` | 操作マニュアル |
+| `TODO_SAAS.md` | SaaS化草案 (マルチテナント商用化計画・料金設計) |
 | `docs/diagrams/*.png` | Mermaidシステム構成図 (6枚) |
 
 ---
