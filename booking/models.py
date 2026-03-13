@@ -4,6 +4,7 @@ from django.db.models import F
 from django.utils.translation import gettext_lazy as _
 from django.utils import timezone
 from django.core.exceptions import ImproperlyConfigured
+from django.contrib.auth.hashers import make_password, check_password
 from django.core.validators import RegexValidator
 
 from rest_framework import serializers
@@ -122,9 +123,8 @@ class Staff(models.Model):
     price = models.IntegerField(_('価格'), default=0)
 
     attendance_pin = models.CharField(
-        _('勤怠PIN'), max_length=4, blank=True, default='',
-        help_text=_('4桁の打刻用PINコード'),
-        validators=[RegexValidator(r'^\d{4}$', _('4桁の数字を入力してください'))],
+        _('勤怠PIN'), max_length=128, blank=True, default='',
+        help_text=_('4桁の打刻用PINコード（ハッシュ化して保存）'),
     )
 
     class Meta:
@@ -134,6 +134,22 @@ class Staff(models.Model):
 
     def __str__(self):
         return f'{self.store.name} - {self.name}'
+
+    # --------------------------------------------------
+    # 勤怠PIN: ハッシュ化ヘルパー
+    # --------------------------------------------------
+    def set_attendance_pin(self, raw_pin: str):
+        """生の4桁PINをハッシュ化して保存"""
+        self.attendance_pin = make_password(raw_pin)
+
+    def check_attendance_pin(self, raw_pin: str) -> bool:
+        """入力PINをハッシュと照合。旧データ（平文）との後方互換あり"""
+        if not self.attendance_pin:
+            return False
+        # 旧データ: 平文PINが6文字以下で保存されている場合は直接比較
+        if len(self.attendance_pin) <= 6:
+            return self.attendance_pin == raw_pin
+        return check_password(raw_pin, self.attendance_pin)
 
 
 class Schedule(models.Model):

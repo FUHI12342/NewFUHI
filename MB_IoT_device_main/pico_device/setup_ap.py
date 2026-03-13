@@ -5,13 +5,51 @@ import json
 import time
 from .file_utils import ConfigFileManager
 
+
+def _generate_ap_password(device_id):
+    """デバイス固有IDからAPパスワードを動的生成する（ハードコード禁止）
+
+    MACアドレスまたはmicrocontroller.cpu.uidから末尾6文字を取得し、
+    プレフィックスと結合してユニークなパスワードを生成する。
+    """
+    unique_suffix = ""
+
+    # 方法1: WiFi MACアドレスから生成
+    try:
+        import wifi
+        mac = wifi.radio.mac_address
+        unique_suffix = "".join(f"{b:02x}" for b in mac[-3:])  # 末尾6文字
+    except Exception:
+        pass
+
+    # 方法2: microcontroller CPUユニークIDから生成
+    if not unique_suffix:
+        try:
+            import microcontroller
+            uid = microcontroller.cpu.uid
+            unique_suffix = "".join(f"{b:02x}" for b in uid[-3:])  # 末尾6文字
+        except Exception:
+            pass
+
+    # 方法3: device_idのハッシュをフォールバックに使用
+    if not unique_suffix:
+        # 簡易ハッシュ（CircuitPython互換）
+        h = 0
+        for c in device_id:
+            h = (h * 31 + ord(c)) & 0xFFFFFF
+        unique_suffix = f"{h:06x}"
+
+    return f"FUHI-{unique_suffix}"
+
+
 class SetupAPHandler:
     """Manages Setup AP mode and configuration web interface"""
-    
+
     def __init__(self, device_id):
         self.device_id = device_id
         self.ssid = f"PICO-SETUP-{device_id}"
-        self.password = "SETUP_PASSWORD"
+        # セキュリティ: ハードコードパスワードではなくデバイス固有IDから動的生成
+        self.password = _generate_ap_password(device_id)
         self.web_server = None
         self.ap_ip = "192.168.4.1"
         self.is_active = False
@@ -22,7 +60,9 @@ class SetupAPHandler:
         """Activates access point and starts web server"""
         print(f"[SETUP] *** ACTIVATING SETUP AP MODE ***")
         print(f"[SETUP] SSID: {self.ssid}")
+        # シリアル出力でパスワードを表示（ユーザーがシリアルモニタで確認可能）
         print(f"[SETUP] Password: {self.password}")
+        print(f"[SETUP] ※ パスワードはデバイス固有IDから自動生成されています")
         print(f"[SETUP] Web interface: http://{self.ap_ip}")
         
         try:

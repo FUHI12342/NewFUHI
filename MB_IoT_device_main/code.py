@@ -54,6 +54,7 @@ LightSensor = None
 SoundSensor = None
 PIR = None
 Button = None
+DHTSensor = None  # I2C温湿度センサー（SHT31/DHT20）
 
 # Actuators (Lazy loaded in init_actuators)
 Buzzer = None
@@ -366,8 +367,8 @@ class IoTDevice:
     def init_sensors(self):
         """Initialize all sensors"""
         log("Initializing sensors...")
-        
-        global MQ9, LightSensor, SoundSensor, PIR, Button
+
+        global MQ9, LightSensor, SoundSensor, PIR, Button, DHTSensor
         try:
             from sensors.mq9 import MQ9
             if FEATURE_LIGHT:
@@ -377,7 +378,13 @@ class IoTDevice:
             from sensors.button import Button
         except ImportError as e:
             log(f"WARNING: Some sensor modules missing: {e}")
-        
+
+        # I2C温湿度センサー（SHT31/DHT20）
+        try:
+            from sensors.dht_i2c import DHTSensor
+        except ImportError as e:
+            log(f"WARNING: DHT sensor module missing: {e}")
+
         if MQ9:
             self.sensors["mq9"] = MQ9(pin_num=PIN_MQ9)
         if FEATURE_LIGHT and LightSensor:
@@ -389,7 +396,9 @@ class IoTDevice:
         if Button:
             self.button = Button(pin_num=PIN_BUTTON, active_low=True, debounce_ms=BUTTON_DEBOUNCE_MS)
             self.sensors["button"] = self.button
-        
+        if DHTSensor:
+            self.sensors["dht"] = DHTSensor(i2c_sda_pin=4, i2c_scl_pin=5)
+
         for name, sensor in self.sensors.items():
             safe_init(sensor, name)
     
@@ -639,14 +648,23 @@ class IoTDevice:
         
         log(f"Sensor values: {sensor_values}")
         
+        # DHT温湿度データの取得（dhtセンサーはdictを返す）
+        dht_data = sensor_values.get("dht", {})
+        if isinstance(dht_data, dict):
+            temp_val = dht_data.get("temp")
+            hum_val = dht_data.get("hum")
+        else:
+            temp_val = None
+            hum_val = None
+
         # Prepare event data matching Django backend expectations
         event_data = {
             "event_type": "sensor",
             "mq9": sensor_values.get("mq9"),
             "light": sensor_values.get("light"),
             "sound": sensor_values.get("sound"),
-            "temp": None,  # Not implemented yet
-            "hum": None,   # Not implemented yet
+            "temp": temp_val,
+            "hum": hum_val,
             "payload": {
                 "pir": sensor_values.get("pir", False),
                 "button": sensor_values.get("button", False)
@@ -766,10 +784,32 @@ class IoTDevice:
     def loop(self):
         """Main event loop with WiFi hardening"""
         log("Starting main loop...")
-        
+
+        # ウォッチドッグタイマー初期化（60秒でデバイス自動リセット）
+        # メインループがハングした場合にデバイスを自動回復させる
+        wdt = None
+        try:
+            from watchdog import WatchDogTimer, WatchDogMode
+            wdt = WatchDogTimer(timeout=60, mode=WatchDogMode.RESET)
+            log("Watchdog timer enabled (timeout=60s)")
+        except ImportError:
+            # CircuitPython の watchdog モジュールが利用できない場合
+            try:
+                import microcontroller
+                if hasattr(microcontroller, 'watchdog'):
+                    from watchdog import WatchDogMode
+                    microcontroller.watchdog.timeout = 60
+                    microcontroller.watchdog.mode = WatchDogMode.RESET
+                    wdt = microcontroller.watchdog
+                    log("Watchdog timer enabled via microcontroller.watchdog (timeout=60s)")
+            except Exception as wdt_e:
+                log(f"Watchdog timer not available: {wdt_e} (continuing without WDT)")
+        except Exception as wdt_e:
+            log(f"Watchdog timer init error: {wdt_e} (continuing without WDT)")
+
         # Initial WiFi connection attempt
         self._attempt_wifi_connection()
-        
+
         while self.running:
             try:
                 now = time.monotonic()
@@ -809,8 +849,13 @@ class IoTDevice:
                     finally:
                         self.last_check_time = now
                 
-                # Small sleep to prevent CPU spinning
-                
+                # ウォッチドッグタイマーをフィード（リセット防止）
+                if wdt:
+                    try:
+                        wdt.feed()
+                    except Exception:
+                        pass
+
                 # PIR Edge Detection (False -> True) + 5-second status publish
                 if "pir" in self.sensors:
                     try:

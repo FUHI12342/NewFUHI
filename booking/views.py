@@ -5,6 +5,7 @@ import json
 import jwt
 import requests
 import secrets
+import time
 from datetime import timedelta
 from urllib.parse import quote
 import hashlib
@@ -285,9 +286,43 @@ class CurrentTimeView(APIView):
         return Response({"current_time": str(current_time)})
 
 
+# --------------------------------------------------
+# LINE Push通知ヘルパー（指数バックオフリトライ付き）
+# --------------------------------------------------
+def _send_line_push_with_retry(user_id: str, message: str, device_id: str = '', max_retries: int = 3):
+    """LineBotApi.push_message をリトライ付きで送信"""
+    from linebot.models import TextSendMessage
+    for attempt in range(max_retries):
+        try:
+            bot = LineBotApi(settings.LINE_ACCESS_TOKEN)
+            bot.push_message(user_id, TextSendMessage(text=message))
+            return True
+        except Exception as e:
+            logger.warning("LINE push attempt %d/%d failed (device=%s): %s", attempt + 1, max_retries, device_id, e)
+            if attempt < max_retries - 1:
+                time.sleep(2 ** attempt)
+    return False
+
+
+# --------------------------------------------------
+# IoTデバイスAPIレートリミット
+# --------------------------------------------------
+from rest_framework.throttling import SimpleRateThrottle
+
+
+class IoTDeviceThrottle(SimpleRateThrottle):
+    """IoTデバイス単位のレートリミット（10リクエスト/分）"""
+    rate = '10/min'
+
+    def get_cache_key(self, request, view):
+        device_name = request.data.get('device', '')
+        return f'iot_throttle_{device_name}'
+
+
 class IoTEventAPIView(APIView):
     authentication_classes = []
     permission_classes = []
+    throttle_classes = [IoTDeviceThrottle]
 
     def post(self, request, *args, **kwargs):
         # Header and required field validation
@@ -361,26 +396,17 @@ class IoTEventAPIView(APIView):
             except Exception as vent_err:
                 logger.warning(f"Ventilation check failed: {vent_err}")
 
-        # MQ-9 alarm: LINE push notification
+        # MQ-9 alarm: LINE push notification（リトライ付き）
         if event_type == "mq9_alarm" and device.alert_enabled and device.alert_line_user_id:
-            try:
-                line_bot_api = LineBotApi(settings.LINE_ACCESS_TOKEN)
-                from linebot.models import TextSendMessage
-                mq9_val = mq9_value or 'N/A'
-                threshold = device.mq9_threshold or 500
-                line_bot_api.push_message(
-                    device.alert_line_user_id,
-                    TextSendMessage(
-                        text=(
-                            f'\u26a0\ufe0f ガス検知アラート\n'
-                            f'デバイス: {device.name}\n'
-                            f'MQ-9値: {mq9_val} (閾値: {threshold})\n'
-                            f'店舗: {device.store.name}'
-                        )
-                    )
-                )
-            except Exception as line_err:
-                logger.warning(f"LINE push failed for device {device.external_id}: {line_err}")
+            mq9_val = mq9_value or 'N/A'
+            threshold = device.mq9_threshold or 500
+            alert_message = (
+                f'\u26a0\ufe0f ガス検知アラート\n'
+                f'デバイス: {device.name}\n'
+                f'MQ-9値: {mq9_val} (閾値: {threshold})\n'
+                f'店舗: {device.store.name}'
+            )
+            _send_line_push_with_retry(device.alert_line_user_id, alert_message, device.external_id)
 
         # IR learned: auto-save IRCode (RAW + NEC support)
         if event_type == "ir_learned":

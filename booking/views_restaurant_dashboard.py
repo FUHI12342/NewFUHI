@@ -13,7 +13,7 @@ from rest_framework import status
 
 from .models import (
     Store, Schedule, Order, OrderItem, Staff, Product, DashboardLayout, DEFAULT_DASHBOARD_LAYOUT,
-    ShiftPeriod, ShiftAssignment, BusinessInsight, CustomerFeedback,
+    ShiftPeriod, ShiftAssignment, BusinessInsight, CustomerFeedback, VisitorCount,
 )
 
 logger = logging.getLogger(__name__)
@@ -211,18 +211,39 @@ class StaffPerformanceAPIView(APIView):
             except (Staff.DoesNotExist, AttributeError):
                 return Response({'detail': 'no store access'}, status=status.HTTP_403_FORBIDDEN)
 
-        staffs = Staff.objects.filter(**scope)
+        # N+1最適化: スタッフごとのループ内クエリをアノテーションに置換
+        staffs = (
+            Staff.objects
+            .filter(**scope)
+            .select_related('store')
+            .annotate(
+                reservation_count=Count(
+                    'schedule',
+                    filter=Q(
+                        schedule__start__gte=since,
+                        schedule__is_cancelled=False,
+                        schedule__is_temporary=False,
+                    ),
+                ),
+            )
+        )
+
+        # 売上は OrderItem → Order → Schedule → Staff の深いJOINなので別クエリで集約
+        staff_sales = (
+            OrderItem.objects
+            .filter(order__created_at__gte=since, order__schedule__staff__in=staffs)
+            .values('order__schedule__staff_id')
+            .annotate(total=Sum(F('qty') * F('unit_price')))
+        )
+        sales_map = {row['order__schedule__staff_id']: row['total'] or 0 for row in staff_sales}
+
         result = []
         for s in staffs:
-            reservations = Schedule.objects.filter(
-                staff=s, start__gte=since, is_cancelled=False, is_temporary=False,
-            ).count()
-            sales = (
-                OrderItem.objects
-                .filter(order__schedule__staff=s, order__created_at__gte=since)
-                .aggregate(total=Sum(F('qty') * F('unit_price')))
-            )['total'] or 0
-            result.append({'name': s.name, 'reservations': reservations, 'sales': sales})
+            result.append({
+                'name': s.name,
+                'reservations': s.reservation_count,
+                'sales': sales_map.get(s.id, 0),
+            })
 
         return Response({'staff': result})
 
@@ -304,11 +325,17 @@ class LowStockAlertAPIView(APIView):
             except (Staff.DoesNotExist, AttributeError):
                 return Response({'detail': 'no store access'}, status=status.HTTP_403_FORBIDDEN)
 
-        low_stock = Product.objects.filter(
-            is_active=True,
-            stock__lte=F('low_stock_threshold'),
-            **scope,
-        ).order_by('stock')[:20]
+        # select_related('store') で store アクセス時の N+1 防止
+        low_stock = (
+            Product.objects
+            .select_related('store')
+            .filter(
+                is_active=True,
+                stock__lte=F('low_stock_threshold'),
+                **scope,
+            )
+            .order_by('stock')[:20]
+        )
 
         products = [
             {
@@ -757,7 +784,8 @@ class InsightsAPIView(APIView):
                 return Response({'detail': 'no store access'}, status=status.HTTP_403_FORBIDDEN)
 
         unread_only = request.GET.get('unread', '').lower() in ('1', 'true')
-        qs = BusinessInsight.objects.filter(**scope)
+        # select_related('store') で store アクセス時の N+1 防止
+        qs = BusinessInsight.objects.select_related('store').filter(**scope)
         if unread_only:
             qs = qs.filter(is_read=False)
         qs = qs.order_by('-created_at')[:50]
@@ -1045,7 +1073,8 @@ class CustomerFeedbackAPIView(APIView):
             except (Staff.DoesNotExist, AttributeError):
                 return Response({'detail': 'no store access'}, status=status.HTTP_403_FORBIDDEN)
 
-        qs = CustomerFeedback.objects.filter(**scope).order_by('-created_at')[:100]
+        # select_related('store') で store アクセス時の N+1 防止
+        qs = CustomerFeedback.objects.select_related('store').filter(**scope).order_by('-created_at')[:100]
         feedbacks = [{
             'id': f.id,
             'nps_score': f.nps_score,
@@ -1137,4 +1166,132 @@ class NPSStatsAPIView(APIView):
             'avg_ambiance': round(avgs['avg_ambiance'] or 0, 1),
             'trend': trend,
             'sentiment_dist': sentiment_dist,
+        })
+
+
+class VisitorForecastAPIView(APIView):
+    """GET /api/dashboard/visitor-forecast/?days=14 — 来客予測.
+
+    PIRセンサー/VisitorCountデータから曜日別移動平均で来客数を予測し、
+    スタッフ推奨人数も合わせて返す。
+    """
+
+    def get(self, request):
+        if not request.user.is_authenticated:
+            return Response({'detail': 'login required'}, status=status.HTTP_403_FORBIDDEN)
+
+        forecast_days = _clamp_int(request.GET.get('days'), 14, hi=90)
+
+        scope = {}
+        if not request.user.is_superuser:
+            try:
+                s = request.user.staff
+                scope = {'store': s.store}
+            except (Staff.DoesNotExist, AttributeError):
+                return Response({'detail': 'no store access'}, status=status.HTTP_403_FORBIDDEN)
+
+        from .services.visitor_forecast import compute_visitor_forecast
+        try:
+            result = compute_visitor_forecast(scope=scope, forecast_days=forecast_days)
+            return Response(result)
+        except Exception as e:
+            logger.exception("来客予測の生成に失敗")
+            return Response({'detail': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+class CLVAnalysisAPIView(APIView):
+    """GET /api/dashboard/clv/?months=6 — CLV 顧客生涯価値分析.
+
+    顧客セグメント別のCLVを計算し、セグメント分布と平均CLVを返す。
+    """
+
+    def get(self, request):
+        if not request.user.is_authenticated:
+            return Response({'detail': 'login required'}, status=status.HTTP_403_FORBIDDEN)
+
+        months = _clamp_int(request.GET.get('months'), 6, hi=24)
+
+        scope = {}
+        if not request.user.is_superuser:
+            try:
+                s = request.user.staff
+                scope = {'order__store': s.store}
+            except (Staff.DoesNotExist, AttributeError):
+                return Response({'detail': 'no store access'}, status=status.HTTP_403_FORBIDDEN)
+
+        from .services.clv_analysis import compute_clv
+        try:
+            result = compute_clv(scope=scope, months=months)
+            return Response(result)
+        except Exception as e:
+            logger.exception("CLV分析の生成に失敗")
+            return Response({'detail': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+class AutoOrderRecommendationAPIView(APIView):
+    """GET /api/dashboard/auto-order/ — 自動発注推奨.
+
+    商品ごとの消費ペースと現在庫から、発注推奨リストを生成する。
+    """
+
+    def get(self, request):
+        if not request.user.is_authenticated:
+            return Response({'detail': 'login required'}, status=status.HTTP_403_FORBIDDEN)
+
+        scope = {}
+        if not request.user.is_superuser:
+            try:
+                s = request.user.staff
+                scope = {'store': s.store}
+            except (Staff.DoesNotExist, AttributeError):
+                return Response({'detail': 'no store access'}, status=status.HTTP_403_FORBIDDEN)
+
+        from .services.auto_order import compute_auto_order
+        try:
+            result = compute_auto_order(scope=scope)
+            return Response(result)
+        except Exception as e:
+            logger.exception("自動発注推奨の生成に失敗")
+            return Response({'detail': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+class ExternalDataAPIView(APIView):
+    """GET /api/dashboard/external-data/ — 外部データ連携ステータス.
+
+    利用可能な外部データ連携サービスの一覧と設定状態を返す。
+    クエリパラメータで個別サービスのデータ取得も可能。
+    """
+
+    def get(self, request):
+        if not request.user.is_authenticated:
+            return Response({'detail': 'login required'}, status=status.HTTP_403_FORBIDDEN)
+
+        from .services.external_data import get_integration_status, get_weather_forecast, get_google_reviews
+
+        # 特定サービスのデータを要求する場合
+        service = request.GET.get('service')
+
+        if service == 'weather':
+            lat = request.GET.get('lat')
+            lng = request.GET.get('lng')
+            days = _clamp_int(request.GET.get('days'), 7, hi=14)
+            try:
+                lat = float(lat) if lat else None
+                lng = float(lng) if lng else None
+            except (ValueError, TypeError):
+                lat, lng = None, None
+            result = get_weather_forecast(lat=lat, lng=lng, days=days)
+            return Response(result)
+
+        if service == 'google_reviews':
+            place_id = request.GET.get('place_id')
+            result = get_google_reviews(place_id=place_id)
+            return Response(result)
+
+        # デフォルト: 全連携サービスのステータスを返す
+        integrations = get_integration_status()
+        return Response({
+            'integrations': integrations,
+            'total': len(integrations),
+            'configured_count': sum(1 for i in integrations if i['configured']),
         })

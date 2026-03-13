@@ -249,10 +249,10 @@ class AttendancePINStampAPIView(View):
 
         staff = get_object_or_404(Staff, pk=staff_id, store=store)
 
-        # PIN検証
+        # PIN検証（ハッシュ照合、旧平文データにも後方互換）
         if not staff.attendance_pin:
             return JsonResponse({'error': 'PINが未設定です'}, status=400)
-        if staff.attendance_pin != pin:
+        if not staff.check_attendance_pin(pin):
             return JsonResponse({'error': 'PINが正しくありません'}, status=400)
 
         # 重複チェック

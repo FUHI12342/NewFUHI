@@ -130,7 +130,16 @@ class StaffAdmin(admin.ModelAdmin):
 
     list_editable = ('is_recommended',)
     search_fields = ('name', 'store__name')
-    readonly_fields = ('attendance_pin',)
+
+    def save_model(self, request, obj, form, change):
+        # attendance_pin が変更された場合はハッシュ化して保存
+        if 'attendance_pin' in form.changed_data:
+            raw_pin = form.cleaned_data['attendance_pin']
+            if raw_pin:
+                obj.set_attendance_pin(raw_pin)
+            else:
+                obj.attendance_pin = ''
+        super().save_model(request, obj, form, change)
 
     def display_thumbnail(self, obj):
         if obj.thumbnail:

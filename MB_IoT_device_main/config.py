@@ -86,8 +86,9 @@ KEY_PATH = KEY_FILE
 ROOT_CA = ROOT_CA_FILE
 
 # ===== Django integration (IoTEvent用) =====
-# 開発用（ローカルMac）
-DJANGO_EVENTS_URL = "http://192.168.10.102:8000/api/iot/events/"
+# 注意: HTTPS必須。サーバー側でTLS証明書の設定が必要です。
+# 開発用（ローカルMac）- TLS/SSLが設定済みであること
+DJANGO_EVENTS_URL = "https://192.168.10.102:8000/api/iot/events/"
 # 本番用（AWS EC2）- 現地デプロイ時にこちらに切り替え:
 # DJANGO_EVENTS_URL = "https://timebaibai.com/api/iot/events/"
 try:

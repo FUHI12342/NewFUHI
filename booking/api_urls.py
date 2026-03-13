@@ -25,6 +25,10 @@ from .views_restaurant_dashboard import (
     KPIScoreCardAPIView,
     CustomerFeedbackAPIView,
     NPSStatsAPIView,
+    VisitorForecastAPIView,
+    CLVAnalysisAPIView,
+    AutoOrderRecommendationAPIView,
+    ExternalDataAPIView,
 )
 from .views_property import PropertyStatusAPIView, PropertyAlertResolveAPIView
 from .views import CheckinAPIView, CartAddAPIView, CartUpdateAPIView, CartRemoveAPIView
@@ -90,6 +94,10 @@ urlpatterns = [
     path('dashboard/kpi-scorecard/', KPIScoreCardAPIView.as_view(), name='kpi_scorecard_api'),
     path('dashboard/feedback/', CustomerFeedbackAPIView.as_view(), name='customer_feedback_api'),
     path('dashboard/nps/', NPSStatsAPIView.as_view(), name='nps_stats_api'),
+    path('dashboard/visitor-forecast/', VisitorForecastAPIView.as_view(), name='visitor_forecast_api'),
+    path('dashboard/clv/', CLVAnalysisAPIView.as_view(), name='clv_analysis_api'),
+    path('dashboard/auto-order/', AutoOrderRecommendationAPIView.as_view(), name='auto_order_api'),
+    path('dashboard/external-data/', ExternalDataAPIView.as_view(), name='external_data_api'),
 
     # Property APIs
     path('properties/<int:pk>/status/', PropertyStatusAPIView.as_view(), name='property_status_api'),
