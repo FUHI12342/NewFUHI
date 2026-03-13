@@ -241,11 +241,12 @@ sudo tail -f /var/log/newfuhi/gunicorn-error.log
 - [ ] **staff**: 自分のシフト・予約のみ (6モデル)
 - [ ] **IoTメニュー非表示**: サイドバーに「IoT管理」グループが表示されないこと（Bug #25 修正済み）
 
-### 7.2 AIチャットアシスタント
-- [ ] 管理画面にAIチャットウィジェット表示 (SiteSettings.show_ai_chat=True)
-- [ ] 質問入力 → Gemini API経由で回答取得
-- [ ] ナレッジベースに基づく回答であることを確認
-- [ ] 会話履歴の保持（最大10ターン）
+### 7.2 AIチャットアシスタント ⚠️ 現在無効化中
+> ※ Gemini APIキー再発行まで一時停止中。公開チャット(GuideChatAPIView)は廃止済。
+- [ ] ~~管理画面にAIチャットウィジェット表示 (SiteSettings.show_ai_chat=True)~~
+- [ ] ~~質問入力 → Gemini API経由で回答取得~~
+- [ ] APIキー再発行後: `/api/chat/admin/` が200応答を返すこと
+- [ ] レート制限: 同一ユーザーが5分以内に21回以上リクエスト → 429応答
 
 ### 7.3 テーマカスタマイズ
 - [ ] AdminTheme でメインカラー変更 → 管理画面に反映
