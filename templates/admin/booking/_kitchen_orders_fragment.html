@@ -7,19 +7,21 @@
       <span class="status-dot dot-{{ item.status }}"></span>
       {{ item.product.name }} x{{ item.qty }}
     </div>
-    {% if item.status == "ORDERED" %}
-    <button class="action-btn btn-prepare"
-            hx-put="/api/pos/order-item/{{ item.id }}/status/"
-            hx-vals='{"status":"PREPARING"}'
-            hx-swap="none">調理開始</button>
-    {% elif item.status == "PREPARING" %}
-    <button class="action-btn btn-serve"
-            hx-put="/api/pos/order-item/{{ item.id }}/status/"
-            hx-vals='{"status":"SERVED"}'
-            hx-swap="none">配膳完了</button>
-    {% elif item.status == "SERVED" %}
-    <span style="color:#10B981;">&#10003;</span>
-    {% endif %}
+    <div class="action-btns">
+      {% if item.status == "ORDERED" %}
+      <button class="action-btn btn-prepare"
+              onclick="updateStatus({{ item.id }}, 'PREPARING', this)">調理開始</button>
+      {% elif item.status == "PREPARING" %}
+      <button class="action-btn btn-undo"
+              onclick="updateStatus({{ item.id }}, 'ORDERED', this)">戻す</button>
+      <button class="action-btn btn-serve"
+              onclick="updateStatus({{ item.id }}, 'SERVED', this)">配膳完了</button>
+      {% elif item.status == "SERVED" %}
+      <button class="action-btn btn-undo"
+              onclick="updateStatus({{ item.id }}, 'PREPARING', this)">戻す</button>
+      <span style="color:#10B981; font-size:18px;">✓</span>
+      {% endif %}
+    </div>
   </div>
   {% endfor %}
 </div>
