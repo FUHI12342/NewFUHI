@@ -3,6 +3,7 @@ import json
 import logging
 from datetime import datetime
 
+from django.db import transaction
 from django.http import JsonResponse, HttpResponse
 from django.views import View
 from django.views.generic import TemplateView
@@ -189,64 +190,69 @@ class POSCheckoutAPIView(View):
         payment_method_id = data.get('payment_method_id')
         cash_received = data.get('cash_received')
 
-        items = order.items.all()
-        subtotal = sum(item.qty * item.unit_price for item in items)
-        tax = int(subtotal * 0.1)  # 10% tax
-        discount = order.discount_amount
-        total = subtotal + tax - discount
+        with transaction.atomic():
+            # 注文を排他ロック
+            order = Order.objects.select_for_update().get(pk=order.pk)
 
-        # POSTransaction作成
-        receipt_number = _generate_receipt_number()
-        staff = None
-        try:
-            staff = request.user.staff
-        except (Staff.DoesNotExist, AttributeError):
-            pass
+            items = order.items.select_related('product').all()
+            subtotal = sum(item.qty * item.unit_price for item in items)
+            tax = int(subtotal * 0.1)  # 10% tax
+            discount = order.discount_amount
+            total = subtotal + tax - discount
 
-        change = None
-        if cash_received is not None:
-            change = int(cash_received) - total
-
-        payment_method = None
-        if payment_method_id:
-            payment_method = PaymentMethod.objects.filter(pk=payment_method_id).first()
-
-        tx = POSTransaction.objects.create(
-            order=order,
-            payment_method=payment_method,
-            total_amount=total,
-            tax_amount=tax,
-            discount_amount=discount,
-            cash_received=int(cash_received) if cash_received else None,
-            change_given=change,
-            receipt_number=receipt_number,
-            staff=staff,
-            completed_at=timezone.now(),
-        )
-
-        # 注文ステータス更新
-        order.status = Order.STATUS_CLOSED
-        order.payment_status = 'paid'
-        order.tax_amount = tax
-        order.save(update_fields=['status', 'payment_status', 'tax_amount'])
-
-        # 在庫連動
-        for item in items:
+            # POSTransaction作成
+            receipt_number = _generate_receipt_number()
+            staff = None
             try:
-                StockMovement.objects.create(
-                    store=order.store,
-                    product=item.product,
-                    movement_type=StockMovement.TYPE_OUT,
-                    qty=item.qty,
-                    by_staff=staff,
-                    note=f'POS決済 #{receipt_number}',
-                )
-                apply_stock_movement(item.product, StockMovement.TYPE_OUT, item.qty)
-            except ValueError:
-                pass  # 在庫不足でもPOS決済は通す
+                staff = request.user.staff
+            except (Staff.DoesNotExist, AttributeError):
+                pass
 
-            item.status = OrderItem.STATUS_CLOSED
-            item.save(update_fields=['status'])
+            change = None
+            if cash_received is not None:
+                change = int(cash_received) - total
+
+            payment_method = None
+            if payment_method_id:
+                payment_method = PaymentMethod.objects.filter(pk=payment_method_id).first()
+
+            tx = POSTransaction.objects.create(
+                order=order,
+                payment_method=payment_method,
+                total_amount=total,
+                tax_amount=tax,
+                discount_amount=discount,
+                cash_received=int(cash_received) if cash_received else None,
+                change_given=change,
+                receipt_number=receipt_number,
+                staff=staff,
+                completed_at=timezone.now(),
+            )
+
+            # 注文ステータス更新
+            order.status = Order.STATUS_CLOSED
+            order.payment_status = 'paid'
+            order.tax_amount = tax
+            order.save(update_fields=['status', 'payment_status', 'tax_amount'])
+
+            # 在庫連動（商品を排他ロックして更新）
+            for item in items:
+                try:
+                    product = Product.objects.select_for_update().get(pk=item.product_id)
+                    StockMovement.objects.create(
+                        store=order.store,
+                        product=product,
+                        movement_type=StockMovement.TYPE_OUT,
+                        qty=item.qty,
+                        by_staff=staff,
+                        note=f'POS決済 #{receipt_number}',
+                    )
+                    apply_stock_movement(product, StockMovement.TYPE_OUT, item.qty)
+                except ValueError:
+                    pass  # 在庫不足でもPOS決済は通す
+
+                item.status = OrderItem.STATUS_CLOSED
+                item.save(update_fields=['status'])
 
         return JsonResponse({
             'receipt_number': receipt_number,

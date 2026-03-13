@@ -473,9 +473,9 @@ class VentilationAutoControl(models.Model):
     consecutive_count = models.IntegerField(_('連続超過回数'), default=3,
         help_text=_('ON閾値をこの回数連続で超えたらON実行（20秒間隔×3=約1分）'))
 
-    # SwitchBot設定
-    switchbot_token = models.CharField(_('SwitchBotトークン'), max_length=200)
-    switchbot_secret = models.CharField(_('SwitchBotシークレット'), max_length=200)
+    # SwitchBot設定（暗号化保存）
+    switchbot_token = models.CharField(_('SwitchBotトークン（暗号化）'), max_length=500, blank=True, default='')
+    switchbot_secret = models.CharField(_('SwitchBotシークレット（暗号化）'), max_length=500, blank=True, default='')
     switchbot_device_id = models.CharField(_('SwitchBotデバイスID'), max_length=100,
         help_text=_('スマートプラグのデバイスID'))
 
@@ -494,6 +494,46 @@ class VentilationAutoControl(models.Model):
 
     def __str__(self):
         return f'{self.name} ({self.device.name})'
+
+    @staticmethod
+    def _get_fernet():
+        """IOT_ENCRYPTION_KEY を使ったFernetインスタンスを返す"""
+        key = getattr(settings, 'IOT_ENCRYPTION_KEY', None)
+        if not key or not Fernet:
+            raise ImproperlyConfigured("IOT_ENCRYPTION_KEY is not set or cryptography not installed")
+        return Fernet(key.encode('utf-8') if isinstance(key, str) else key)
+
+    def set_switchbot_token(self, plain_token: str) -> None:
+        if not plain_token:
+            self.switchbot_token = ''
+            return
+        f = self._get_fernet()
+        self.switchbot_token = f.encrypt(plain_token.encode('utf-8')).decode('utf-8')
+
+    def get_switchbot_token(self) -> Optional[str]:
+        if not self.switchbot_token:
+            return None
+        try:
+            f = self._get_fernet()
+            return f.decrypt(self.switchbot_token.encode('utf-8')).decode('utf-8')
+        except Exception:
+            return self.switchbot_token  # fallback: 未暗号化の値
+
+    def set_switchbot_secret(self, plain_secret: str) -> None:
+        if not plain_secret:
+            self.switchbot_secret = ''
+            return
+        f = self._get_fernet()
+        self.switchbot_secret = f.encrypt(plain_secret.encode('utf-8')).decode('utf-8')
+
+    def get_switchbot_secret(self) -> Optional[str]:
+        if not self.switchbot_secret:
+            return None
+        try:
+            f = self._get_fernet()
+            return f.decrypt(self.switchbot_secret.encode('utf-8')).decode('utf-8')
+        except Exception:
+            return self.switchbot_secret  # fallback: 未暗号化の値
 
 
 class IRCode(models.Model):

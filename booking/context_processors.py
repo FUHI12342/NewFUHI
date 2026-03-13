@@ -3,7 +3,7 @@ from django.conf import settings
 from django.core.cache import cache
 from django.utils.translation import get_language
 
-from .models import Store, Company, Notice, Media, ExternalLink, SiteSettings
+from .models import Store, Staff, Company, Notice, Media, ExternalLink, SiteSettings
 
 
 def _get_localized_staff_label(site_settings):
@@ -59,7 +59,7 @@ def admin_user_flags(request):
         else:
             try:
                 is_dev = request.user.staff.is_developer
-            except Exception:
+            except (Staff.DoesNotExist, AttributeError):
                 pass
     return {'is_developer_or_superuser': is_dev}
 
@@ -71,9 +71,8 @@ def admin_theme(request):
     if not hasattr(request, 'user') or not request.user.is_authenticated:
         return {}
     try:
-        from .models import Staff
         staff = Staff.objects.select_related('store__admin_theme').get(user=request.user)
         theme = staff.store.admin_theme
         return {'admin_theme': theme}
-    except Exception:
+    except (Staff.DoesNotExist, AttributeError):
         return {}

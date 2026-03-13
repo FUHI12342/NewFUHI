@@ -14,7 +14,7 @@ from rest_framework import status
 from django.http import HttpResponseForbidden
 
 from .views_restaurant_dashboard import AdminSidebarMixin
-from .models import IoTDevice, IoTEvent, SystemConfig
+from .models import IoTDevice, IoTEvent, Staff, SystemConfig
 
 logger = logging.getLogger(__name__)
 
@@ -27,7 +27,7 @@ def _is_developer_or_superuser(user):
         return True
     try:
         return user.staff.is_developer
-    except Exception:
+    except (Staff.DoesNotExist, AttributeError):
         return False
 
 
@@ -77,7 +77,7 @@ class AdminDebugPanelView(AdminSidebarMixin, TemplateView):
                 with open(log_file, 'r') as f:
                     all_lines = f.readlines()
                     log_lines = all_lines[-50:]
-            except Exception:
+            except (OSError, UnicodeDecodeError):
                 log_lines = ['(ログファイル読み取りエラー)']
         ctx['log_lines'] = log_lines
 
@@ -188,7 +188,7 @@ class IoTDeviceDebugView(TemplateView):
             if e.payload:
                 try:
                     payload_parsed = json.loads(e.payload)
-                except Exception:
+                except (json.JSONDecodeError, TypeError, ValueError):
                     payload_parsed = {'_raw': e.payload}
             event_data.append({
                 'id': e.id,

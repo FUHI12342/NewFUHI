@@ -102,8 +102,8 @@ def check_ventilation_rules(device, mq9_value: float) -> None:
                     )
                     try:
                         switchbot_command(
-                            rule.switchbot_token,
-                            rule.switchbot_secret,
+                            rule.get_switchbot_token(),
+                            rule.get_switchbot_secret(),
                             rule.switchbot_device_id,
                             "turnOn",
                         )
@@ -130,8 +130,8 @@ def check_ventilation_rules(device, mq9_value: float) -> None:
                 )
                 try:
                     switchbot_command(
-                        rule.switchbot_token,
-                        rule.switchbot_secret,
+                        rule.get_switchbot_token(),
+                        rule.get_switchbot_secret(),
                         rule.switchbot_device_id,
                         "turnOff",
                     )

@@ -130,7 +130,7 @@ def _refresh_menu_config_cache():
         from .models import AdminMenuConfig
         configs = AdminMenuConfig.objects.all()
         _menu_config_cache = {c.role: c.allowed_models for c in configs}
-    except Exception:
+    except Exception:  # DB not ready during startup
         _menu_config_cache = {}
     _menu_config_cache_time = time.time()
 

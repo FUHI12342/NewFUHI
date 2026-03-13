@@ -1687,7 +1687,7 @@ class OrderCreateAPIView(APIView):
             pid = it.get("product_id")
             try:
                 qty = int(it.get("qty", 1))
-            except Exception:
+            except (TypeError, ValueError):
                 qty = 0
             if not pid or qty <= 0:
                 continue
@@ -1805,7 +1805,7 @@ class StaffMarkServedAPIView(LoginRequiredMixin, APIView):
         if not request.user.is_superuser:
             try:
                 staff = request.user.staff
-            except Exception:
+            except (Staff.DoesNotExist, AttributeError):
                 raise PermissionDenied
             if staff.store_id != item.order.store_id:
                 raise PermissionDenied
@@ -1833,7 +1833,7 @@ class InboundQRView(LoginRequiredMixin, generic.TemplateView):
         else:
             try:
                 store = self.request.user.staff.store
-            except Exception:
+            except (Staff.DoesNotExist, AttributeError):
                 store = None
 
         product = None
@@ -1872,7 +1872,7 @@ class InboundApplyAPIView(LoginRequiredMixin, APIView):
         if not request.user.is_superuser:
             try:
                 staff = request.user.staff
-            except Exception:
+            except (Staff.DoesNotExist, AttributeError):
                 raise PermissionDenied
             if staff.store_id != store.id:
                 raise PermissionDenied
@@ -1928,7 +1928,7 @@ class OrderItemStatusUpdateAPIView(LoginRequiredMixin, APIView):
         if not request.user.is_superuser:
             try:
                 staff = request.user.staff
-            except Exception:
+            except (Staff.DoesNotExist, AttributeError):
                 raise PermissionDenied
             if staff.store_id != item.order.store_id:
                 raise PermissionDenied
@@ -2963,7 +2963,7 @@ class TableOrderCreateAPI(APIView):
             pid = it.get("product_id")
             try:
                 qty = int(it.get("qty", 1))
-            except Exception:
+            except (TypeError, ValueError):
                 qty = 0
             if not pid or qty <= 0:
                 continue

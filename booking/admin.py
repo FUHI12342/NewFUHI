@@ -216,7 +216,7 @@ class StoreAdmin(admin.ModelAdmin):
 for m in (Association, Nonce, UserSocialAuth):
     try:
         admin.site.unregister(m)
-    except Exception:
+    except admin.sites.NotRegistered:
         pass
 
 
@@ -290,7 +290,7 @@ class IoTEventAdmin(admin.ModelAdmin):
             return "-"
         try:
             data = json.loads(obj.payload)
-        except Exception:
+        except (json.JSONDecodeError, TypeError, ValueError):
             return obj.payload[:50] + "..." if len(obj.payload) > 50 else obj.payload
 
         keys = ["mq9", "light", "sound", "temp", "hum"]
@@ -356,6 +356,14 @@ class VentilationAutoControlAdmin(admin.ModelAdmin):
         ('SwitchBot設定', {'fields': ('switchbot_token', 'switchbot_secret', 'switchbot_device_id')}),
         ('状態（自動更新）', {'fields': ('fan_state', 'last_on_at', 'last_off_at')}),
     )
+
+    def save_model(self, request, obj, form, change):
+        # トークン/シークレットが変更された場合のみ暗号化
+        if 'switchbot_token' in form.changed_data:
+            obj.set_switchbot_token(form.cleaned_data['switchbot_token'])
+        if 'switchbot_secret' in form.changed_data:
+            obj.set_switchbot_secret(form.cleaned_data['switchbot_secret'])
+        super().save_model(request, obj, form, change)
 
 
 # ==============================

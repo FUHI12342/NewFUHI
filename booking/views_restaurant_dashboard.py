@@ -19,6 +19,14 @@ from .models import (
 logger = logging.getLogger(__name__)
 
 
+def _clamp_int(value, default, lo=1, hi=365):
+    """Parse and clamp an integer query parameter."""
+    try:
+        return max(lo, min(int(value), hi))
+    except (TypeError, ValueError):
+        return default
+
+
 class AdminSidebarMixin:
     """Jazzminサイドバー表示に必要なコンテキストを注入"""
     def get_context_data(self, **kwargs):
@@ -36,7 +44,7 @@ def _get_store_scope(request):
     try:
         staff = request.user.staff
         return {'store': staff.store}
-    except Exception:
+    except (Staff.DoesNotExist, AttributeError):
         return {'pk': -1}  # No results
 
 
@@ -101,7 +109,7 @@ class ReservationStatsAPIView(APIView):
             try:
                 staff = request.user.staff
                 scope = {'staff__store': staff.store}
-            except Exception:
+            except (Staff.DoesNotExist, AttributeError):
                 return Response({'detail': 'no store access'}, status=status.HTTP_403_FORBIDDEN)
 
         # Daily counts (last 90 days)
@@ -157,7 +165,7 @@ class SalesStatsAPIView(APIView):
             try:
                 staff = request.user.staff
                 scope = {'order__store': staff.store}
-            except Exception:
+            except (Staff.DoesNotExist, AttributeError):
                 return Response({'detail': 'no store access'}, status=status.HTTP_403_FORBIDDEN)
 
         since = timezone.now() - timedelta(days=90)
@@ -200,7 +208,7 @@ class StaffPerformanceAPIView(APIView):
             try:
                 s = request.user.staff
                 scope = {'store': s.store}
-            except Exception:
+            except (Staff.DoesNotExist, AttributeError):
                 return Response({'detail': 'no store access'}, status=status.HTTP_403_FORBIDDEN)
 
         staffs = Staff.objects.filter(**scope)
@@ -234,7 +242,7 @@ class ShiftSummaryAPIView(APIView):
             try:
                 s = request.user.staff
                 scope = {'period__store': s.store}
-            except Exception:
+            except (Staff.DoesNotExist, AttributeError):
                 return Response({'detail': 'no store access'}, status=status.HTTP_403_FORBIDDEN)
 
         # Total assignments for current month
@@ -251,7 +259,7 @@ class ShiftSummaryAPIView(APIView):
             try:
                 s = request.user.staff
                 store_scope = {'store': s.store}
-            except Exception:
+            except (Staff.DoesNotExist, AttributeError):
                 store_scope = {'pk': -1}
 
         open_periods = ShiftPeriod.objects.filter(
@@ -293,7 +301,7 @@ class LowStockAlertAPIView(APIView):
             try:
                 s = request.user.staff
                 scope = {'store': s.store}
-            except Exception:
+            except (Staff.DoesNotExist, AttributeError):
                 return Response({'detail': 'no store access'}, status=status.HTTP_403_FORBIDDEN)
 
         low_stock = Product.objects.filter(
@@ -328,7 +336,7 @@ class MenuEngineeringAPIView(APIView):
         if not request.user.is_authenticated:
             return Response({'detail': 'login required'}, status=status.HTTP_403_FORBIDDEN)
 
-        days = int(request.GET.get('days', 90))
+        days = _clamp_int(request.GET.get('days'), 90, hi=365)
         since = timezone.now() - timedelta(days=days)
 
         scope = {}
@@ -338,7 +346,7 @@ class MenuEngineeringAPIView(APIView):
                 s = request.user.staff
                 scope = {'order__store': s.store}
                 product_scope = {'store': s.store}
-            except Exception:
+            except (Staff.DoesNotExist, AttributeError):
                 return Response({'detail': 'no store access'}, status=status.HTTP_403_FORBIDDEN)
 
         # Aggregate: total qty sold per product (popularity) and revenue
@@ -411,7 +419,7 @@ class ABCAnalysisAPIView(APIView):
         if not request.user.is_authenticated:
             return Response({'detail': 'login required'}, status=status.HTTP_403_FORBIDDEN)
 
-        days = int(request.GET.get('days', 90))
+        days = _clamp_int(request.GET.get('days'), 90, hi=365)
         since = timezone.now() - timedelta(days=days)
 
         scope = {}
@@ -419,7 +427,7 @@ class ABCAnalysisAPIView(APIView):
             try:
                 s = request.user.staff
                 scope = {'order__store': s.store}
-            except Exception:
+            except (Staff.DoesNotExist, AttributeError):
                 return Response({'detail': 'no store access'}, status=status.HTTP_403_FORBIDDEN)
 
         # Revenue per product
@@ -477,14 +485,14 @@ class SalesForecastAPIView(APIView):
         if not request.user.is_authenticated:
             return Response({'detail': 'login required'}, status=status.HTTP_403_FORBIDDEN)
 
-        forecast_days = min(int(request.GET.get('days', 14)), 90)
+        forecast_days = _clamp_int(request.GET.get('days'), 14, hi=90)
 
         scope = {}
         if not request.user.is_superuser:
             try:
                 s = request.user.staff
                 scope = {'order__store': s.store}
-            except Exception:
+            except (Staff.DoesNotExist, AttributeError):
                 return Response({'detail': 'no store access'}, status=status.HTTP_403_FORBIDDEN)
 
         from .services.sales_forecast import generate_forecast
@@ -499,7 +507,7 @@ class SalesHeatmapAPIView(APIView):
         if not request.user.is_authenticated:
             return Response({'detail': 'login required'}, status=status.HTTP_403_FORBIDDEN)
 
-        days = int(request.GET.get('days', 90))
+        days = _clamp_int(request.GET.get('days'), 90, hi=365)
         since = timezone.now() - timedelta(days=days)
 
         scope = {}
@@ -507,7 +515,7 @@ class SalesHeatmapAPIView(APIView):
             try:
                 s = request.user.staff
                 scope = {'order__store': s.store}
-            except Exception:
+            except (Staff.DoesNotExist, AttributeError):
                 return Response({'detail': 'no store access'}, status=status.HTTP_403_FORBIDDEN)
 
         # Aggregate by weekday × hour
@@ -569,7 +577,7 @@ class AOVTrendAPIView(APIView):
             try:
                 s = request.user.staff
                 scope = {'order__store': s.store}
-            except Exception:
+            except (Staff.DoesNotExist, AttributeError):
                 return Response({'detail': 'no store access'}, status=status.HTTP_403_FORBIDDEN)
 
         since = timezone.now() - timedelta(days=90)
@@ -608,7 +616,7 @@ class CohortAnalysisAPIView(APIView):
         if not request.user.is_authenticated:
             return Response({'detail': 'login required'}, status=status.HTTP_403_FORBIDDEN)
 
-        months = min(int(request.GET.get('months', 6)), 12)
+        months = _clamp_int(request.GET.get('months'), 6, hi=24)
         now = timezone.now()
         since = now - timedelta(days=months * 31)
 
@@ -617,7 +625,7 @@ class CohortAnalysisAPIView(APIView):
             try:
                 s = request.user.staff
                 scope = {'store': s.store}
-            except Exception:
+            except (Staff.DoesNotExist, AttributeError):
                 return Response({'detail': 'no store access'}, status=status.HTTP_403_FORBIDDEN)
 
         # Get orders with customer identification
@@ -679,14 +687,14 @@ class RFMAnalysisAPIView(APIView):
         if not request.user.is_authenticated:
             return Response({'detail': 'login required'}, status=status.HTTP_403_FORBIDDEN)
 
-        days = int(request.GET.get('days', 365))
+        days = _clamp_int(request.GET.get('days'), 365, hi=730)
 
         scope = {}
         if not request.user.is_superuser:
             try:
                 s = request.user.staff
                 scope = {'order__store': s.store}
-            except Exception:
+            except (Staff.DoesNotExist, AttributeError):
                 return Response({'detail': 'no store access'}, status=status.HTTP_403_FORBIDDEN)
 
         from .services.rfm_analysis import compute_rfm
@@ -716,14 +724,14 @@ class BasketAnalysisAPIView(APIView):
         if not request.user.is_authenticated:
             return Response({'detail': 'login required'}, status=status.HTTP_403_FORBIDDEN)
 
-        days = int(request.GET.get('days', 90))
+        days = _clamp_int(request.GET.get('days'), 90, hi=365)
 
         scope = {}
         if not request.user.is_superuser:
             try:
                 s = request.user.staff
                 scope = {'order__store': s.store}
-            except Exception:
+            except (Staff.DoesNotExist, AttributeError):
                 return Response({'detail': 'no store access'}, status=status.HTTP_403_FORBIDDEN)
 
         from .services.basket_analysis import analyze_basket
@@ -745,7 +753,7 @@ class InsightsAPIView(APIView):
             try:
                 s = request.user.staff
                 scope = {'store': s.store}
-            except Exception:
+            except (Staff.DoesNotExist, AttributeError):
                 return Response({'detail': 'no store access'}, status=status.HTTP_403_FORBIDDEN)
 
         unread_only = request.GET.get('unread', '').lower() in ('1', 'true')
@@ -786,7 +794,7 @@ class InsightsAPIView(APIView):
                 try:
                     s = request.user.staff
                     scope = {'store': s.store}
-                except Exception:
+                except (Staff.DoesNotExist, AttributeError):
                     pass
             BusinessInsight.objects.filter(is_read=False, **scope).update(is_read=True)
             return Response({'status': 'ok'})
@@ -796,7 +804,7 @@ class InsightsAPIView(APIView):
         if not request.user.is_superuser:
             try:
                 store = request.user.staff.store
-            except Exception:
+            except (Staff.DoesNotExist, AttributeError):
                 return Response({'detail': 'no store access'}, status=status.HTTP_403_FORBIDDEN)
 
         from .services.insight_engine import generate_insights
@@ -839,7 +847,7 @@ class KPIScoreCardAPIView(APIView):
         if not request.user.is_authenticated:
             return Response({'detail': 'login required'}, status=status.HTTP_403_FORBIDDEN)
 
-        days = int(request.GET.get('days', 30))
+        days = _clamp_int(request.GET.get('days'), 30, hi=365)
         now = timezone.now()
         since = now - timedelta(days=days)
 
@@ -850,7 +858,7 @@ class KPIScoreCardAPIView(APIView):
                 s = request.user.staff
                 scope = {'store': s.store}
                 order_scope = {'order__store': s.store}
-            except Exception:
+            except (Staff.DoesNotExist, AttributeError):
                 return Response({'detail': 'no store access'}, status=status.HTTP_403_FORBIDDEN)
 
         # Revenue
@@ -1034,7 +1042,7 @@ class CustomerFeedbackAPIView(APIView):
         if not request.user.is_superuser:
             try:
                 scope = {'store': request.user.staff.store}
-            except Exception:
+            except (Staff.DoesNotExist, AttributeError):
                 return Response({'detail': 'no store access'}, status=status.HTTP_403_FORBIDDEN)
 
         qs = CustomerFeedback.objects.filter(**scope).order_by('-created_at')[:100]
@@ -1067,7 +1075,7 @@ class NPSStatsAPIView(APIView):
         if not request.user.is_superuser:
             try:
                 scope = {'store': request.user.staff.store}
-            except Exception:
+            except (Staff.DoesNotExist, AttributeError):
                 return Response({'detail': 'no store access'}, status=status.HTTP_403_FORBIDDEN)
 
         qs = CustomerFeedback.objects.filter(created_at__gte=since, **scope)
