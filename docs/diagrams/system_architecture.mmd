@@ -1,0 +1,59 @@
+flowchart TD
+    subgraph Clients["Client Layer"]
+        Browser["Browser\nCustomer / Staff / Admin"]
+        PicoW["Pico W\nIoT Device"]
+    end
+
+    subgraph EC2["AWS EC2 Instance"]
+        subgraph WebServer["Web Server"]
+            Nginx["Nginx\nSSL Termination\nRate Limiting"]
+        end
+
+        subgraph AppServer["App Server"]
+            Django["Django / Gunicorn\nREST API\nAdmin Panel\nTemplates"]
+        end
+
+        subgraph TaskQueue["Task Queue"]
+            CeleryWorker["Celery Worker"]
+            CeleryBeat["Celery Beat\nScheduler"]
+            Redis["Redis\nBroker"]
+        end
+
+        subgraph Database["Database"]
+            SQLite["SQLite\nPostgreSQL migration planned"]
+        end
+    end
+
+    subgraph External["External Services"]
+        LINE["LINE Messaging API"]
+        SwitchBot["SwitchBot API"]
+        Coiney["Coiney Payment"]
+        S3["AWS S3\nMedia Storage"]
+    end
+
+    Browser -- HTTPS --> Nginx
+    PicoW -- HTTPS POST --> Nginx
+    Nginx -- Proxy Pass --> Django
+    Django -- ORM --> SQLite
+    Django -- Task Dispatch --> Redis
+    Redis -- Task Execute --> CeleryWorker
+    CeleryBeat -- Periodic Tasks --> Redis
+    CeleryWorker -- API Call --> LINE
+    CeleryWorker -- Device Control --> SwitchBot
+    Django -- Payment API --> Coiney
+    Django -- File Upload --> S3
+    Coiney -- Webhook --> Nginx
+
+    classDef clientStyle fill:#4A90D9,stroke:#2C5F8A,color:#fff
+    classDef nginxStyle fill:#009639,stroke:#006B2B,color:#fff
+    classDef djangoStyle fill:#0C4B33,stroke:#092E20,color:#fff
+    classDef taskStyle fill:#D9534F,stroke:#A9413E,color:#fff
+    classDef dbStyle fill:#336791,stroke:#1E3D56,color:#fff
+    classDef extStyle fill:#FF9900,stroke:#CC7A00,color:#fff
+
+    class Browser,PicoW clientStyle
+    class Nginx nginxStyle
+    class Django djangoStyle
+    class CeleryWorker,CeleryBeat,Redis taskStyle
+    class SQLite dbStyle
+    class LINE,SwitchBot,Coiney,S3 extStyle

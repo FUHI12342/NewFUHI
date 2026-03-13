@@ -1030,6 +1030,76 @@ python manage.py shell
 
 ---
 
+## 28. セキュリティ改修 (Phase 2-3)
+
+### 28.1 PIN ハッシュ化
+- [ ] 管理画面 → スタッフ → PINを設定して保存
+- [ ] DBの `attendance_pin` がハッシュ化されていることを確認 (pbkdf2_ プレフィックス)
+- [ ] PIN打刻 (`/admin/attendance/pin/`) でハッシュ化済みPINで認証成功
+- [ ] 平文PINの後方互換性確認 (既存の4桁PINでもログイン可能)
+
+### 28.2 LINE通知リトライ
+- [ ] LINE Push APIエラー時に最大3回リトライされることをログで確認
+- [ ] HTTP 429 (Rate Limit) の場合、Retry-After ヘッダーに従うことを確認
+- [ ] 全リトライ失敗後もアプリケーションがクラッシュしないこと
+
+### 28.3 IoT APIレート制限
+- [ ] 同一デバイスから10回/分を超えるリクエスト → 429 Throttled
+- [ ] 異なるデバイスからは独立してカウントされること
+- [ ] `curl` で連続送信テスト:
+  ```bash
+  for i in $(seq 1 15); do
+    curl -s -o /dev/null -w "%{http_code}\n" -X POST http://localhost:8000/api/iot/events/ \
+      -H "X-API-KEY: test-key" -H "Content-Type: application/json" \
+      -d '{"device":"test","event_type":"sensor","payload":{"mq9":100}}'
+  done
+  # 11回目以降は 429 が返ること
+  ```
+
+### 28.4 SwitchBot クレデンシャル暗号化
+- [ ] 管理画面でVentilationAutoControlのSwitchBotトークンを設定
+- [ ] DBの `switchbot_token`, `switchbot_secret` が暗号化保存されていること
+- [ ] `get_switchbot_token()`, `get_switchbot_secret()` で復号できること
+
+### 28.5 IoTデバイスセキュリティ
+- [ ] `config.py` のAPI URLが HTTPS であること
+- [ ] `secrets_template.py` がリポジトリに存在し、`secrets.py` が `.gitignore` に含まれること
+- [ ] APパスワードがデバイス固有値から動的生成されていること (FUHI-XXXXXX形式)
+- [ ] ウォッチドッグタイマー (WDT 60秒) がcode.pyで有効化されていること
+
+---
+
+## 29. 来客予測・CLV・自動発注 (Phase 3-4 新機能)
+
+### 29.1 来客予測 API (`/api/dashboard/visitor-forecast/`)
+- [ ] `GET /api/dashboard/visitor-forecast/` → 200
+- [ ] レスポンスに `forecast[]` 配列が含まれる
+- [ ] 各要素に `date`, `predicted`, `lower`, `upper`, `weekday` が含まれる
+- [ ] `lower <= predicted <= upper` が成り立つ
+- [ ] `recommended_staff` が含まれ、1以上の整数
+- [ ] データ不足時はエラーメッセージが返される
+
+### 29.2 CLV分析 API (`/api/dashboard/clv/`)
+- [ ] `GET /api/dashboard/clv/` → 200
+- [ ] レスポンスに `customers[]`, `segments`, `summary` が含まれる
+- [ ] 各顧客に `clv`, `segment`, `avg_order_value`, `frequency` が含まれる
+- [ ] セグメントが5種 (high_value, medium_value, low_value, at_risk, lost)
+- [ ] `summary.total_clv` が各顧客CLVの合計と一致
+
+### 29.3 自動発注推薦 API (`/api/dashboard/auto-order/`)
+- [ ] `GET /api/dashboard/auto-order/` → 200
+- [ ] レスポンスに `recommendations[]` 配列が含まれる
+- [ ] 各商品に `product_name`, `current_stock`, `daily_rate`, `days_remaining`, `urgency` が含まれる
+- [ ] urgency が critical/warning/ok のいずれか
+- [ ] `recommended_quantity` が1以上の整数
+
+### 29.4 外部データ統合 API (`/api/dashboard/external-data/`)
+- [ ] `GET /api/dashboard/external-data/` → 200
+- [ ] レスポンスに `weather`, `google_reviews`, `integration_status` が含まれる
+- [ ] 各統合のステータスが表示される
+
+---
+
 ## 付録A: 全API一覧と期待レスポンス
 
 ### IoT
@@ -1054,6 +1124,10 @@ python manage.py shell
 | `/api/dashboard/abc-analysis/` | GET | products[]{ name, revenue, share_pct, cumulative_pct, rank }, total_revenue |
 | `/api/dashboard/forecast/` | GET | historical[], forecast[]{ date, predicted, lower, upper }, method |
 | `/api/dashboard/layout/` | GET | widgets[]{ type, position } |
+| `/api/dashboard/visitor-forecast/` | GET | forecast[]{ date, predicted, lower, upper }, recommended_staff |
+| `/api/dashboard/clv/` | GET | customers[]{ clv, segment }, segments, summary |
+| `/api/dashboard/auto-order/` | GET | recommendations[]{ product_name, urgency, recommended_quantity } |
+| `/api/dashboard/external-data/` | GET | weather, google_reviews, integration_status |
 
 ### 分析
 | エンドポイント | メソッド | 期待レスポンス |

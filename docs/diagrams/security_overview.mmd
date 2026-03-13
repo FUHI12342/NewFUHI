@@ -1,0 +1,76 @@
+flowchart TD
+    subgraph NginxSec["Nginx Security Layer"]
+        SSL["SSL/TLS\nHTTPS Encryption"]
+        RateLimit["Rate Limiting\n10 requests per second"]
+        Headers["Security Headers\nHSTS / X-Frame / CSP"]
+    end
+
+    subgraph DjangoSec["Django Security Layer"]
+        CSRF["CSRF Protection\nToken Validation"]
+        SessionAuth["Session Authentication\nStaff and Admin"]
+        APIKeyAuth["API Key Authentication\nIoT Devices"]
+        Permissions["Permission System\nRole-based Access"]
+    end
+
+    subgraph IoTSec["IoT Device Security"]
+        IoTHTTPS["HTTPS Only\nEncrypted Transport"]
+        IoTAPIKey["API Key Validation\nDevice Identity"]
+        DeviceThrottle["Device Throttle\n10 requests per minute"]
+    end
+
+    subgraph DataSec["Data Protection"]
+        PINHash["PIN Hashing\npbkdf2_sha256"]
+        LINEEncrypt["LINE User Encryption\nFernet Symmetric"]
+        SBEncrypt["SwitchBot Credentials\nFernet Encryption"]
+        SecretKey["Django SECRET_KEY\nEnvironment Variable"]
+    end
+
+    subgraph Resilience["Resilience"]
+        LINERetry["LINE API Retry\nExponential Backoff"]
+        ErrorHandle["Error Handling\nGraceful Degradation"]
+        Timeout["Request Timeout\nConnection Limits"]
+    end
+
+    subgraph Monitoring["Security Monitoring"]
+        AuditLog["SecurityAudit Model\nAction Tracking"]
+        SecLog["SecurityLog Model\nEvent Recording"]
+        CostReport["CostReport Model\nResource Monitoring"]
+        AlertNotify["Alert Notifications\nLINE Push Alerts"]
+    end
+
+    Client["Client Request"] --> SSL
+    SSL --> RateLimit
+    RateLimit --> Headers
+    Headers --> CSRF
+
+    CSRF --> SessionAuth
+    CSRF --> APIKeyAuth
+
+    SessionAuth --> Permissions
+    APIKeyAuth --> DeviceThrottle
+
+    IoTDevice["IoT Device"] --> IoTHTTPS
+    IoTHTTPS --> IoTAPIKey
+    IoTAPIKey --> DeviceThrottle
+
+    Permissions --> DataSec
+    DeviceThrottle --> DataSec
+
+    DataSec --> AuditLog
+    Resilience --> SecLog
+
+    classDef nginxStyle fill:#009639,stroke:#006B2B,color:#fff
+    classDef djangoStyle fill:#0C4B33,stroke:#092E20,color:#fff
+    classDef iotStyle fill:#27AE60,stroke:#1E8449,color:#fff
+    classDef dataStyle fill:#E74C3C,stroke:#C0392B,color:#fff
+    classDef resStyle fill:#F39C12,stroke:#D68910,color:#fff
+    classDef monStyle fill:#3498DB,stroke:#2980B9,color:#fff
+    classDef clientStyle fill:#2C3E50,stroke:#1A252F,color:#fff
+
+    class SSL,RateLimit,Headers nginxStyle
+    class CSRF,SessionAuth,APIKeyAuth,Permissions djangoStyle
+    class IoTHTTPS,IoTAPIKey,DeviceThrottle iotStyle
+    class PINHash,LINEEncrypt,SBEncrypt,SecretKey dataStyle
+    class LINERetry,ErrorHandle,Timeout resStyle
+    class AuditLog,SecLog,CostReport,AlertNotify monStyle
+    class Client,IoTDevice clientStyle

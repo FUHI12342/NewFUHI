@@ -1,0 +1,48 @@
+flowchart TD
+    Start["Customer Access\nBooking Page"] --> SelectStore["Select Store\nStore List"]
+    SelectStore --> SelectFT["Select Fortune Teller\nAvailable Staff"]
+    SelectFT --> Calendar["Calendar View\nAvailable Dates"]
+    Calendar --> SlotSelect["Select Time Slot\nAvailable Slots"]
+
+    SlotSelect --> AuthCheck{"Authentication\nRequired"}
+
+    AuthCheck -- "LINE Login" --> LINEAuth["LINE OAuth\nAuthorize"]
+    AuthCheck -- "Email" --> EmailOTP["Email OTP\nVerification Code"]
+
+    LINEAuth --> Authenticated["Authenticated\nUser Identified"]
+    EmailOTP --> Authenticated
+
+    Authenticated --> TempReserve["Temporary Reservation\nStatus: PENDING"]
+
+    TempReserve --> PayCheck{"Payment\nRequired?"}
+
+    PayCheck -- "Free Booking" --> Confirm["Confirm Reservation\nStatus: CONFIRMED"]
+    PayCheck -- "Paid Booking" --> CoineyPay["Coiney Payment\nCard Payment"]
+
+    CoineyPay --> PayResult{"Payment\nResult"}
+    PayResult -- "Success Webhook" --> Confirm
+    PayResult -- "Failed or Timeout" --> Cancel["Cancel Reservation\nStatus: CANCELLED"]
+
+    Confirm --> QRGen["QR Code Generation\nUnique Check-in Code"]
+    Confirm --> NotifyStaff["LINE Notification\nTo Staff"]
+    Confirm --> NotifyCustomer["LINE or Email\nTo Customer"]
+
+    QRGen --> Complete["Booking Complete\nConfirmation Page"]
+    NotifyStaff --> Complete
+    NotifyCustomer --> Complete
+
+    Cancel --> RetryOption["Show Retry Option\nReturn to Slots"]
+
+    classDef startStyle fill:#3498DB,stroke:#2980B9,color:#fff
+    classDef authStyle fill:#F39C12,stroke:#D68910,color:#fff
+    classDef payStyle fill:#E74C3C,stroke:#C0392B,color:#fff
+    classDef confirmStyle fill:#27AE60,stroke:#1E8449,color:#fff
+    classDef cancelStyle fill:#95A5A6,stroke:#7F8C8D,color:#fff
+    classDef decisionStyle fill:#9B59B6,stroke:#7D3C98,color:#fff
+
+    class Start,SelectStore,SelectFT,Calendar,SlotSelect startStyle
+    class LINEAuth,EmailOTP,Authenticated authStyle
+    class CoineyPay payStyle
+    class TempReserve,Confirm,QRGen,NotifyStaff,NotifyCustomer,Complete confirmStyle
+    class Cancel,RetryOption cancelStyle
+    class AuthCheck,PayCheck,PayResult decisionStyle

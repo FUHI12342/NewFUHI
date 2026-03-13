@@ -1,0 +1,60 @@
+flowchart LR
+    subgraph POSTerminal["POS Terminal - Staff"]
+        POSLogin["Staff Login\nPIN Authentication"]
+        POSMenu["Menu Selection\nCategory and Items"]
+        POSCart["Cart\nAdd Items and Qty"]
+        POSOrder["Create Order\nDine-in or Takeout"]
+    end
+
+    subgraph TableOrder["Table Order - Customer"]
+        QRScan["QR Code Scan\nTable Identification"]
+        TMenu["Menu Browse\nWith Images"]
+        TCart["Cart\nCustomize Items"]
+        TOrder["Submit Order\nAuto Table Assign"]
+    end
+
+    subgraph Kitchen["Kitchen Display System"]
+        KOrdered["ORDERED\nNew Order Alert"]
+        KPreparing["PREPARING\nIn Progress"]
+        KServed["SERVED\nReady for Pickup"]
+    end
+
+    subgraph Checkout["Checkout and Payment"]
+        BillCalc["Bill Calculation\nTax and Discount"]
+        PaySelect{"Payment\nMethod"}
+        CashPay["Cash Payment\nChange Calculation"]
+        CardPay["Coiney Payment\nCard Terminal"]
+        Receipt["Receipt\nPrint or Email"]
+        Closed["Order CLOSED\nSales Recorded"]
+    end
+
+    POSLogin --> POSMenu --> POSCart --> POSOrder
+    QRScan --> TMenu --> TCart --> TOrder
+
+    POSOrder -- "Send to Kitchen" --> KOrdered
+    TOrder -- "Send to Kitchen" --> KOrdered
+
+    KOrdered -- "Start Cooking" --> KPreparing
+    KPreparing -- "Complete" --> KServed
+
+    KServed -- "All Items Served" --> BillCalc
+
+    BillCalc --> PaySelect
+    PaySelect -- "Cash" --> CashPay
+    PaySelect -- "Card" --> CardPay
+
+    CashPay --> Receipt
+    CardPay --> Receipt
+    Receipt --> Closed
+
+    classDef posStyle fill:#2C3E50,stroke:#1A252F,color:#fff
+    classDef tableStyle fill:#16A085,stroke:#0E6655,color:#fff
+    classDef kitchenStyle fill:#E67E22,stroke:#CA6F1E,color:#fff
+    classDef payStyle fill:#27AE60,stroke:#1E8449,color:#fff
+    classDef decisionStyle fill:#9B59B6,stroke:#7D3C98,color:#fff
+
+    class POSLogin,POSMenu,POSCart,POSOrder posStyle
+    class QRScan,TMenu,TCart,TOrder tableStyle
+    class KOrdered,KPreparing,KServed kitchenStyle
+    class BillCalc,CashPay,CardPay,Receipt,Closed payStyle
+    class PaySelect decisionStyle

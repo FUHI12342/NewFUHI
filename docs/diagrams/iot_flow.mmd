@@ -1,0 +1,52 @@
+flowchart TD
+    subgraph PicoW["Pico W IoT Device"]
+        MQ9["MQ-9\nGas Sensor"]
+        PIR["PIR\nMotion Sensor"]
+        Light["Light Sensor\nPhotoresistor"]
+        DHT["DHT22\nTemp and Humidity"]
+    end
+
+    subgraph DjangoAPI["Django API Server"]
+        Endpoint["POST /api/iot/events/\nIoTEvent Save"]
+        Rules["check_ventilation_rules\nThreshold Evaluation"]
+        ConfigEP["GET /api/iot/config/\nDevice Settings"]
+    end
+
+    subgraph Actions["Automated Actions"]
+        SwitchBot["SwitchBot API\nturnOn / turnOff"]
+        LINEPush["LINE Push\nGas Alarm Notification"]
+    end
+
+    subgraph Monitoring["Monitoring"]
+        Dashboard["IoT Dashboard\nReal-time Readings"]
+        History["Event History\nTrend Charts"]
+    end
+
+    MQ9 -- gas_ppm --> Endpoint
+    PIR -- motion_detected --> Endpoint
+    Light -- lux_value --> Endpoint
+    DHT -- temp_humidity --> Endpoint
+
+    Endpoint -- Evaluate --> Rules
+
+    Rules -- "Threshold Exceeded\nVentilation Control" --> SwitchBot
+    Rules -- "MQ-9 Alarm\nDangerous Level" --> LINEPush
+
+    ConfigEP -- "Polling Interval\nThresholds" --> PicoW
+
+    Endpoint -- Record --> Dashboard
+    Endpoint -- Store --> History
+
+    SwitchBot -- "Fan ON/OFF\nAC Control" --> FanDevice["SwitchBot Device\nFan / AC"]
+
+    classDef sensorStyle fill:#27AE60,stroke:#1E8449,color:#fff
+    classDef apiStyle fill:#0C4B33,stroke:#092E20,color:#fff
+    classDef actionStyle fill:#E74C3C,stroke:#C0392B,color:#fff
+    classDef monitorStyle fill:#3498DB,stroke:#2980B9,color:#fff
+    classDef deviceStyle fill:#8E44AD,stroke:#6C3483,color:#fff
+
+    class MQ9,PIR,Light,DHT sensorStyle
+    class Endpoint,Rules,ConfigEP apiStyle
+    class SwitchBot,LINEPush actionStyle
+    class Dashboard,History monitorStyle
+    class FanDevice deviceStyle

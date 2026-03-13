@@ -1,0 +1,63 @@
+flowchart TD
+    subgraph SalesDash["Sales Dashboard"]
+        KPI["KPI Overview\nRevenue / Orders / Avg"]
+        MenuEng["Menu Engineering\nStar / Plow / Puzzle / Dog"]
+        ABC["ABC Analysis\nA-B-C Item Ranking"]
+        Forecast["Sales Forecast\nTrend Prediction"]
+        Heatmap["Sales Heatmap\nHour x Day Matrix"]
+        AOV["AOV Tracker\nAverage Order Value"]
+    end
+
+    subgraph CustomerAnalytics["Customer Analytics"]
+        Cohort["Cohort Analysis\nRetention by Month"]
+        RFM["RFM Segmentation\nRecency Frequency Monetary"]
+        Basket["Basket Analysis\nItem Pair Correlation"]
+        NPS["NPS and Feedback\nCustomer Satisfaction"]
+        CLV["Customer Lifetime Value\nRevenue Prediction"]
+    end
+
+    subgraph Operations["Operations"]
+        StaffPerf["Staff Performance\nSales per Staff"]
+        ShiftSum["Shift Summary\nDaily Report"]
+        LowStock["Low Stock Alert\nInventory Warning"]
+        AutoOrder["Auto Order Suggestion\nRestock Recommendation"]
+    end
+
+    subgraph Visitor["Visitor Analytics"]
+        VForecast["Visitor Forecast\nExpected Traffic"]
+        VHeatmap["Visitor Heatmap\nPeak Hours"]
+        VTrends["Visitor Trends\nWeekly and Monthly"]
+    end
+
+    subgraph AI["AI and ML"]
+        RecModel["Recommendation Model\nMenu Suggestions"]
+        Training["Model Training\nPeriodic Update"]
+    end
+
+    DataSource["Data Sources\nOrders / Customers / IoT / Staff"]
+
+    DataSource --> SalesDash
+    DataSource --> CustomerAnalytics
+    DataSource --> Operations
+    DataSource --> Visitor
+    DataSource --> AI
+
+    RecModel -- "Personalized Menu" --> MenuEng
+    Training -- "Updated Model" --> RecModel
+    RFM -- "Segment Data" --> CLV
+    Basket -- "Pair Insights" --> RecModel
+    LowStock -- "Trigger" --> AutoOrder
+
+    classDef salesStyle fill:#3498DB,stroke:#2980B9,color:#fff
+    classDef custStyle fill:#E74C3C,stroke:#C0392B,color:#fff
+    classDef opsStyle fill:#F39C12,stroke:#D68910,color:#fff
+    classDef visitorStyle fill:#1ABC9C,stroke:#16A085,color:#fff
+    classDef aiStyle fill:#9B59B6,stroke:#7D3C98,color:#fff
+    classDef sourceStyle fill:#2C3E50,stroke:#1A252F,color:#fff
+
+    class KPI,MenuEng,ABC,Forecast,Heatmap,AOV salesStyle
+    class Cohort,RFM,Basket,NPS,CLV custStyle
+    class StaffPerf,ShiftSum,LowStock,AutoOrder opsStyle
+    class VForecast,VHeatmap,VTrends visitorStyle
+    class RecModel,Training aiStyle
+    class DataSource sourceStyle
