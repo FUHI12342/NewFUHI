@@ -1,0 +1,147 @@
+/Users/adon/NewFUHI/MB_IoT_device_main
+├── actuators/
+│   ├── __init__.py
+│   ├── buzzer.py
+│   ├── buzzer.py.bak
+│   └── ir_tx.py
+├── certs/
+│   ├── 4c9dbaf8d74163308bc20eb2c826653171a22ee469cfded09d53d27681437a69-certificate.pem.crt
+│   ├── 4c9dbaf8d74163308bc20eb2c826653171a22ee469cfded09d53d27681437a69-private.pem.key
+│   ├── 4c9dbaf8d74163308bc20eb2c826653171a22ee469cfded09d53d27681437a69-public.pem.key
+│   ├── AmazonRootCA1.der
+│   ├── AmazonRootCA1.pem
+│   ├── AmazonRootCA3.der
+│   ├── AmazonRootCA3.pem
+│   ├── ca.key
+│   ├── ca.pem
+│   ├── ca.srl
+│   ├── device-cert.der
+│   ├── device-private-ec.pem
+│   ├── device-private-rsa.der
+│   ├── device-private-rsa.pem
+│   ├── device-private.pem
+│   ├── device-rsa.crt
+│   ├── device-rsa.csr
+│   ├── device.crt
+│   ├── device.csr
+│   ├── ecc-certificate.pem.crt
+│   ├── ecc-private.pem
+│   └── ecc-public.pem
+├── docs/
+│   └── DEPENDENCIES.md
+├── lib/
+│   ├── adafruit_character_lcd/
+│   │   ├── __init__.py
+│   │   ├── character_lcd.mpy
+│   │   ├── character_lcd_i2c.mpy
+│   │   ├── character_lcd_rgb_i2c.mpy
+│   │   └── character_lcd_spi.mpy
+│   ├── adafruit_mcp230xx/
+│   │   ├── __init__.mpy
+│   │   ├── digital_inout.mpy
+│   │   ├── mcp23008.mpy
+│   │   ├── mcp23016.mpy
+│   │   ├── mcp23017.mpy
+│   │   ├── mcp230xx.mpy
+│   │   ├── mcp23s08.mpy
+│   │   ├── mcp23s17.mpy
+│   │   ├── mcp23sxx.mpy
+│   │   └── mcp23xxx.mpy
+│   ├── adafruit_minimqtt/
+│   │   ├── __init__.py
+│   │   ├── adafruit_minimqtt.mpy
+│   │   └── matcher.mpy
+│   ├── adafruit_connection_manager.mpy
+│   ├── adafruit_requests.mpy
+│   └── adafruit_ticks.py
+├── pico_device/
+│   ├── __init__.py
+│   ├── config_manager.py
+│   ├── django_api.py
+│   ├── file_utils.py
+│   ├── logging_utils.py
+│   ├── provisioning.py
+│   ├── setup_ap.py
+│   └── wifi_manager.py
+├── scripts/
+│   ├── backup_device.sh
+│   ├── clean_macos_metadata.sh
+│   ├── deploy_mac.sh
+│   ├── deploy_to_circuitpy.sh
+│   ├── format_circuitpy.sh
+│   ├── format_device_mac.sh
+│   ├── healthcheck_circuitpy.sh
+│   ├── README_DEV.md
+│   ├── secrets.example.py
+│   ├── sync_from_device.sh
+│   └── sync_to_device.sh
+├── sd/
+│   └── placeholder.txt
+├── sensor/
+├── sensors/
+│   ├── __init__.py
+│   ├── button.py
+│   ├── dht_i2c.py
+│   ├── light.py
+│   ├── mq9.py
+│   ├── pir.py
+│   └── sound.py
+├── __init__.py
+├── aws_client.py
+├── aws_test.py
+├── aws_test.py.bak
+├── boot.py
+├── boot.py.disabled 
+├── boot_out.txt
+├── cert_pub.pem
+├── certs_utils.py
+├── code.py
+├── code.py.disable.py
+├── code.py.disabled.py
+├── config.py
+├── config.py.bak
+├── deploy_circuitpython.sh
+├── deploy_mpremote.sh
+├── deploy_mpremote.sh.bak
+├── DEPLOYMENT_CHECKLIST.md
+├── DEPLOYMENT_COMPLETE.md
+├── dht_i2c.py
+├── diag_scan.py
+├── django_api.py
+├── force_ap.flag
+├── i2c_bus.py
+├── ir_receiver.py
+├── ir_rx.py
+├── ir_tx.py
+├── lcd_display.py
+├── light.py
+├── main.py.disable.py
+├── main_aws_mqtt.py
+├── make_all.sh
+├── make_all.sh.bak
+├── make_aws_split.sh
+├── make_project.sh
+├── MB_IoT.code-workspace
+├── mq9.py
+├── mqtt_client.py
+├── mqtt_client.py.bak
+├── outbox.py
+├── pir.py
+├── priv_pub.pem
+├── publisher.py
+├── publisher_helper.py
+├── README_DEPLOY.md
+├── README_DEV.md
+├── README_WIFI.md
+├── RPI_PICO2_W-20251130-v1.27.0-preview.472.g83131c106d.uf2
+├── secrets.example.py
+├── secrets.py
+├── secrets.py.sample
+├── sensors.pointer.bak
+├── settings.toml.bak
+├── subscriber.py
+├── urequests.py
+├── wifi_provisioning.py
+├── wifi_test.py
+├── ~1.MET
+└── ~1.TRA

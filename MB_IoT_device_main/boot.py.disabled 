@@ -1,0 +1,18 @@
+# boot.py
+import time
+import sys
+# 少し待ってから起動（USB シリアルが安定するまで）
+time.sleep(1)
+try:
+    import main
+    # main.main() はブロッキングループなので例外で落ちたら再起動する方針にする
+    main.main()
+except Exception as e:
+    try:
+        sys.print_exception(e)
+    except Exception:
+        pass
+    # 失敗時は短い待機の後リセット（運用方針に合わせて変更）
+    time.sleep(5)
+    import machine
+    machine.reset()

@@ -204,3 +204,4 @@ thumbnails/
 store_thumbnails/
 runs/
 db.sqlite3
+repo_snapshot/

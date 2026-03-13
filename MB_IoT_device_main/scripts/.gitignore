@@ -1,0 +1,45 @@
+# CircuitPython IoT Device - Git Ignore
+
+# 秘匿情報
+secrets.py
+*.pem
+*.key
+*.crt
+*.der
+certs/
+*.p12
+
+# Apple メタファイル
+.DS_Store
+._*
+.fseventsd/
+.Trash-*
+
+# IDE/エディタ
+.vscode/settings.json
+*.swp
+*.swo
+*~
+
+# CircuitPython 固有
+boot_out.txt
+settings.toml
+.Trashes/
+
+# バックアップファイル
+*.bak
+*.backup
+*.old
+
+# 一時ファイル
+~*
+*.tmp
+
+# ログファイル
+*.log
+
+# WiFi設定
+wifi_config.json
+
+# 強制APモードフラグ（開発時のみ）
+force_ap.flag
