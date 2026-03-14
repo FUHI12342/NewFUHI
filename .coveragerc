@@ -1,0 +1,11 @@
+[run]
+source = booking
+omit =
+    booking/tests.py
+    booking/management/commands/seed_mock_data.py
+    booking/migrations/*
+
+[report]
+exclude_lines =
+    pragma: no cover
+    if __name__ == .__main__
