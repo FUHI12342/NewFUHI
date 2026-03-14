@@ -57,6 +57,9 @@ class Command(BaseCommand):
 
         self.stdout.write(f'対象店舗: {self.store.name} (ID={self.store.id})')
 
+        # ── デモユーザー（権限別）──
+        self._seed_demo_users()
+
         # ── 基盤データ ──
         self._seed_company()
         self._seed_notices()
@@ -146,6 +149,13 @@ class Command(BaseCommand):
         SystemConfig.objects.all().delete()
         # モックで作った予約を削除
         Schedule.objects.filter(memo='モックデータ').delete()
+        # デモユーザー
+        demo_usernames = [
+            'demo_owner', 'demo_manager', 'demo_staff',
+            'demo_developer', 'demo_fortune',
+        ]
+        Staff.objects.filter(user__username__in=demo_usernames).delete()
+        User.objects.filter(username__in=demo_usernames).delete()
         # 追加スタッフ
         Staff.objects.filter(name__in=[
             '星野 ルナ', '月見 アカリ', '水瀬 ソラ', '朝霧 ヒカル',
@@ -154,6 +164,105 @@ class Command(BaseCommand):
             'hoshino', 'tsukimi', 'minase', 'asagiri',
         ]).delete()
         self.stdout.write(self.style.SUCCESS('既存モックデータを削除しました'))
+
+    # ═════════════════════════════════════════════
+    # Demo Users（権限別）
+    # ═════════════════════════════════════════════
+    DEMO_PASSWORD = 'demo1234'
+    DEMO_USERS = [
+        {
+            'username': 'demo_owner',
+            'name': 'デモ オーナー',
+            'staff_type': 'store_staff',
+            'is_owner': True,
+            'is_store_manager': False,
+            'is_developer': False,
+            'is_superuser': True,
+            'introduction': 'オーナー権限のデモアカウント。全機能にアクセス可能。',
+        },
+        {
+            'username': 'demo_manager',
+            'name': 'デモ 店長',
+            'staff_type': 'store_staff',
+            'is_owner': False,
+            'is_store_manager': True,
+            'is_developer': False,
+            'is_superuser': False,
+            'introduction': '店長権限のデモアカウント。自店舗のスタッフ・シフト・売上管理が可能。',
+        },
+        {
+            'username': 'demo_staff',
+            'name': 'デモ スタッフ',
+            'staff_type': 'store_staff',
+            'is_owner': False,
+            'is_store_manager': False,
+            'is_developer': False,
+            'is_superuser': False,
+            'introduction': '一般スタッフ権限のデモアカウント。自分の情報のみ閲覧・編集可能。',
+        },
+        {
+            'username': 'demo_developer',
+            'name': 'デモ 開発者',
+            'staff_type': 'store_staff',
+            'is_owner': False,
+            'is_store_manager': False,
+            'is_developer': True,
+            'is_superuser': False,
+            'introduction': '開発者権限のデモアカウント。デバッグパネル・IoT設定にアクセス可能。',
+        },
+        {
+            'username': 'demo_fortune',
+            'name': 'デモ 占い師',
+            'staff_type': 'fortune_teller',
+            'is_owner': False,
+            'is_store_manager': False,
+            'is_developer': False,
+            'is_superuser': False,
+            'price': 3000,
+            'introduction': '占い師権限のデモアカウント。マイページから予約管理・シフト希望提出が可能。',
+        },
+    ]
+
+    def _seed_demo_users(self):
+        created = 0
+        for data in self.DEMO_USERS:
+            username = data['username']
+            if User.objects.filter(username=username).exists():
+                continue
+            user = User.objects.create_user(
+                username=username,
+                password=self.DEMO_PASSWORD,
+                email=f'{username}@demo.timebaibai.com',
+                is_staff=True,
+                is_superuser=data.get('is_superuser', False),
+            )
+            Staff.objects.create(
+                user=user,
+                store=self.store,
+                name=data['name'],
+                staff_type=data.get('staff_type', 'store_staff'),
+                is_owner=data.get('is_owner', False),
+                is_store_manager=data.get('is_store_manager', False),
+                is_developer=data.get('is_developer', False),
+                price=data.get('price', 0),
+                introduction=data.get('introduction', ''),
+            )
+            created += 1
+        if created:
+            self.stdout.write(self.style.SUCCESS(f'  Demo Users: {created}名作成'))
+            self.stdout.write('    ┌─────────────────┬──────────┬────────────┐')
+            self.stdout.write('    │ ユーザー名      │ パスワード│ 権限       │')
+            self.stdout.write('    ├─────────────────┼──────────┼────────────┤')
+            for d in self.DEMO_USERS:
+                role = ('オーナー' if d.get('is_owner') else
+                        '店長' if d.get('is_store_manager') else
+                        '開発者' if d.get('is_developer') else
+                        '占い師' if d.get('staff_type') == 'fortune_teller' else
+                        '一般スタッフ')
+                self.stdout.write(f'    │ {d["username"]:<15} │ demo1234 │ {role:<10} │')
+            self.stdout.write('    └─────────────────┴──────────┴────────────┘')
+        else:
+            self.stdout.write('  Demo Users: skip')
 
     # ═════════════════════════════════════════════
     # Company
