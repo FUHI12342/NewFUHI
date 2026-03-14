@@ -939,6 +939,12 @@ class StoreList(generic.ListView):
     ordering = 'name'
 
 
+class StoreAccessView(generic.DetailView):
+    model = Store
+    template_name = 'booking/store_access.html'
+    context_object_name = 'store'
+
+
 class StaffList(generic.ListView):
     model = Staff
     ordering = 'name'
@@ -1434,10 +1440,26 @@ def upload_file(request):
     return render(request, 'upload.html', {'form': form})
 
 
+def _build_access_lines(store):
+    """店舗アクセス情報テキストを組み立てる。情報がなければ空文字を返す。"""
+    parts = [
+        f'\n\n■ 店舗アクセス',
+        f'{store.name}',
+        f'{store.address}',
+    ]
+    if store.nearest_station:
+        parts.append(f'最寄り駅: {store.nearest_station}')
+    if store.access_info:
+        parts.append(store.access_info)
+    if store.map_url:
+        parts.append(f'地図: {store.map_url}')
+    return '\n'.join(parts)
+
+
 def process_payment(payment_response, request, order_id):
     if payment_response.get('type') == 'payment.succeeded':
         try:
-            schedule = Schedule.objects.get(reservation_number=order_id)
+            schedule = Schedule.objects.select_related('staff__store').get(reservation_number=order_id)
         except Schedule.DoesNotExist:
             logger.error("process_payment: Schedule not found for order_id=%s", order_id)
             return JsonResponse({"error": "reservation not found"}, status=404)
@@ -1479,9 +1501,12 @@ def process_payment(payment_response, request, order_id):
         if user_id:
             timer_url = reverse('booking:LINETimerView', args=[user_id])
             encoded_timer_url = quote(timer_url)
+            store = schedule.staff.store
+            access_lines = _build_access_lines(store)
             message_text = (
                 '決済が完了しました。こちらのURLから予約情報・タイマーを確認できます: '
                 + '<' + 'https://timebaibai.com/' + encoded_timer_url + '>'
+                + access_lines
             )
             try:
                 line_bot_api.push_message(user_id, TextSendMessage(text=message_text))
@@ -1492,6 +1517,8 @@ def process_payment(payment_response, request, order_id):
         if schedule.booking_channel == 'email' and schedule.customer_email:
             local_tz = pytz.timezone('Asia/Tokyo')
             local_time = schedule.start.astimezone(local_tz)
+            store = schedule.staff.store
+            access_lines = _build_access_lines(store)
             try:
                 send_mail(
                     subject='予約確定のお知らせ',
@@ -1502,6 +1529,7 @@ def process_payment(payment_response, request, order_id):
                         f'日時: {local_time.strftime("%Y年%m月%d日 %H:%M")}\n'
                         f'料金: {schedule.price}円\n\n'
                         f'ご予約ありがとうございます。'
+                        + access_lines
                     ),
                     from_email=settings.DEFAULT_FROM_EMAIL,
                     recipient_list=[schedule.customer_email],

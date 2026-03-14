@@ -46,6 +46,7 @@ urlpatterns = [
     path('logout/', LogoutView.as_view(), name='logout'),
 
     # Store / Staff / Booking
+    path('store/<int:pk>/access/', views.StoreAccessView.as_view(), name='store_access'),
     path('store/<int:pk>/staffs/', views.StaffList.as_view(), name='staff_list'),
     path('staff/<int:pk>/calendar/', views.StaffCalendar.as_view(), name='staff_calendar'),
     path(

@@ -73,11 +73,17 @@
 
             </dl>
 
-            <!-- CTA Button -->
-            <a href="{% url 'booking:staff_list' store.pk %}"
-               class="inline-block bg-salon-brown hover:bg-salon-dark text-white text-sm font-medium px-6 py-2.5 rounded-lg transition-colors duration-200">
-                {{ staff_label }}一覧を見る
-            </a>
+            <!-- CTA Buttons -->
+            <div class="flex flex-wrap gap-3">
+                <a href="{% url 'booking:staff_list' store.pk %}"
+                   class="inline-block bg-salon-brown hover:bg-salon-dark text-white text-sm font-medium px-6 py-2.5 rounded-lg transition-colors duration-200">
+                    {{ staff_label }}一覧を見る
+                </a>
+                <a href="{% url 'booking:store_access' store.pk %}"
+                   class="inline-block border border-salon-brown text-salon-brown hover:bg-salon-brown hover:text-white text-sm font-medium px-6 py-2.5 rounded-lg transition-colors duration-200">
+                    {% trans "アクセス情報" %}
+                </a>
+            </div>
 
         </div>
     </div>

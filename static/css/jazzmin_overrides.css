@@ -13,3 +13,23 @@
 #jazzy-navbar.navbar-dark .nav-link:hover {
     color: #fff !important;
 }
+
+/* モバイル: ナビバーにサイト名を表示 */
+@media (max-width: 991.98px) {
+    .main-header .navbar-brand {
+        display: flex !important;
+        align-items: center;
+        font-size: 1rem;
+        font-weight: 700;
+        color: #fff !important;
+        white-space: nowrap;
+        margin-right: auto;
+        padding-left: 0.5rem;
+    }
+    /* サイドバー折りたたみ時もブランドテキストを表示 */
+    .brand-text {
+        display: inline !important;
+        visibility: visible !important;
+        opacity: 1 !important;
+    }
+}

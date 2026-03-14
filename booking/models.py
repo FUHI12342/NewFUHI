@@ -67,6 +67,9 @@ class Store(models.Model):
     description = models.TextField(_('店舗情報'), default='', blank=True)
     is_recommended = models.BooleanField(_('おすすめ'), default=False)
 
+    map_url = models.CharField(_('地図URL'), max_length=500, default='', blank=True)
+    access_info = models.TextField(_('アクセス情報'), default='', blank=True)
+
     # 追加（多言語）：店舗の既定言語（任意）
     default_language = models.CharField(
         _('既定言語'), max_length=10, default='ja', blank=True, choices=LANG_CHOICES,

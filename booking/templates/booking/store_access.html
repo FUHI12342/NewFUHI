@@ -1,0 +1,73 @@
+{% extends 'booking/base.html' %}
+{% load i18n %}
+{% load static %}
+
+{% block content %}
+
+<!-- Page Heading -->
+<h2 class="text-2xl md:text-3xl font-bold text-salon-dark mb-6 border-b-2 border-salon-brown pb-3">
+    {{ store.name }} — {% trans "アクセス情報" %}
+</h2>
+
+<div class="bg-white rounded-xl shadow-md overflow-hidden mb-6">
+    <div class="p-5 md:p-8">
+
+        <!-- Store Details -->
+        <dl class="grid grid-cols-1 sm:grid-cols-[auto_1fr] gap-x-4 gap-y-3 text-sm mb-6">
+
+            <dt class="font-semibold text-salon-dark whitespace-nowrap">
+                {% trans "店舗所在地" %}
+            </dt>
+            <dd class="text-gray-600">{{ store.address }}</dd>
+
+            <dt class="font-semibold text-salon-dark whitespace-nowrap">
+                {% trans "交通／最寄駅" %}
+            </dt>
+            <dd class="text-gray-600">{{ store.nearest_station }}</dd>
+
+            <dt class="font-semibold text-salon-dark whitespace-nowrap">
+                {% trans "営業時間" %}
+            </dt>
+            <dd class="text-gray-600">{{ store.business_hours }}</dd>
+
+            <dt class="font-semibold text-salon-dark whitespace-nowrap">
+                {% trans "定休日" %}
+            </dt>
+            <dd class="text-gray-600">{{ store.regular_holiday }}</dd>
+
+        </dl>
+
+        {% if store.access_info %}
+        <!-- Access Info (道順) -->
+        <div class="mb-6">
+            <h3 class="text-lg font-bold text-salon-dark mb-2">{% trans "道順" %}</h3>
+            <p class="text-gray-600 leading-relaxed whitespace-pre-line">{{ store.access_info }}</p>
+        </div>
+        {% endif %}
+
+        {% if store.map_url %}
+        <!-- Map Link -->
+        <a href="{{ store.map_url }}"
+           target="_blank"
+           rel="noopener noreferrer"
+           class="inline-flex items-center bg-salon-brown hover:bg-salon-dark text-white text-sm font-medium px-6 py-2.5 rounded-lg transition-colors duration-200">
+            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
+            </svg>
+            {% trans "Google Mapsで開く" %}
+        </a>
+        {% endif %}
+
+    </div>
+</div>
+
+<!-- Back Link -->
+<a href="{% url 'booking:store_list' %}"
+   class="inline-block text-salon-brown hover:text-salon-dark text-sm font-medium transition-colors duration-200">
+    &larr; {% trans "店舗一覧に戻る" %}
+</a>
+
+{% endblock %}
