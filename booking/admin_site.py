@@ -36,7 +36,7 @@ GROUPS = [
     {'slug': 'inventory', 'name': _('在庫管理'), 'models': ['category', 'product'], 'hidden': True},
     {'slug': 'order', 'name': _('注文管理'), 'models': ['order', 'postransaction']},
     {'slug': 'table_order', 'name': _('店舗管理'), 'models': ['store', 'tableseat']},
-    {'slug': 'iot', 'name': _('IoT管理'), 'models': ['iotdevice', 'ventilationautocontrol'], 'hidden': True},
+    {'slug': 'iot', 'name': _('IoT管理'), 'models': ['iotdevice', 'ventilationautocontrol'], 'hidden_models': ['iotdevice']},
     {'slug': 'payment', 'name': _('決済'), 'models': ['paymentmethod'], 'hidden': True},
     {'slug': 'property', 'name': _('物件管理'), 'models': ['property'], 'hidden': True},
     {'slug': 'analytics', 'name': _('分析'), 'models': ['visitorcount', 'visitoranalyticsconfig', 'staffrecommendationmodel', 'staffrecommendationresult', 'businessinsight', 'customerfeedback'], 'hidden': True},
@@ -54,6 +54,9 @@ HIDDEN_MODELS = set()
 for g in GROUPS:
     if g.get('hidden'):
         HIDDEN_MODELS.update(g['models'])
+    # グループは表示するがモデル単位で非表示にする
+    for m in g.get('hidden_models', []):
+        HIDDEN_MODELS.add(m)
 
 # 後方互換: forms.py / admin.py から参照される GROUP_MAP（slug→models）
 GROUP_MAP = {g['slug']: g['models'] for g in GROUPS}
@@ -261,11 +264,13 @@ class RoleBasedAdminSite(AdminSite):
             if slug in HIDDEN_SLUGS:
                 used_keys.update(k for k in model_keys if k in all_models)
                 continue
+            hidden_in_group = set(g.get('hidden_models', []))
             group_models = []
             for key in model_keys:
                 if key in all_models:
-                    group_models.append(all_models[key])
                     used_keys.add(key)
+                    if key not in hidden_in_group:
+                        group_models.append(all_models[key])
             # カスタムリンクをモデルエントリとして追加
             for link in SIDEBAR_CUSTOM_LINKS.get(slug, []):
                 group_models.append({
