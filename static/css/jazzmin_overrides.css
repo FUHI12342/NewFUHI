@@ -84,10 +84,10 @@
 
 /* ========================================================================
    ダークモード対応 — カスタム管理画面ビュー用
-   AdminLTE body.dark-mode が有効な場合に適用
+   Jazzmin (Bootstrap 5) html[data-bs-theme="dark"] が有効な場合に適用
    ======================================================================== */
 
-body.dark-mode {
+[data-bs-theme="dark"] {
     --dm-bg: #1a1a2e;
     --dm-bg-card: #16213e;
     --dm-bg-secondary: #1e2a45;
@@ -99,215 +99,316 @@ body.dark-mode {
 }
 
 /* ---- 共通: カード・テーブル・フォーム ---- */
-body.dark-mode .model-card,
-body.dark-mode .chart-container,
-body.dark-mode .inv-modal,
-body.dark-mode .sidebar-panel,
-body.dark-mode .pin-container {
+[data-bs-theme="dark"] .model-card,
+[data-bs-theme="dark"] .chart-container,
+[data-bs-theme="dark"] .inv-modal,
+[data-bs-theme="dark"] .sidebar-panel,
+[data-bs-theme="dark"] .pin-container {
     background: var(--dm-bg-card) !important;
     color: var(--dm-text) !important;
     border-color: var(--dm-border) !important;
 }
 
-body.dark-mode .toolbar button,
-body.dark-mode .toolbar select,
-body.dark-mode .inv-filter-btn,
-body.dark-mode .inv-btn-secondary {
+[data-bs-theme="dark"] .toolbar button,
+[data-bs-theme="dark"] .toolbar select,
+[data-bs-theme="dark"] .inv-filter-btn,
+[data-bs-theme="dark"] .inv-btn-secondary {
     background: var(--dm-bg-secondary) !important;
     color: var(--dm-text) !important;
     border-color: var(--dm-border) !important;
 }
-body.dark-mode .toolbar button:hover,
-body.dark-mode .inv-filter-btn:hover {
+[data-bs-theme="dark"] .toolbar button:hover,
+[data-bs-theme="dark"] .inv-filter-btn:hover {
     background: var(--dm-bg-tertiary) !important;
 }
-body.dark-mode .inv-filter-btn.active {
+[data-bs-theme="dark"] .inv-filter-btn.active {
     background: #8c876c !important;
     color: #fff !important;
 }
 
 /* ---- テーブル ---- */
-body.dark-mode .shift-grid th,
-body.dark-mode .rec-table th,
-body.dark-mode .inv-table th,
-body.dark-mode .stamp-log th,
-body.dark-mode .tl-header {
+[data-bs-theme="dark"] .shift-grid th,
+[data-bs-theme="dark"] .rec-table th,
+[data-bs-theme="dark"] .inv-table th,
+[data-bs-theme="dark"] .stamp-log th,
+[data-bs-theme="dark"] .tl-header {
     background: var(--dm-bg-secondary) !important;
     color: var(--dm-text) !important;
     border-color: var(--dm-border) !important;
 }
-body.dark-mode .shift-grid td,
-body.dark-mode .rec-table td,
-body.dark-mode .inv-table td,
-body.dark-mode .stamp-log td,
-body.dark-mode .tl-cell {
+[data-bs-theme="dark"] .shift-grid td,
+[data-bs-theme="dark"] .rec-table td,
+[data-bs-theme="dark"] .inv-table td,
+[data-bs-theme="dark"] .stamp-log td,
+[data-bs-theme="dark"] .tl-cell {
     border-color: var(--dm-border) !important;
     color: var(--dm-text) !important;
 }
-body.dark-mode .shift-grid td.staff-name {
+[data-bs-theme="dark"] .shift-grid td.staff-name {
     background: var(--dm-bg-card) !important;
     color: var(--dm-text) !important;
 }
-body.dark-mode .inv-table tr:hover {
+[data-bs-theme="dark"] .inv-table tr:hover {
     background: var(--dm-hover) !important;
 }
-body.dark-mode .inv-table td {
+[data-bs-theme="dark"] .inv-table td {
     border-bottom-color: var(--dm-border) !important;
 }
 
 /* ---- シフトカレンダー ---- */
-body.dark-mode .shift-cell:hover {
+[data-bs-theme="dark"] .shift-cell:hover {
     background: var(--dm-hover) !important;
 }
-body.dark-mode .today-col {
+[data-bs-theme="dark"] .today-col {
     background: var(--dm-bg-tertiary) !important;
 }
 
 /* ---- タイムライン（今日のシフト） ---- */
-body.dark-mode .tl-header-time {
+[data-bs-theme="dark"] .tl-header-time {
     background: var(--dm-bg-tertiary) !important;
     color: var(--dm-text) !important;
 }
-body.dark-mode .tl-time {
+[data-bs-theme="dark"] .tl-time {
     background: var(--dm-bg-secondary) !important;
     color: var(--dm-text) !important;
     border-color: var(--dm-border) !important;
 }
-body.dark-mode .no-shift {
+[data-bs-theme="dark"] .no-shift {
     color: var(--dm-text-muted) !important;
 }
 
 /* ---- AI推薦 ---- */
-body.dark-mode .ai-grid {
+[data-bs-theme="dark"] .ai-grid {
     color: var(--dm-text);
 }
-body.dark-mode .model-card p,
-body.dark-mode .model-card h3,
-body.dark-mode .chart-container h3 {
+[data-bs-theme="dark"] .model-card p,
+[data-bs-theme="dark"] .model-card h3,
+[data-bs-theme="dark"] .chart-container h3 {
     color: var(--dm-text) !important;
 }
-body.dark-mode .rec-table .insufficient {
+[data-bs-theme="dark"] .rec-table .insufficient {
     background: #7f1d1d !important;
     color: #fca5a5 !important;
 }
-body.dark-mode .rec-table .sufficient {
+[data-bs-theme="dark"] .rec-table .sufficient {
     background: #064e3b !important;
     color: #6ee7b7 !important;
 }
 
 /* ---- 在庫管理 ---- */
-body.dark-mode .inv-stat {
+[data-bs-theme="dark"] .inv-stat {
     background: var(--dm-bg-secondary) !important;
     border-color: var(--dm-border) !important;
 }
-body.dark-mode .inv-stat-label {
+[data-bs-theme="dark"] .inv-stat-label {
     color: var(--dm-text-muted) !important;
 }
-body.dark-mode .cat-badge {
+[data-bs-theme="dark"] .cat-badge {
     background: var(--dm-bg-tertiary) !important;
     color: var(--dm-text) !important;
 }
-body.dark-mode .inv-modal-overlay {
+[data-bs-theme="dark"] .inv-modal-overlay {
     background: rgba(0, 0, 0, 0.7) !important;
 }
 
 /* ---- PIN打刻 ---- */
-body.dark-mode .store-name {
+[data-bs-theme="dark"] .store-name {
     color: var(--dm-text-muted) !important;
 }
-body.dark-mode .form-group label {
+[data-bs-theme="dark"] .form-group label {
     color: var(--dm-text) !important;
 }
-body.dark-mode .form-group select,
-body.dark-mode .form-group input {
+[data-bs-theme="dark"] .form-group select,
+[data-bs-theme="dark"] .form-group input {
     background: var(--dm-bg-secondary) !important;
     color: var(--dm-text) !important;
     border-color: var(--dm-border) !important;
 }
-body.dark-mode .stamp-log h3 {
+[data-bs-theme="dark"] .stamp-log h3 {
     color: var(--dm-text) !important;
     border-bottom-color: var(--dm-border) !important;
 }
 
 /* ---- 勤怠ボード ---- */
-body.dark-mode .att-card,
-body.dark-mode .att-card-header {
+[data-bs-theme="dark"] .att-card,
+[data-bs-theme="dark"] .att-card-header {
     background: var(--dm-bg-card) !important;
     border-color: var(--dm-border) !important;
     color: var(--dm-text) !important;
 }
 
 /* ---- フォーム入力共通 ---- */
-body.dark-mode select,
-body.dark-mode input[type="text"],
-body.dark-mode input[type="password"],
-body.dark-mode input[type="number"],
-body.dark-mode textarea {
+[data-bs-theme="dark"] select,
+[data-bs-theme="dark"] input[type="text"],
+[data-bs-theme="dark"] input[type="password"],
+[data-bs-theme="dark"] input[type="number"],
+[data-bs-theme="dark"] textarea {
     background: var(--dm-bg-secondary) !important;
     color: var(--dm-text) !important;
     border-color: var(--dm-border) !important;
 }
 
 /* ---- テキスト色の修正 ---- */
-body.dark-mode h2,
-body.dark-mode h3 {
+[data-bs-theme="dark"] h2,
+[data-bs-theme="dark"] h3 {
     color: var(--dm-text) !important;
 }
 
 /* ---- インライン style="color:#666" 等の上書き ---- */
-body.dark-mode [style*="color:#666"],
-body.dark-mode [style*="color: #666"],
-body.dark-mode [style*="color:#999"],
-body.dark-mode [style*="color: #999"],
-body.dark-mode [style*="color:#333"],
-body.dark-mode [style*="color: #333"],
-body.dark-mode [style*="color:#6b7280"],
-body.dark-mode [style*="color:#9ca3af"] {
+[data-bs-theme="dark"] [style*="color:#666"],
+[data-bs-theme="dark"] [style*="color: #666"],
+[data-bs-theme="dark"] [style*="color:#999"],
+[data-bs-theme="dark"] [style*="color: #999"],
+[data-bs-theme="dark"] [style*="color:#333"],
+[data-bs-theme="dark"] [style*="color: #333"],
+[data-bs-theme="dark"] [style*="color:#6b7280"],
+[data-bs-theme="dark"] [style*="color:#9ca3af"] {
     color: var(--dm-text-muted) !important;
 }
 
 /* ---- インライン bg の上書き ---- */
-body.dark-mode [style*="background:#f3f4f6"],
-body.dark-mode [style*="background: #f3f4f6"],
-body.dark-mode [style*="background:#f9fafb"],
-body.dark-mode [style*="background: #f9fafb"] {
+[data-bs-theme="dark"] [style*="background:#f3f4f6"],
+[data-bs-theme="dark"] [style*="background: #f3f4f6"],
+[data-bs-theme="dark"] [style*="background:#f9fafb"],
+[data-bs-theme="dark"] [style*="background: #f9fafb"] {
     background: var(--dm-bg-secondary) !important;
 }
 
 /* ---- リンク色 ---- */
-body.dark-mode .inv-table a {
+[data-bs-theme="dark"] .inv-table a {
     color: #c4b99a !important;
 }
 
 /* ---- POSページ ---- */
-body.dark-mode .pos-item,
-body.dark-mode .pos-cart,
-body.dark-mode .pos-summary {
+[data-bs-theme="dark"] .pos-item,
+[data-bs-theme="dark"] .pos-cart,
+[data-bs-theme="dark"] .pos-summary {
     background: var(--dm-bg-card) !important;
     color: var(--dm-text) !important;
     border-color: var(--dm-border) !important;
 }
 
 /* ---- キッチンディスプレイ ---- */
-body.dark-mode .order-card {
+[data-bs-theme="dark"] .order-card {
     background: var(--dm-bg-card) !important;
     color: var(--dm-text) !important;
     border-color: var(--dm-border) !important;
 }
 
 /* ---- 来客分析 ---- */
-body.dark-mode .analytics-card {
+[data-bs-theme="dark"] .analytics-card {
     background: var(--dm-bg-card) !important;
     color: var(--dm-text) !important;
     border-color: var(--dm-border) !important;
 }
 
 /* ---- レストランダッシュボード ---- */
-body.dark-mode .rd-card {
+[data-bs-theme="dark"] .rd-card {
     background: var(--dm-bg-card) !important;
     border-color: var(--dm-border) !important;
 }
-body.dark-mode .rd-card-header {
+[data-bs-theme="dark"] .rd-card-header {
     background: var(--dm-bg-secondary) !important;
     color: var(--dm-text) !important;
+}
+
+/* ---- シフトカレンダー: ワークフローパネル ---- */
+[data-bs-theme="dark"] .wf-panel {
+    background: var(--dm-bg-card) !important;
+    color: var(--dm-text) !important;
+    border-color: var(--dm-border) !important;
+}
+[data-bs-theme="dark"] .wf-panel h3 {
+    color: var(--dm-text) !important;
+}
+[data-bs-theme="dark"] .wf-panel-muted {
+    color: var(--dm-text-muted) !important;
+}
+[data-bs-theme="dark"] .period-card {
+    background: var(--dm-bg-secondary) !important;
+    border-color: var(--dm-border) !important;
+    color: var(--dm-text) !important;
+}
+[data-bs-theme="dark"] .period-card.selected {
+    border-color: #3B82F6 !important;
+}
+[data-bs-theme="dark"] .period-card-month {
+    color: var(--dm-text) !important;
+}
+[data-bs-theme="dark"] .stat-bar,
+[data-bs-theme="dark"] .stat-item {
+    color: var(--dm-text-muted) !important;
+}
+[data-bs-theme="dark"] .stat-num {
+    color: var(--dm-text) !important;
+}
+[data-bs-theme="dark"] .wf-step-label {
+    color: var(--dm-text-muted) !important;
+}
+[data-bs-theme="dark"] .publish-log-item {
+    border-bottom-color: var(--dm-border) !important;
+    color: var(--dm-text) !important;
+}
+[data-bs-theme="dark"] .btn-outline {
+    background: var(--dm-bg-secondary) !important;
+    color: var(--dm-text) !important;
+    border-color: var(--dm-border) !important;
+}
+[data-bs-theme="dark"] .new-period-form label {
+    color: var(--dm-text-muted) !important;
+}
+[data-bs-theme="dark"] .new-period-form input {
+    background: var(--dm-bg-secondary) !important;
+    color: var(--dm-text) !important;
+    border-color: var(--dm-border) !important;
+}
+
+/* ---- 汎用: 全p/span/div テキスト ---- */
+[data-bs-theme="dark"] .content-wrapper p,
+[data-bs-theme="dark"] .content-wrapper span,
+[data-bs-theme="dark"] .content-wrapper label,
+[data-bs-theme="dark"] .content-wrapper td,
+[data-bs-theme="dark"] .content-wrapper th,
+[data-bs-theme="dark"] .content-wrapper div {
+    color: var(--dm-text);
+}
+[data-bs-theme="dark"] .content-wrapper a {
+    color: #93c5fd;
+}
+[data-bs-theme="dark"] .content-wrapper a:hover {
+    color: #bfdbfe;
+}
+
+/* ---- ボタン色はそのまま（色付きボタンのtext） ---- */
+[data-bs-theme="dark"] .btn-primary,
+[data-bs-theme="dark"] .btn-success,
+[data-bs-theme="dark"] .btn-warning,
+[data-bs-theme="dark"] .btn-danger,
+[data-bs-theme="dark"] .shift-block,
+[data-bs-theme="dark"] .template-chip,
+[data-bs-theme="dark"] .stamp-btn,
+[data-bs-theme="dark"] .inv-btn-primary,
+[data-bs-theme="dark"] .period-card-status {
+    color: #fff !important;
+}
+[data-bs-theme="dark"] .btn-warning,
+[data-bs-theme="dark"] .period-card-status.status-scheduled {
+    color: #fff !important;
+}
+[data-bs-theme="dark"] .period-card-status.status-open {
+    background: #1e3a5f !important;
+    color: #93c5fd !important;
+}
+[data-bs-theme="dark"] .period-card-status.status-approved {
+    background: #064e3b !important;
+    color: #6ee7b7 !important;
+}
+[data-bs-theme="dark"] .period-card-status.status-scheduled {
+    background: #78350f !important;
+    color: #fcd34d !important;
+}
+
+/* ---- Chart.js ダーク対応 ---- */
+[data-bs-theme="dark"] canvas {
+    filter: brightness(0.95);
 }
