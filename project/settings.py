@@ -357,6 +357,16 @@ LINE_USER_ID_HASH_PEPPER = env_required("LINE_USER_ID_HASH_PEPPER")
 
 
 # ====================================
+# CSRF Trusted Origins (Django 4.x requires this for HTTPS)
+# ====================================
+_csrf_origins = env_list("CSRF_TRUSTED_ORIGINS", [])
+if _csrf_origins:
+    CSRF_TRUSTED_ORIGINS = _csrf_origins
+else:
+    CSRF_TRUSTED_ORIGINS = [f"https://{h}" for h in ALLOWED_HOSTS if h != "*"]
+
+
+# ====================================
 # Security (production hardening)
 # ====================================
 if not DEBUG:
@@ -365,14 +375,6 @@ if not DEBUG:
     SECURE_BROWSER_XSS_FILTER = True
     SECURE_CONTENT_TYPE_NOSNIFF = True
     X_FRAME_OPTIONS = "DENY"
-
-    # Django 4.x: CSRF_TRUSTED_ORIGINS required for HTTPS
-    _csrf_origins = env_list("CSRF_TRUSTED_ORIGINS", [])
-    if _csrf_origins:
-        CSRF_TRUSTED_ORIGINS = _csrf_origins
-    else:
-        # ALLOWED_HOSTS からデフォルト生成
-        CSRF_TRUSTED_ORIGINS = [f"https://{h}" for h in ALLOWED_HOSTS if h != "*"]
 
     # Reverse proxy (Nginx/ALB) etc.
     # Example:
