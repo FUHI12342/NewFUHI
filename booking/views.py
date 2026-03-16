@@ -2665,6 +2665,7 @@ class TableMenuView(View):
             products.append({
                 'id': p.id,
                 'name': p.name,
+                'sku': p.sku or '',
                 'description': p.description,
                 'price': p.price,
                 'image_url': p.image.url if p.image else None,

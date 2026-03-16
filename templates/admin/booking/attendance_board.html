@@ -6,8 +6,24 @@
 <script src="{% static 'js/admin_tour.js' %}"></script>
 <script src="https://unpkg.com/htmx.org@1.9.10"></script>
 <style>
-  .board { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 12px; padding: 16px; }
-  .staff-card { border: 1px solid #ddd; border-radius: 8px; padding: 16px; text-align: center; }
+  .zone { margin-bottom: 20px; }
+  .zone-header {
+    padding: 8px 16px; border-radius: 6px 6px 0 0;
+    font-weight: 700; font-size: 15px; color: #fff;
+  }
+  .zone-header-working { background: #10B981; }
+  .zone-header-break   { background: #F59E0B; }
+  .zone-header-absent  { background: #EF4444; }
+  .zone-header-left    { background: #6B7280; }
+  .zone-body {
+    display: flex; flex-wrap: wrap; gap: 12px;
+    padding: 16px; background: #f9fafb; border: 1px solid #e5e7eb;
+    border-top: none; border-radius: 0 0 6px 6px; min-height: 60px;
+  }
+  .staff-card {
+    border: 1px solid #ddd; border-radius: 8px; padding: 16px;
+    text-align: center; background: #fff; min-width: 180px; flex: 0 0 auto;
+  }
   .staff-card .name { font-size: 18px; font-weight: 600; }
   .status-badge { display: inline-block; padding: 4px 12px; border-radius: 12px; color: #fff; font-size: 14px; margin-top: 8px; }
   .status-出勤中 { background: #10B981; }
@@ -15,6 +31,23 @@
   .status-休憩中 { background: #F59E0B; }
   .status-未出勤 { background: #EF4444; }
   .stamp-list { font-size: 12px; color: #666; margin-top: 8px; text-align: left; }
+  .zone-empty { color: #9ca3af; font-size: 14px; padding: 8px 0; }
+  .zones-container { display: flex; flex-wrap: wrap; gap: 16px; }
+  .zones-container .zone { flex: 1 1 300px; min-width: 280px; }
+  .manual-stamp-section {
+    margin-top: 24px; padding: 20px; background: #fff;
+    border: 2px dashed #ffc107; border-radius: 8px;
+  }
+  .manual-stamp-section h3 { margin: 0 0 12px; font-size: 16px; color: #856404; }
+  .manual-form { display: flex; flex-wrap: wrap; gap: 10px; align-items: flex-end; }
+  .manual-form select, .manual-form button {
+    padding: 8px 14px; font-size: 14px; border-radius: 6px;
+  }
+  .manual-form select { border: 1px solid #ccc; }
+  .manual-form button {
+    border: none; color: #fff; cursor: pointer; font-weight: 600;
+  }
+  .manual-result { margin-top: 10px; font-size: 14px; padding: 8px; border-radius: 6px; }
 </style>
 {% endblock %}
 {% block content %}
@@ -22,29 +55,156 @@
   <h2 style="margin:0;">{{ today|date:"Y年m月d日" }} {% trans "出退勤ボード" %}</h2>
   <button class="tour-help-btn" onclick="startTour();" title="ヘルプを表示">ヘルプ</button>
 </div>
-<div class="board" hx-get="/api/attendance/day-status/{% if store %}?store_id={{ store.id }}{% endif %}" hx-trigger="every 30s" hx-target="#board-content" hx-swap="innerHTML">
+
+<div class="zones-container" hx-get="/api/attendance/day-status/{% if store %}?store_id={{ store.id }}{% endif %}" hx-trigger="every 30s" hx-target="#board-content" hx-swap="innerHTML">
   <div id="board-content">
-    {% for sid, info in staff_status.items %}
-    <div class="staff-card">
-      <div class="name">{{ info.staff.name }}</div>
-      <div class="status-badge status-{{ info.status }}">{{ info.status }}</div>
-      {% if info.stamps %}
-      <div class="stamp-list">
-        {% for s in info.stamps %}
-        <div>{{ s.get_stamp_type_display }}: {{ s.stamped_at|time:"H:i" }}</div>
+    <!-- 出勤中ゾーン -->
+    <div class="zone">
+      <div class="zone-header zone-header-working">
+        <i class="fas fa-user-check"></i> {% trans "出勤中" %} ({{ zone_working|length }})
+      </div>
+      <div class="zone-body">
+        {% for info in zone_working %}
+        <div class="staff-card">
+          <div class="name">{{ info.staff.name }}</div>
+          <div class="status-badge status-出勤中">{% trans "出勤中" %}</div>
+          {% if info.stamps %}
+          <div class="stamp-list">
+            {% for s in info.stamps %}
+            <div>{{ s.get_stamp_type_display }}: {{ s.stamped_at|time:"H:i" }}</div>
+            {% endfor %}
+          </div>
+          {% endif %}
+        </div>
+        {% empty %}
+        <div class="zone-empty">{% trans "なし" %}</div>
         {% endfor %}
       </div>
-      {% endif %}
     </div>
-    {% endfor %}
+
+    <!-- 休憩中ゾーン -->
+    <div class="zone">
+      <div class="zone-header zone-header-break">
+        <i class="fas fa-coffee"></i> {% trans "休憩中" %} ({{ zone_break|length }})
+      </div>
+      <div class="zone-body">
+        {% for info in zone_break %}
+        <div class="staff-card">
+          <div class="name">{{ info.staff.name }}</div>
+          <div class="status-badge status-休憩中">{% trans "休憩中" %}</div>
+          {% if info.stamps %}
+          <div class="stamp-list">
+            {% for s in info.stamps %}
+            <div>{{ s.get_stamp_type_display }}: {{ s.stamped_at|time:"H:i" }}</div>
+            {% endfor %}
+          </div>
+          {% endif %}
+        </div>
+        {% empty %}
+        <div class="zone-empty">{% trans "なし" %}</div>
+        {% endfor %}
+      </div>
+    </div>
+
+    <!-- 未出勤ゾーン -->
+    <div class="zone">
+      <div class="zone-header zone-header-absent">
+        <i class="fas fa-user-times"></i> {% trans "未出勤" %} ({{ zone_absent|length }})
+      </div>
+      <div class="zone-body">
+        {% for info in zone_absent %}
+        <div class="staff-card">
+          <div class="name">{{ info.staff.name }}</div>
+          <div class="status-badge status-未出勤">{% trans "未出勤" %}</div>
+        </div>
+        {% empty %}
+        <div class="zone-empty">{% trans "なし" %}</div>
+        {% endfor %}
+      </div>
+    </div>
+
+    <!-- 退勤済ゾーン -->
+    <div class="zone">
+      <div class="zone-header zone-header-left">
+        <i class="fas fa-sign-out-alt"></i> {% trans "退勤済" %} ({{ zone_left|length }})
+      </div>
+      <div class="zone-body">
+        {% for info in zone_left %}
+        <div class="staff-card">
+          <div class="name">{{ info.staff.name }}</div>
+          <div class="status-badge status-退勤済">{% trans "退勤済" %}</div>
+          {% if info.stamps %}
+          <div class="stamp-list">
+            {% for s in info.stamps %}
+            <div>{{ s.get_stamp_type_display }}: {{ s.stamped_at|time:"H:i" }}</div>
+            {% endfor %}
+          </div>
+          {% endif %}
+        </div>
+        {% empty %}
+        <div class="zone-empty">{% trans "なし" %}</div>
+        {% endfor %}
+      </div>
+    </div>
   </div>
 </div>
+
+<!-- マニュアル打刻（端末忘れ時） -->
+<div class="manual-stamp-section">
+  <h3>&#9888; {% trans "マニュアル打刻（端末忘れ時）" %}</h3>
+  <div class="manual-form">
+    <select id="manual-staff">
+      <option value="">-- {% trans "スタッフ" %} --</option>
+      {% for sid, info in staff_status.items %}
+      <option value="{{ info.staff.id }}">{{ info.staff.name }}</option>
+      {% endfor %}
+    </select>
+    <button style="background:#28a745;" onclick="manualStamp('clock_in')">{% trans "出勤" %}</button>
+    <button style="background:#dc3545;" onclick="manualStamp('clock_out')">{% trans "退勤" %}</button>
+    <button style="background:#ffc107;color:#333;" onclick="manualStamp('break_start')">{% trans "休憩開始" %}</button>
+    <button style="background:#17a2b8;" onclick="manualStamp('break_end')">{% trans "休憩終了" %}</button>
+  </div>
+  <div id="manual-result" class="manual-result" style="display:none;"></div>
+</div>
+
+<script>
+var STAMP_LABELS = {clock_in:'出勤',clock_out:'退勤',break_start:'休憩開始',break_end:'休憩終了'};
+function getCookie(name) {
+  var v = document.cookie.match('(^|;)\\s*' + name + '\\s*=\\s*([^;]+)');
+  return v ? v.pop() : '';
+}
+function manualStamp(stampType) {
+  var staffId = document.getElementById('manual-staff').value;
+  if (!staffId) { alert('スタッフを選択してください'); return; }
+  if (!confirm(STAMP_LABELS[stampType] + 'を記録しますか？')) return;
+  fetch('/api/attendance/manual-stamp/', {
+    method: 'POST',
+    headers: {'Content-Type':'application/json','X-CSRFToken':getCookie('csrftoken')},
+    body: JSON.stringify({staff_id: staffId, stamp_type: stampType})
+  })
+  .then(function(r) { return r.json(); })
+  .then(function(data) {
+    var el = document.getElementById('manual-result');
+    if (data.success) {
+      el.style.display = 'block';
+      el.style.background = '#d4edda'; el.style.color = '#155724';
+      el.textContent = data.staff_name + ' - ' + STAMP_LABELS[stampType] + ' 完了 (管理者: ' + data.operator + ')';
+      setTimeout(function() { location.reload(); }, 2000);
+    } else {
+      el.style.display = 'block';
+      el.style.background = '#f8d7da'; el.style.color = '#721c24';
+      el.textContent = data.error || 'エラー';
+    }
+  })
+  .catch(function() { alert('通信エラー'); });
+}
+</script>
 
 <script>
 window.TOUR_STORAGE_KEY = 'attendance_board_tour_seen';
 window.TOUR_STEPS = [
   {
-    selector: '.board',
+    selector: '.zones-container',
     title: '出退勤ボード',
     text: '本日のスタッフの出退勤状況がリアルタイムで表示されます。30秒ごとに自動更新されます。',
   },

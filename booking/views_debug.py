@@ -61,6 +61,7 @@ class AdminDebugPanelView(AdminSidebarMixin, TemplateView):
                 'last_seen_at': d.last_seen_at,
             })
         ctx['devices'] = device_list
+        ctx['online_count'] = sum(1 for d in device_list if d['online'])
 
         # Recent API requests (IoTEvent last 50)
         ctx['recent_events'] = IoTEvent.objects.select_related('device').order_by('-created_at')[:50]

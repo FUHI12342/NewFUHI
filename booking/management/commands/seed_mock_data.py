@@ -236,7 +236,7 @@ class Command(BaseCommand):
                 is_staff=True,
                 is_superuser=data.get('is_superuser', False),
             )
-            Staff.objects.create(
+            staff = Staff.objects.create(
                 user=user,
                 store=self.store,
                 name=data['name'],
@@ -247,6 +247,8 @@ class Command(BaseCommand):
                 price=data.get('price', 0),
                 introduction=data.get('introduction', ''),
             )
+            staff.set_attendance_pin('1234')
+            staff.save(update_fields=['attendance_pin'])
             created += 1
         if created:
             self.stdout.write(self.style.SUCCESS(f'  Demo Users: {created}名作成'))
@@ -332,12 +334,14 @@ class Command(BaseCommand):
             if not user.has_usable_password():
                 user.set_password('mock1234')
                 user.save()
-            Staff.objects.create(
+            staff = Staff.objects.create(
                 user=user, store=self.store, name=name,
                 staff_type=staff_type, price=price,
                 introduction=intro,
                 is_recommended=(staff_type == 'fortune_teller'),
             )
+            staff.set_attendance_pin('1234')
+            staff.save(update_fields=['attendance_pin'])
             created += 1
         self.stdout.write(self.style.SUCCESS(f'  Staff: {created}名追加'))
 

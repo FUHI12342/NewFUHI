@@ -17,37 +17,65 @@
   }
   .badge-online  { background: #d1fae5; color: #065f46; }
   .badge-offline { background: #fee2e2; color: #991b1b; }
+  .summary-card {
+    background: #fff; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    padding: 16px 20px; text-align: center; min-width: 160px;
+  }
+  .summary-card .label { font-size: 0.75rem; color: #6b7280; font-weight: 600; text-transform: uppercase; }
+  .summary-card .value { font-size: 1.75rem; font-weight: 700; margin-top: 4px; }
 </style>
 {% endblock %}
 
-{% block title %}IoT Debug Panel | {{ site_title|default:_('Django site admin') }}{% endblock %}
+{% block title %}デバッグパネル | {{ site_title|default:_('Django site admin') }}{% endblock %}
 
 {% block breadcrumbs %}
 <div class="breadcrumbs">
-  <a href="{% url 'admin:index' %}">{% translate 'Home' %}</a>
-  &rsaquo; <a href="{% url 'admin:index' %}">Booking</a>
-  &rsaquo; IoT Debug Panel
+  <a href="{% url 'admin:index' %}">ホーム</a>
+  &rsaquo; <a href="{% url 'admin:index' %}">システム</a>
+  &rsaquo; デバッグパネル
 </div>
 {% endblock %}
 
 {% block content %}
 
-{# ── Device Connection Status ────────────────────────────────────────── #}
+{# ── サマリーカード ────────────────────────────────────────── #}
+<section class="tw-mb-8">
+  <div class="tw-flex tw-flex-wrap tw-gap-4">
+    <div class="summary-card">
+      <div class="label">デバイス総数</div>
+      <div class="value" id="summary-total">{{ devices|length }}</div>
+    </div>
+    <div class="summary-card">
+      <div class="label">オンライン</div>
+      <div class="value tw-text-green-600" id="summary-online">{{ online_count|default:"0" }}</div>
+    </div>
+    <div class="summary-card">
+      <div class="label">直近イベント数</div>
+      <div class="value tw-text-blue-600" id="summary-events">{{ recent_events|length }}</div>
+    </div>
+    <div class="summary-card">
+      <div class="label">ログレベル</div>
+      <div class="value tw-text-purple-600" id="summary-loglevel">{{ current_log_level }}</div>
+    </div>
+  </div>
+</section>
+
+{# ── デバイス接続状況 ────────────────────────────────────────── #}
 <section class="tw-mb-10">
   <h2 class="tw-text-xl tw-font-bold tw-mb-4 tw-text-gray-800 dark:tw-text-gray-200">
-    Device Connection Status
+    デバイス接続状況
   </h2>
   <div class="tw-overflow-x-auto tw-rounded-lg tw-shadow">
     <table id="device-table" class="tw-min-w-full tw-divide-y tw-divide-gray-200 dark:tw-divide-gray-700">
       <thead class="tw-bg-gray-50 dark:tw-bg-gray-800">
         <tr>
-          <th class="tw-px-6 tw-py-3 tw-text-left tw-text-xs tw-font-semibold tw-text-gray-500 dark:tw-text-gray-400 tw-uppercase tw-tracking-wider">Name</th>
-          <th class="tw-px-6 tw-py-3 tw-text-left tw-text-xs tw-font-semibold tw-text-gray-500 dark:tw-text-gray-400 tw-uppercase tw-tracking-wider">Store</th>
-          <th class="tw-px-6 tw-py-3 tw-text-left tw-text-xs tw-font-semibold tw-text-gray-500 dark:tw-text-gray-400 tw-uppercase tw-tracking-wider">External ID</th>
-          <th class="tw-px-6 tw-py-3 tw-text-left tw-text-xs tw-font-semibold tw-text-gray-500 dark:tw-text-gray-400 tw-uppercase tw-tracking-wider">Type</th>
-          <th class="tw-px-6 tw-py-3 tw-text-left tw-text-xs tw-font-semibold tw-text-gray-500 dark:tw-text-gray-400 tw-uppercase tw-tracking-wider">Status</th>
-          <th class="tw-px-6 tw-py-3 tw-text-left tw-text-xs tw-font-semibold tw-text-gray-500 dark:tw-text-gray-400 tw-uppercase tw-tracking-wider">Last Seen</th>
-          <th class="tw-px-6 tw-py-3 tw-text-left tw-text-xs tw-font-semibold tw-text-gray-500 dark:tw-text-gray-400 tw-uppercase tw-tracking-wider">Actions</th>
+          <th class="tw-px-6 tw-py-3 tw-text-left tw-text-xs tw-font-semibold tw-text-gray-500 dark:tw-text-gray-400 tw-uppercase tw-tracking-wider">デバイス名</th>
+          <th class="tw-px-6 tw-py-3 tw-text-left tw-text-xs tw-font-semibold tw-text-gray-500 dark:tw-text-gray-400 tw-uppercase tw-tracking-wider">店舗</th>
+          <th class="tw-px-6 tw-py-3 tw-text-left tw-text-xs tw-font-semibold tw-text-gray-500 dark:tw-text-gray-400 tw-uppercase tw-tracking-wider">外部ID</th>
+          <th class="tw-px-6 tw-py-3 tw-text-left tw-text-xs tw-font-semibold tw-text-gray-500 dark:tw-text-gray-400 tw-uppercase tw-tracking-wider">種別</th>
+          <th class="tw-px-6 tw-py-3 tw-text-left tw-text-xs tw-font-semibold tw-text-gray-500 dark:tw-text-gray-400 tw-uppercase tw-tracking-wider">状態</th>
+          <th class="tw-px-6 tw-py-3 tw-text-left tw-text-xs tw-font-semibold tw-text-gray-500 dark:tw-text-gray-400 tw-uppercase tw-tracking-wider">最終通信</th>
+          <th class="tw-px-6 tw-py-3 tw-text-left tw-text-xs tw-font-semibold tw-text-gray-500 dark:tw-text-gray-400 tw-uppercase tw-tracking-wider">操作</th>
         </tr>
       </thead>
       <tbody class="tw-bg-white dark:tw-bg-gray-900 tw-divide-y tw-divide-gray-200 dark:tw-divide-gray-700">
@@ -59,23 +87,23 @@
           <td class="tw-px-6 tw-py-4 tw-whitespace-nowrap tw-text-sm tw-text-gray-600 dark:tw-text-gray-400">{{ d.device_type }}</td>
           <td class="tw-px-6 tw-py-4 tw-whitespace-nowrap">
             {% if d.online %}
-              <span class="debug-badge badge-online">Online</span>
+              <span class="debug-badge badge-online">オンライン</span>
             {% else %}
-              <span class="debug-badge badge-offline">Offline</span>
+              <span class="debug-badge badge-offline">オフライン</span>
             {% endif %}
           </td>
-          <td class="tw-px-6 tw-py-4 tw-whitespace-nowrap tw-text-sm tw-text-gray-600 dark:tw-text-gray-400">{{ d.last_seen_at|default:"Never" }}</td>
+          <td class="tw-px-6 tw-py-4 tw-whitespace-nowrap tw-text-sm tw-text-gray-600 dark:tw-text-gray-400">{{ d.last_seen_at|default:"未接続" }}</td>
           <td class="tw-px-6 tw-py-4 tw-whitespace-nowrap tw-text-sm">
             <a href="../../debug/device/{{ d.id }}/"
                class="tw-text-blue-600 hover:tw-text-blue-800 dark:tw-text-blue-400 dark:hover:tw-text-blue-300 tw-underline">
-              Debug &rarr;
+              詳細 &rarr;
             </a>
           </td>
         </tr>
         {% empty %}
         <tr>
           <td colspan="7" class="tw-px-6 tw-py-8 tw-text-center tw-text-sm tw-text-gray-500 dark:tw-text-gray-400">
-            No IoT devices found.
+            IoTデバイスが見つかりません。
           </td>
         </tr>
         {% endfor %}
@@ -83,14 +111,14 @@
     </table>
   </div>
   <p id="device-refresh-status" class="tw-mt-2 tw-text-xs tw-text-gray-400 dark:tw-text-gray-500">
-    Auto-refresh every 10 seconds.
+    10秒ごとに自動更新
   </p>
 </section>
 
-{# ── Log Level Control ───────────────────────────────────────────────── #}
+{# ── ログレベル設定 ───────────────────────────────────────────────── #}
 <section class="tw-mb-10">
   <h2 class="tw-text-xl tw-font-bold tw-mb-4 tw-text-gray-800 dark:tw-text-gray-200">
-    Log Level Control
+    ログレベル設定
   </h2>
   <form id="log-level-form" method="post" class="tw-bg-white dark:tw-bg-gray-900 tw-rounded-lg tw-shadow tw-p-6">
     {% csrf_token %}
@@ -105,26 +133,26 @@
       {% endfor %}
       <button type="submit"
               class="tw-ml-4 tw-inline-flex tw-items-center tw-px-4 tw-py-2 tw-border tw-border-transparent tw-text-sm tw-font-medium tw-rounded-md tw-text-white tw-bg-blue-600 hover:tw-bg-blue-700 focus:tw-outline-none focus:tw-ring-2 focus:tw-ring-offset-2 focus:tw-ring-blue-500 tw-transition-colors">
-        Save
+        保存
       </button>
     </div>
-    <p id="log-level-status" class="tw-mt-3 tw-text-sm tw-text-green-600 tw-hidden">Log level updated.</p>
+    <p id="log-level-status" class="tw-mt-3 tw-text-sm tw-text-green-600 tw-hidden">ログレベルを更新しました。</p>
   </form>
 </section>
 
-{# ── Recent API Requests (IoTEvent) ──────────────────────────────────── #}
+{# ── 最近のAPIリクエスト ──────────────────────────────────── #}
 <section class="tw-mb-10">
   <h2 class="tw-text-xl tw-font-bold tw-mb-4 tw-text-gray-800 dark:tw-text-gray-200">
-    Recent API Requests
+    最近のAPIリクエスト
   </h2>
   <div class="tw-overflow-x-auto tw-rounded-lg tw-shadow">
     <table id="events-table" class="tw-min-w-full tw-divide-y tw-divide-gray-200 dark:tw-divide-gray-700">
       <thead class="tw-bg-gray-50 dark:tw-bg-gray-800">
         <tr>
-          <th class="tw-px-6 tw-py-3 tw-text-left tw-text-xs tw-font-semibold tw-text-gray-500 dark:tw-text-gray-400 tw-uppercase tw-tracking-wider">Timestamp</th>
-          <th class="tw-px-6 tw-py-3 tw-text-left tw-text-xs tw-font-semibold tw-text-gray-500 dark:tw-text-gray-400 tw-uppercase tw-tracking-wider">Device</th>
-          <th class="tw-px-6 tw-py-3 tw-text-left tw-text-xs tw-font-semibold tw-text-gray-500 dark:tw-text-gray-400 tw-uppercase tw-tracking-wider">Event Type</th>
-          <th class="tw-px-6 tw-py-3 tw-text-left tw-text-xs tw-font-semibold tw-text-gray-500 dark:tw-text-gray-400 tw-uppercase tw-tracking-wider">MQ-9 Value</th>
+          <th class="tw-px-6 tw-py-3 tw-text-left tw-text-xs tw-font-semibold tw-text-gray-500 dark:tw-text-gray-400 tw-uppercase tw-tracking-wider">タイムスタンプ</th>
+          <th class="tw-px-6 tw-py-3 tw-text-left tw-text-xs tw-font-semibold tw-text-gray-500 dark:tw-text-gray-400 tw-uppercase tw-tracking-wider">デバイス</th>
+          <th class="tw-px-6 tw-py-3 tw-text-left tw-text-xs tw-font-semibold tw-text-gray-500 dark:tw-text-gray-400 tw-uppercase tw-tracking-wider">イベント種別</th>
+          <th class="tw-px-6 tw-py-3 tw-text-left tw-text-xs tw-font-semibold tw-text-gray-500 dark:tw-text-gray-400 tw-uppercase tw-tracking-wider">MQ-9値</th>
         </tr>
       </thead>
       <tbody class="tw-bg-white dark:tw-bg-gray-900 tw-divide-y tw-divide-gray-200 dark:tw-divide-gray-700">
@@ -142,7 +170,7 @@
         {% empty %}
         <tr>
           <td colspan="4" class="tw-px-6 tw-py-8 tw-text-center tw-text-sm tw-text-gray-500 dark:tw-text-gray-400">
-            No recent events.
+            最近のイベントはありません。
           </td>
         </tr>
         {% endfor %}
@@ -151,14 +179,14 @@
   </div>
 </section>
 
-{# ── Error Log Viewer ────────────────────────────────────────────────── #}
+{# ── エラーログ ────────────────────────────────────────────────── #}
 <section class="tw-mb-10">
   <h2 class="tw-text-xl tw-font-bold tw-mb-4 tw-text-gray-800 dark:tw-text-gray-200">
-    Error Log Viewer
+    エラーログ
   </h2>
   <div class="tw-rounded-lg tw-shadow tw-bg-gray-900 tw-p-4 tw-overflow-x-auto">
     <pre class="tw-text-xs tw-leading-relaxed tw-text-green-400 tw-font-mono tw-whitespace-pre-wrap tw-break-words tw-max-h-96 tw-overflow-y-auto">{% for line in log_lines %}{{ line }}
-{% empty %}No log output available.{% endfor %}</pre>
+{% empty %}ログ出力はありません。{% endfor %}</pre>
   </div>
 </section>
 
@@ -179,27 +207,32 @@
       /* Rebuild device table body */
       if (data.devices) {
         const tbody = document.querySelector('#device-table tbody');
-        tbody.innerHTML = data.devices.map(d => `
+        let onlineCount = 0;
+        tbody.innerHTML = data.devices.map(d => {
+          if (d.online) onlineCount++;
+          return `
           <tr class="hover:tw-bg-gray-50 dark:hover:tw-bg-gray-800 tw-transition-colors" data-device-id="${d.id}">
             <td class="tw-px-6 tw-py-4 tw-whitespace-nowrap tw-text-sm tw-font-medium tw-text-gray-900 dark:tw-text-gray-100">${esc(d.name)}</td>
             <td class="tw-px-6 tw-py-4 tw-whitespace-nowrap tw-text-sm tw-text-gray-600 dark:tw-text-gray-400">${esc(d.store)}</td>
             <td class="tw-px-6 tw-py-4 tw-whitespace-nowrap tw-text-sm tw-font-mono tw-text-gray-600 dark:tw-text-gray-400">${esc(d.external_id)}</td>
             <td class="tw-px-6 tw-py-4 tw-whitespace-nowrap tw-text-sm tw-text-gray-600 dark:tw-text-gray-400">${esc(d.device_type)}</td>
             <td class="tw-px-6 tw-py-4 tw-whitespace-nowrap">
-              <span class="debug-badge ${d.online ? 'badge-online' : 'badge-offline'}">${d.online ? 'Online' : 'Offline'}</span>
+              <span class="debug-badge ${d.online ? 'badge-online' : 'badge-offline'}">${d.online ? 'オンライン' : 'オフライン'}</span>
             </td>
-            <td class="tw-px-6 tw-py-4 tw-whitespace-nowrap tw-text-sm tw-text-gray-600 dark:tw-text-gray-400">${d.last_seen_at || 'Never'}</td>
+            <td class="tw-px-6 tw-py-4 tw-whitespace-nowrap tw-text-sm tw-text-gray-600 dark:tw-text-gray-400">${d.last_seen_at || '未接続'}</td>
             <td class="tw-px-6 tw-py-4 tw-whitespace-nowrap tw-text-sm">
-              <a href="../../debug/device/${d.id}/" class="tw-text-blue-600 hover:tw-text-blue-800 dark:tw-text-blue-400 dark:hover:tw-text-blue-300 tw-underline">Debug &rarr;</a>
+              <a href="../../debug/device/${d.id}/" class="tw-text-blue-600 hover:tw-text-blue-800 dark:tw-text-blue-400 dark:hover:tw-text-blue-300 tw-underline">詳細 &rarr;</a>
             </td>
           </tr>
-        `).join('');
+        `}).join('');
+        document.getElementById('summary-total').textContent = data.devices.length;
+        document.getElementById('summary-online').textContent = onlineCount;
       }
 
       /* Rebuild events table body */
-      if (data.recent_events) {
+      if (data.events) {
         const etbody = document.querySelector('#events-table tbody');
-        etbody.innerHTML = data.recent_events.map(ev => `
+        etbody.innerHTML = data.events.map(ev => `
           <tr class="hover:tw-bg-gray-50 dark:hover:tw-bg-gray-800 tw-transition-colors">
             <td class="tw-px-6 tw-py-4 tw-whitespace-nowrap tw-text-sm tw-font-mono tw-text-gray-600 dark:tw-text-gray-400">${esc(ev.created_at)}</td>
             <td class="tw-px-6 tw-py-4 tw-whitespace-nowrap tw-text-sm tw-text-gray-900 dark:tw-text-gray-100">${esc(ev.device)}</td>
@@ -209,10 +242,11 @@
             <td class="tw-px-6 tw-py-4 tw-whitespace-nowrap tw-text-sm tw-font-mono tw-text-gray-600 dark:tw-text-gray-400">${ev.mq9_value != null ? esc(String(ev.mq9_value)) : '--'}</td>
           </tr>
         `).join('');
+        document.getElementById('summary-events').textContent = data.events.length;
       }
 
       const ts = document.getElementById('device-refresh-status');
-      ts.textContent = 'Last refreshed: ' + new Date().toLocaleTimeString() + '  (auto-refresh every 10 s)';
+      ts.textContent = '最終更新: ' + new Date().toLocaleTimeString() + '  (10秒ごとに自動更新)';
     })
     .catch(err => {
       console.error('Debug panel refresh failed:', err);
@@ -249,10 +283,11 @@
     .then(() => {
       const msg = document.getElementById('log-level-status');
       msg.classList.remove('tw-hidden');
+      document.getElementById('summary-loglevel').textContent = level.value;
       setTimeout(() => msg.classList.add('tw-hidden'), 3000);
     })
     .catch(err => {
-      alert('Failed to update log level: ' + err.message);
+      alert('ログレベルの更新に失敗しました: ' + err.message);
     });
   });
 })();

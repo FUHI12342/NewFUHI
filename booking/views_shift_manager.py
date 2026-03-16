@@ -408,6 +408,63 @@ class ShiftAutoScheduleAPIView(View):
         return JsonResponse({'created': count, 'period_id': period.id})
 
 
+class TodayShiftTimelineView(AdminSidebarMixin, TemplateView):
+    """本日のシフト: 縦軸=時間、横軸=スタッフのタイムライン表示"""
+    template_name = 'admin/booking/today_shift.html'
+
+    def get_context_data(self, **kwargs):
+        ctx = super().get_context_data(**kwargs)
+        store = _get_user_store(self.request)
+        today = date.today()
+
+        staffs = list(
+            Staff.objects.filter(store=store).order_by('name')
+        ) if store else []
+
+        assignments = ShiftAssignment.objects.filter(
+            period__store=store,
+            date=today,
+        ).select_related('staff', 'period') if store else ShiftAssignment.objects.none()
+
+        # 時間スロット: 9:00〜23:00
+        hours = list(range(9, 24))
+
+        # スタッフごとのシフトマップ
+        staff_shifts = {}
+        for a in assignments:
+            start_h = a.start_time.hour if a.start_time else a.start_hour
+            end_h = a.end_time.hour if a.end_time else a.end_hour
+            staff_shifts[a.staff_id] = {
+                'start_hour': start_h,
+                'end_hour': end_h,
+                'color': a.color or '#3B82F6',
+                'start_time': a.start_time,
+                'end_time': a.end_time,
+            }
+
+        # JSON for JS rendering
+        staff_shifts_json = json.dumps({
+            str(k): {
+                'start_hour': v['start_hour'],
+                'end_hour': v['end_hour'],
+                'color': v['color'],
+            }
+            for k, v in staff_shifts.items()
+        })
+
+        ctx.update({
+            'title': '本日のシフト',
+            'has_permission': True,
+            'store': store,
+            'today': today,
+            'staffs': staffs,
+            'hours': hours,
+            'staff_shifts': staff_shifts,
+            'staff_shifts_json': staff_shifts_json,
+        })
+        return ctx
+
+
 class ShiftPublishAPIView(View):
     """シフト公開（Schedule同期 + LINE通知 + 公開履歴作成）"""
 

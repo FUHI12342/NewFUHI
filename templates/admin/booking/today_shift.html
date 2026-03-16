@@ -1,0 +1,149 @@
+{% extends "admin/base_site.html" %}
+{% load i18n static %}
+{% block title %}{{ title }}{% endblock %}
+{% block extrastyle %}
+<style>
+  .timeline-container { overflow-x: auto; margin-top: 16px; }
+  .timeline-grid {
+    display: grid;
+    grid-template-columns: 80px repeat({{ staffs|length }}, minmax(100px, 1fr));
+    gap: 0;
+    min-width: fit-content;
+  }
+  .tl-header {
+    background: #f3f4f6; font-weight: 700; font-size: 13px;
+    padding: 10px 8px; text-align: center;
+    border: 1px solid #e5e7eb; position: sticky; top: 0; z-index: 2;
+  }
+  .tl-header-time {
+    background: #e5e7eb; position: sticky; left: 0; z-index: 3;
+  }
+  .tl-time {
+    background: #f9fafb; font-size: 12px; font-weight: 600;
+    padding: 6px 8px; text-align: right;
+    border: 1px solid #e5e7eb; position: sticky; left: 0; z-index: 1;
+    height: 40px; display: flex; align-items: center; justify-content: flex-end;
+  }
+  .tl-cell {
+    border: 1px solid #e5e7eb; height: 40px; position: relative;
+  }
+  .tl-shift {
+    position: absolute; left: 2px; right: 2px;
+    border-radius: 4px; color: #fff; font-size: 11px;
+    padding: 2px 6px; font-weight: 600;
+    display: flex; align-items: center; justify-content: center;
+    z-index: 1; opacity: 0.9;
+  }
+  .tl-now-line {
+    position: absolute; left: 0; right: 0; height: 2px;
+    background: #EF4444; z-index: 5; pointer-events: none;
+  }
+  .tl-now-label {
+    position: absolute; left: -78px; font-size: 10px; color: #EF4444;
+    font-weight: 700; white-space: nowrap; top: -6px;
+  }
+  .legend { display: flex; gap: 16px; margin-top: 12px; font-size: 13px; }
+  .legend-item { display: flex; align-items: center; gap: 4px; }
+  .legend-dot { width: 12px; height: 12px; border-radius: 3px; }
+  .no-shift { text-align: center; color: #9ca3af; padding: 40px; font-size: 16px; }
+</style>
+{% endblock %}
+{% block content %}
+<h2 style="margin:0 0 4px;">{{ today|date:"Y年m月d日" }} {% trans "本日のシフト" %}</h2>
+
+{% if staffs %}
+<div class="timeline-container">
+  <div class="timeline-grid" id="timeline-grid">
+    <!-- Header row -->
+    <div class="tl-header tl-header-time">{% trans "時間" %}</div>
+    {% for s in staffs %}
+    <div class="tl-header">{{ s.name }}</div>
+    {% endfor %}
+
+    <!-- Time rows: 9:00 ~ 23:00 -->
+    {% for hour in hours %}
+    <div class="tl-time">{{ hour }}:00</div>
+    {% for s in staffs %}
+    <div class="tl-cell" data-staff="{{ s.id }}" data-hour="{{ hour }}"></div>
+    {% endfor %}
+    {% endfor %}
+  </div>
+</div>
+
+<div class="legend">
+  <div class="legend-item"><div class="legend-dot" style="background:#3B82F6;"></div> {% trans "通常シフト" %}</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#EF4444;"></div> {% trans "現在時刻" %}</div>
+</div>
+
+<script>
+(function() {
+  const staffShifts = {{ staff_shifts_json|safe }};
+  const grid = document.getElementById('timeline-grid');
+  const cols = {{ staffs|length }} + 1; // +1 for time column
+  const startHour = 9;
+  const endHour = 23;
+  const rowHeight = 42; // cell height + border
+
+  // Paint shift bars
+  Object.keys(staffShifts).forEach(function(staffId) {
+    const shift = staffShifts[staffId];
+    const sH = shift.start_hour;
+    const eH = shift.end_hour;
+    if (sH >= endHour || eH <= startHour) return;
+
+    const clampedStart = Math.max(sH, startHour);
+    const clampedEnd = Math.min(eH, endHour + 1);
+
+    // Find cells for this staff
+    const cells = grid.querySelectorAll('[data-staff="' + staffId + '"]');
+    cells.forEach(function(cell) {
+      const cellHour = parseInt(cell.dataset.hour);
+      if (cellHour >= clampedStart && cellHour < clampedEnd) {
+        cell.style.background = shift.color + '22';
+        if (cellHour === clampedStart) {
+          const bar = document.createElement('div');
+          bar.className = 'tl-shift';
+          bar.style.background = shift.color;
+          const spanHours = clampedEnd - clampedStart;
+          bar.style.height = (spanHours * rowHeight - 4) + 'px';
+          bar.style.top = '0';
+          bar.textContent = sH + ':00 - ' + eH + ':00';
+          cell.style.position = 'relative';
+          cell.appendChild(bar);
+        }
+      }
+    });
+  });
+
+  // Current time indicator
+  const now = new Date();
+  const currentHour = now.getHours();
+  const currentMin = now.getMinutes();
+  if (currentHour >= startHour && currentHour <= endHour) {
+    const timeCol = grid.querySelectorAll('.tl-time');
+    const idx = currentHour - startHour;
+    if (timeCol[idx]) {
+      const pct = currentMin / 60;
+      const line = document.createElement('div');
+      line.className = 'tl-now-line';
+      line.style.top = (pct * rowHeight) + 'px';
+      const label = document.createElement('span');
+      label.className = 'tl-now-label';
+      label.textContent = now.getHours() + ':' + String(now.getMinutes()).padStart(2, '0');
+      line.appendChild(label);
+      // Attach to the row
+      const row = idx + 1; // +1 for header
+      const rowCells = grid.querySelectorAll('.tl-cell[data-hour="' + currentHour + '"]');
+      rowCells.forEach(function(c) {
+        c.style.position = 'relative';
+        const ln = line.cloneNode(true);
+        c.appendChild(ln);
+      });
+    }
+  }
+})();
+</script>
+{% else %}
+<div class="no-shift">{% trans "スタッフが登録されていません" %}</div>
+{% endif %}
+{% endblock %}

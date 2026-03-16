@@ -33,8 +33,12 @@ GROUPS = [
     {'slug': 'cast', 'name': _('キャスト管理'), 'models': ['staff', 'storescheduleconfig']},
     {'slug': 'payroll', 'name': _('給与管理'), 'models': ['payrollperiod', 'payrollentry', 'employmentcontract', 'salarystructure'], 'hidden': True},
     {'slug': 'attendance', 'name': _('勤怠管理'), 'models': ['workattendance', 'attendancetotpconfig', 'attendancestamp'], 'hidden': True},
-    {'slug': 'inventory', 'name': _('在庫管理'), 'models': ['category', 'product'], 'hidden': True},
-    {'slug': 'order', 'name': _('注文管理'), 'models': ['order', 'postransaction']},
+    {'slug': 'menu_manage', 'name': _('メニュー管理'), 'models': ['category', 'product']},
+    {'slug': 'inventory', 'name': _('在庫管理'), 'models': [], 'hidden': True},
+    {'slug': 'order', 'name': _('注文管理'), 'models': ['order']},
+    {'slug': 'pos', 'name': _('レジ（POS）'), 'models': ['postransaction']},
+    {'slug': 'order_history', 'name': _('オーダー履歴'), 'models': []},
+    {'slug': 'ec_shop', 'name': _('オンラインショップ'), 'models': []},
     {'slug': 'table_order', 'name': _('店舗管理'), 'models': ['store', 'tableseat']},
     {'slug': 'iot', 'name': _('IoT管理'), 'models': ['iotdevice', 'ventilationautocontrol'], 'hidden_models': ['iotdevice']},
     {'slug': 'payment', 'name': _('決済'), 'models': ['paymentmethod'], 'hidden': True},
@@ -70,12 +74,22 @@ SIDEBAR_CUSTOM_LINKS = {
     ],
     'shift': [
         {'name': _('シフトカレンダー'), 'admin_url': '/admin/shift/calendar/', 'icon': 'fas fa-calendar-alt'},
+        {'name': _('本日のシフト'), 'admin_url': '/admin/shift/today/', 'icon': 'fas fa-clock'},
         {'name': _('PIN打刻'), 'admin_url': '/admin/attendance/pin/', 'icon': 'fas fa-key'},
         {'name': _('出退勤ボード'), 'admin_url': '/admin/attendance/board/', 'icon': 'fas fa-clipboard-check'},
     ],
-    'order': [
-        {'name': _('POS'), 'admin_url': '/admin/pos/', 'icon': 'fas fa-cash-register'},
-        {'name': _('オーダー履歴'), 'admin_url': '/admin/pos/kitchen/', 'icon': 'fas fa-utensils'},
+    'order': [],
+    'pos': [
+        {'name': _('レジ画面'), 'admin_url': '/admin/pos/', 'icon': 'fas fa-cash-register'},
+    ],
+    'order_history': [
+        {'name': _('キッチンディスプレイ'), 'admin_url': '/admin/pos/kitchen/', 'icon': 'fas fa-utensils'},
+    ],
+    'menu_manage': [
+        {'name': _('メニュープレビュー'), 'admin_url': '/admin/menu/preview/', 'icon': 'fas fa-eye'},
+    ],
+    'ec_shop': [
+        {'name': _('EC注文一覧'), 'admin_url': '/admin/booking/order/?channel=ec', 'icon': 'fas fa-shopping-cart'},
     ],
     'iot': [
         {'name': _('センサーグラフ'), 'admin_url': '/admin/iot/sensors/', 'icon': 'fas fa-chart-area'},
@@ -106,7 +120,7 @@ DEFAULT_ALLOWED_MODELS = {
         'payrollperiod', 'payrollentry', 'employmentcontract',
         'salarystructure', 'workattendance',
         'attendancetotpconfig', 'attendancestamp',
-        'tableseat', 'paymentmethod', 'postransaction',
+        'tableseat', 'paymentmethod', 'postransaction', 'producttranslation',
         'visitorcount', 'visitoranalyticsconfig',
         'staffrecommendationmodel', 'staffrecommendationresult',
     ],
@@ -254,6 +268,13 @@ class RoleBasedAdminSite(AdminSite):
                 key = model['object_name'].lower()
                 all_models[key] = model
 
+        # EC有効判定
+        try:
+            from .models import SystemConfig
+            ec_enabled = SystemConfig.get('ec_enabled', '')
+        except Exception:
+            ec_enabled = ''
+
         # GROUPS の定義順に slug ベースで再グループ化
         result = []
         used_keys = set()
@@ -263,6 +284,9 @@ class RoleBasedAdminSite(AdminSite):
             # 非表示グループはスキップ
             if slug in HIDDEN_SLUGS:
                 used_keys.update(k for k in model_keys if k in all_models)
+                continue
+            # EC未有効時はスキップ
+            if slug == 'ec_shop' and not ec_enabled:
                 continue
             hidden_in_group = set(g.get('hidden_models', []))
             group_models = []

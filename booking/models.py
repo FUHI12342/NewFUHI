@@ -1979,8 +1979,8 @@ class POSTransaction(models.Model):
 
     class Meta:
         app_label = 'booking'
-        verbose_name = _('POS決済')
-        verbose_name_plural = _('POS決済')
+        verbose_name = _('POS決済履歴')
+        verbose_name_plural = _('POS決済履歴')
         indexes = [
             models.Index(fields=['receipt_number']),
             models.Index(fields=['completed_at']),

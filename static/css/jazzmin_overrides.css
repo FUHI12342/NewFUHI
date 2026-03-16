@@ -63,3 +63,21 @@
 #jazzy-sidebar .nav-treeview > .nav-item > .nav-link > .nav-icon {
     font-size: 0.75rem;
 }
+
+/* ===== 予約追加ボタン: Jazzmin用スタイル ===== */
+.object-tools .addlink {
+    display: inline-block;
+    padding: 6px 16px;
+    border-radius: 4px;
+    font-weight: 600;
+    font-size: 0.875rem;
+    text-decoration: none;
+    border: 1px solid #28a745;
+    color: #28a745;
+    background: transparent;
+    transition: all 0.2s;
+}
+.object-tools .addlink:hover {
+    background: #28a745;
+    color: #fff;
+}

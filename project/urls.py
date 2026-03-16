@@ -11,11 +11,12 @@ from booking.admin_site import custom_site
 from booking.health import healthz
 from booking.views_debug import AdminDebugPanelView, IoTDeviceDebugView
 from booking.views_restaurant_dashboard import RestaurantDashboardView
-from booking.views_shift_manager import ManagerShiftCalendarView
+from booking.views_shift_manager import ManagerShiftCalendarView, TodayShiftTimelineView
 from booking.views_attendance import AttendanceQRDisplayView, AttendanceBoardView, AttendancePINDisplayView
 from booking.views_pos import POSView, KitchenDisplayView
 from booking.views_analytics import VisitorAnalyticsDashboardView
 from booking.views_ai_recommend import AIRecommendationView
+from booking.views_menu_preview import MenuPreviewRedirectView
 import booking.admin
 
 # Non-i18n URLs (APIs, health check)
@@ -73,6 +74,13 @@ urlpatterns += i18n_patterns(
         name="admin_shift_calendar",
     ),
 
+    # Air統合: 本日のシフト
+    path(
+        "admin/shift/today/",
+        custom_site.admin_view(TodayShiftTimelineView.as_view()),
+        name="admin_today_shift",
+    ),
+
     # Air統合: QR勤怠
     path(
         "admin/attendance/qr/",
@@ -107,6 +115,13 @@ urlpatterns += i18n_patterns(
         "admin/analytics/visitors/",
         custom_site.admin_view(VisitorAnalyticsDashboardView.as_view()),
         name="admin_visitor_analytics",
+    ),
+
+    # メニュープレビュー（最初のテーブルの /t/{uuid}/ へリダイレクト）
+    path(
+        "admin/menu/preview/",
+        custom_site.admin_view(MenuPreviewRedirectView.as_view()),
+        name="admin_menu_preview",
     ),
 
     # Air統合: AI推薦

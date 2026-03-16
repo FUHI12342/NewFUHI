@@ -4,7 +4,7 @@
 {% block object-tools-items %}
 {% if has_add_permission %}
 <li>
-    <a href="{% url opts|admin_urlname:'add' %}{% if is_popup %}?_popup=1{% endif %}" class="addlink">
+    <a href="{% url opts|admin_urlname:'add' %}{% if is_popup %}?_popup=1{% endif %}" class="addlink btn btn-sm btn-outline-success">
         {{ add_button_label|default:_("予約を追加") }}
     </a>
 </li>
