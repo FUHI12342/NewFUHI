@@ -147,13 +147,20 @@ function refreshLog() {
       tbody.innerHTML = '<tr><td colspan="3" style="text-align:center;color:#999;">打刻なし</td></tr>';
       return;
     }
-    let html = '';
+    // Flatten grouped data into chronological list (newest first)
+    let flat = [];
     data.forEach(s => {
       s.stamps.forEach(st => {
-        const t = new Date(st.at);
-        const time = t.getHours().toString().padStart(2,'0') + ':' + t.getMinutes().toString().padStart(2,'0');
-        html += '<tr><td>' + escapeHtml(s.staff_name) + '</td><td>' + (STAMP_LABELS[st.type]||st.type) + '</td><td>' + time + '</td></tr>';
+        flat.push({name: s.staff_name, type: st.type, at: st.at});
       });
+    });
+    flat.sort((a, b) => new Date(b.at) - new Date(a.at));
+
+    let html = '';
+    flat.forEach(s => {
+      const t = new Date(s.at);
+      const time = t.getHours().toString().padStart(2,'0') + ':' + t.getMinutes().toString().padStart(2,'0');
+      html += '<tr><td>' + escapeHtml(s.name) + '</td><td>' + (STAMP_LABELS[s.type]||s.type) + '</td><td>' + time + '</td></tr>';
     });
     tbody.innerHTML = html;
   })
