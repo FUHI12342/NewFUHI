@@ -1,5 +1,5 @@
 from django.contrib.auth.views import LoginView, LogoutView
-from django.urls import path
+from django.urls import path, re_path
 
 from . import views
 from .views import (
@@ -159,5 +159,5 @@ urlpatterns = [
 
     # お知らせ
     path('news/', NoticeListView.as_view(), name='notice_list'),
-    path('news/<slug:slug>/', NoticeDetailView.as_view(), name='notice_detail'),
+    re_path(r'^news/(?P<slug>[\w-]+)/$', NoticeDetailView.as_view(), name='notice_detail'),
 ]
