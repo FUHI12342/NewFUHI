@@ -1,5 +1,7 @@
+from django import forms
 from django.contrib import admin, messages
 from django.contrib.admin.sites import AdminSite
+from django.db import models
 from django.db.models import F
 from django.utils.html import format_html
 from django.utils.translation import gettext_lazy as _
@@ -263,10 +265,42 @@ for m in (Association, Nonce, UserSocialAuth):
 # ==============================
 # お知らせ / 会社 / メディア
 # ==============================
+class TinyMCEWidget(forms.Textarea):
+    """TinyMCE CDN を読み込むカスタムウィジェット"""
+    class Media:
+        js = ('https://cdn.tiny.cloud/1/no-api-key/tinymce/6/tinymce.min.js',)
+
+    def __init__(self, attrs=None):
+        default_attrs = {'class': 'tinymce-editor', 'rows': 20, 'cols': 80}
+        if attrs:
+            default_attrs.update(attrs)
+        super().__init__(attrs=default_attrs)
+
+    template_name = 'django/forms/widgets/textarea.html'
+
+
 class NoticeAdmin(admin.ModelAdmin):
-    list_display = ('title', 'updated_at', 'link')
+    list_display = ('title', 'is_published', 'updated_at', 'link')
+    list_filter = ('is_published',)
+    list_editable = ('is_published',)
     search_fields = ('title', 'content', 'link')
     date_hierarchy = 'updated_at'
+    prepopulated_fields = {'slug': ('title',)}
+    readonly_fields = ('created_at',)
+    fieldsets = (
+        (None, {'fields': ('title', 'slug', 'is_published', 'thumbnail')}),
+        (_('本文'), {'fields': ('content',)}),
+        (_('外部リンク'), {'fields': ('link',), 'classes': ('collapse',)}),
+        (_('日時'), {'fields': ('created_at',)}),
+    )
+
+    formfield_overrides = {
+        models.TextField: {'widget': TinyMCEWidget},
+    }
+
+    class Media:
+        js = ('admin/js/tinymce_init.js',)
+        css = {'all': ('admin/css/tinymce_admin.css',)}
 
 
 class CompanyAdmin(admin.ModelAdmin):
@@ -735,8 +769,7 @@ custom_site.register(VentilationAutoControl, VentilationAutoControlAdmin)
 custom_site.register(Category, CategoryAdmin)
 custom_site.register(Product, ProductAdmin)
 custom_site.register(Order, OrderAdmin)
-# StockMovement (入出庫履歴) は管理画面から削除
-# custom_site.register(StockMovement, StockMovementAdmin)
+custom_site.register(StockMovement, StockMovementAdmin)
 
 
 # ==============================

@@ -27,6 +27,9 @@ from .views import (
     ShopView,
     CartView,
     ShopCheckoutView,
+    # Round5: お知らせ
+    NoticeListView,
+    NoticeDetailView,
 )
 from .views_attendance import AttendanceStampPageView
 
@@ -153,4 +156,8 @@ urlpatterns = [
 
     # QR勤怠: スマホ打刻ページ（ログイン不要）
     path('attendance/stamp/', AttendanceStampPageView.as_view(), name='attendance_stamp_page'),
+
+    # お知らせ
+    path('news/', NoticeListView.as_view(), name='notice_list'),
+    path('news/<slug:slug>/', NoticeDetailView.as_view(), name='notice_detail'),
 ]

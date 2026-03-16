@@ -17,6 +17,7 @@ from booking.views_pos import POSView, KitchenDisplayView
 from booking.views_analytics import VisitorAnalyticsDashboardView
 from booking.views_ai_recommend import AIRecommendationView
 from booking.views_menu_preview import MenuPreviewRedirectView
+from booking.views_inventory import InventoryDashboardView, StockInFormView
 import booking.admin
 
 # Non-i18n URLs (APIs, health check)
@@ -129,6 +130,18 @@ urlpatterns += i18n_patterns(
         "admin/ai/recommendation/",
         custom_site.admin_view(AIRecommendationView.as_view()),
         name="admin_ai_recommendation",
+    ),
+
+    # 在庫管理ダッシュボード
+    path(
+        "admin/inventory/",
+        custom_site.admin_view(InventoryDashboardView.as_view()),
+        name="admin_inventory_dashboard",
+    ),
+    path(
+        "admin/inventory/stock-in/",
+        custom_site.admin_view(StockInFormView.as_view()),
+        name="admin_inventory_stock_in",
     ),
 
     # Admin site

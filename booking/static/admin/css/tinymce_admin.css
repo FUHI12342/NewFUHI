@@ -1,0 +1,9 @@
+/* TinyMCE admin integration styles */
+.tinymce-editor {
+  width: 100% !important;
+  min-height: 400px;
+}
+
+.tox-tinymce {
+  border-radius: 4px !important;
+}

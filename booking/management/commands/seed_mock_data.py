@@ -9,6 +9,7 @@ Usage:
     python manage.py seed_mock_data
     python manage.py seed_mock_data --reset  # 既存モックデータを削除してから再投入
 """
+import os
 import random
 import uuid
 from datetime import date, time, timedelta, datetime as dt_cls
@@ -291,15 +292,34 @@ class Command(BaseCommand):
             self.stdout.write('  Notice: skip')
             return
         notices = [
-            ('年末年始の営業について', 'https://timebaibai.com/news/1',
-             '12/31〜1/3は休業とさせていただきます。1/4より通常営業です。'),
-            ('新メニュー「ヒーリングシーシャ」登場', 'https://timebaibai.com/news/2',
-             'アロマの香りと占いを同時に楽しめる新メニューが登場しました。'),
-            ('スタッフ募集のお知らせ', 'https://timebaibai.com/news/3',
-             '占い師・シーシャスタッフ募集中です。未経験OK、研修あり。'),
+            ('年末年始の営業について', 'nenmatsu-nenshi',
+             '<h2>年末年始の営業日程</h2>'
+             '<p>いつもご利用ありがとうございます。年末年始の営業日程をお知らせいたします。</p>'
+             '<ul><li><strong>12月31日〜1月3日</strong>：休業</li>'
+             '<li><strong>1月4日〜</strong>：通常営業</li></ul>'
+             '<p>新年も皆様のお越しをお待ちしております。</p>'),
+            ('新メニュー「ヒーリングシーシャ」登場', 'healing-shisha',
+             '<h2>ヒーリングシーシャとは？</h2>'
+             '<p>アロマの香りと占いを同時に楽しめる、当店オリジナルの新メニューが登場しました。</p>'
+             '<h3>セット内容</h3>'
+             '<ul><li>お好きなシーシャフレーバー</li>'
+             '<li>20分間のタロット占い</li>'
+             '<li>ヒーリングアロマブレンド</li></ul>'
+             '<p><strong>特別価格 ¥4,500</strong>（通常 ¥5,800）</p>'
+             '<p>ご予約はLINEまたはお電話にて承っております。</p>'),
+            ('スタッフ募集のお知らせ', 'staff-recruiting',
+             '<h2>一緒に働きませんか？</h2>'
+             '<p>占い師・シーシャスタッフを募集しています。</p>'
+             '<h3>募集要項</h3>'
+             '<ul><li>占い師（タロット・西洋占星術など） — 経験者優遇</li>'
+             '<li>シーシャスタッフ — 未経験OK、研修制度あり</li></ul>'
+             '<p>詳しくはお気軽にお問い合わせください。</p>'),
         ]
-        for title, link, content in notices:
-            Notice.objects.create(title=title, link=link, content=content)
+        for title, slug, content in notices:
+            Notice.objects.create(
+                title=title, slug=slug, content=content,
+                is_published=True,
+            )
         self.stdout.write(self.style.SUCCESS('  Notice: 3件'))
 
     # ═════════════════════════════════════════════
@@ -403,6 +423,15 @@ class Command(BaseCommand):
             'タロット占い（20分）': ('Tarot Reading (20min)', 'Celtic cross spread deep reading.'),
         }
 
+        # カテゴリ別の背景色（プレースホルダー画像用）
+        category_colors = {
+            'シーシャ': '#7C3AED',
+            'ドリンク': '#3B82F6',
+            'フード': '#F97316',
+            '占いメニュー': '#EC4899',
+            'グッズ': '#10B981',
+        }
+
         # EC/レストラン分離: グッズ・占いメニューはテーブルメニュー非表示
         non_restaurant_categories = {'グッズ', '占いメニュー'}
 
@@ -411,6 +440,7 @@ class Command(BaseCommand):
                 store=self.store, name=cat_name, sort_order=sort_order,
                 is_restaurant_menu=(cat_name not in non_restaurant_categories),
             )
+            bg_color = category_colors.get(cat_name, '#6B7280')
             for sku, name, desc, price, stock, low_threshold in products:
                 p = Product.objects.create(
                     store=self.store, category=cat,
@@ -422,6 +452,8 @@ class Command(BaseCommand):
                     popularity=random.randint(10, 100),
                     margin_rate=round(random.uniform(0.2, 0.6), 2),
                 )
+                # プレースホルダー画像生成
+                self._generate_product_image(p, bg_color, cat_name)
                 if name in en_translations:
                     en_name, en_desc = en_translations[name]
                     ProductTranslation.objects.create(
@@ -435,6 +467,76 @@ class Command(BaseCommand):
         ).count()
         self.stdout.write(self.style.SUCCESS(
             f'  Category: {len(categories_products)}件, Product: {total}件（低在庫: {low}件）'))
+
+    # ═════════════════════════════════════════════
+    # Product placeholder image generation
+    # ═════════════════════════════════════════════
+    def _generate_product_image(self, product, bg_color, category_name):
+        """Pillow でカテゴリ別の背景色 + 商品名テキストのプレースホルダー画像を生成"""
+        try:
+            from PIL import Image, ImageDraw, ImageFont
+        except ImportError:
+            return  # Pillow not installed, skip
+
+        from django.conf import settings
+        from django.core.files.base import ContentFile
+        from io import BytesIO
+
+        width, height = 400, 300
+
+        # hex → RGB
+        hex_color = bg_color.lstrip('#')
+        r, g, b = int(hex_color[0:2], 16), int(hex_color[2:4], 16), int(hex_color[4:6], 16)
+
+        img = Image.new('RGB', (width, height), (r, g, b))
+        draw = ImageDraw.Draw(img)
+
+        # テキスト描画（フォント取得）
+        font_large = None
+        font_small = None
+        try:
+            font_large = ImageFont.truetype('/System/Library/Fonts/ヒラギノ角ゴシック W6.ttc', 24)
+            font_small = ImageFont.truetype('/System/Library/Fonts/ヒラギノ角ゴシック W3.ttc', 16)
+        except (OSError, IOError):
+            try:
+                font_large = ImageFont.truetype('/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf', 24)
+                font_small = ImageFont.truetype('/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf', 16)
+            except (OSError, IOError):
+                font_large = ImageFont.load_default()
+                font_small = ImageFont.load_default()
+
+        # カテゴリ名（上部）
+        cat_bbox = draw.textbbox((0, 0), category_name, font=font_small)
+        cat_w = cat_bbox[2] - cat_bbox[0]
+        draw.text(((width - cat_w) / 2, 30), category_name, fill=(255, 255, 255, 200), font=font_small)
+
+        # 商品名（中央）
+        name = product.name
+        # 長い名前は改行
+        if len(name) > 10:
+            mid = len(name) // 2
+            lines = [name[:mid], name[mid:]]
+        else:
+            lines = [name]
+
+        y_offset = (height - len(lines) * 35) / 2
+        for line in lines:
+            bbox = draw.textbbox((0, 0), line, font=font_large)
+            tw = bbox[2] - bbox[0]
+            draw.text(((width - tw) / 2, y_offset), line, fill='#FFFFFF', font=font_large)
+            y_offset += 35
+
+        # 価格（下部）
+        price_text = f'¥{product.price:,}'
+        price_bbox = draw.textbbox((0, 0), price_text, font=font_small)
+        price_w = price_bbox[2] - price_bbox[0]
+        draw.text(((width - price_w) / 2, height - 50), price_text, fill=(255, 255, 255, 200), font=font_small)
+
+        # 保存
+        buf = BytesIO()
+        img.save(buf, format='PNG')
+        filename = f'{product.sku.lower()}.png'
+        product.image.save(filename, ContentFile(buf.getvalue()), save=True)
 
     # ═════════════════════════════════════════════
     # PaymentMethod

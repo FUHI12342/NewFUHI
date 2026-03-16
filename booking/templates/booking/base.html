@@ -143,13 +143,15 @@ tailwind.config = {
             <div class="bg-salon-beige rounded-lg p-4">
                 <h3 class="text-base font-bold text-salon-brown border-b border-salon-brown/30 pb-2 mb-3">{% trans "お知らせ" %}</h3>
                 {% for notice in notices %}
-                <a href="{{ notice.link }}" class="block mb-3 hover:opacity-80 transition">
+                <a href="{% if notice.link %}{{ notice.link }}{% else %}{% url 'booking:notice_detail' notice.slug %}{% endif %}"
+                   class="block mb-3 hover:opacity-80 transition">
                     <p class="text-sm font-medium">◆{{ notice.title }}</p>
-                    <p class="text-xs text-gray-500">{% trans "更新日：" %}{{ notice.updated_at }}</p>
+                    <p class="text-xs text-gray-500">{% trans "更新日：" %}{{ notice.updated_at|date:"Y/m/d" }}</p>
                 </a>
                 {% empty %}
                 <p class="text-sm text-gray-400">{% trans "お知らせはありません" %}</p>
                 {% endfor %}
+                <a href="{% url 'booking:notice_list' %}" class="block text-xs text-salon-brown hover:underline mt-2 text-right">{% trans "もっと見る" %} &raquo;</a>
             </div>
             {% endif %}
 

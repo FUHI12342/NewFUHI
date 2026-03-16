@@ -1,0 +1,45 @@
+{% extends "booking/base.html" %}
+{% load i18n %}
+
+{% block title %}{{ notice.title }} | {% trans "お知らせ" %}{% endblock %}
+
+{% block content %}
+<div class="max-w-3xl mx-auto">
+    <!-- Breadcrumb -->
+    <nav class="text-sm text-gray-400 mb-4">
+        <a href="{% url 'booking:booking_top' %}" class="hover:text-salon-brown">{% trans "トップ" %}</a>
+        <span class="mx-1">/</span>
+        <a href="{% url 'booking:notice_list' %}" class="hover:text-salon-brown">{% trans "お知らせ" %}</a>
+        <span class="mx-1">/</span>
+        <span class="text-salon-dark">{{ notice.title|truncatechars:30 }}</span>
+    </nav>
+
+    <article class="bg-white rounded-lg shadow-sm border border-gray-100 p-6 md:p-8">
+        {% if notice.thumbnail %}
+        <div class="mb-6">
+            <img src="{{ notice.thumbnail.url }}" alt="{{ notice.title }}"
+                 class="w-full max-h-80 object-cover rounded-lg">
+        </div>
+        {% endif %}
+
+        <h1 class="text-2xl font-bold text-salon-dark mb-3">{{ notice.title }}</h1>
+        <p class="text-sm text-gray-400 mb-6">
+            {% trans "更新日：" %}{{ notice.updated_at|date:"Y年m月d日" }}
+        </p>
+
+        <div class="prose prose-sm max-w-none text-salon-dark
+                    prose-headings:text-salon-brown prose-a:text-salon-brown
+                    prose-img:rounded-lg">
+            {{ notice.content|safe }}
+        </div>
+    </article>
+
+    <!-- Back link -->
+    <div class="mt-6 text-center">
+        <a href="{% url 'booking:notice_list' %}"
+           class="inline-block px-6 py-2 rounded bg-salon-beige text-salon-brown hover:bg-salon-brown hover:text-white transition">
+            {% trans "お知らせ一覧に戻る" %}
+        </a>
+    </div>
+</div>
+{% endblock %}

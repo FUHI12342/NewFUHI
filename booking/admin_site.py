@@ -35,7 +35,7 @@ GROUPS = [
     {'slug': 'payroll', 'name': _('給与管理'), 'models': ['payrollperiod', 'payrollentry', 'employmentcontract', 'salarystructure'], 'hidden': True},
     {'slug': 'attendance', 'name': _('勤怠管理'), 'models': ['workattendance', 'attendancetotpconfig', 'attendancestamp'], 'hidden': True},
     {'slug': 'menu_manage', 'name': _('メニュー管理'), 'models': ['category', 'product']},
-    {'slug': 'inventory', 'name': _('在庫管理'), 'models': [], 'hidden': True},
+    {'slug': 'inventory', 'name': _('在庫管理'), 'models': ['stockmovement']},
     {'slug': 'order', 'name': _('注文管理'), 'models': ['order']},
     {'slug': 'pos', 'name': _('レジ（POS）'), 'models': ['postransaction', 'taxservicecharge']},
     {'slug': 'order_history', 'name': _('オーダー履歴'), 'models': []},
@@ -45,8 +45,8 @@ GROUPS = [
     {'slug': 'payment', 'name': _('決済'), 'models': ['paymentmethod'], 'hidden': True},
     {'slug': 'property', 'name': _('物件管理'), 'models': ['property'], 'hidden': True},
     {'slug': 'analytics', 'name': _('分析'), 'models': ['visitorcount', 'visitoranalyticsconfig', 'staffrecommendationmodel', 'staffrecommendationresult', 'businessinsight', 'customerfeedback'], 'hidden': True},
-    {'slug': 'page_settings', 'name': _('ページ設定'), 'models': ['sitesettings']},
-    {'slug': 'page_settings_sub', 'name': _('ページ設定(サブ)'), 'models': ['company', 'notice', 'media', 'homepagecustomblock', 'herobanner', 'bannerad', 'externallink'], 'hidden': True},
+    {'slug': 'page_settings', 'name': _('ページ設定'), 'models': ['sitesettings', 'notice']},
+    {'slug': 'page_settings_sub', 'name': _('ページ設定(サブ)'), 'models': ['company', 'media', 'homepagecustomblock', 'herobanner', 'bannerad', 'externallink'], 'hidden': True},
     {'slug': 'system', 'name': _('システム'), 'models': ['systemconfig', 'admintheme', 'dashboardlayout', 'adminmenuconfig']},
     {'slug': 'security', 'name': _('セキュリティ'), 'models': ['securityaudit', 'securitylog', 'costreport']},
     {'slug': 'user_account', 'name': _('ユーザーアカウント管理'), 'models': ['user', 'group']},
@@ -108,6 +108,9 @@ SIDEBAR_CUSTOM_LINKS = {
     ],
     'ec_shop': [
         {'name': _('EC注文一覧'), 'admin_url': '/admin/booking/order/?channel=ec', 'icon': 'fas fa-shopping-cart'},
+    ],
+    'inventory': [
+        {'name': _('在庫ダッシュボード'), 'admin_url': '/admin/inventory/', 'icon': 'fas fa-boxes'},
     ],
     'iot': [
         {'name': _('センサーグラフ'), 'admin_url': '/admin/iot/sensors/', 'icon': 'fas fa-chart-area'},

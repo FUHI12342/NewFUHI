@@ -1,0 +1,70 @@
+{% extends "booking/base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "お知らせ一覧" %} | {{ block.super }}{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto">
+    <h1 class="text-2xl font-bold text-salon-brown mb-6 border-b-2 border-salon-brown pb-2">
+        {% trans "お知らせ" %}
+    </h1>
+
+    {% if notices %}
+    <div class="space-y-4">
+        {% for notice in notices %}
+        <a href="{% url 'booking:notice_detail' notice.slug %}"
+           class="block bg-white rounded-lg shadow-sm border border-gray-100 hover:shadow-md transition p-4">
+            <div class="flex gap-4">
+                {% if notice.thumbnail %}
+                <div class="flex-shrink-0">
+                    <img src="{{ notice.thumbnail.url }}" alt="{{ notice.title }}"
+                         class="w-24 h-24 object-cover rounded-lg">
+                </div>
+                {% endif %}
+                <div class="flex-1 min-w-0">
+                    <h2 class="text-lg font-semibold text-salon-dark mb-1 truncate">{{ notice.title }}</h2>
+                    <p class="text-xs text-gray-400 mb-2">{{ notice.updated_at|date:"Y/m/d" }}</p>
+                    <p class="text-sm text-gray-600 line-clamp-2">{{ notice.excerpt }}</p>
+                </div>
+            </div>
+        </a>
+        {% endfor %}
+    </div>
+
+    <!-- Pagination -->
+    {% if is_paginated %}
+    <nav class="mt-8 flex justify-center">
+        <div class="flex gap-2">
+            {% if page_obj.has_previous %}
+            <a href="?page={{ page_obj.previous_page_number }}"
+               class="px-4 py-2 rounded bg-salon-beige text-salon-brown hover:bg-salon-brown hover:text-white transition">
+                {% trans "前へ" %}
+            </a>
+            {% endif %}
+
+            {% for num in page_obj.paginator.page_range %}
+                {% if page_obj.number == num %}
+                <span class="px-4 py-2 rounded bg-salon-brown text-white">{{ num }}</span>
+                {% elif num > page_obj.number|add:"-3" and num < page_obj.number|add:"3" %}
+                <a href="?page={{ num }}"
+                   class="px-4 py-2 rounded bg-salon-beige text-salon-brown hover:bg-salon-brown hover:text-white transition">
+                    {{ num }}
+                </a>
+                {% endif %}
+            {% endfor %}
+
+            {% if page_obj.has_next %}
+            <a href="?page={{ page_obj.next_page_number }}"
+               class="px-4 py-2 rounded bg-salon-beige text-salon-brown hover:bg-salon-brown hover:text-white transition">
+                {% trans "次へ" %}
+            </a>
+            {% endif %}
+        </div>
+    </nav>
+    {% endif %}
+
+    {% else %}
+    <p class="text-gray-400 text-center py-12">{% trans "お知らせはありません" %}</p>
+    {% endif %}
+</div>
+{% endblock %}

@@ -298,17 +298,45 @@ class Company(models.Model):
 
 class Notice(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
+    created_at = models.DateTimeField(auto_now_add=True, null=True)
     title = models.CharField(max_length=200)
-    link = models.URLField()
-    content = models.TextField(default='')
+    slug = models.SlugField(
+        max_length=200, unique=True, blank=True,
+        help_text=_('URLスラッグ（空欄なら自動生成）'),
+    )
+    link = models.URLField(blank=True, default='')
+    content = models.TextField(default='', help_text=_('HTML形式で記述できます'))
+    is_published = models.BooleanField(_('公開'), default=True)
+    thumbnail = models.ImageField(
+        _('サムネイル'), upload_to='notice_thumbnails/', blank=True, null=True,
+    )
 
     class Meta:
         app_label = 'booking'
         verbose_name = _('お知らせ')
         verbose_name_plural = _('お知らせ')
+        ordering = ['-updated_at']
 
     def __str__(self):
         return self.title
+
+    def save(self, *args, **kwargs):
+        if not self.slug:
+            from django.utils.text import slugify
+            import uuid
+            base = slugify(self.title, allow_unicode=True) or 'notice'
+            self.slug = f'{base}-{uuid.uuid4().hex[:8]}'
+        super().save(*args, **kwargs)
+
+    def get_absolute_url(self):
+        from django.urls import reverse
+        return reverse('booking:notice_detail', kwargs={'slug': self.slug})
+
+    def excerpt(self, length=100):
+        """HTMLタグを除去して抜粋を返す"""
+        import re
+        text = re.sub(r'<[^>]+>', '', self.content)
+        return text[:length] + '...' if len(text) > length else text
 
 
 class Media(models.Model):

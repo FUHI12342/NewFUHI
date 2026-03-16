@@ -366,6 +366,14 @@ if not DEBUG:
     SECURE_CONTENT_TYPE_NOSNIFF = True
     X_FRAME_OPTIONS = "DENY"
 
+    # Django 4.x: CSRF_TRUSTED_ORIGINS required for HTTPS
+    _csrf_origins = env_list("CSRF_TRUSTED_ORIGINS", [])
+    if _csrf_origins:
+        CSRF_TRUSTED_ORIGINS = _csrf_origins
+    else:
+        # ALLOWED_HOSTS からデフォルト生成
+        CSRF_TRUSTED_ORIGINS = [f"https://{h}" for h in ALLOWED_HOSTS if h != "*"]
+
     # Reverse proxy (Nginx/ALB) etc.
     # Example:
     # SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")

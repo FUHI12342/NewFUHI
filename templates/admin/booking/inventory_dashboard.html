@@ -1,0 +1,209 @@
+{% extends "admin/base_site.html" %}
+{% load i18n %}
+{% block title %}{% trans "在庫管理ダッシュボード" %}{% endblock %}
+{% block extrastyle %}
+<style>
+  .inv-stats { display: flex; gap: 16px; margin-bottom: 24px; flex-wrap: wrap; }
+  .inv-stat {
+    flex: 1; min-width: 140px; padding: 16px; border-radius: 8px;
+    text-align: center; background: #f9fafb; border: 1px solid #e5e7eb;
+  }
+  .inv-stat-value { font-size: 28px; font-weight: 700; }
+  .inv-stat-label { font-size: 13px; color: #6b7280; margin-top: 4px; }
+  .inv-stat-low .inv-stat-value { color: #F59E0B; }
+  .inv-stat-out .inv-stat-value { color: #EF4444; }
+
+  .inv-filters { display: flex; gap: 8px; margin-bottom: 20px; flex-wrap: wrap; align-items: center; }
+  .inv-filter-btn {
+    padding: 6px 16px; border-radius: 20px; border: 1px solid #d1d5db;
+    background: #fff; color: #374151; font-size: 13px; cursor: pointer;
+    text-decoration: none; transition: all .15s;
+  }
+  .inv-filter-btn:hover { background: #f3f4f6; }
+  .inv-filter-btn.active { background: #8c876c; color: #fff; border-color: #8c876c; }
+
+  .inv-table { width: 100%; border-collapse: collapse; }
+  .inv-table th {
+    text-align: left; padding: 10px 12px; background: #f9fafb;
+    border-bottom: 2px solid #e5e7eb; font-size: 13px; color: #6b7280;
+    white-space: nowrap;
+  }
+  .inv-table td {
+    padding: 10px 12px; border-bottom: 1px solid #f3f4f6;
+    font-size: 14px; vertical-align: middle;
+  }
+  .inv-table tr:hover { background: #fefefe; }
+
+  .stock-badge {
+    display: inline-block; padding: 2px 8px; border-radius: 12px;
+    font-size: 12px; font-weight: 600;
+  }
+  .stock-ok { background: #D1FAE5; color: #065F46; }
+  .stock-low { background: #FEF3C7; color: #92400E; }
+  .stock-out { background: #FEE2E2; color: #991B1B; }
+
+  .cat-badge {
+    display: inline-block; padding: 2px 8px; border-radius: 4px;
+    font-size: 11px; background: #E5E7EB; color: #374151;
+  }
+
+  .inv-modal-overlay {
+    display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.4);
+    z-index: 1000; align-items: center; justify-content: center;
+  }
+  .inv-modal-overlay.open { display: flex; }
+  .inv-modal {
+    background: #fff; border-radius: 12px; padding: 24px;
+    width: 90%; max-width: 480px; box-shadow: 0 20px 60px rgba(0,0,0,0.15);
+  }
+  .inv-modal h3 { margin: 0 0 16px; font-size: 18px; }
+  .inv-form-group { margin-bottom: 16px; }
+  .inv-form-group label { display: block; font-size: 13px; font-weight: 600; margin-bottom: 4px; }
+  .inv-form-group select, .inv-form-group input {
+    width: 100%; padding: 8px 12px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 14px;
+  }
+  .inv-btn-primary {
+    padding: 8px 24px; background: #10B981; color: #fff; border: none;
+    border-radius: 6px; font-size: 14px; font-weight: 600; cursor: pointer;
+  }
+  .inv-btn-primary:hover { background: #059669; }
+  .inv-btn-secondary {
+    padding: 8px 24px; background: #f3f4f6; color: #374151; border: 1px solid #d1d5db;
+    border-radius: 6px; font-size: 14px; cursor: pointer;
+  }
+  .inv-product-img {
+    width: 36px; height: 36px; object-fit: cover; border-radius: 4px;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<h2 style="margin-bottom: 8px;">{% trans "在庫管理ダッシュボード" %}</h2>
+
+<!-- Stats -->
+<div class="inv-stats">
+  <div class="inv-stat">
+    <div class="inv-stat-value">{{ total_count }}</div>
+    <div class="inv-stat-label">{% trans "商品数" %}</div>
+  </div>
+  <div class="inv-stat inv-stat-low">
+    <div class="inv-stat-value">{{ low_stock_count }}</div>
+    <div class="inv-stat-label">{% trans "低在庫" %}</div>
+  </div>
+  <div class="inv-stat inv-stat-out">
+    <div class="inv-stat-value">{{ out_of_stock_count }}</div>
+    <div class="inv-stat-label">{% trans "在庫切れ" %}</div>
+  </div>
+</div>
+
+<!-- Filters -->
+<div class="inv-filters">
+  <a href="?category=all{% if low_only %}&low_only=1{% endif %}"
+     class="inv-filter-btn {% if category_filter == 'all' %}active{% endif %}">
+    {% trans "すべて" %}
+  </a>
+  <a href="?category=ec{% if low_only %}&low_only=1{% endif %}"
+     class="inv-filter-btn {% if category_filter == 'ec' %}active{% endif %}">
+    {% trans "EC商品" %}
+  </a>
+  <a href="?category=restaurant{% if low_only %}&low_only=1{% endif %}"
+     class="inv-filter-btn {% if category_filter == 'restaurant' %}active{% endif %}">
+    {% trans "飲食メニュー" %}
+  </a>
+  <span style="margin-left: auto;">
+    <a href="?category={{ category_filter }}{% if not low_only %}&low_only=1{% endif %}"
+       class="inv-filter-btn {% if low_only %}active{% endif %}">
+      {% trans "低在庫のみ" %}
+    </a>
+  </span>
+  <button onclick="document.getElementById('stockInModal').classList.add('open')"
+          class="inv-btn-primary" style="margin-left: 8px;">
+    + {% trans "入荷登録" %}
+  </button>
+</div>
+
+<!-- Product table -->
+<table class="inv-table">
+  <thead>
+    <tr>
+      <th></th>
+      <th>{% trans "商品名" %}</th>
+      <th>{% trans "SKU" %}</th>
+      <th>{% trans "カテゴリ" %}</th>
+      <th style="text-align:right;">{% trans "価格" %}</th>
+      <th style="text-align:right;">{% trans "在庫" %}</th>
+      <th style="text-align:right;">{% trans "閾値" %}</th>
+      <th>{% trans "ステータス" %}</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for product in products %}
+    <tr>
+      <td>
+        {% if product.image %}
+        <img src="{{ product.image.url }}" class="inv-product-img" alt="">
+        {% else %}
+        <span style="display:inline-block;width:36px;height:36px;background:#f3f4f6;border-radius:4px;"></span>
+        {% endif %}
+      </td>
+      <td>
+        <a href="/admin/booking/product/{{ product.id }}/change/" style="color:#8c876c;font-weight:500;">
+          {{ product.name }}
+        </a>
+      </td>
+      <td style="font-family:monospace;font-size:12px;color:#6b7280;">{{ product.sku }}</td>
+      <td><span class="cat-badge">{{ product.category.name }}</span></td>
+      <td style="text-align:right;">&yen;{{ product.price|floatformat:0 }}</td>
+      <td style="text-align:right;font-weight:600;">{{ product.stock }}</td>
+      <td style="text-align:right;color:#9ca3af;">{{ product.low_stock_threshold }}</td>
+      <td>
+        {% if product.stock <= 0 %}
+          <span class="stock-badge stock-out">{% trans "在庫切れ" %}</span>
+        {% elif product.stock <= product.low_stock_threshold %}
+          <span class="stock-badge stock-low">{% trans "低在庫" %}</span>
+        {% else %}
+          <span class="stock-badge stock-ok">{% trans "在庫あり" %}</span>
+        {% endif %}
+      </td>
+    </tr>
+    {% empty %}
+    <tr><td colspan="8" style="text-align:center;padding:40px;color:#9ca3af;">{% trans "商品がありません" %}</td></tr>
+    {% endfor %}
+  </tbody>
+</table>
+
+<!-- Stock-in Modal -->
+<div id="stockInModal" class="inv-modal-overlay"
+     onclick="if(event.target===this) this.classList.remove('open')">
+  <div class="inv-modal">
+    <h3>{% trans "入荷登録" %}</h3>
+    <form method="post" action="/admin/inventory/stock-in/">
+      {% csrf_token %}
+      <div class="inv-form-group">
+        <label for="id_product">{% trans "商品" %}</label>
+        <select name="product" id="id_product" required>
+          <option value="">---</option>
+          {% for product in products %}
+          <option value="{{ product.id }}">{{ product.category.name }} / {{ product.name }} ({% trans "在庫" %}: {{ product.stock }})</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="inv-form-group">
+        <label for="id_quantity">{% trans "入荷数量" %}</label>
+        <input type="number" name="quantity" id="id_quantity" min="1" max="9999" value="1" required>
+      </div>
+      <div class="inv-form-group">
+        <label for="id_note">{% trans "メモ" %}</label>
+        <input type="text" name="note" id="id_note" placeholder="{% trans '入荷メモ（任意）' %}">
+      </div>
+      <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:20px;">
+        <button type="button" class="inv-btn-secondary"
+                onclick="document.getElementById('stockInModal').classList.remove('open')">
+          {% trans "キャンセル" %}
+        </button>
+        <button type="submit" class="inv-btn-primary">{% trans "入荷する" %}</button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

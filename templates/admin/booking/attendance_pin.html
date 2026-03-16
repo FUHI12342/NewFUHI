@@ -114,9 +114,14 @@ function doStamp(stampType) {
   fetch('/api/attendance/pin-stamp/', {
     method: 'POST',
     headers: {'Content-Type':'application/json','X-CSRFToken': getCookie('csrftoken')},
-    body: JSON.stringify({staff_id: staffId, pin: pin, stamp_type: stampType, store_id: STORE_ID})
+    body: JSON.stringify({staff_id: staffId, pin: pin, stamp_type: stampType, store_id: STORE_ID}),
+    credentials: 'same-origin'
   })
-  .then(r => r.json())
+  .then(r => {
+    if (r.status === 403) throw new Error('CSRF検証エラー: ページを再読み込みしてください');
+    if (r.status === 302 || r.redirected) throw new Error('ログインセッション切れ: 再ログインしてください');
+    return r.json();
+  })
   .then(data => {
     btns.forEach(b => b.disabled = false);
     if (data.success) {
@@ -127,9 +132,9 @@ function doStamp(stampType) {
       showMsg('error', data.error || 'エラーが発生しました');
     }
   })
-  .catch(() => {
+  .catch(err => {
     btns.forEach(b => b.disabled = false);
-    showMsg('error', '通信エラーが発生しました');
+    showMsg('error', err.message || '通信エラーが発生しました');
   });
 }
 

@@ -30,7 +30,7 @@ def global_context(request):
     context = {
         'stores': list(Store.objects.all()),
         'company': Company.objects.first(),
-        'notices': list(Notice.objects.order_by('-updated_at')[:5]),
+        'notices': list(Notice.objects.filter(is_published=True).order_by('-updated_at')[:5]),
         'medias': list(Media.objects.order_by('-created_at')[:5]),
         'external_links': list(ExternalLink.objects.filter(is_active=True)),
         'current_language': lang,

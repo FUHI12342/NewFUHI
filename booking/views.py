@@ -70,6 +70,7 @@ from booking.models import (
     # ===== Round4: CMS =====
     SiteSettings,
     HeroBanner,
+    Notice,
     # ===== テーブル注文 =====
     TableSeat,
     PaymentMethod,
@@ -3135,3 +3136,29 @@ class TableOrderStatusAPI(APIView):
             })
 
         return Response({"orders": result})
+
+
+# ==============================
+# お知らせ一覧・詳細
+# ==============================
+class NoticeListView(generic.ListView):
+    """公開済みお知らせの一覧ページ"""
+    model = Notice
+    template_name = 'booking/notice_list.html'
+    context_object_name = 'notices'
+    paginate_by = 12
+
+    def get_queryset(self):
+        return Notice.objects.filter(is_published=True).order_by('-updated_at')
+
+
+class NoticeDetailView(generic.DetailView):
+    """お知らせ詳細ページ（slug ベース）"""
+    model = Notice
+    template_name = 'booking/notice_detail.html'
+    context_object_name = 'notice'
+    slug_field = 'slug'
+    slug_url_kwarg = 'slug'
+
+    def get_queryset(self):
+        return Notice.objects.filter(is_published=True)
