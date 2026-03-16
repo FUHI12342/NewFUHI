@@ -566,7 +566,8 @@ class OrderItemInline(admin.TabularInline):
 
 
 class OrderAdmin(admin.ModelAdmin):
-    list_display = ('id', 'store', 'status', 'table_label', 'schedule', 'created_at', 'updated_at')
+    list_display = ('id', 'store', 'channel', 'status', 'table_label', 'schedule', 'created_at', 'updated_at')
+    list_filter = ('channel', 'status', 'payment_status')
     search_fields = ('id', 'store__name', 'table_label', 'customer_line_user_hash')
     inlines = [OrderItemInline]
     readonly_fields = ('created_at', 'updated_at')

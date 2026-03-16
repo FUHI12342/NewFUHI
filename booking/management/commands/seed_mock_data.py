@@ -671,12 +671,14 @@ class Command(BaseCommand):
                     hour=hour, minute=random.randint(0, 59), second=0,
                 )
                 table = random.choice(tables) if tables else None
+                channel = random.choice(['pos', 'table', 'reservation'])
                 order = Order.objects.create(
                     store=self.store,
                     table_seat=table,
                     table_label=table.label if table else '',
                     status='CLOSED',
                     payment_status='paid',
+                    channel=channel,
                 )
                 Order.objects.filter(pk=order.pk).update(created_at=order_time)
 
@@ -716,6 +718,7 @@ class Command(BaseCommand):
                 table_label=table.label if table else f'席{i+1}',
                 status='OPEN',
                 payment_status='pending',
+                channel='table',
             )
             statuses = ['ORDERED', 'PREPARING', 'SERVED']
             for prod in random.sample(products[:10], min(3, len(products))):

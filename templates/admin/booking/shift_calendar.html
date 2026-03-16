@@ -1,9 +1,11 @@
 {% extends "admin/base_site.html" %}
-{% load i18n %}
+{% load i18n static %}
 
 {% block title %}{{ title }}{% endblock %}
 
 {% block extrastyle %}
+<link rel="stylesheet" href="{% static 'css/admin_tour.css' %}">
+<script src="{% static 'js/admin_tour.js' %}"></script>
 <script src="https://unpkg.com/htmx.org@1.9.10"></script>
 <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.14.9/dist/cdn.min.js"></script>
 <style>
@@ -93,6 +95,8 @@
       </button>
       <button @click="confirmPublish = false">キャンセル</button>
     </div>
+
+    <button class="tour-help-btn" onclick="startTour();" title="ヘルプを表示" style="margin-left:auto;">ヘルプ</button>
   </div>
 
   {# 週グリッド #}
@@ -106,4 +110,30 @@
     <div id="sidebar-content"></div>
   </div>
 </div>
+
+<script>
+window.TOUR_STORAGE_KEY = 'shift_calendar_tour_seen';
+window.TOUR_STEPS = [
+  {
+    selector: '.toolbar',
+    title: 'ツールバー',
+    text: '前週・次週のナビゲーション、期間選択、シフトテンプレートが並んでいます。',
+  },
+  {
+    selector: '#week-grid',
+    title: 'シフトグリッド',
+    text: '各スタッフの週間シフトが表示されます。セルをクリックしてシフトを編集できます。',
+  },
+  {
+    selector: '.template-chips',
+    title: 'シフトテンプレート',
+    text: '登録済みのシフトテンプレートです。ドラッグ＆ドロップでスタッフに割り当てできます。',
+  },
+  {
+    selector: '.tour-help-btn',
+    title: 'ヘルプボタン',
+    text: 'このボタンをクリックすると、いつでもこのヘルプを再表示できます。',
+  },
+];
+</script>
 {% endblock %}

@@ -119,6 +119,7 @@ class POSOrderAPIView(LoginRequiredMixin, View):
             table_label=table_label,
             table_seat_id=table_seat_id,
             status=Order.STATUS_OPEN,
+            channel='pos',
         )
         return JsonResponse({'id': order.id, 'table_label': order.table_label}, status=201)
 

@@ -1056,9 +1056,11 @@ class PreBooking(generic.CreateView):
         schedule.price = price
         schedule.temporary_booked_at = datetime.datetime.now(tz)
 
+        tz_jst = pytz.timezone('Asia/Tokyo')
         self.request.session['temporary_booking'] = {
             'reservation_number': str(schedule.reservation_number),
             'start': start.isoformat(),
+            'start_display': start.astimezone(tz_jst).strftime('%Y年%m月%d日 %H:%M'),
             'end': end.isoformat(),
             'price': price,
             'is_temporary': schedule.is_temporary,
@@ -1762,6 +1764,7 @@ class OrderCreateAPIView(APIView):
                 schedule=schedule,
                 customer_line_user_hash=customer_hash,
                 status=Order.STATUS_OPEN,
+                channel='reservation',
             )
 
             # 対象商品をまとめてロック（デッドロック回避のためID順）
@@ -2576,6 +2579,7 @@ class ShopCheckoutView(View):
                 store=first_product.store,
                 status=Order.STATUS_OPEN,
                 table_label=f'EC: {customer_name} / {customer_phone}',
+                channel='ec',
             )
 
             for product_id, item in cart.items():
@@ -2739,6 +2743,7 @@ class TableOrderView(View):
                 table_seat=seat,
                 table_label=seat.label,
                 status=Order.STATUS_OPEN,
+                channel='table',
             )
 
             locked_products = list(
@@ -3047,6 +3052,7 @@ class TableOrderCreateAPI(APIView):
                 table_seat=seat,
                 table_label=seat.label,
                 status=Order.STATUS_OPEN,
+                channel='table',
             )
 
             locked_products = list(

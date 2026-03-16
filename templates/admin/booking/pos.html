@@ -1,7 +1,9 @@
 {% extends "admin/base_site.html" %}
-{% load i18n %}
+{% load i18n static %}
 {% block title %}{{ title }}{% endblock %}
 {% block extrastyle %}
+<link rel="stylesheet" href="{% static 'css/admin_tour.css' %}">
+<script src="{% static 'js/admin_tour.js' %}"></script>
 <script src="https://unpkg.com/htmx.org@1.9.10"></script>
 <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.14.9/dist/cdn.min.js"></script>
 <style>
@@ -32,6 +34,7 @@
 </style>
 {% endblock %}
 {% block content %}
+<div style="padding:4px 16px 0;"><button class="tour-help-btn" onclick="startTour();" title="ヘルプを表示">ヘルプ</button></div>
 <div class="pos-layout" x-data="{
   cart: [],
   selectedCategory: 'all',
@@ -129,5 +132,29 @@ function getCookie(name) {
   var v = document.cookie.match('(^|;) ?' + name + '=([^;]*)(;|$)');
   return v ? v[2] : '';
 }
+
+window.TOUR_STORAGE_KEY = 'pos_tour_seen';
+window.TOUR_STEPS = [
+  {
+    selector: '.cat-tabs',
+    title: 'カテゴリタブ',
+    text: '商品カテゴリを切り替えて表示をフィルタできます。',
+  },
+  {
+    selector: '.product-grid',
+    title: '商品一覧',
+    text: '商品をクリックするとカートに追加されます。売切商品はグレーアウトされます。',
+  },
+  {
+    selector: '.cart-area',
+    title: 'カート・会計',
+    text: '追加した商品の数量変更・削除ができます。下部のボタンで会計を行います。',
+  },
+  {
+    selector: '.tour-help-btn',
+    title: 'ヘルプボタン',
+    text: 'このボタンをクリックすると、いつでもこのヘルプを再表示できます。',
+  },
+];
 </script>
 {% endblock %}

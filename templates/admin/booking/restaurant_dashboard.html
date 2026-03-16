@@ -7,6 +7,9 @@
 <script src="https://cdn.tailwindcss.com"></script>
 <!-- Chart.js CDN -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+<!-- Tour (Help) -->
+<link rel="stylesheet" href="{% static 'css/admin_tour.css' %}">
+<script src="{% static 'js/admin_tour.js' %}"></script>
 <style>
   /* Override Django admin content area */
   #content { max-width: 100%; padding: 0 !important; }
@@ -141,42 +144,7 @@
   }
   .quick-link-card i { font-size: 1.25rem; }
 
-  /* Tutorial overlay */
-  .tour-overlay {
-    position: fixed; inset: 0; z-index: 9998;
-    background: rgba(0,0,0,0.5);
-    transition: opacity 0.3s;
-  }
-  .tour-highlight {
-    position: relative; z-index: 9999;
-    box-shadow: 0 0 0 4px #6366f1, 0 0 0 9999px rgba(0,0,0,0.5);
-    border-radius: 8px;
-    transition: box-shadow 0.3s;
-  }
-  .tour-tooltip {
-    position: fixed; z-index: 10000;
-    background: white; border-radius: 12px;
-    padding: 16px 20px; max-width: 340px;
-    box-shadow: 0 8px 32px rgba(0,0,0,0.2);
-    font-size: 14px; line-height: 1.6;
-  }
-  .tour-tooltip h4 { font-size: 16px; font-weight: 700; margin-bottom: 6px; color: #312e81; }
-  .tour-tooltip p { color: #4b5563; margin-bottom: 12px; }
-  .tour-tooltip-footer { display: flex; align-items: center; justify-content: space-between; }
-  .tour-tooltip-footer .tour-step-info { font-size: 12px; color: #9ca3af; }
-  .tour-tooltip-footer .tour-btns { display: flex; gap: 8px; }
-  .tour-btn { padding: 6px 14px; border-radius: 6px; font-size: 13px; cursor: pointer; border: none; }
-  .tour-btn-skip { background: #f3f4f6; color: #6b7280; }
-  .tour-btn-skip:hover { background: #e5e7eb; }
-  .tour-btn-next { background: #6366f1; color: white; font-weight: 600; }
-  .tour-btn-next:hover { background: #4f46e5; }
-  .tour-help-btn {
-    display: inline-flex; align-items: center; gap: 4px;
-    padding: 5px 12px; border-radius: 6px; font-size: 13px;
-    background: #eef2ff; color: #4f46e5; border: 1px solid #c7d2fe;
-    cursor: pointer; font-weight: 500;
-  }
-  .tour-help-btn:hover { background: #e0e7ff; }
+  /* Tour styles loaded from static/css/admin_tour.css */
 </style>
 {% endblock %}
 
@@ -219,7 +187,7 @@
 
   {# ===== Toolbar ===== #}
   <div class="flex items-center gap-3 mb-4 flex-wrap">
-    <button class="tour-help-btn" onclick="startTour();" title="操作ガイドを表示">? ガイド</button>
+    <button class="tour-help-btn" onclick="startTour();" title="ヘルプを表示">ヘルプ</button>
     <div class="flex items-center gap-2 ml-auto">
       <label for="sales-period" class="text-sm font-medium db-text-secondary">期間:</label>
       <select id="sales-period" class="toolbar-btn">
@@ -2203,8 +2171,9 @@ document.addEventListener('DOMContentLoaded', function () {
       updateInsightBadge(count);
     }).catch(function() {});
 
-  // ===== Step-by-step Tutorial Tour =====
-  var TOUR_STEPS = [
+  // ===== Page-specific Tour Steps =====
+  window.TOUR_STORAGE_KEY = 'dashboard_tour_seen';
+  window.TOUR_STEPS = [
     {
       selector: '#dashboard-tabs',
       title: 'タブナビゲーション',
@@ -2240,102 +2209,11 @@ document.addEventListener('DOMContentLoaded', function () {
     },
     {
       selector: '.tour-help-btn',
-      title: 'ガイドボタン',
-      text: 'このボタンをクリックすると、いつでもこのガイドを再表示できます。',
+      title: 'ヘルプボタン',
+      text: 'このボタンをクリックすると、いつでもこのヘルプを再表示できます。',
       action: function() { switchTab('overview'); }
     },
   ];
-
-  var tourCurrentStep = 0;
-  var tourOverlay = null;
-  var tourTooltip = null;
-  var tourPrevHighlight = null;
-
-  function _createTourOverlay() {
-    if (tourOverlay) return;
-    tourOverlay = document.createElement('div');
-    tourOverlay.className = 'tour-overlay';
-    tourOverlay.style.display = 'none';
-    tourOverlay.onclick = function(e) { if (e.target === tourOverlay) endTour(); };
-    document.body.appendChild(tourOverlay);
-
-    tourTooltip = document.createElement('div');
-    tourTooltip.className = 'tour-tooltip';
-    tourTooltip.style.display = 'none';
-    document.body.appendChild(tourTooltip);
-  }
-
-  function _positionTooltip(el) {
-    var rect = el.getBoundingClientRect();
-    var tt = tourTooltip;
-    var ttW = 340, ttH = tt.offsetHeight || 200;
-    var top, left;
-    // Prefer below
-    if (rect.bottom + ttH + 16 < window.innerHeight) {
-      top = rect.bottom + 12;
-    } else {
-      top = Math.max(8, rect.top - ttH - 12);
-    }
-    left = Math.max(8, Math.min(rect.left, window.innerWidth - ttW - 16));
-    tt.style.top = top + 'px';
-    tt.style.left = left + 'px';
-  }
-
-  function _showStep(idx) {
-    if (idx < 0 || idx >= TOUR_STEPS.length) { endTour(); return; }
-    tourCurrentStep = idx;
-    var step = TOUR_STEPS[idx];
-
-    // Execute action if defined
-    if (step.action) step.action();
-
-    // Remove previous highlight
-    if (tourPrevHighlight) tourPrevHighlight.classList.remove('tour-highlight');
-
-    var el = document.querySelector(step.selector);
-    if (!el) { _showStep(idx + 1); return; }
-
-    el.classList.add('tour-highlight');
-    tourPrevHighlight = el;
-    el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-
-    // Build tooltip
-    tourTooltip.innerHTML = '<h4>' + step.title + '</h4><p>' + step.text + '</p>' +
-      '<div class="tour-tooltip-footer">' +
-        '<span class="tour-step-info">' + (idx + 1) + ' / ' + TOUR_STEPS.length + '</span>' +
-        '<div class="tour-btns">' +
-          '<button class="tour-btn tour-btn-skip" onclick="endTour()">閉じる</button>' +
-          (idx > 0 ? '<button class="tour-btn tour-btn-skip" onclick="_showStep(' + (idx - 1) + ')">戻る</button>' : '') +
-          '<button class="tour-btn tour-btn-next" onclick="_showStep(' + (idx + 1) + ')">' + (idx === TOUR_STEPS.length - 1 ? '完了' : '次へ') + '</button>' +
-        '</div>' +
-      '</div>';
-    tourTooltip.style.display = 'block';
-    tourOverlay.style.display = 'block';
-    tourOverlay.style.background = 'transparent';
-
-    setTimeout(function() { _positionTooltip(el); }, 100);
-  }
-
-  window.startTour = function() {
-    _createTourOverlay();
-    tourCurrentStep = 0;
-    switchTab('overview');
-    _showStep(0);
-  };
-
-  window.endTour = function() {
-    if (tourPrevHighlight) tourPrevHighlight.classList.remove('tour-highlight');
-    if (tourOverlay) tourOverlay.style.display = 'none';
-    if (tourTooltip) tourTooltip.style.display = 'none';
-    try { localStorage.setItem('dashboard_tour_seen', '1'); } catch(e) {}
-  };
-
-  // Auto-show on first visit
-  try {
-    if (!localStorage.getItem('dashboard_tour_seen')) {
-      setTimeout(function() { startTour(); }, 800);
-    }
-  } catch(e) {}
 
 });
 </script>

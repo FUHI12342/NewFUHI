@@ -695,6 +695,12 @@ class Order(models.Model):
         ('paid', '支払済'),
         ('refunded', '返金済'),
     ]
+    CHANNEL_CHOICES = [
+        ('ec', 'ECショップ'),
+        ('pos', 'POS'),
+        ('table', 'テーブル注文'),
+        ('reservation', '予約'),
+    ]
 
     store = models.ForeignKey(Store, verbose_name=_('店舗'), on_delete=models.CASCADE, related_name='orders')
     schedule = models.ForeignKey(
@@ -706,6 +712,7 @@ class Order(models.Model):
         related_name='orders'
     )
 
+    channel = models.CharField(_('注文チャネル'), max_length=20, choices=CHANNEL_CHOICES, default='pos', db_index=True)
     customer_line_user_hash = models.CharField(_('顧客LINEハッシュ'), max_length=64, null=True, blank=True, db_index=True)
     table_label = models.CharField(_('席/テーブル'), max_length=50, blank=True, default='')
     table_seat = models.ForeignKey(

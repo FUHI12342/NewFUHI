@@ -161,13 +161,14 @@ class TestKitchenDisplay:
 
 
 class TestIoTMenuHidden:
-    """IoTメニューがサイドバーに表示されないことを確認"""
+    """IoTメニュー: グループは表示、iotdeviceモデルのみ非表示"""
 
-    def test_iot_group_is_hidden(self):
-        """GROUPS内のiotグループにhidden: Trueが設定されていること"""
+    def test_iot_group_is_visible(self):
+        """GROUPS内のiotグループはhiddenではないこと（IoT管理は表示する）"""
         iot_group = next(g for g in GROUPS if g['slug'] == 'iot')
-        assert iot_group.get('hidden') is True
+        assert iot_group.get('hidden') is not True
 
-    def test_iot_in_hidden_slugs(self):
-        """HIDDEN_SLUGSにiotが含まれていること"""
-        assert 'iot' in HIDDEN_SLUGS
+    def test_iotdevice_in_hidden_models(self):
+        """iotグループのhidden_modelsにiotdeviceが含まれていること"""
+        iot_group = next(g for g in GROUPS if g['slug'] == 'iot')
+        assert 'iotdevice' in iot_group.get('hidden_models', [])
