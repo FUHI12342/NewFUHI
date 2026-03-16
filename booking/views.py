@@ -2650,6 +2650,7 @@ class TableMenuView(View):
 
         products_qs = Product.objects.filter(
             store=store, is_active=True,
+            category__is_restaurant_menu=True,
         ).select_related('category').order_by('category__sort_order', 'name')
 
         category_id = request.GET.get('category')
@@ -2658,6 +2659,7 @@ class TableMenuView(View):
 
         categories = Category.objects.filter(
             products__store=store, products__is_active=True,
+            is_restaurant_menu=True,
         ).distinct().order_by('sort_order', 'name')
 
         products = []

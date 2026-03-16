@@ -54,7 +54,7 @@
 </style>
 {% endblock %}
 {% block content %}
-<div class="auto-refresh">自動更新: 5秒 | 🔴=注文済 🟡=調理中 🟢=配膳済</div>
+<div class="auto-refresh">{% trans "自動更新: 5秒 | 🔴=注文済 🟡=調理中 🟢=配膳済" %}</div>
 <div class="kitchen-grid">
   <div id="kitchen-orders">
     {% include "admin/booking/_kitchen_orders_fragment.html" %}
@@ -64,6 +64,7 @@
 <script>
 var CSRF = '{{ csrf_token }}';
 var REFRESH_URL = '/api/pos/kitchen-orders/{% if store %}?store_id={{ store.id }}{% endif %}';
+var MSG_COMPLETE = '{% trans "完了" %}';
 
 function refreshKitchen() {
   fetch(REFRESH_URL, {
@@ -110,7 +111,7 @@ function completeOrder(orderId, btn) {
   .catch(function(e) {
     console.error('Complete order error:', e);
     btn.disabled = false;
-    btn.textContent = '完了';
+    btn.textContent = MSG_COMPLETE;
   });
 }
 

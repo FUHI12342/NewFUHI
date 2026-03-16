@@ -34,6 +34,7 @@ from booking.models import (
     StaffRecommendationModel, StaffRecommendationResult,
     DashboardLayout, SystemConfig,
     POSTransaction, AttendanceStamp, AttendanceTOTPConfig,
+    TaxServiceCharge,
 )
 
 
@@ -67,6 +68,7 @@ class Command(BaseCommand):
         self._seed_extra_staff()
         self._seed_categories_and_products()
         self._seed_payment_methods()
+        self._seed_tax_service_charges()
         self._seed_store_schedule_config()
         self._seed_table_seats()
 
@@ -130,6 +132,7 @@ class Command(BaseCommand):
         ProductTranslation.objects.all().delete()
         Product.objects.all().delete()
         Category.objects.all().delete()
+        TaxServiceCharge.objects.all().delete()
         PaymentMethod.objects.all().delete()
         StaffRecommendationResult.objects.all().delete()
         StaffRecommendationModel.objects.all().delete()
@@ -400,9 +403,13 @@ class Command(BaseCommand):
             'タロット占い（20分）': ('Tarot Reading (20min)', 'Celtic cross spread deep reading.'),
         }
 
+        # EC/レストラン分離: グッズ・占いメニューはテーブルメニュー非表示
+        non_restaurant_categories = {'グッズ', '占いメニュー'}
+
         for sort_order, (cat_name, products) in enumerate(categories_products.items()):
             cat = Category.objects.create(
                 store=self.store, name=cat_name, sort_order=sort_order,
+                is_restaurant_menu=(cat_name not in non_restaurant_categories),
             )
             for sku, name, desc, price, stock, low_threshold in products:
                 p = Product.objects.create(
@@ -410,7 +417,8 @@ class Command(BaseCommand):
                     sku=sku, name=name, description=desc,
                     price=price, stock=stock,
                     low_stock_threshold=low_threshold,
-                    is_active=True, is_ec_visible=(cat_name != '占いメニュー'),
+                    is_active=True,
+                    is_ec_visible=(cat_name == 'グッズ' or cat_name not in non_restaurant_categories),
                     popularity=random.randint(10, 100),
                     margin_rate=round(random.uniform(0.2, 0.6), 2),
                 )
@@ -448,6 +456,25 @@ class Command(BaseCommand):
                 sort_order=sort_order,
             )
         self.stdout.write(self.style.SUCCESS('  PaymentMethod: 4件'))
+
+    # ═════════════════════════════════════════════
+    # TaxServiceCharge
+    # ═════════════════════════════════════════════
+    def _seed_tax_service_charges(self):
+        if TaxServiceCharge.objects.filter(store=self.store).exists():
+            self.stdout.write('  TaxServiceCharge: skip')
+            return
+        charges = [
+            ('消費税', Decimal('10.00'), None, 0),
+            ('深夜料金', Decimal('10.00'), 22, 1),
+        ]
+        for name, rate, after_hour, sort in charges:
+            TaxServiceCharge.objects.create(
+                store=self.store, name=name, rate=rate,
+                is_active=True, applies_after_hour=after_hour,
+                sort_order=sort,
+            )
+        self.stdout.write(self.style.SUCCESS(f'  TaxServiceCharge: {len(charges)}件'))
 
     # ═════════════════════════════════════════════
     # StoreScheduleConfig

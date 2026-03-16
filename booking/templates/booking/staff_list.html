@@ -26,6 +26,51 @@
     <h1 class="text-2xl font-bold text-salon-dark">{{ store.name }}店 在籍{{ staff_label }}</h1>
 </div>
 
+<!-- Store Introduction Section -->
+{% if store.description or store.thumbnail or store.photo_2 or store.photo_3 %}
+<div class="mb-8 bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden">
+    <!-- Store Photos Gallery -->
+    {% if store.thumbnail or store.photo_2 or store.photo_3 %}
+    <div class="flex flex-col sm:flex-row gap-2 p-4">
+        {% if store.thumbnail %}
+        <div class="flex-1 aspect-video overflow-hidden rounded-lg">
+            <img src="{{ store.thumbnail.url }}" alt="{{ store.name }}" class="w-full h-full object-cover">
+        </div>
+        {% endif %}
+        {% if store.photo_2 %}
+        <div class="flex-1 aspect-video overflow-hidden rounded-lg">
+            <img src="{{ store.photo_2.url }}" alt="{{ store.name }}" class="w-full h-full object-cover">
+        </div>
+        {% endif %}
+        {% if store.photo_3 %}
+        <div class="flex-1 aspect-video overflow-hidden rounded-lg">
+            <img src="{{ store.photo_3.url }}" alt="{{ store.name }}" class="w-full h-full object-cover">
+        </div>
+        {% endif %}
+    </div>
+    {% endif %}
+
+    <!-- Store Description & Access -->
+    <div class="px-5 py-4 space-y-3">
+        {% if store.description %}
+        <p class="text-sm text-gray-700 leading-relaxed">{{ store.description }}</p>
+        {% endif %}
+        {% if store.access_info or store.nearest_station %}
+        <div class="flex items-start gap-2 text-sm text-gray-600">
+            <svg class="w-4 h-4 mt-0.5 text-salon-brown flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
+            </svg>
+            <div>
+                {% if store.nearest_station %}<span class="font-medium">{{ store.nearest_station }}</span>{% endif %}
+                {% if store.access_info %}<span class="block text-gray-500">{{ store.access_info }}</span>{% endif %}
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endif %}
+
 <!-- Staff Card Grid -->
 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
     {% for staff in staff_list %}
@@ -56,7 +101,7 @@
 
             <!-- Price -->
             <p class="text-sm text-salon-brown font-medium">
-                {% trans "鑑定料" %}：{{ staff.price }} {% trans "円（１時間）" %}
+                {{ price_label }}：{{ staff.price }} {% trans "円（１時間）" %}
             </p>
 
             <!-- Introduction -->

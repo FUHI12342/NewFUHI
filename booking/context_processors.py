@@ -37,6 +37,7 @@ def global_context(request):
         'available_languages': settings.LANGUAGES,
         'site_settings': site_settings,
         'staff_label': localized_staff_label,
+        'price_label': site_settings.price_label if site_settings else '鑑定料',
     }
     cache.set(cache_key, context, 60)
     return context

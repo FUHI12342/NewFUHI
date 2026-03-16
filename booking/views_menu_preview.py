@@ -1,6 +1,7 @@
 """メニュープレビュー: 管理画面から最初のテーブルのメニューページへリダイレクト"""
 from django.http import HttpResponse
 from django.shortcuts import redirect
+from django.utils.translation import gettext as _
 from django.views import View
 
 from booking.models import TableSeat, Store
@@ -29,6 +30,6 @@ class MenuPreviewRedirectView(View):
 
         return HttpResponse(
             '<p style="padding:40px;text-align:center;color:#666;">'
-            'テーブルが登録されていません。先にテーブルを作成してください。'
-            '</p>',
+            + _('テーブルが登録されていません。先にテーブルを作成してください。')
+            + '</p>',
         )

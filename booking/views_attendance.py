@@ -13,6 +13,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.views.generic import TemplateView
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
+from django.utils.translation import gettext as _
 
 from booking.views_restaurant_dashboard import AdminSidebarMixin
 from booking.models import (
@@ -42,7 +43,7 @@ class AttendanceQRDisplayView(AdminSidebarMixin, TemplateView):
         ctx = super().get_context_data(**kwargs)
         store = _get_user_store(self.request)
         ctx.update({
-            'title': 'QR勤怠',
+            'title': _('QR勤怠'),
             'has_permission': True,
             'store': store,
         })
@@ -68,18 +69,18 @@ class AttendanceBoardView(AdminSidebarMixin, TemplateView):
         # スタッフごとのステータス構築
         staff_status = {}
         for s in staffs:
-            staff_status[s.id] = {'staff': s, 'status': '未出勤', 'stamps': []}
+            staff_status[s.id] = {'staff': s, 'status': _('未出勤'), 'stamps': []}
         for stamp in stamps_today:
             if stamp.staff_id in staff_status:
                 staff_status[stamp.staff_id]['stamps'].append(stamp)
                 if stamp.stamp_type == 'clock_in':
-                    staff_status[stamp.staff_id]['status'] = '出勤中'
+                    staff_status[stamp.staff_id]['status'] = _('出勤中')
                 elif stamp.stamp_type == 'clock_out':
-                    staff_status[stamp.staff_id]['status'] = '退勤済'
+                    staff_status[stamp.staff_id]['status'] = _('退勤済')
                 elif stamp.stamp_type == 'break_start':
-                    staff_status[stamp.staff_id]['status'] = '休憩中'
+                    staff_status[stamp.staff_id]['status'] = _('休憩中')
                 elif stamp.stamp_type == 'break_end':
-                    staff_status[stamp.staff_id]['status'] = '出勤中'
+                    staff_status[stamp.staff_id]['status'] = _('出勤中')
 
         # ステータス別にグループ分け
         zone_working = []
@@ -87,17 +88,17 @@ class AttendanceBoardView(AdminSidebarMixin, TemplateView):
         zone_absent = []
         zone_left = []
         for info in staff_status.values():
-            if info['status'] == '出勤中':
+            if info['status'] == _('出勤中'):
                 zone_working.append(info)
-            elif info['status'] == '休憩中':
+            elif info['status'] == _('休憩中'):
                 zone_break.append(info)
-            elif info['status'] == '退勤済':
+            elif info['status'] == _('退勤済'):
                 zone_left.append(info)
             else:
                 zone_absent.append(info)
 
         ctx.update({
-            'title': '出退勤ボード',
+            'title': _('出退勤ボード'),
             'has_permission': True,
             'store': store,
             'staff_status': staff_status,
@@ -145,7 +146,7 @@ class AttendanceStampAPIView(LoginRequiredMixin, View):
         # 重複チェック
         from booking.services.totp_service import check_duplicate_stamp
         if check_duplicate_stamp(staff_id, stamp_type, minutes=5):
-            return JsonResponse({'error': '5分以内に同一打刻があります'}, status=400)
+            return JsonResponse({'error': _('5分以内に同一打刻があります')}, status=400)
 
         # ジオフェンスチェック
         if config and config.require_geo_check and latitude and longitude:
@@ -156,7 +157,7 @@ class AttendanceStampAPIView(LoginRequiredMixin, View):
                     float(latitude), float(longitude),
                     config.geo_fence_radius_m,
                 ):
-                    return JsonResponse({'error': '店舗の範囲外です'}, status=400)
+                    return JsonResponse({'error': _('店舗の範囲外です')}, status=400)
 
         # 打刻記録
         ip = request.META.get('REMOTE_ADDR', '')
@@ -175,7 +176,7 @@ class AttendanceStampAPIView(LoginRequiredMixin, View):
         # WorkAttendance更新
         today = date.today()
         now = timezone.now()
-        attendance, _ = WorkAttendance.objects.get_or_create(
+        attendance, _created = WorkAttendance.objects.get_or_create(
             staff=staff,
             date=today,
             defaults={'source': 'qr'},
@@ -210,7 +211,7 @@ class AttendanceTOTPRefreshAPI(LoginRequiredMixin, View):
             config = store.totp_config
         except (AttendanceTOTPConfig.DoesNotExist, AttributeError):
             return HttpResponse(
-                '<p style="color:red;">TOTP未設定です</p>', status=404,
+                '<p style="color:red;">' + _('TOTP未設定です') + '</p>', status=404,
             )
 
         from booking.services.totp_service import get_current_totp
@@ -252,7 +253,7 @@ class AttendancePINDisplayView(AdminSidebarMixin, TemplateView):
         store = _get_user_store(self.request)
         staffs = Staff.objects.filter(store=store).order_by('name') if store else Staff.objects.none()
         ctx.update({
-            'title': 'PIN打刻',
+            'title': _('PIN打刻'),
             'has_permission': True,
             'store': store,
             'staffs': staffs,
@@ -285,14 +286,14 @@ class AttendancePINStampAPIView(LoginRequiredMixin, View):
 
         # PIN検証（ハッシュ照合、旧平文データにも後方互換）
         if not staff.attendance_pin:
-            return JsonResponse({'error': 'PINが未設定です'}, status=400)
+            return JsonResponse({'error': _('PINが未設定です')}, status=400)
         if not staff.check_attendance_pin(pin):
-            return JsonResponse({'error': 'PINが正しくありません'}, status=400)
+            return JsonResponse({'error': _('PINが正しくありません')}, status=400)
 
         # 重複チェック
         from booking.services.totp_service import check_duplicate_stamp
         if check_duplicate_stamp(staff_id, stamp_type, minutes=5):
-            return JsonResponse({'error': '5分以内に同一打刻があります'}, status=400)
+            return JsonResponse({'error': _('5分以内に同一打刻があります')}, status=400)
 
         # ジオフェンスチェック
         try:
@@ -308,7 +309,7 @@ class AttendancePINStampAPIView(LoginRequiredMixin, View):
                     float(latitude), float(longitude),
                     config.geo_fence_radius_m,
                 ):
-                    return JsonResponse({'error': '店舗の範囲外です'}, status=400)
+                    return JsonResponse({'error': _('店舗の範囲外です')}, status=400)
 
         # 打刻記録
         ip = request.META.get('REMOTE_ADDR', '')
@@ -327,7 +328,7 @@ class AttendancePINStampAPIView(LoginRequiredMixin, View):
         # WorkAttendance更新
         today = date.today()
         now = timezone.now()
-        attendance, _ = WorkAttendance.objects.get_or_create(
+        attendance, _created = WorkAttendance.objects.get_or_create(
             staff=staff,
             date=today,
             defaults={'source': 'pin'},
@@ -373,7 +374,7 @@ class AttendanceDayStatusAPI(LoginRequiredMixin, View):
                 result[sid] = {
                     'staff_id': sid,
                     'staff_name': stamp.staff.name,
-                    'status': '未出勤',
+                    'status': _('未出勤'),
                     'stamps': [],
                 }
             result[sid]['stamps'].append({
@@ -381,9 +382,9 @@ class AttendanceDayStatusAPI(LoginRequiredMixin, View):
                 'at': stamp.stamped_at.isoformat(),
             })
             if stamp.stamp_type == 'clock_in':
-                result[sid]['status'] = '出勤中'
+                result[sid]['status'] = _('出勤中')
             elif stamp.stamp_type == 'clock_out':
-                result[sid]['status'] = '退勤済'
+                result[sid]['status'] = _('退勤済')
 
         return JsonResponse(list(result.values()), safe=False)
 
@@ -442,22 +443,22 @@ class QRStampAPIView(View):
         try:
             config = store.totp_config
         except AttendanceTOTPConfig.DoesNotExist:
-            return JsonResponse({'error': 'TOTP未設定です'}, status=400)
+            return JsonResponse({'error': _('TOTP未設定です')}, status=400)
 
         from booking.services.totp_service import verify_totp
         if not verify_totp(config.totp_secret, totp_code, config.totp_interval):
-            return JsonResponse({'error': 'QRコードの有効期限切れです。再スキャンしてください'}, status=400)
+            return JsonResponse({'error': _('QRコードの有効期限切れです。再スキャンしてください')}, status=400)
 
         # PIN検証
         if not staff.attendance_pin:
-            return JsonResponse({'error': 'PINが未設定です'}, status=400)
+            return JsonResponse({'error': _('PINが未設定です')}, status=400)
         if not staff.check_attendance_pin(pin):
-            return JsonResponse({'error': 'PINが正しくありません'}, status=400)
+            return JsonResponse({'error': _('PINが正しくありません')}, status=400)
 
         # 重複チェック
         from booking.services.totp_service import check_duplicate_stamp
         if check_duplicate_stamp(staff_id, stamp_type, minutes=5):
-            return JsonResponse({'error': '5分以内に同一打刻があります'}, status=400)
+            return JsonResponse({'error': _('5分以内に同一打刻があります')}, status=400)
 
         # ジオフェンスチェック
         latitude = data.get('latitude')
@@ -470,7 +471,7 @@ class QRStampAPIView(View):
                     float(latitude), float(longitude),
                     config.geo_fence_radius_m,
                 ):
-                    return JsonResponse({'error': '店舗の範囲外です'}, status=400)
+                    return JsonResponse({'error': _('店舗の範囲外です')}, status=400)
 
         # 打刻記録
         ip = request.META.get('REMOTE_ADDR', '')
@@ -489,7 +490,7 @@ class QRStampAPIView(View):
         # WorkAttendance更新
         today = date.today()
         now = timezone.now()
-        attendance, _ = WorkAttendance.objects.get_or_create(
+        attendance, _created = WorkAttendance.objects.get_or_create(
             staff=staff,
             date=today,
             defaults={'source': 'qr'},
@@ -520,9 +521,9 @@ class ManualStampAPIView(View):
 
     def post(self, request):
         if not request.user.is_authenticated:
-            return JsonResponse({'error': 'ログインが必要です'}, status=403)
+            return JsonResponse({'error': _('ログインが必要です')}, status=403)
         if not (request.user.is_staff or request.user.is_superuser):
-            return JsonResponse({'error': '権限がありません'}, status=403)
+            return JsonResponse({'error': _('権限がありません')}, status=403)
 
         try:
             data = json.loads(request.body)
@@ -542,7 +543,7 @@ class ManualStampAPIView(View):
         # 重複チェック
         from booking.services.totp_service import check_duplicate_stamp
         if check_duplicate_stamp(staff_id, stamp_type, minutes=5):
-            return JsonResponse({'error': '5分以内に同一打刻があります'}, status=400)
+            return JsonResponse({'error': _('5分以内に同一打刻があります')}, status=400)
 
         # 打刻記録
         ip = request.META.get('REMOTE_ADDR', '')
@@ -559,7 +560,7 @@ class ManualStampAPIView(View):
         # WorkAttendance更新
         today = date.today()
         now = timezone.now()
-        attendance, _ = WorkAttendance.objects.get_or_create(
+        attendance, _created = WorkAttendance.objects.get_or_create(
             staff=staff,
             date=today,
             defaults={'source': 'manual'},

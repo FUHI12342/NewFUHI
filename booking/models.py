@@ -70,6 +70,10 @@ class Store(models.Model):
     map_url = models.CharField(_('地図URL'), max_length=500, default='', blank=True)
     access_info = models.TextField(_('アクセス情報'), default='', blank=True)
 
+    # 追加の店舗写真（シンプルに3枚まで）
+    photo_2 = models.ImageField(_('店舗写真2'), upload_to='store_photos/', blank=True)
+    photo_3 = models.ImageField(_('店舗写真3'), upload_to='store_photos/', blank=True)
+
     # 追加（多言語）：店舗の既定言語（任意）
     default_language = models.CharField(
         _('既定言語'), max_length=10, default='ja', blank=True, choices=LANG_CHOICES,
@@ -583,6 +587,8 @@ class Category(models.Model):
     store = models.ForeignKey(Store, verbose_name=_('店舗'), on_delete=models.CASCADE, related_name='categories')
     name = models.CharField(_('カテゴリ名'), max_length=100)
     sort_order = models.IntegerField(_('並び順'), default=0)
+    is_restaurant_menu = models.BooleanField(_('飲食メニュー表示'), default=True,
+        help_text=_('チェックを外すとテーブル注文メニューに表示されません（ECのみ等）'))
 
     class Meta:
         app_label = 'booking'
@@ -1164,6 +1170,29 @@ class TableSeat(models.Model):
         return f'{base}/t/{self.id}/'
 
 
+class TaxServiceCharge(models.Model):
+    """税・サービス料設定（消費税、深夜料金等）"""
+    store = models.ForeignKey(Store, verbose_name=_('店舗'), on_delete=models.CASCADE, related_name='tax_charges')
+    name = models.CharField(_('名称'), max_length=100, help_text=_('例: 消費税、深夜料金、サービス料'))
+    rate = models.DecimalField(_('税率(%)'), max_digits=5, decimal_places=2, help_text=_('パーセンテージで入力（例: 10.00）'))
+    is_active = models.BooleanField(_('有効'), default=True)
+    applies_after_hour = models.IntegerField(
+        _('適用開始時間'), null=True, blank=True,
+        help_text=_('この時間以降に適用（例: 22 = 22時以降）。空欄の場合は常時適用'),
+    )
+    sort_order = models.IntegerField(_('並び順'), default=0)
+
+    class Meta:
+        app_label = 'booking'
+        verbose_name = _('税・サービス料')
+        verbose_name_plural = _('税・サービス料設定')
+        ordering = ('store', 'sort_order')
+
+    def __str__(self):
+        hour_info = f' ({self.applies_after_hour}時以降)' if self.applies_after_hour is not None else ''
+        return f'{self.store.name} / {self.name} {self.rate}%{hour_info}'
+
+
 class PaymentMethod(models.Model):
     """店舗別決済方法設定"""
     METHOD_TYPE_CHOICES = [
@@ -1370,6 +1399,10 @@ class SiteSettings(models.Model):
         help_text=_('管理画面・フロントで「占い師」「スタッフ」の代わりに表示する名称（例: キャスト、セラピスト）'))
     staff_label_i18n = models.JSONField(_('スタッフ呼称（多言語）'), default=dict, blank=True,
         help_text=_('言語コードをキーとした翻訳辞書。例: {"en": "Cast", "ko": "캐스트", "zh-hant": "演員"}。未設定の言語はデフォルト呼称を使用。'))
+
+    # 料金ラベル設定
+    price_label = models.CharField(_('料金ラベル'), max_length=50, default='鑑定料',
+        help_text=_('スタッフ一覧で表示する料金の名称（例: 鑑定料、指名料、施術料）'))
 
     # AIチャットウィジェット
     show_ai_chat = models.BooleanField(_('AIアシスタント表示'), default=False,

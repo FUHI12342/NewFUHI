@@ -12,6 +12,7 @@ from django.contrib.admin.views.decorators import staff_member_required
 from django.shortcuts import get_object_or_404
 from django.template.loader import render_to_string
 from django.utils import timezone
+from django.utils.translation import gettext as _
 
 from booking.views_restaurant_dashboard import AdminSidebarMixin
 from booking.models import (
@@ -82,7 +83,7 @@ class ManagerShiftCalendarView(AdminSidebarMixin, TemplateView):
             grid[a.staff_id][a.date.isoformat()] = a
 
         ctx.update({
-            'title': 'シフトカレンダー',
+            'title': _('シフトカレンダー'),
             'has_permission': True,
             'store': store,
             'stores': Store.objects.all(),
@@ -453,7 +454,7 @@ class TodayShiftTimelineView(AdminSidebarMixin, TemplateView):
         })
 
         ctx.update({
-            'title': '本日のシフト',
+            'title': _('本日のシフト'),
             'has_permission': True,
             'store': store,
             'today': today,

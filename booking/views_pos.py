@@ -10,6 +10,7 @@ from django.views import View
 from django.views.generic import TemplateView
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
+from django.utils.translation import gettext as _
 from django.template.loader import render_to_string
 
 from booking.views_restaurant_dashboard import AdminSidebarMixin
@@ -17,6 +18,7 @@ from booking.models import (
     Store, Staff, Product, Category, Order, OrderItem,
     PaymentMethod, POSTransaction, TableSeat,
     StockMovement, apply_stock_movement,
+    TaxServiceCharge,
 )
 
 logger = logging.getLogger(__name__)
@@ -59,7 +61,7 @@ class POSView(AdminSidebarMixin, TemplateView):
         ).prefetch_related('items__product') if store else []
 
         ctx.update({
-            'title': 'POS',
+            'title': _('POS'),
             'has_permission': True,
             'store': store,
             'categories': categories,
@@ -198,7 +200,18 @@ class POSCheckoutAPIView(LoginRequiredMixin, View):
 
             items = order.items.select_related('product').all()
             subtotal = sum(item.qty * item.unit_price for item in items)
-            tax = int(subtotal * 0.1)  # 10% tax
+
+            # 動的税率計算: TaxServiceCharge から有効な税・サービス料を取得
+            now_hour = timezone.now().hour
+            charges = TaxServiceCharge.objects.filter(
+                store=order.store, is_active=True,
+            )
+            tax = 0
+            for charge in charges:
+                if charge.applies_after_hour is not None and now_hour < charge.applies_after_hour:
+                    continue
+                tax += int(subtotal * charge.rate / 100)
+
             discount = order.discount_amount
             total = subtotal + tax - discount
 
@@ -285,7 +298,7 @@ class KitchenDisplayView(AdminSidebarMixin, TemplateView):
         ).select_related('table_seat').prefetch_related('items__product').order_by('-updated_at')[:30] if store else []
 
         ctx.update({
-            'title': 'キッチンディスプレイ',
+            'title': _('キッチンディスプレイ'),
             'has_permission': True,
             'store': store,
             'open_orders': open_orders,

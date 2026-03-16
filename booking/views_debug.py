@@ -12,6 +12,7 @@ from rest_framework.response import Response
 from rest_framework import status
 
 from django.http import HttpResponseForbidden
+from django.utils.translation import gettext as _
 
 from .views_restaurant_dashboard import AdminSidebarMixin
 from .models import IoTDevice, IoTEvent, Staff, SystemConfig
@@ -37,7 +38,7 @@ class AdminDebugPanelView(AdminSidebarMixin, TemplateView):
 
     def dispatch(self, request, *args, **kwargs):
         if not _is_developer_or_superuser(request.user):
-            return HttpResponseForbidden('開発者権限が必要です')
+            return HttpResponseForbidden(_('開発者権限が必要です'))
         return super().dispatch(request, *args, **kwargs)
 
     def get_context_data(self, **kwargs):
@@ -79,10 +80,10 @@ class AdminDebugPanelView(AdminSidebarMixin, TemplateView):
                     all_lines = f.readlines()
                     log_lines = all_lines[-50:]
             except (OSError, UnicodeDecodeError):
-                log_lines = ['(ログファイル読み取りエラー)']
+                log_lines = [_('(ログファイル読み取りエラー)')]
         ctx['log_lines'] = log_lines
 
-        ctx['title'] = 'デバッグパネル'
+        ctx['title'] = _('デバッグパネル')
         ctx['has_permission'] = True
         ctx['site_header'] = getattr(settings, 'ADMIN_SITE_HEADER', 'Django administration')
         return ctx
@@ -177,7 +178,7 @@ class IoTDeviceDebugView(TemplateView):
 
     def dispatch(self, request, *args, **kwargs):
         if not _is_developer_or_superuser(request.user):
-            return HttpResponseForbidden('開発者権限が必要です')
+            return HttpResponseForbidden(_('開発者権限が必要です'))
         return super().dispatch(request, *args, **kwargs)
 
     def get_context_data(self, **kwargs):
@@ -220,6 +221,6 @@ class IoTDeviceDebugView(TemplateView):
             device=device, event_type__startswith='button_'
         ).order_by('-created_at')[:20]
 
-        ctx['title'] = f'デバイスデバッグ: {device.name}'
+        ctx['title'] = _('デバイスデバッグ: %(name)s') % {'name': device.name}
         ctx['has_permission'] = True
         return ctx

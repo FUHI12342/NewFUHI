@@ -26,8 +26,9 @@ def get_user_role(request):
     return 'none'
 
 
-# 仮想アプリグループ定義 (superuser/developer/owner 向け)
+# 仮想アプリグループ定義
 GROUPS = [
+    {'slug': 'pin_clock', 'name': _('PIN打刻'), 'models': []},
     {'slug': 'reservation', 'name': _('予約管理'), 'models': ['schedule']},
     {'slug': 'shift', 'name': _('シフト管理'), 'models': ['shiftperiod', 'shiftrequest', 'shiftassignment', 'shifttemplate', 'shiftpublishhistory']},
     {'slug': 'cast', 'name': _('キャスト管理'), 'models': ['staff', 'storescheduleconfig']},
@@ -36,7 +37,7 @@ GROUPS = [
     {'slug': 'menu_manage', 'name': _('メニュー管理'), 'models': ['category', 'product']},
     {'slug': 'inventory', 'name': _('在庫管理'), 'models': [], 'hidden': True},
     {'slug': 'order', 'name': _('注文管理'), 'models': ['order']},
-    {'slug': 'pos', 'name': _('レジ（POS）'), 'models': ['postransaction']},
+    {'slug': 'pos', 'name': _('レジ（POS）'), 'models': ['postransaction', 'taxservicecharge']},
     {'slug': 'order_history', 'name': _('オーダー履歴'), 'models': []},
     {'slug': 'ec_shop', 'name': _('オンラインショップ'), 'models': []},
     {'slug': 'table_order', 'name': _('店舗管理'), 'models': ['store', 'tableseat']},
@@ -50,6 +51,21 @@ GROUPS = [
     {'slug': 'security', 'name': _('セキュリティ'), 'models': ['securityaudit', 'securitylog', 'costreport']},
     {'slug': 'user_account', 'name': _('ユーザーアカウント管理'), 'models': ['user', 'group']},
 ]
+
+# ロール別に表示するサイドバーグループ（None = 全グループ表示）
+ROLE_VISIBLE_GROUPS = {
+    'superuser': None,  # 全表示
+    'developer': None,  # 全表示
+    'owner': None,      # 全表示
+    'manager': [
+        'pin_clock', 'reservation', 'shift', 'cast',
+        'menu_manage', 'order', 'pos', 'order_history',
+        'ec_shop', 'table_order', 'page_settings',
+    ],
+    'staff': [
+        'pin_clock', 'shift', 'cast',
+    ],
+}
 
 # slug ベースのルックアップ（gettext_lazy のハッシュはロケールで変わるため）
 _GROUP_BY_SLUG = {g['slug']: g for g in GROUPS}
@@ -67,6 +83,10 @@ GROUP_MAP = {g['slug']: g['models'] for g in GROUPS}
 
 # サイドバーに注入するカスタムリンク（slug → リンクリスト）
 SIDEBAR_CUSTOM_LINKS = {
+    'pin_clock': [
+        {'name': _('PIN打刻'), 'admin_url': '/admin/attendance/pin/', 'icon': 'fas fa-key'},
+        {'name': _('出退勤ボード'), 'admin_url': '/admin/attendance/board/', 'icon': 'fas fa-clipboard-check'},
+    ],
     'reservation': [
         {'name': _('売上ダッシュボード'), 'admin_url': '/admin/dashboard/sales/', 'icon': 'fas fa-chart-line'},
         {'name': _('顧客分析'), 'admin_url': '/admin/analytics/visitors/', 'icon': 'fas fa-chart-bar'},
@@ -75,8 +95,6 @@ SIDEBAR_CUSTOM_LINKS = {
     'shift': [
         {'name': _('シフトカレンダー'), 'admin_url': '/admin/shift/calendar/', 'icon': 'fas fa-calendar-alt'},
         {'name': _('本日のシフト'), 'admin_url': '/admin/shift/today/', 'icon': 'fas fa-clock'},
-        {'name': _('PIN打刻'), 'admin_url': '/admin/attendance/pin/', 'icon': 'fas fa-key'},
-        {'name': _('出退勤ボード'), 'admin_url': '/admin/attendance/board/', 'icon': 'fas fa-clipboard-check'},
     ],
     'order': [],
     'pos': [
@@ -189,7 +207,7 @@ class RoleBasedAdminSite(AdminSite):
         # superuser は Django 標準の権限システムで全モデル表示
         if role == 'superuser':
             raw = super().get_app_list(request, app_label)
-            return self._regroup_apps(raw)
+            return self._regroup_apps(raw, role=role)
 
         # 未認証 / Staff なしユーザー
         if role == 'none':
@@ -204,7 +222,7 @@ class RoleBasedAdminSite(AdminSite):
 
         # None = 全モデル表示（developer / owner のデフォルト）
         if allowed is None:
-            return self._regroup_apps(raw)
+            return self._regroup_apps(raw, role=role)
 
         # リストでフィルタ
         filtered = []
@@ -215,7 +233,7 @@ class RoleBasedAdminSite(AdminSite):
                 app_copy['models'] = models
                 filtered.append(app_copy)
 
-        return self._regroup_apps(filtered)
+        return self._regroup_apps(filtered, role=role)
 
     # Role-based permission mapping for admin sidebar display.
     # staff: view only. manager: add/change/view. owner/developer: all.
@@ -259,7 +277,7 @@ class RoleBasedAdminSite(AdminSite):
             app['models'].sort(key=lambda x: x['name'])
         return app_list
 
-    def _regroup_apps(self, raw_app_list):
+    def _regroup_apps(self, raw_app_list, role=None):
         """フラットなモデルリストを仮想アプリグループに再構成（slug ベース）"""
         # 全モデルをフラットに収集
         all_models = {}
@@ -275,6 +293,9 @@ class RoleBasedAdminSite(AdminSite):
         except Exception:
             ec_enabled = ''
 
+        # ロール別グループフィルタ
+        visible_groups = ROLE_VISIBLE_GROUPS.get(role)
+
         # GROUPS の定義順に slug ベースで再グループ化
         result = []
         used_keys = set()
@@ -283,6 +304,10 @@ class RoleBasedAdminSite(AdminSite):
             model_keys = g['models']
             # 非表示グループはスキップ
             if slug in HIDDEN_SLUGS:
+                used_keys.update(k for k in model_keys if k in all_models)
+                continue
+            # ロール別グループフィルタ: visible_groups が指定されていれば制限
+            if visible_groups is not None and slug not in visible_groups:
                 used_keys.update(k for k in model_keys if k in all_models)
                 continue
             # EC未有効時はスキップ

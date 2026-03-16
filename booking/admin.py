@@ -53,6 +53,7 @@ from .models import (
     SalaryStructure,
     TableSeat,
     PaymentMethod,
+    TaxServiceCharge,
     SecurityAudit,
     SecurityLog,
     CostReport,
@@ -130,6 +131,31 @@ class StaffAdmin(admin.ModelAdmin):
 
     list_editable = ('is_recommended',)
     search_fields = ('name', 'store__name')
+
+    # 全フィールド表示（オーナー/開発者/superuser）
+    _full_fieldsets = (
+        (None, {'fields': ('user', 'store', 'name', 'staff_type')}),
+        (_('プロフィール'), {'fields': ('thumbnail', 'introduction', 'price', 'line_id')}),
+        (_('権限'), {'fields': ('is_owner', 'is_store_manager', 'is_developer', 'is_recommended')}),
+        (_('勤怠'), {'fields': ('attendance_pin',)}),
+    )
+
+    # スタッフ/キャスト本人が編集できるフィールド
+    _profile_fieldsets = (
+        (_('マイプロフィール'), {'fields': ('name', 'thumbnail', 'introduction', 'price', 'line_id')}),
+    )
+
+    def get_fieldsets(self, request, obj=None):
+        if _is_owner_or_super(request):
+            return self._full_fieldsets
+        try:
+            staff = request.user.staff
+            if staff.is_store_manager or staff.is_developer:
+                return self._full_fieldsets
+        except Staff.DoesNotExist:
+            pass
+        # 一般スタッフ/キャスト: プロフィールのみ
+        return self._profile_fieldsets
 
     def save_model(self, request, obj, form, change):
         # attendance_pin が変更された場合はハッシュ化して保存
@@ -209,6 +235,11 @@ class StoreAdmin(admin.ModelAdmin):
     list_editable = ('is_recommended',)
     search_fields = ('name', 'address', 'nearest_station')
     inlines = [StoreScheduleConfigInline, AdminThemeInline]
+    fieldsets = (
+        (None, {'fields': ('name', 'address', 'business_hours', 'nearest_station', 'regular_holiday', 'is_recommended', 'default_language')}),
+        (_('店舗紹介'), {'fields': ('description', 'access_info', 'map_url')}),
+        (_('店舗写真'), {'fields': ('thumbnail', 'photo_2', 'photo_3')}),
+    )
 
     def get_queryset(self, request):
         qs = super().get_queryset(request)
@@ -384,9 +415,9 @@ class ProductTranslationInline(admin.TabularInline):
 
 
 class CategoryAdmin(admin.ModelAdmin):
-    list_display = ('store', 'name', 'sort_order')
+    list_display = ('store', 'name', 'sort_order', 'is_restaurant_menu')
     search_fields = ('name', 'store__name')
-    list_editable = ('sort_order',)
+    list_editable = ('sort_order', 'is_restaurant_menu')
 
     def get_queryset(self, request):
         qs = super().get_queryset(request)
@@ -707,6 +738,19 @@ custom_site.register(Order, OrderAdmin)
 # StockMovement (入出庫履歴) は管理画面から削除
 # custom_site.register(StockMovement, StockMovementAdmin)
 
+
+# ==============================
+# 税・サービス料
+# ==============================
+class TaxServiceChargeAdmin(admin.ModelAdmin):
+    list_display = ('store', 'name', 'rate', 'is_active', 'applies_after_hour', 'sort_order')
+    list_editable = ('rate', 'is_active', 'sort_order')
+    list_filter = ('is_active', 'store')
+    search_fields = ('name', 'store__name')
+
+
+custom_site.register(TaxServiceCharge, TaxServiceChargeAdmin)
+
 # User/Group も
 from django.contrib.auth.models import User, Group
 from django.contrib.auth.admin import UserAdmin, GroupAdmin
@@ -834,7 +878,7 @@ class SiteSettingsAdmin(admin.ModelAdmin):
     change_form_template = 'admin/booking/sitesettings/change_form.html'
 
     fieldsets = (
-        (_('基本設定'), {'fields': ('site_name', 'staff_label', 'staff_label_i18n')}),
+        (_('基本設定'), {'fields': ('site_name', 'staff_label', 'staff_label_i18n', 'price_label')}),
         (_('ホームページカード表示'), {'fields': (
             'show_card_store', 'show_card_fortune_teller',
             'show_card_calendar', 'show_card_shop',

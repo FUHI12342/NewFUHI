@@ -95,6 +95,9 @@
 
 {% block extra_js %}
 <script>
+var MSG_ERROR = '{% trans "エラーが発生しました" %}';
+var MSG_NETWORK_ERROR = '{% trans "通信エラーが発生しました" %}';
+
 function getCookie(name) {
     let v = document.cookie.match('(^|;) ?' + name + '=([^;]*)(;|$)');
     return v ? v[2] : null;
@@ -166,10 +169,10 @@ function addToCart(productId) {
                 toast.classList.add('opacity-0');
             }, 1500);
         } else {
-            alert(data.message || 'エラーが発生しました');
+            alert(data.message || MSG_ERROR);
         }
     })
-    .catch(() => alert('通信エラーが発生しました'))
+    .catch(() => alert(MSG_NETWORK_ERROR))
     .finally(() => {
         btn.disabled = false;
         btn.textContent = '{% trans "追加" %}';
