@@ -261,8 +261,9 @@ class AttendancePINDisplayView(AdminSidebarMixin, TemplateView):
         return ctx
 
 
+@method_decorator(csrf_exempt, name='dispatch')
 class AttendancePINStampAPIView(LoginRequiredMixin, View):
-    """PIN検証 → 打刻API"""
+    """PIN検証 → 打刻API（CSRF免除: PIN認証で保護）"""
 
     def post(self, request):
         try:
