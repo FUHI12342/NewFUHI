@@ -4,9 +4,19 @@
 {% block extrastyle %}
 <style>
   .kitchen-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 14px; padding: 16px; }
-  .order-card { border: 2px solid #ddd; border-radius: 10px; padding: 14px; background: #fff; }
-  .order-card .header { font-weight: 700; font-size: 18px; border-bottom: 1px solid #eee; padding-bottom: 8px; margin-bottom: 8px; }
-  .order-card .table-name { color: #666; font-size: 14px; }
+  .order-card { border: 2px solid #ddd; border-radius: 10px; padding: 14px; background: #fff; position: relative; }
+  .order-card.all-served { border-color: #10B981; background: #f0fdf4; }
+  .order-card .header {
+    display: flex; justify-content: space-between; align-items: center;
+    font-weight: 700; font-size: 18px; border-bottom: 1px solid #eee;
+    padding-bottom: 8px; margin-bottom: 8px;
+  }
+  .order-number { font-size: 22px; color: #333; }
+  .table-badge {
+    display: inline-block; background: #e5e7eb; color: #374151;
+    font-size: 14px; font-weight: 700; padding: 2px 10px;
+    border-radius: 6px; letter-spacing: 0.5px;
+  }
   .order-item { display: flex; justify-content: space-between; align-items: center; padding: 6px 0; }
   .status-dot { width: 12px; height: 12px; border-radius: 50%; display: inline-block; margin-right: 6px; }
   .dot-ORDERED { background: #EF4444; }
@@ -20,42 +30,34 @@
   .btn-serve { background: #10B981; }
   .btn-undo { background: #9CA3AF; font-size: 12px; padding: 6px 10px; min-width: auto; }
   .auto-refresh { text-align: center; padding: 8px; color: #999; font-size: 12px; }
+  .served-banner {
+    text-align: center; padding: 12px; margin-top: 8px;
+    background: #10B981; color: #fff; border-radius: 8px;
+    font-size: 20px; font-weight: 700; letter-spacing: 1px;
+    display: flex; align-items: center; justify-content: center;
+  }
+  /* 完了済みセクション */
+  .closed-section { margin-top: 8px; }
+  .closed-header {
+    font-size: 16px; font-weight: 700; color: #6B7280;
+    border-top: 2px solid #e5e7eb; padding-top: 14px; margin: 0 0 10px;
+  }
+  .closed-grid { display: flex; flex-wrap: wrap; gap: 8px; }
+  .closed-card {
+    display: flex; align-items: center; gap: 8px;
+    background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 8px;
+    padding: 8px 14px; font-size: 14px;
+  }
+  .closed-number { font-weight: 700; color: #9CA3AF; font-size: 16px; }
+  .closed-time { color: #9CA3AF; font-size: 12px; }
+  .closed-items { color: #9CA3AF; font-size: 12px; }
 </style>
 {% endblock %}
 {% block content %}
 <div class="auto-refresh">自動更新: 5秒 | 🔴=注文済 🟡=調理中 🟢=配膳済</div>
 <div class="kitchen-grid">
   <div id="kitchen-orders">
-    {% for order in open_orders %}
-    <div class="order-card">
-      <div class="header">#{{ order.id }} <span class="table-name">{{ order.table_label|default:"POS" }}</span></div>
-      {% for item in order.items.all %}
-      <div class="order-item">
-        <div>
-          <span class="status-dot dot-{{ item.status }}"></span>
-          {{ item.product.name }} x{{ item.qty }}
-        </div>
-        <div class="action-btns">
-          {% if item.status == "ORDERED" %}
-          <button class="action-btn btn-prepare"
-                  onclick="updateStatus({{ item.id }}, 'PREPARING', this)">調理開始</button>
-          {% elif item.status == "PREPARING" %}
-          <button class="action-btn btn-undo"
-                  onclick="updateStatus({{ item.id }}, 'ORDERED', this)">戻す</button>
-          <button class="action-btn btn-serve"
-                  onclick="updateStatus({{ item.id }}, 'SERVED', this)">配膳完了</button>
-          {% elif item.status == "SERVED" %}
-          <button class="action-btn btn-undo"
-                  onclick="updateStatus({{ item.id }}, 'PREPARING', this)">戻す</button>
-          <span style="color:#10B981; font-size:18px;">✓</span>
-          {% endif %}
-        </div>
-      </div>
-      {% endfor %}
-    </div>
-    {% empty %}
-    <div style="grid-column:1/-1;text-align:center;padding:40px;color:#999;">注文はありません</div>
-    {% endfor %}
+    {% include "admin/booking/_kitchen_orders_fragment.html" %}
   </div>
 </div>
 
@@ -89,6 +91,26 @@ function updateStatus(itemId, newStatus, btn) {
   .catch(function(e) {
     console.error('Status update error:', e);
     btn.disabled = false;
+  });
+}
+
+function completeOrder(orderId, btn) {
+  btn.disabled = true;
+  btn.textContent = '...';
+  fetch('/api/pos/order/' + orderId + '/complete/', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-CSRFToken': CSRF
+    },
+    body: '{}'
+  })
+  .then(function(r) { return r.json(); })
+  .then(function() { refreshKitchen(); })
+  .catch(function(e) {
+    console.error('Complete order error:', e);
+    btn.disabled = false;
+    btn.textContent = '完了';
   });
 }
 

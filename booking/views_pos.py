@@ -272,16 +272,24 @@ class KitchenDisplayView(AdminSidebarMixin, TemplateView):
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
         store = _get_user_store(self.request)
+        today = timezone.now().date()
 
         open_orders = Order.objects.filter(
             store=store, status=Order.STATUS_OPEN,
-        ).prefetch_related('items__product').order_by('created_at') if store else []
+        ).select_related('table_seat').prefetch_related('items__product').order_by('created_at') if store else []
+
+        # 本日の完了済み注文（新しい順）
+        closed_orders = Order.objects.filter(
+            store=store, status=Order.STATUS_CLOSED,
+            updated_at__date=today,
+        ).select_related('table_seat').prefetch_related('items__product').order_by('-updated_at')[:30] if store else []
 
         ctx.update({
             'title': 'キッチンディスプレイ',
             'has_permission': True,
             'store': store,
             'open_orders': open_orders,
+            'closed_orders': closed_orders,
         })
         return ctx
 
@@ -291,12 +299,24 @@ class KitchenOrdersHTMLView(View):
 
     def get(self, request):
         store = _get_user_store(request)
+        today = timezone.now().date()
+
         open_orders = Order.objects.filter(
             store=store, status=Order.STATUS_OPEN,
-        ).prefetch_related('items__product').order_by('created_at') if store else []
+        ).select_related('table_seat').prefetch_related('items__product').order_by('created_at') if store else []
+
+        closed_orders = Order.objects.filter(
+            store=store, status=Order.STATUS_CLOSED,
+            updated_at__date=today,
+        ).select_related('table_seat').prefetch_related('items__product').order_by('-updated_at')[:30] if store else []
+
         html = render_to_string(
             'admin/booking/_kitchen_orders_fragment.html',
-            {'open_orders': open_orders, 'csrf_token': request.META.get('CSRF_COOKIE', '')},
+            {
+                'open_orders': open_orders,
+                'closed_orders': closed_orders,
+                'csrf_token': request.META.get('CSRF_COOKIE', ''),
+            },
             request=request,
         )
         return HttpResponse(html)
@@ -318,3 +338,16 @@ class KitchenOrderStatusAPI(LoginRequiredMixin, View):
             item.save(update_fields=['status'])
             return JsonResponse({'id': item.id, 'status': item.status})
         return JsonResponse({'error': 'Invalid status'}, status=400)
+
+
+class KitchenOrderCompleteAPI(LoginRequiredMixin, View):
+    """注文を完了済みにする（全アイテム配膳済み後）"""
+
+    def post(self, request, pk=None):
+        order = get_object_or_404(Order, pk=pk)
+        order.status = Order.STATUS_CLOSED
+        order.save(update_fields=['status'])
+        return JsonResponse({
+            'id': order.id,
+            'status': order.status,
+        })

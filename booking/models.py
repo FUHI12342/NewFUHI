@@ -740,6 +740,12 @@ class Order(models.Model):
     def __str__(self):
         return f"Order#{self.id} {self.store.name} ({self.status})"
 
+    @property
+    def all_items_served(self):
+        """全アイテムが配膳済みかどうか"""
+        items = self.items.all()
+        return items.exists() and all(i.status == 'SERVED' for i in items)
+
 
 class OrderItem(models.Model):
     """注文明細"""

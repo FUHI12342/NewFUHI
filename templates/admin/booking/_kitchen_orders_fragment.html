@@ -1,6 +1,10 @@
 {% for order in open_orders %}
-<div class="order-card">
-  <div class="header">#{{ order.id }} <span class="table-name">{{ order.table_label|default:"POS" }}</span></div>
+{% with all_served=order.all_items_served table_name=order.table_seat.label %}
+<div class="order-card{% if all_served %} all-served{% endif %}">
+  <div class="header">
+    <span class="order-number">#{{ order.id }}</span>
+    <span class="table-badge">{{ table_name|default:order.table_label|default:"POS" }}</span>
+  </div>
   {% for item in order.items.all %}
   <div class="order-item">
     <div>
@@ -24,7 +28,33 @@
     </div>
   </div>
   {% endfor %}
+  {% if all_served %}
+  <div class="served-banner">
+    提供完了
+    <button class="action-btn btn-complete" onclick="completeOrder({{ order.id }}, this)"
+            style="margin-left:12px;background:#fff;color:#10B981;border:2px solid #10B981;font-size:16px;padding:6px 20px;">
+      完了
+    </button>
+  </div>
+  {% endif %}
 </div>
+{% endwith %}
 {% empty %}
 <div style="grid-column:1/-1;text-align:center;padding:40px;color:#999;">注文はありません</div>
 {% endfor %}
+
+{% if closed_orders %}
+<div class="closed-section" style="grid-column:1/-1;">
+  <h3 class="closed-header">完了済み（本日）</h3>
+  <div class="closed-grid">
+    {% for order in closed_orders %}
+    <div class="closed-card">
+      <span class="closed-number">#{{ order.id }}</span>
+      <span class="table-badge">{{ order.table_seat.label|default:order.table_label|default:"POS" }}</span>
+      <span class="closed-time">{{ order.updated_at|time:"H:i" }}</span>
+      <span class="closed-items">{{ order.items.count }}品</span>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+{% endif %}
