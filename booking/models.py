@@ -68,6 +68,11 @@ class Store(models.Model):
     is_recommended = models.BooleanField(_('おすすめ'), default=False)
 
     map_url = models.CharField(_('地図URL'), max_length=500, default='', blank=True)
+    google_maps_embed = models.TextField(
+        _('Google Maps埋め込みコード'),
+        default='', blank=True,
+        help_text=_('Google Mapsの「共有→地図を埋め込む」からiframeコードを貼り付けてください'),
+    )
     access_info = models.TextField(_('アクセス情報'), default='', blank=True)
 
     # 追加の店舗写真（シンプルに3枚まで）

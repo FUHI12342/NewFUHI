@@ -239,7 +239,7 @@ class StoreAdmin(admin.ModelAdmin):
     inlines = [StoreScheduleConfigInline, AdminThemeInline]
     fieldsets = (
         (None, {'fields': ('name', 'address', 'business_hours', 'nearest_station', 'regular_holiday', 'is_recommended', 'default_language')}),
-        (_('店舗紹介'), {'fields': ('description', 'access_info', 'map_url')}),
+        (_('店舗紹介'), {'fields': ('description', 'access_info', 'map_url', 'google_maps_embed')}),
         (_('店舗写真'), {'fields': ('thumbnail', 'photo_2', 'photo_3')}),
     )
 

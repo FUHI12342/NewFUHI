@@ -57,6 +57,8 @@ class Command(BaseCommand):
             self.stderr.write('Store が存在しません。先に Store を作成してください。')
             return
 
+        # 店舗デモデータ更新
+        self._update_store_info()
         self.stdout.write(f'対象店舗: {self.store.name} (ID={self.store.id})')
 
         # ── デモユーザー（権限別）──
@@ -109,6 +111,61 @@ class Command(BaseCommand):
         self._seed_system_configs()
 
         self.stdout.write(self.style.SUCCESS('\n=== モックデータ投入完了 ==='))
+
+    # ═════════════════════════════════════════════
+    # Store info update (demo data)
+    # ═════════════════════════════════════════════
+    def _update_store_info(self):
+        store = self.store
+        updated = False
+
+        if not store.description:
+            store.description = (
+                '占いサロンチャンス高円寺店は、高円寺駅から徒歩3分のアットホームなサロンです。\n'
+                'タロット、西洋占星術、手相など多彩な占術で、あなたの未来をサポートします。\n'
+                '完全予約制で、お一人おひとりに丁寧な鑑定をお届けいたします。\n'
+                '初めての方もお気軽にお越しください。'
+            )
+            updated = True
+
+        if not store.address:
+            store.address = '〒166-0002 東京都杉並区高円寺北3-22-18'
+            updated = True
+
+        if not store.business_hours:
+            store.business_hours = '12:00〜21:00（最終受付 20:00）'
+            updated = True
+
+        if not store.nearest_station:
+            store.nearest_station = 'JR中央線・総武線 高円寺駅 北口 徒歩3分'
+            updated = True
+
+        if not store.regular_holiday:
+            store.regular_holiday = '不定休（年末年始を除く）'
+            updated = True
+
+        if not store.access_info:
+            store.access_info = (
+                '高円寺駅北口を出て、高円寺純情商店街をまっすぐ進みます。\n'
+                '2つ目の信号を左折し、50mほど進んだ右手のビル2Fです。\n'
+                '1Fにカフェがある茶色のビルが目印です。'
+            )
+            updated = True
+
+        if not store.map_url:
+            store.map_url = 'https://maps.google.com/?q=高円寺駅'
+            updated = True
+
+        if not store.google_maps_embed:
+            store.google_maps_embed = (
+                '<iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3240.0!2d139.6496!3d35.7054!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x6018f2a0e3b1234%3A0x1234567890!2z6auY5YaG5a-66aeF!5e0!3m2!1sja!2sjp!4v1234567890" '
+                'width="100%" height="350" style="border:0;" allowfullscreen="" loading="lazy" '
+                'referrerpolicy="no-referrer-when-downgrade"></iframe>'
+            )
+            updated = True
+
+        if updated:
+            store.save()
 
     # ═════════════════════════════════════════════
     # Reset
