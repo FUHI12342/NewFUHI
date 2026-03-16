@@ -1267,7 +1267,7 @@ class ShiftPeriod(models.Model):
     ]
     store = models.ForeignKey(Store, on_delete=models.CASCADE, related_name='shift_periods')
     year_month = models.DateField(_('対象年月'))  # 月初の日付
-    deadline = models.DateTimeField(_('申請締切'))
+    deadline = models.DateTimeField(_('申請締切'), null=True, blank=True)
     status = models.CharField(_('状態'), max_length=20, choices=STATUS_CHOICES, default='open')
     created_by = models.ForeignKey(Staff, on_delete=models.SET_NULL, null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)

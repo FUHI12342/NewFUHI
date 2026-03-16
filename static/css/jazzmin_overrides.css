@@ -81,3 +81,233 @@
     background: #28a745;
     color: #fff;
 }
+
+/* ========================================================================
+   ダークモード対応 — カスタム管理画面ビュー用
+   AdminLTE body.dark-mode が有効な場合に適用
+   ======================================================================== */
+
+body.dark-mode {
+    --dm-bg: #1a1a2e;
+    --dm-bg-card: #16213e;
+    --dm-bg-secondary: #1e2a45;
+    --dm-bg-tertiary: #253352;
+    --dm-text: #e0e0e0;
+    --dm-text-muted: #9ca3af;
+    --dm-border: #2d3a5c;
+    --dm-hover: #253352;
+}
+
+/* ---- 共通: カード・テーブル・フォーム ---- */
+body.dark-mode .model-card,
+body.dark-mode .chart-container,
+body.dark-mode .inv-modal,
+body.dark-mode .sidebar-panel,
+body.dark-mode .pin-container {
+    background: var(--dm-bg-card) !important;
+    color: var(--dm-text) !important;
+    border-color: var(--dm-border) !important;
+}
+
+body.dark-mode .toolbar button,
+body.dark-mode .toolbar select,
+body.dark-mode .inv-filter-btn,
+body.dark-mode .inv-btn-secondary {
+    background: var(--dm-bg-secondary) !important;
+    color: var(--dm-text) !important;
+    border-color: var(--dm-border) !important;
+}
+body.dark-mode .toolbar button:hover,
+body.dark-mode .inv-filter-btn:hover {
+    background: var(--dm-bg-tertiary) !important;
+}
+body.dark-mode .inv-filter-btn.active {
+    background: #8c876c !important;
+    color: #fff !important;
+}
+
+/* ---- テーブル ---- */
+body.dark-mode .shift-grid th,
+body.dark-mode .rec-table th,
+body.dark-mode .inv-table th,
+body.dark-mode .stamp-log th,
+body.dark-mode .tl-header {
+    background: var(--dm-bg-secondary) !important;
+    color: var(--dm-text) !important;
+    border-color: var(--dm-border) !important;
+}
+body.dark-mode .shift-grid td,
+body.dark-mode .rec-table td,
+body.dark-mode .inv-table td,
+body.dark-mode .stamp-log td,
+body.dark-mode .tl-cell {
+    border-color: var(--dm-border) !important;
+    color: var(--dm-text) !important;
+}
+body.dark-mode .shift-grid td.staff-name {
+    background: var(--dm-bg-card) !important;
+    color: var(--dm-text) !important;
+}
+body.dark-mode .inv-table tr:hover {
+    background: var(--dm-hover) !important;
+}
+body.dark-mode .inv-table td {
+    border-bottom-color: var(--dm-border) !important;
+}
+
+/* ---- シフトカレンダー ---- */
+body.dark-mode .shift-cell:hover {
+    background: var(--dm-hover) !important;
+}
+body.dark-mode .today-col {
+    background: var(--dm-bg-tertiary) !important;
+}
+
+/* ---- タイムライン（今日のシフト） ---- */
+body.dark-mode .tl-header-time {
+    background: var(--dm-bg-tertiary) !important;
+    color: var(--dm-text) !important;
+}
+body.dark-mode .tl-time {
+    background: var(--dm-bg-secondary) !important;
+    color: var(--dm-text) !important;
+    border-color: var(--dm-border) !important;
+}
+body.dark-mode .no-shift {
+    color: var(--dm-text-muted) !important;
+}
+
+/* ---- AI推薦 ---- */
+body.dark-mode .ai-grid {
+    color: var(--dm-text);
+}
+body.dark-mode .model-card p,
+body.dark-mode .model-card h3,
+body.dark-mode .chart-container h3 {
+    color: var(--dm-text) !important;
+}
+body.dark-mode .rec-table .insufficient {
+    background: #7f1d1d !important;
+    color: #fca5a5 !important;
+}
+body.dark-mode .rec-table .sufficient {
+    background: #064e3b !important;
+    color: #6ee7b7 !important;
+}
+
+/* ---- 在庫管理 ---- */
+body.dark-mode .inv-stat {
+    background: var(--dm-bg-secondary) !important;
+    border-color: var(--dm-border) !important;
+}
+body.dark-mode .inv-stat-label {
+    color: var(--dm-text-muted) !important;
+}
+body.dark-mode .cat-badge {
+    background: var(--dm-bg-tertiary) !important;
+    color: var(--dm-text) !important;
+}
+body.dark-mode .inv-modal-overlay {
+    background: rgba(0, 0, 0, 0.7) !important;
+}
+
+/* ---- PIN打刻 ---- */
+body.dark-mode .store-name {
+    color: var(--dm-text-muted) !important;
+}
+body.dark-mode .form-group label {
+    color: var(--dm-text) !important;
+}
+body.dark-mode .form-group select,
+body.dark-mode .form-group input {
+    background: var(--dm-bg-secondary) !important;
+    color: var(--dm-text) !important;
+    border-color: var(--dm-border) !important;
+}
+body.dark-mode .stamp-log h3 {
+    color: var(--dm-text) !important;
+    border-bottom-color: var(--dm-border) !important;
+}
+
+/* ---- 勤怠ボード ---- */
+body.dark-mode .att-card,
+body.dark-mode .att-card-header {
+    background: var(--dm-bg-card) !important;
+    border-color: var(--dm-border) !important;
+    color: var(--dm-text) !important;
+}
+
+/* ---- フォーム入力共通 ---- */
+body.dark-mode select,
+body.dark-mode input[type="text"],
+body.dark-mode input[type="password"],
+body.dark-mode input[type="number"],
+body.dark-mode textarea {
+    background: var(--dm-bg-secondary) !important;
+    color: var(--dm-text) !important;
+    border-color: var(--dm-border) !important;
+}
+
+/* ---- テキスト色の修正 ---- */
+body.dark-mode h2,
+body.dark-mode h3 {
+    color: var(--dm-text) !important;
+}
+
+/* ---- インライン style="color:#666" 等の上書き ---- */
+body.dark-mode [style*="color:#666"],
+body.dark-mode [style*="color: #666"],
+body.dark-mode [style*="color:#999"],
+body.dark-mode [style*="color: #999"],
+body.dark-mode [style*="color:#333"],
+body.dark-mode [style*="color: #333"],
+body.dark-mode [style*="color:#6b7280"],
+body.dark-mode [style*="color:#9ca3af"] {
+    color: var(--dm-text-muted) !important;
+}
+
+/* ---- インライン bg の上書き ---- */
+body.dark-mode [style*="background:#f3f4f6"],
+body.dark-mode [style*="background: #f3f4f6"],
+body.dark-mode [style*="background:#f9fafb"],
+body.dark-mode [style*="background: #f9fafb"] {
+    background: var(--dm-bg-secondary) !important;
+}
+
+/* ---- リンク色 ---- */
+body.dark-mode .inv-table a {
+    color: #c4b99a !important;
+}
+
+/* ---- POSページ ---- */
+body.dark-mode .pos-item,
+body.dark-mode .pos-cart,
+body.dark-mode .pos-summary {
+    background: var(--dm-bg-card) !important;
+    color: var(--dm-text) !important;
+    border-color: var(--dm-border) !important;
+}
+
+/* ---- キッチンディスプレイ ---- */
+body.dark-mode .order-card {
+    background: var(--dm-bg-card) !important;
+    color: var(--dm-text) !important;
+    border-color: var(--dm-border) !important;
+}
+
+/* ---- 来客分析 ---- */
+body.dark-mode .analytics-card {
+    background: var(--dm-bg-card) !important;
+    color: var(--dm-text) !important;
+    border-color: var(--dm-border) !important;
+}
+
+/* ---- レストランダッシュボード ---- */
+body.dark-mode .rd-card {
+    background: var(--dm-bg-card) !important;
+    border-color: var(--dm-border) !important;
+}
+body.dark-mode .rd-card-header {
+    background: var(--dm-bg-secondary) !important;
+    color: var(--dm-text) !important;
+}

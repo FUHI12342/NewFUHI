@@ -23,6 +23,36 @@ from booking.models import (
 logger = logging.getLogger(__name__)
 
 
+def _render_week_grid(request, store, week_start_str=None):
+    """週グリッドHTMLをレンダリングするヘルパー"""
+    week_dates = _get_week_dates(week_start_str)
+    staffs = Staff.objects.filter(store=store).order_by('name') if store else []
+
+    assignments = ShiftAssignment.objects.filter(
+        period__store=store,
+        date__gte=week_dates[0],
+        date__lte=week_dates[-1],
+    ).select_related('staff') if store else []
+
+    grid = {}
+    for a in assignments:
+        if a.staff_id not in grid:
+            grid[a.staff_id] = {}
+        grid[a.staff_id][a.date.isoformat()] = a
+
+    templates = ShiftTemplate.objects.filter(store=store, is_active=True) if store else []
+
+    return render_to_string('admin/booking/partials/shift_week_grid.html', {
+        'staffs': staffs,
+        'week_dates': week_dates,
+        'grid': grid,
+        'templates': templates,
+        'week_start': week_dates[0].isoformat(),
+        'prev_week': (week_dates[0] - timedelta(weeks=1)).isoformat(),
+        'next_week': (week_dates[0] + timedelta(weeks=1)).isoformat(),
+    }, request=request)
+
+
 def _get_user_store(request):
     """リクエストユーザーの店舗を取得"""
     if request.user.is_superuser:
@@ -61,19 +91,41 @@ class ManagerShiftCalendarView(AdminSidebarMixin, TemplateView):
 
         # スタッフ一覧
         staffs = Staff.objects.filter(store=store).order_by('name') if store else Staff.objects.none()
+        staff_count = staffs.count()
 
-        # 該当週のシフト
-        assignments = ShiftAssignment.objects.filter(
+        # 該当週のシフト（期間指定がある場合はその期間のみ）
+        assign_qs = ShiftAssignment.objects.filter(
             period__store=store,
             date__gte=week_dates[0],
             date__lte=week_dates[-1],
         ).select_related('staff', 'period') if store else ShiftAssignment.objects.none()
+        assignments = assign_qs
 
         # テンプレート一覧
         templates = ShiftTemplate.objects.filter(store=store, is_active=True) if store else ShiftTemplate.objects.none()
 
         # シフト期間一覧
         periods = ShiftPeriod.objects.filter(store=store).order_by('-year_month') if store else ShiftPeriod.objects.none()
+
+        # アクティブ期間（URLパラメータ or 最新のopen/scheduled期間）
+        period_id = self.request.GET.get('period_id')
+        if period_id:
+            active_period = periods.filter(pk=period_id).first()
+        else:
+            active_period = periods.filter(status__in=['open', 'scheduled']).first()
+        if not active_period:
+            active_period = periods.first()
+
+        # 期間ごとのリクエスト集計
+        request_stats = {}
+        if active_period:
+            reqs = ShiftRequest.objects.filter(period=active_period)
+            submitted_staff = reqs.values('staff').distinct().count()
+            total_requests = reqs.count()
+            request_stats = {
+                'submitted_staff': submitted_staff,
+                'total_requests': total_requests,
+            }
 
         # セルデータ構築: {staff_id: {date_str: assignment}}
         grid = {}
@@ -82,16 +134,25 @@ class ManagerShiftCalendarView(AdminSidebarMixin, TemplateView):
                 grid[a.staff_id] = {}
             grid[a.staff_id][a.date.isoformat()] = a
 
+        # 公開履歴（最新5件）
+        publish_history = ShiftPublishHistory.objects.filter(
+            period__store=store,
+        ).select_related('published_by', 'period').order_by('-published_at')[:5] if store else []
+
         ctx.update({
             'title': _('シフトカレンダー'),
             'has_permission': True,
             'store': store,
             'stores': Store.objects.all(),
             'staffs': staffs,
+            'staff_count': staff_count,
             'week_dates': week_dates,
             'grid': grid,
             'templates': templates,
             'periods': periods,
+            'active_period': active_period,
+            'request_stats': request_stats,
+            'publish_history': publish_history,
             'week_start': week_dates[0].isoformat(),
             'prev_week': (week_dates[0] - timedelta(weeks=1)).isoformat(),
             'next_week': (week_dates[0] + timedelta(weeks=1)).isoformat(),
@@ -104,32 +165,7 @@ class ShiftWeekGridView(View):
 
     def get(self, request):
         store = _get_user_store(request)
-        week_dates = _get_week_dates(request.GET.get('week_start'))
-        staffs = Staff.objects.filter(store=store).order_by('name') if store else []
-
-        assignments = ShiftAssignment.objects.filter(
-            period__store=store,
-            date__gte=week_dates[0],
-            date__lte=week_dates[-1],
-        ).select_related('staff') if store else []
-
-        grid = {}
-        for a in assignments:
-            if a.staff_id not in grid:
-                grid[a.staff_id] = {}
-            grid[a.staff_id][a.date.isoformat()] = a
-
-        templates = ShiftTemplate.objects.filter(store=store, is_active=True) if store else []
-
-        html = render_to_string('admin/booking/partials/shift_week_grid.html', {
-            'staffs': staffs,
-            'week_dates': week_dates,
-            'grid': grid,
-            'templates': templates,
-            'week_start': week_dates[0].isoformat(),
-            'prev_week': (week_dates[0] - timedelta(weeks=1)).isoformat(),
-            'next_week': (week_dates[0] + timedelta(weeks=1)).isoformat(),
-        }, request=request)
+        html = _render_week_grid(request, store, request.GET.get('week_start'))
         return HttpResponse(html)
 
 
@@ -402,10 +438,17 @@ class ShiftAutoScheduleAPIView(View):
             ).order_by('-year_month').first()
 
         if not period:
+            if request.headers.get('HX-Request'):
+                return HttpResponse('<p style="color:#EF4444;padding:16px;">シフト期間が見つかりません</p>')
             return JsonResponse({'error': 'No shift period found'}, status=404)
 
         from booking.services.shift_scheduler import auto_schedule
         count = auto_schedule(period)
+
+        # HTMX: 週グリッドHTMLを返す
+        if request.headers.get('HX-Request'):
+            html = _render_week_grid(request, store, request.GET.get('week_start'))
+            return HttpResponse(html)
         return JsonResponse({'created': count, 'period_id': period.id})
 
 
@@ -513,8 +556,94 @@ class ShiftPublishAPIView(View):
         except Exception as e:
             logger.warning("Failed to send shift notification: %s", e)
 
+        # HTMX: 週グリッドHTMLを返す
+        if request.headers.get('HX-Request'):
+            html = _render_week_grid(request, store, request.GET.get('week_start'))
+            return HttpResponse(html)
         return JsonResponse({
             'synced': synced,
             'period_id': period.id,
             'status': period.status,
         })
+
+
+class ShiftPeriodAPIView(View):
+    """シフト期間 作成・ステータス変更API"""
+
+    def post(self, request):
+        """新規シフト期間を作成し、募集を開始"""
+        try:
+            data = json.loads(request.body)
+        except json.JSONDecodeError:
+            return JsonResponse({'error': 'Invalid JSON'}, status=400)
+
+        store = _get_user_store(request)
+        year_month = data.get('year_month')
+        deadline = data.get('deadline')
+
+        if not year_month:
+            return JsonResponse({'error': 'year_month is required'}, status=400)
+
+        # 既存チェック
+        existing = ShiftPeriod.objects.filter(store=store, year_month=year_month).first()
+        if existing:
+            return JsonResponse({'error': f'{year_month} の期間は既に存在します', 'period_id': existing.id}, status=409)
+
+        # 作成者の取得
+        created_by = None
+        try:
+            created_by = request.user.staff
+        except (Staff.DoesNotExist, AttributeError):
+            pass
+
+        period = ShiftPeriod.objects.create(
+            store=store,
+            year_month=year_month,
+            deadline=deadline or None,
+            status='open',
+            created_by=created_by,
+        )
+
+        # 募集開始通知を送信
+        try:
+            from booking.services.shift_notifications import notify_shift_period_open
+            notify_shift_period_open(period)
+        except Exception as e:
+            logger.warning("Failed to send period open notification: %s", e)
+
+        if request.headers.get('HX-Request'):
+            return HttpResponse(
+                f'<div class="alert-success" style="padding:12px;background:#d1fae5;color:#065f46;'
+                f'border-radius:6px;margin:8px 0;">'
+                f'{period.year_month.strftime("%Y年%m月")} のシフト募集を開始しました。'
+                f'スタッフに通知を送信しました。</div>',
+                headers={'HX-Trigger': 'periodCreated'},
+            )
+        return JsonResponse({'id': period.id, 'status': period.status}, status=201)
+
+    def put(self, request, pk=None):
+        """シフト期間のステータスを更新"""
+        period = get_object_or_404(ShiftPeriod, pk=pk)
+        try:
+            data = json.loads(request.body)
+        except json.JSONDecodeError:
+            return JsonResponse({'error': 'Invalid JSON'}, status=400)
+
+        new_status = data.get('status')
+        valid_transitions = {
+            'open': ['closed'],
+            'closed': ['open', 'scheduled'],
+            'scheduled': ['open', 'approved'],
+            'approved': ['scheduled'],
+        }
+        if new_status not in valid_transitions.get(period.status, []):
+            return JsonResponse({
+                'error': f'{period.get_status_display()} → {new_status} への遷移は無効です',
+            }, status=400)
+
+        period.status = new_status
+        if data.get('deadline'):
+            period.deadline = data['deadline']
+        period.save()
+
+        return JsonResponse({'id': period.id, 'status': period.status})

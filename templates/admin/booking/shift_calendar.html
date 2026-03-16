@@ -9,6 +9,61 @@
 <script src="https://unpkg.com/htmx.org@1.9.10"></script>
 <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.14.9/dist/cdn.min.js"></script>
 <style>
+  /* ===== ワークフローステッパー ===== */
+  .wf-steps { display: flex; gap: 0; margin-bottom: 24px; }
+  .wf-step {
+    flex: 1; padding: 12px 16px; text-align: center; position: relative;
+    border-bottom: 3px solid #d1d5db; cursor: default;
+  }
+  .wf-step-num {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 28px; height: 28px; border-radius: 50%;
+    background: #d1d5db; color: #fff; font-weight: 700; font-size: 13px;
+    margin-bottom: 4px;
+  }
+  .wf-step-label { display: block; font-size: 12px; font-weight: 600; color: #6b7280; }
+  .wf-step.active { border-bottom-color: #3B82F6; }
+  .wf-step.active .wf-step-num { background: #3B82F6; }
+  .wf-step.active .wf-step-label { color: #3B82F6; }
+  .wf-step.done { border-bottom-color: #10B981; }
+  .wf-step.done .wf-step-num { background: #10B981; }
+  .wf-step.done .wf-step-label { color: #10B981; }
+
+  /* ===== ワークフローパネル ===== */
+  .wf-panel {
+    background: #fff; border: 1px solid #e5e7eb; border-radius: 8px;
+    padding: 20px; margin-bottom: 20px;
+  }
+  .wf-panel h3 { margin: 0 0 12px; font-size: 16px; }
+  .wf-panel-muted { color: #6b7280; font-size: 14px; }
+
+  /* ===== 期間カード ===== */
+  .period-cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 12px; }
+  .period-card {
+    border: 1px solid #e5e7eb; border-radius: 8px; padding: 16px;
+    transition: box-shadow .15s;
+  }
+  .period-card:hover { box-shadow: 0 2px 8px rgba(0,0,0,.08); }
+  .period-card.selected { border-color: #3B82F6; box-shadow: 0 0 0 2px rgba(59,130,246,.2); }
+  .period-card-month { font-size: 18px; font-weight: 700; }
+  .period-card-status {
+    display: inline-block; padding: 2px 8px; border-radius: 12px;
+    font-size: 11px; font-weight: 600; margin-left: 8px;
+  }
+  .status-open { background: #DBEAFE; color: #1E40AF; }
+  .status-closed { background: #E5E7EB; color: #374151; }
+  .status-scheduled { background: #FEF3C7; color: #92400E; }
+  .status-approved { background: #D1FAE5; color: #065F46; }
+
+  /* ===== 統計バー ===== */
+  .stat-bar { display: flex; gap: 16px; margin: 12px 0; flex-wrap: wrap; }
+  .stat-item {
+    display: flex; align-items: center; gap: 6px;
+    font-size: 13px; color: #6b7280;
+  }
+  .stat-num { font-size: 20px; font-weight: 700; color: #1f2937; }
+
+  /* ===== シフトグリッド ===== */
   .shift-grid { width: 100%; border-collapse: collapse; }
   .shift-grid th, .shift-grid td { border: 1px solid #ddd; padding: 4px 8px; text-align: center; min-width: 100px; }
   .shift-grid th { background: #f5f5f5; position: sticky; top: 0; z-index: 10; }
@@ -16,17 +71,46 @@
   .shift-cell { cursor: pointer; min-height: 60px; transition: background .15s; }
   .shift-cell:hover { background: #f0f7ff; }
   .shift-block { display: inline-block; padding: 2px 6px; border-radius: 4px; color: #fff; font-size: 12px; line-height: 1.3; }
+
+  /* ===== ツールバー ===== */
   .toolbar { display: flex; align-items: center; gap: 12px; padding: 12px 0; flex-wrap: wrap; }
   .toolbar button, .toolbar select { padding: 6px 14px; border: 1px solid #ccc; border-radius: 4px; cursor: pointer; background: #fff; }
   .toolbar button:hover { background: #e8e8e8; }
-  .toolbar .btn-primary { background: #3B82F6; color: #fff; border-color: #3B82F6; }
-  .toolbar .btn-primary:hover { background: #2563EB; }
-  .toolbar .btn-success { background: #10B981; color: #fff; border-color: #10B981; }
-  .template-chips { display: flex; gap: 6px; }
+
+  /* ===== ボタン ===== */
+  .btn { padding: 8px 20px; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 14px; transition: opacity .15s; }
+  .btn:hover { opacity: 0.85; }
+  .btn:disabled { opacity: 0.4; cursor: not-allowed; }
+  .btn-primary { background: #3B82F6; color: #fff; }
+  .btn-success { background: #10B981; color: #fff; }
+  .btn-warning { background: #F59E0B; color: #fff; }
+  .btn-danger { background: #EF4444; color: #fff; }
+  .btn-outline { background: #fff; color: #374151; border: 1px solid #d1d5db; }
+  .btn-sm { padding: 4px 12px; font-size: 12px; }
+
+  /* ===== テンプレートチップ ===== */
+  .template-chips { display: flex; gap: 6px; flex-wrap: wrap; }
   .template-chip { padding: 4px 10px; border-radius: 12px; color: #fff; font-size: 12px; cursor: pointer; }
+
+  /* ===== サイドバー ===== */
   .sidebar-panel { position: fixed; right: 0; top: 56px; width: 350px; height: calc(100vh - 56px); background: #fff; box-shadow: -2px 0 8px rgba(0,0,0,.1); z-index: 100; padding: 16px; overflow-y: auto; transition: transform .2s; }
   .sidebar-panel.hidden { transform: translateX(100%); }
   .today-col { background: #eff6ff !important; }
+
+  /* ===== 公開履歴 ===== */
+  .publish-log { margin-top: 12px; }
+  .publish-log-item { display: flex; align-items: center; gap: 8px; padding: 6px 0; border-bottom: 1px solid #f3f4f6; font-size: 13px; }
+  .publish-log-item:last-child { border-bottom: none; }
+
+  /* ===== 新規期間フォーム ===== */
+  .new-period-form { display: flex; gap: 8px; align-items: flex-end; flex-wrap: wrap; margin-top: 12px; }
+  .new-period-form label { font-size: 12px; font-weight: 600; color: #6b7280; display: block; margin-bottom: 2px; }
+  .new-period-form input { padding: 6px 12px; border: 1px solid #d1d5db; border-radius: 4px; font-size: 14px; }
+
+  /* ===== アラート ===== */
+  .alert-success { padding: 12px; background: #d1fae5; color: #065f46; border-radius: 6px; margin: 8px 0; }
+  .alert-info { padding: 12px; background: #dbeafe; color: #1e40af; border-radius: 6px; margin: 8px 0; }
+  .alert-warning { padding: 12px; background: #fef3c7; color: #92400e; border-radius: 6px; margin: 8px 0; }
 </style>
 {% endblock %}
 
@@ -36,88 +120,237 @@
   selectedStaff: null,
   selectedDate: null,
   confirmPublish: false,
-  filterStaffType: 'all'
+  showNewPeriod: false
 }" hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'>
 
-  {# ツールバー #}
+  {# ===== ワークフローステッパー ===== #}
+  <div class="wf-steps">
+    <div class="wf-step {% if active_period and active_period.status == 'open' %}active{% elif active_period %}done{% endif %}">
+      <span class="wf-step-num">1</span>
+      <span class="wf-step-label">{% trans "シフト募集" %}</span>
+    </div>
+    <div class="wf-step {% if active_period and active_period.status == 'open' and request_stats.submitted_staff %}active{% elif active_period and active_period.status != 'open' %}done{% endif %}">
+      <span class="wf-step-num">2</span>
+      <span class="wf-step-label">{% trans "希望受付" %}</span>
+    </div>
+    <div class="wf-step {% if active_period.status == 'scheduled' %}active{% elif active_period.status == 'approved' %}done{% endif %}">
+      <span class="wf-step-num">3</span>
+      <span class="wf-step-label">{% trans "自動配置" %}</span>
+    </div>
+    <div class="wf-step {% if active_period.status == 'approved' %}active done{% endif %}">
+      <span class="wf-step-num">4</span>
+      <span class="wf-step-label">{% trans "公開・通知" %}</span>
+    </div>
+  </div>
+
+  {# ===== 期間管理パネル ===== #}
+  <div class="wf-panel">
+    <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;">
+      <h3>{% trans "シフト期間" %}</h3>
+      <button class="btn btn-primary btn-sm" @click="showNewPeriod = !showNewPeriod">
+        + {% trans "新規募集" %}
+      </button>
+    </div>
+
+    {# 新規期間フォーム #}
+    <div x-show="showNewPeriod" x-cloak style="margin-top:12px;">
+      <div class="new-period-form" id="new-period-form">
+        <div>
+          <label for="new-year-month">{% trans "対象月" %}</label>
+          <input type="month" id="new-year-month" required>
+        </div>
+        <div>
+          <label for="new-deadline">{% trans "締切日" %}</label>
+          <input type="date" id="new-deadline">
+        </div>
+        <button class="btn btn-primary btn-sm" onclick="createPeriod()">
+          {% trans "募集を開始する" %}
+        </button>
+      </div>
+      <div id="new-period-result"></div>
+    </div>
+
+    {# 既存期間カード #}
+    {% if periods %}
+    <div class="period-cards" style="margin-top:12px;">
+      {% for p in periods %}
+      <div class="period-card {% if active_period and p.id == active_period.id %}selected{% endif %}"
+           onclick="location.search='?period_id={{ p.id }}'">
+        <span class="period-card-month">{{ p.year_month|date:"Y年m月" }}</span>
+        <span class="period-card-status status-{{ p.status }}">
+          {{ p.get_status_display }}
+        </span>
+        {% if p.deadline %}
+        <div style="font-size:12px;color:#6b7280;margin-top:4px;">
+          {% trans "締切" %}: {{ p.deadline|date:"m/d" }}
+        </div>
+        {% endif %}
+      </div>
+      {% endfor %}
+    </div>
+    {% else %}
+    <p class="wf-panel-muted" style="margin-top:12px;">
+      {% trans "シフト期間がありません。「新規募集」ボタンから作成してください。" %}
+    </p>
+    {% endif %}
+  </div>
+
+  {# ===== 希望提出状況パネル ===== #}
+  {% if active_period %}
+  <div class="wf-panel">
+    <h3>
+      {{ active_period.year_month|date:"Y年m月" }} —
+      <span class="period-card-status status-{{ active_period.status }}">{{ active_period.get_status_display }}</span>
+    </h3>
+
+    <div class="stat-bar">
+      <div class="stat-item">
+        <span class="stat-num">{{ request_stats.submitted_staff|default:"0" }}</span>
+        / {{ staff_count }}
+        {% trans "人が希望提出済み" %}
+      </div>
+      <div class="stat-item">
+        {% trans "希望件数" %}:
+        <span style="font-weight:700;">{{ request_stats.total_requests|default:"0" }}</span>
+      </div>
+    </div>
+
+    {# アクションボタン #}
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px;">
+      {% if active_period.status == 'open' %}
+        <button class="btn btn-warning btn-sm"
+                hx-post="/api/shift/auto-schedule/"
+                hx-vals='{"period_id": "{{ active_period.id }}"}'
+                hx-target="#week-grid" hx-swap="innerHTML"
+                hx-confirm="{% trans '希望データを元にシフトを自動作成しますか？（既存のシフトは上書きされます）' %}">
+          {% trans "自動配置を実行" %}
+        </button>
+      {% endif %}
+
+      {% if active_period.status == 'scheduled' %}
+        <div x-show="!confirmPublish" style="display:flex;gap:8px;">
+          <button class="btn btn-success btn-sm" @click="confirmPublish = true">
+            {% trans "シフトを公開する" %}
+          </button>
+        </div>
+        <div x-show="confirmPublish" style="display:flex;gap:8px;align-items:center;">
+          <span style="font-size:14px;font-weight:600;color:#DC2626;">{% trans "本当に公開しますか？スタッフに通知されます。" %}</span>
+          <button class="btn btn-success btn-sm"
+                  hx-post="/api/shift/publish/"
+                  hx-vals='{"period_id": "{{ active_period.id }}"}'
+                  hx-target="#week-grid" hx-swap="innerHTML"
+                  @click="confirmPublish = false">
+            {% trans "はい、公開する" %}
+          </button>
+          <button class="btn btn-outline btn-sm" @click="confirmPublish = false">{% trans "キャンセル" %}</button>
+        </div>
+      {% endif %}
+
+      {% if active_period.status == 'approved' %}
+        <div class="alert-success" style="margin:0;">
+          {% trans "このシフトは公開済みです。スタッフに通知されました。" %}
+        </div>
+      {% endif %}
+    </div>
+  </div>
+  {% endif %}
+
+  {# ===== 週ナビゲーション + テンプレート ===== #}
   <div class="toolbar">
-    <a href="?week_start={{ prev_week }}"
-       hx-get="/api/shift/week-grid/?week_start={{ prev_week }}"
-       hx-target="#week-grid" hx-swap="innerHTML"
-       hx-push-url="?week_start={{ prev_week }}">◀ 前週</a>
+    <a href="?week_start={{ prev_week }}{% if active_period %}&period_id={{ active_period.id }}{% endif %}"
+       class="btn btn-outline btn-sm">◀ {% trans "前週" %}</a>
 
     <strong>
       {{ week_dates.0|date:"Y年m月d日" }} 〜 {{ week_dates.6|date:"m月d日" }}
     </strong>
 
-    <a href="?week_start={{ next_week }}"
-       hx-get="/api/shift/week-grid/?week_start={{ next_week }}"
-       hx-target="#week-grid" hx-swap="innerHTML"
-       hx-push-url="?week_start={{ next_week }}">次週 ▶</a>
+    <a href="?week_start={{ next_week }}{% if active_period %}&period_id={{ active_period.id }}{% endif %}"
+       class="btn btn-outline btn-sm">{% trans "次週" %} ▶</a>
 
-    {% if periods %}
-    <select name="period_id" id="period-select">
-      {% for p in periods %}
-      <option value="{{ p.id }}">{{ p.year_month|date:"Y年m月" }} ({{ p.get_status_display }})</option>
-      {% endfor %}
-    </select>
-    {% endif %}
-
-    <div class="template-chips">
+    {% if templates %}
+    <div class="template-chips" style="margin-left:auto;">
       {% for t in templates %}
       <span class="template-chip" style="background:{{ t.color }}" title="{{ t.start_time|time:'H:i' }}-{{ t.end_time|time:'H:i' }}">
         {{ t.name }}
       </span>
       {% endfor %}
     </div>
+    {% endif %}
 
-    <button class="btn-primary"
-            hx-post="/api/shift/auto-schedule/"
-            hx-vals='js:{period_id: document.getElementById("period-select")?.value}'
-            hx-target="#week-grid" hx-swap="innerHTML"
-            hx-confirm="自動スケジューリングを実行しますか？">
-      自動配置
-    </button>
-
-    <button class="btn-success"
-            @click="confirmPublish = true"
-            x-show="!confirmPublish">
-      公開
-    </button>
-    <div x-show="confirmPublish" style="display:flex;gap:6px;align-items:center;">
-      <span>公開しますか？</span>
-      <button class="btn-success"
-              hx-post="/api/shift/publish/"
-              hx-vals='js:{period_id: document.getElementById("period-select")?.value}'
-              hx-target="#week-grid" hx-swap="innerHTML"
-              @click="confirmPublish = false">
-        はい
-      </button>
-      <button @click="confirmPublish = false">キャンセル</button>
-    </div>
-
-    <button class="tour-help-btn" onclick="startTour();" title="ヘルプを表示" style="margin-left:auto;">ヘルプ</button>
+    <button class="tour-help-btn" onclick="startTour();" title="{% trans 'ヘルプを表示' %}" style="margin-left:8px;">{% trans "ヘルプ" %}</button>
   </div>
 
-  {# 週グリッド #}
+  {# ===== 週グリッド ===== #}
   <div id="week-grid" style="overflow-x:auto;">
     {% include "admin/booking/partials/shift_week_grid.html" %}
   </div>
 
-  {# サイドバー #}
+  {# ===== 公開履歴 ===== #}
+  {% if publish_history %}
+  <div class="wf-panel" style="margin-top:20px;">
+    <h3>{% trans "公開履歴" %}</h3>
+    <div class="publish-log">
+      {% for ph in publish_history %}
+      <div class="publish-log-item">
+        <span style="color:#10B981;">●</span>
+        <span>{{ ph.published_at|date:"Y/m/d H:i" }}</span>
+        <span>{{ ph.period.year_month|date:"Y年m月" }}</span>
+        <span style="color:#6b7280;">{{ ph.assignment_count }}{% trans "件" %}</span>
+        {% if ph.published_by %}
+        <span style="color:#6b7280;">by {{ ph.published_by.name }}</span>
+        {% endif %}
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+
+  {# ===== サイドバー ===== #}
   <div id="sidebar" class="sidebar-panel" :class="{ 'hidden': !showSidebar }">
-    <button @click="showSidebar = false" style="float:right;">✕</button>
+    <button @click="showSidebar = false" style="float:right;border:none;background:none;font-size:20px;cursor:pointer;">✕</button>
     <div id="sidebar-content"></div>
   </div>
 </div>
 
 <script>
+function createPeriod() {
+  const ym = document.getElementById('new-year-month').value;
+  const dl = document.getElementById('new-deadline').value;
+  if (!ym) { alert('対象月を選択してください'); return; }
+
+  fetch('/api/shift/periods/', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-CSRFToken': '{{ csrf_token }}',
+    },
+    body: JSON.stringify({year_month: ym + '-01', deadline: dl || null}),
+    credentials: 'same-origin',
+  })
+  .then(r => {
+    if (r.status === 409) return r.json().then(d => { throw new Error(d.error); });
+    if (!r.ok) return r.json().then(d => { throw new Error(d.error || 'エラーが発生しました'); });
+    return r.json();
+  })
+  .then(() => { location.reload(); })
+  .catch(err => {
+    document.getElementById('new-period-result').innerHTML =
+      '<div style="padding:8px;background:#fee2e2;color:#991b1b;border-radius:6px;margin-top:8px;">' +
+      err.message + '</div>';
+  });
+}
+
 window.TOUR_STORAGE_KEY = 'shift_calendar_tour_seen';
 window.TOUR_STEPS = [
   {
-    selector: '.toolbar',
-    title: 'ツールバー',
-    text: '前週・次週のナビゲーション、期間選択、シフトテンプレートが並んでいます。',
+    selector: '.wf-steps',
+    title: 'ワークフロー',
+    text: 'シフト管理の4ステップ: 募集 → 希望受付 → 自動配置 → 公開。現在のステップが青くハイライトされます。',
+  },
+  {
+    selector: '.wf-panel',
+    title: 'シフト期間',
+    text: '「新規募集」でシフト期間を作成し、スタッフに通知を送信します。',
   },
   {
     selector: '#week-grid',
@@ -127,7 +360,7 @@ window.TOUR_STEPS = [
   {
     selector: '.template-chips',
     title: 'シフトテンプレート',
-    text: '登録済みのシフトテンプレートです。ドラッグ＆ドロップでスタッフに割り当てできます。',
+    text: '登録済みのシフトテンプレートです。',
   },
   {
     selector: '.tour-help-btn',
