@@ -418,15 +418,14 @@ class TestAttendanceTOTPRefreshAPI:
     def test_no_totp_config(self, su_client):
         resp = su_client.get(self.URL)
         assert resp.status_code == 404
-        assert 'TOTP not configured' in resp.json()['error']
+        assert 'TOTP未設定' in resp.content.decode()
 
     def test_with_totp_config(self, su_client, totp_cfg):
         resp = su_client.get(self.URL)
         assert resp.status_code == 200
-        data = resp.json()
-        assert 'code' in data
-        assert data['interval'] == 30
-        assert len(data['code']) > 0
+        content = resp.content.decode()
+        # HTML fragment with QR image and code text
+        assert 'qr-image' in content or 'qr-code-text' in content
 
 
 # ==============================

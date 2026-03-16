@@ -34,7 +34,10 @@ from .views_property import PropertyStatusAPIView, PropertyAlertResolveAPIView
 from .views import CheckinAPIView, CartAddAPIView, CartUpdateAPIView, CartRemoveAPIView
 from .views import TableCartAddAPI, TableCartUpdateAPI, TableCartRemoveAPI, TableOrderCreateAPI, TableOrderStatusAPI
 # from .views_chat import AdminChatAPIView  # AI Chat一時無効化
-from .views_attendance import AttendanceStampAPIView, AttendanceTOTPRefreshAPI, AttendanceDayStatusAPI, AttendancePINStampAPIView
+from .views_attendance import (
+    AttendanceStampAPIView, AttendanceTOTPRefreshAPI, AttendanceDayStatusAPI,
+    AttendancePINStampAPIView, QRStampAPIView, ManualStampAPIView,
+)
 from .views_pos import POSOrderAPIView, POSOrderItemAPIView, POSCheckoutAPIView, KitchenOrderStatusAPI, KitchenOrdersHTMLView
 from .views_analytics import VisitorCountAPIView, VisitorHeatmapAPIView, ConversionAnalyticsAPIView
 from .views_ai_recommend import AIRecommendationAPIView, AITrainModelAPIView, AIModelStatusAPIView
@@ -134,6 +137,12 @@ urlpatterns = [
 
     # PIN打刻API
     path('attendance/pin-stamp/', AttendancePINStampAPIView.as_view(), name='attendance_pin_stamp'),
+
+    # QRスキャン打刻API（ログイン不要、TOTP+PIN認証）
+    path('attendance/qr-stamp/', QRStampAPIView.as_view(), name='attendance_qr_stamp'),
+
+    # マニュアル打刻API（管理者用、端末忘れ時）
+    path('attendance/manual-stamp/', ManualStampAPIView.as_view(), name='attendance_manual_stamp'),
 
     # Air統合: POS API
     path('pos/orders/', POSOrderAPIView.as_view(), name='pos_orders'),

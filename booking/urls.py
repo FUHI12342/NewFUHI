@@ -28,6 +28,7 @@ from .views import (
     CartView,
     ShopCheckoutView,
 )
+from .views_attendance import AttendanceStampPageView
 
 
 app_name = 'booking'
@@ -149,4 +150,7 @@ urlpatterns = [
     path('shop/', ShopView.as_view(), name='shop'),
     path('shop/cart/', CartView.as_view(), name='shop_cart'),
     path('shop/checkout/', ShopCheckoutView.as_view(), name='shop_checkout'),
+
+    # QR勤怠: スマホ打刻ページ（ログイン不要）
+    path('attendance/stamp/', AttendanceStampPageView.as_view(), name='attendance_stamp_page'),
 ]

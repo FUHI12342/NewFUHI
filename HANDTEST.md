@@ -3,7 +3,7 @@
 > 自動テストではカバーできない外部連携・実機操作・ブラウザ操作・ダッシュボードUI を対象とした手動テスト手順書。
 > 各テスト項目に [PASS] / [FAIL] を記録し、実施日とテスターを記入してください。
 >
-> **自動テスト**: `pytest` (769テスト pass / 7 skipped, カバレッジ60%) でモデル・ビュー・API・タスク・セキュリティをカバー済み。
+> **自動テスト**: `pytest` (817テスト pass / 7 skipped, カバレッジ62%) でモデル・ビュー・API・タスク・セキュリティをカバー済み。
 > 本書はそれ以外の手動確認が必要な項目をカバーします。
 
 ---
@@ -1378,3 +1378,138 @@ python manage.py seed_mock_data --reset
 | 11 | `/api/analytics/conversion/` | GET | Session | 200, コンバージョン | [ ] |
 | 12 | `/api/properties/<pk>/status/` | GET | Session | 200, 物件ステータス | [ ] |
 | 13 | `/api/alerts/<pk>/resolve/` | POST | Session | 200, アラート解決 | [ ] |
+
+---
+
+## 追加セクション I: 店舗アクセス情報 (2026-03-14 追加)
+
+### I.1 管理画面: Store モデルにアクセス情報入力
+
+- [ ] 1. 管理画面 `/admin/booking/store/` → 店舗編集
+- [ ] 2. `地図URL` フィールドが表示されること (CharField, max_length=500)
+- [ ] 3. `アクセス情報` フィールドが表示されること (TextField, 改行対応)
+- [ ] 4. Google Maps URL を入力 → 保存 → 再表示で値が保持されること
+- [ ] 5. 道順テキスト（複数行）を入力 → 保存 → 再表示で改行が保持されること
+- [ ] 6. 両フィールド空で保存 → エラーなし（blank=True）
+
+### I.2 公開ページ: 店舗アクセスページ
+
+- [ ] 1. `/store/<pk>/access/` にアクセス → 200
+- [ ] 2. 店舗名・住所・最寄り駅・営業時間が表示されること
+- [ ] 3. `access_info` が設定済み → 道順テキスト表示（改行反映: whitespace-pre-line）
+- [ ] 4. `map_url` が設定済み → 「Google Maps で開く」ボタン表示
+- [ ] 5. `access_info` / `map_url` 未設定 → 該当セクション非表示
+- [ ] 6. 存在しない店舗ID → 404
+- [ ] 7. 「店舗一覧に戻る」リンクが機能すること
+
+### I.3 店舗一覧: アクセスリンク
+
+- [ ] 1. `/booking/stores/` → 各店舗カードに「アクセス情報」ボタンが表示
+- [ ] 2. ボタンクリック → `/store/<pk>/access/` に遷移
+
+### I.4 決済完了メッセージ: アクセス情報
+
+- [ ] 1. アクセス情報設定済み店舗の予約 → 決済完了
+- [ ] 2. LINE 顧客メッセージに以下が含まれること:
+  - `■ 店舗アクセス`
+  - 店舗名・住所
+  - 最寄り駅 (設定済みの場合)
+  - アクセス情報テキスト (設定済みの場合)
+  - 地図URL (設定済みの場合)
+- [ ] 3. メール通知にも同内容が含まれること
+- [ ] 4. アクセス情報未設定の店舗 → メッセージにアクセスセクションなし
+
+> **自動テスト**: `tests/test_payment_access_info.py` (9テスト) で `_build_access_lines` と `process_payment` のアクセス情報をカバー済み。
+
+---
+
+## 追加セクション J: モバイルUI改善 (2026-03-14 追加)
+
+### J.1 メインページ: 2×2 グリッド (モバイル)
+
+- [ ] 1. スマホ (幅 < 1024px) でトップページ `/` にアクセス
+- [ ] 2. 4つの入口カード（店舗、キャスト、SHOP、カレンダー）が 2列×2行 で表示されること
+- [ ] 3. カード内アイコンがコンパクト (h-20) であること
+- [ ] 4. 説明テキストがモバイルでは非表示 (hidden md:block) であること
+- [ ] 5. デスクトップ (幅 ≥ 1024px) では 4列×1行で表示されること
+
+### J.2 ヘッダー: ログインボタン非表示
+
+- [ ] 1. 未ログイン状態でトップページにアクセス
+- [ ] 2. ヘッダーにログインボタンが **表示されない** こと (デスクトップ・モバイル共通)
+- [ ] 3. ページ下部フッターにログインリンクが存在すること
+- [ ] 4. フッターのログインリンクから `/admin/login/` に遷移できること
+
+### J.3 管理画面: モバイルサイト名表示
+
+- [ ] 1. スマホで `/admin/` にアクセス
+- [ ] 2. ナビバー上部にサイト名 (brand-text) が表示されること
+- [ ] 3. デスクトップではサイドバーにサイト名が表示されること（従来通り）
+
+---
+
+## 追加セクション K: ロール別管理画面アクセス (2026-03-14 追加)
+
+### ロール定義
+
+| ロール | 条件 | `get_user_role()` |
+|--------|------|-------------------|
+| staff | `staff_type='fortune_teller'` or `'store_staff'`, フラグなし | `'staff'` |
+| manager | `is_store_manager=True` | `'manager'` |
+| owner | `is_owner=True` | `'owner'` |
+| developer | `is_developer=True` | `'developer'` |
+| superuser | `is_superuser=True` | `'superuser'` |
+
+### K.1 管理画面トップ
+
+- [ ] 1. 全ロール (staff/manager/owner/developer/superuser) で `/admin/` → 200
+- [ ] 2. 未ログイン → リダイレクト (301/302)
+
+### K.2 スタッフ changelist
+
+- [ ] 1. fortune_teller で `/admin/booking/staff/` → 403
+- [ ] 2. store_staff で `/admin/booking/staff/` → 403
+- [ ] 3. manager で `/admin/booking/staff/` → 200
+- [ ] 4. owner で `/admin/booking/staff/` → 200
+- [ ] 5. superuser で `/admin/booking/staff/` → 200
+
+### K.3 店舗管理
+
+- [ ] 1. fortune_teller で `/admin/booking/store/` → 403
+- [ ] 2. store_staff で `/admin/booking/store/` → 403
+- [ ] 3. superuser で `/admin/booking/store/` → 200
+
+### K.4 給与管理
+
+- [ ] 1. fortune_teller で `/admin/booking/payrollperiod/` → 403
+- [ ] 2. store_staff で `/admin/booking/payrollperiod/` → 403
+
+### K.5 デバッグパネル
+
+- [ ] 1. fortune_teller で `/admin/debug/` → 403
+- [ ] 2. store_staff で `/admin/debug/` → 403
+- [ ] 3. manager で `/admin/debug/` → 403
+- [ ] 4. developer で `/admin/debug/` → 200
+- [ ] 5. superuser で `/admin/debug/` → 200
+
+### K.6 fortune_teller vs store_staff 同等権限
+
+- [ ] 1. 両ロールとも `/admin/` → 200
+- [ ] 2. 両ロールとも `/admin/booking/store/` → 403
+- [ ] 3. 両ロールとも `/admin/booking/payrollperiod/` → 403
+- [ ] 4. 両ロールとも `/admin/booking/staff/` → 403
+- [ ] 5. 両ロールとも `/admin/booking/schedule/` → 403
+
+### K.7 manager CRUD
+
+- [ ] 1. manager で `/admin/booking/staff/add/` → 200 (追加可能)
+- [ ] 2. fortune_teller で `/admin/booking/staff/add/` → 403
+
+> **自動テスト**: `tests/test_admin_roles.py` (39テスト) で全ロール×エンドポイントの組み合わせをカバー済み。
+
+### 重要な発見事項
+
+1. **`staff_type` は管理画面権限に影響しない**: `fortune_teller` と `store_staff` は完全に同じ権限 (`role='staff'`)
+2. **サイドバー表示 ≠ アクセス権限**: `_build_full_app_list` でサイドバーにモデルが表示されても、changelist アクセスは Django 標準の `has_view_or_change_permission` で制御される
+3. **`_is_owner_or_super`**: `is_superuser` または `is_owner` のみ True。`is_developer` は含まれない
+4. **ロール優先順位**: superuser > developer > owner > manager > staff

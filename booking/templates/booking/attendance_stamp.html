@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>勤怠打刻 - {{ store.name }}</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: #f5f7fa; color: #333; min-height: 100vh;
+  }
+  .header {
+    background: #417690; color: #fff; padding: 16px 20px;
+    text-align: center; font-size: 18px; font-weight: bold;
+  }
+  .header .store-name { font-size: 14px; opacity: 0.85; margin-top: 4px; }
+  .container { max-width: 480px; margin: 0 auto; padding: 20px 16px; }
+  .form-group { margin-bottom: 20px; }
+  .form-group label {
+    display: block; font-weight: 600; margin-bottom: 6px;
+    font-size: 14px; color: #555;
+  }
+  .form-group select, .form-group input {
+    width: 100%; padding: 14px 12px; font-size: 16px;
+    border: 2px solid #ddd; border-radius: 8px;
+    background: #fff; -webkit-appearance: none;
+  }
+  .form-group select:focus, .form-group input:focus {
+    border-color: #417690; outline: none;
+    box-shadow: 0 0 0 3px rgba(65,118,144,0.15);
+  }
+  .stamp-buttons {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 12px;
+    margin-top: 24px;
+  }
+  .stamp-btn {
+    padding: 18px 8px; font-size: 16px; font-weight: bold;
+    border: none; border-radius: 10px; cursor: pointer;
+    color: #fff; transition: all 0.2s; touch-action: manipulation;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+  }
+  .stamp-btn:active { transform: scale(0.97); }
+  .stamp-btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+  .btn-clock-in { background: #28a745; }
+  .btn-clock-out { background: #dc3545; }
+  .btn-break-start { background: #ffc107; color: #333; }
+  .btn-break-end { background: #17a2b8; }
+  .result-msg {
+    margin-top: 20px; padding: 16px; border-radius: 8px;
+    text-align: center; font-size: 15px; display: none;
+    font-weight: 500;
+  }
+  .result-msg.success { background: #d4edda; color: #155724; display: block; }
+  .result-msg.error { background: #f8d7da; color: #721c24; display: block; }
+  .expired-warning {
+    background: #fff3cd; color: #856404; padding: 14px;
+    border-radius: 8px; text-align: center; margin-bottom: 16px;
+    font-size: 14px; display: none;
+  }
+</style>
+</head>
+<body>
+<div class="header">
+  勤怠打刻
+  <div class="store-name">{{ store.name }}</div>
+</div>
+
+<div class="container">
+  <div id="expired-warning" class="expired-warning">
+    QRコードの有効期限が切れている可能性があります。<br>再度スキャンしてください。
+  </div>
+
+  <div class="form-group">
+    <label for="staff-select">スタッフ</label>
+    <select id="staff-select">
+      <option value="">-- 選択してください --</option>
+      {% for s in staffs %}
+      <option value="{{ s.id }}">{{ s.name }}</option>
+      {% endfor %}
+    </select>
+  </div>
+
+  <div class="form-group">
+    <label for="pin-input">4桁PIN</label>
+    <input type="password" id="pin-input" maxlength="4" pattern="\d{4}"
+           inputmode="numeric" placeholder="****" autocomplete="off">
+  </div>
+
+  <div class="stamp-buttons">
+    <button class="stamp-btn btn-clock-in" onclick="doStamp('clock_in')">出勤</button>
+    <button class="stamp-btn btn-clock-out" onclick="doStamp('clock_out')">退勤</button>
+    <button class="stamp-btn btn-break-start" onclick="doStamp('break_start')">休憩開始</button>
+    <button class="stamp-btn btn-break-end" onclick="doStamp('break_end')">休憩終了</button>
+  </div>
+
+  <div id="result-msg" class="result-msg"></div>
+</div>
+
+<script>
+var STAMP_LABELS = {clock_in:'出勤',clock_out:'退勤',break_start:'休憩開始',break_end:'休憩終了'};
+var STORE_ID = '{{ store.id }}';
+var TOTP_CODE = '{{ totp_code }}';
+
+function showMsg(type, text) {
+  var el = document.getElementById('result-msg');
+  el.className = 'result-msg ' + type;
+  el.textContent = text;
+  el.style.display = 'block';
+  setTimeout(function() { el.style.display = 'none'; }, 6000);
+}
+
+function getCookie(name) {
+  var v = document.cookie.match('(^|;)\\s*' + name + '\\s*=\\s*([^;]+)');
+  return v ? v.pop() : '';
+}
+
+function doStamp(stampType) {
+  var staffId = document.getElementById('staff-select').value;
+  var pin = document.getElementById('pin-input').value;
+  if (!staffId) { showMsg('error', 'スタッフを選択してください'); return; }
+  if (!pin || pin.length !== 4) { showMsg('error', '4桁PINを入力してください'); return; }
+
+  var btns = document.querySelectorAll('.stamp-btn');
+  btns.forEach(function(b) { b.disabled = true; });
+
+  fetch('/api/attendance/qr-stamp/', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-CSRFToken': getCookie('csrftoken')
+    },
+    body: JSON.stringify({
+      store_id: STORE_ID,
+      staff_id: staffId,
+      totp_code: TOTP_CODE,
+      pin: pin,
+      stamp_type: stampType
+    })
+  })
+  .then(function(r) { return r.json(); })
+  .then(function(data) {
+    btns.forEach(function(b) { b.disabled = false; });
+    if (data.success) {
+      showMsg('success', data.staff_name + ' - ' + STAMP_LABELS[stampType] + ' 完了');
+      document.getElementById('pin-input').value = '';
+    } else {
+      showMsg('error', data.error || 'エラーが発生しました');
+      if (data.error && data.error.indexOf('有効期限') >= 0) {
+        document.getElementById('expired-warning').style.display = 'block';
+      }
+    }
+  })
+  .catch(function() {
+    btns.forEach(function(b) { b.disabled = false; });
+    showMsg('error', '通信エラーが発生しました');
+  });
+}
+</script>
+</body>
+</html>
