@@ -606,17 +606,14 @@ class ShiftPeriodAPIView(View):
 
 @method_decorator(staff_member_required, name='dispatch')
 class ShiftRevokeAPIView(View):
-    """公開済みシフトの撤回"""
+    """シフトの撤回（approved → scheduled, scheduled → open）"""
 
     def post(self, request):
         store, err = _require_store(request)
         if err:
             return err
 
-        try:
-            data = json.loads(request.body)
-        except json.JSONDecodeError:
-            return JsonResponse({'error': 'Invalid JSON'}, status=400)
+        data = _parse_body(request)
 
         period_id = data.get('period_id')
         reason = data.get('reason', '')
@@ -626,9 +623,9 @@ class ShiftRevokeAPIView(View):
 
         period = get_object_or_404(ShiftPeriod, pk=period_id, store=store)
 
-        if period.status != 'approved':
+        if period.status not in ('approved', 'scheduled'):
             return JsonResponse({
-                'error': '撤回は公開済み(approved)状態でのみ可能です',
+                'error': '撤回は公開済み(approved)またはスケジュール済み(scheduled)状態でのみ可能です',
             }, status=400)
 
         revoked_by = None
@@ -637,21 +634,74 @@ class ShiftRevokeAPIView(View):
         except (Staff.DoesNotExist, AttributeError):
             pass
 
-        from booking.services.shift_scheduler import revoke_published_shifts
-        cancelled = revoke_published_shifts(period, reason=reason, revoked_by=revoked_by)
-
-        try:
-            from booking.services.shift_notifications import notify_shift_revoked
-            notify_shift_revoked(period, reason=reason)
-        except Exception as e:
-            logger.warning("Failed to send revoke notification: %s", e)
+        if period.status == 'approved':
+            from booking.services.shift_scheduler import revoke_published_shifts
+            cancelled = revoke_published_shifts(
+                period, reason=reason, revoked_by=revoked_by,
+            )
+            try:
+                from booking.services.shift_notifications import notify_shift_revoked
+                notify_shift_revoked(period, reason=reason)
+            except Exception as e:
+                logger.warning("Failed to send revoke notification: %s", e)
+        else:
+            # scheduled → open: アサインメント削除してopen に戻す
+            from booking.services.shift_scheduler import revert_scheduled
+            cancelled = revert_scheduled(
+                period, reason=reason, reverted_by=revoked_by,
+            )
 
         if request.headers.get('HX-Request'):
-            from booking.views_shift_manager import _render_week_grid
-            html = _render_week_grid(request, store, request.GET.get('week_start'))
+            week_start = request.GET.get('week_start') or data.get('week_start')
+            html = _render_week_grid(request, store, week_start)
             return HttpResponse(html)
         return JsonResponse({
             'cancelled': cancelled,
+            'period_id': period.id,
+            'status': period.status,
+        })
+
+
+@method_decorator(staff_member_required, name='dispatch')
+class ShiftReopenAPIView(View):
+    """スケジュール済みシフトの再募集（アサインメント保持のままopenに戻す）"""
+
+    def post(self, request):
+        store, err = _require_store(request)
+        if err:
+            return err
+
+        data = _parse_body(request)
+        period_id = data.get('period_id')
+        reason = data.get('reason', '')
+
+        if not period_id:
+            return JsonResponse({'error': 'period_id is required'}, status=400)
+
+        period = get_object_or_404(ShiftPeriod, pk=period_id, store=store)
+
+        if period.status != 'scheduled':
+            return JsonResponse({
+                'error': '再募集はスケジュール済み(scheduled)状態でのみ可能です',
+            }, status=400)
+
+        reopened_by = None
+        try:
+            reopened_by = request.user.staff
+        except (Staff.DoesNotExist, AttributeError):
+            pass
+
+        from booking.services.shift_scheduler import reopen_for_recruitment
+        kept = reopen_for_recruitment(
+            period, reason=reason, reopened_by=reopened_by,
+        )
+
+        if request.headers.get('HX-Request'):
+            return HttpResponse(
+                '<script>location.reload();</script>',
+            )
+        return JsonResponse({
+            'kept_assignments': kept,
             'period_id': period.id,
             'status': period.status,
         })

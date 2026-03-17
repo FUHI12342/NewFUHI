@@ -1388,6 +1388,7 @@ class ShiftPublishHistory(models.Model):
     ACTION_CHOICES = [
         ('publish', '公開'),
         ('revoke', '撤回'),
+        ('reopen', '再募集'),
     ]
     period = models.ForeignKey(ShiftPeriod, verbose_name=_('シフト期間'), on_delete=models.CASCADE, related_name='publish_history')
     published_by = models.ForeignKey(Staff, verbose_name=_('公開者'), on_delete=models.SET_NULL, null=True, blank=True)

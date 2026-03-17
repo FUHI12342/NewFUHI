@@ -19,10 +19,7 @@
       <td class="shift-cell {% if is_readonly %}readonly{% endif %}"
           id="cell-{{ staff.id }}-{{ d|date:'Y-m-d' }}"
           {% if not is_readonly %}
-          hx-get="{% if grid|default_if_none:'' %}{% with assignment=grid|default_if_none:'' %}{% endwith %}{% endif %}"
-          hx-target="#sidebar-content"
-          hx-swap="innerHTML"
-          @click="showSidebar = true; selectedStaff = {{ staff.id }}; selectedDate = '{{ d|date:'Y-m-d' }}'"
+          @click="showSidebar = true; selectedStaff = {{ staff.id }}; selectedDate = '{{ d|date:'Y-m-d' }}'; openNewShiftSidebar({{ staff.id }}, '{{ staff.name }}', '{{ d|date:'Y-m-d' }}')"
           {% endif %}>
         {% with date_str=d|date:"Y-m-d" %}
           {% for sid, dates in grid.items %}

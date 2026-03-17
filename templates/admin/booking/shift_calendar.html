@@ -896,9 +896,15 @@
       {% endif %}
 
       {% if active_period.status == 'scheduled' %}
-        <div x-show="!confirmPublish" style="display:flex;gap:8px;">
+        <div x-show="!confirmPublish" style="display:flex;gap:8px;flex-wrap:wrap;">
           <button class="btn btn-success btn-sm" @click="confirmPublish = true">
             {% trans "シフトを公開する" %}
+          </button>
+          <button class="btn btn-outline btn-sm" @click="$refs.reopenDialog.showModal()">
+            {% trans "再募集する" %}
+          </button>
+          <button class="btn btn-danger btn-sm" @click="$refs.revertDialog.showModal()">
+            {% trans "スケジュール取消" %}
           </button>
         </div>
         <div x-show="confirmPublish" style="display:flex;gap:8px;align-items:center;">
@@ -1191,6 +1197,9 @@
         {% if ph.action == 'revoke' %}
         <span style="color:#EF4444;">●</span>
         <span style="color:#EF4444;font-weight:600;">{% trans "撤回" %}</span>
+        {% elif ph.action == 'reopen' %}
+        <span style="color:#3B82F6;">●</span>
+        <span style="color:#3B82F6;font-weight:600;">{% trans "再募集" %}</span>
         {% else %}
         <span style="color:#10B981;">●</span>
         <span style="color:#10B981;font-weight:600;">{% trans "公開" %}</span>
@@ -1272,6 +1281,52 @@
     </div>
   </div>
 
+  {# ===== 再募集確認ダイアログ ===== #}
+  <dialog x-ref="reopenDialog" style="border:none;border-radius:12px;padding:24px;max-width:480px;box-shadow:0 8px 24px rgba(0,0,0,.15);">
+    <h2 style="margin:0 0 12px;"><i class="fas fa-redo" style="margin-right:8px;color:#3B82F6;"></i>{% trans "再募集確認" %}</h2>
+    <p style="font-size:14px;color:#374151;">
+      {% trans "現在のシフトを保持したまま、再度スタッフからの希望を受け付けます。追加の希望が集まった後、再度自動配置を実行できます。" %}
+    </p>
+    <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:16px;">
+      <button class="btn btn-outline btn-sm" onclick="this.closest('dialog').close()">{% trans "キャンセル" %}</button>
+      <button class="btn btn-primary btn-sm" onclick="
+        fetch('/api/shift/reopen/', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json', 'X-CSRFToken': '{{ csrf_token }}'},
+          body: JSON.stringify({period_id: '{{ active_period.id }}'}),
+          credentials: 'same-origin',
+        }).then(r => {
+          if (r.ok) location.reload();
+          else r.json().then(d => alert(d.error || 'エラーが発生しました'));
+        });
+        this.closest('dialog').close();
+      ">{% trans "再募集を開始" %}</button>
+    </div>
+  </dialog>
+
+  {# ===== スケジュール取消確認ダイアログ ===== #}
+  <dialog x-ref="revertDialog" style="border:none;border-radius:12px;padding:24px;max-width:480px;box-shadow:0 8px 24px rgba(0,0,0,.15);">
+    <h2 style="margin:0 0 12px;color:#DC2626;"><i class="fas fa-exclamation-triangle" style="margin-right:8px;"></i>{% trans "スケジュール取消確認" %}</h2>
+    <p style="font-size:14px;color:#374151;">
+      {% trans "配置済みのシフトをすべて削除し、募集中の状態に戻します。スタッフの希望データは保持されます。" %}
+    </p>
+    <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:16px;">
+      <button class="btn btn-outline btn-sm" onclick="this.closest('dialog').close()">{% trans "キャンセル" %}</button>
+      <button class="btn btn-danger btn-sm" onclick="
+        fetch('/api/shift/revoke/', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json', 'X-CSRFToken': '{{ csrf_token }}'},
+          body: JSON.stringify({period_id: '{{ active_period.id }}', reason: 'スケジュール取消'}),
+          credentials: 'same-origin',
+        }).then(r => {
+          if (r.ok) location.reload();
+          else r.json().then(d => alert(d.error || 'エラーが発生しました'));
+        });
+        this.closest('dialog').close();
+      ">{% trans "取消する" %}</button>
+    </div>
+  </dialog>
+
   {# ===== サイドバー ===== #}
   <div id="sidebar" class="sidebar-panel" :class="{ 'hidden': !showSidebar }">
     <button @click="showSidebar = false" style="float:right;border:none;background:none;font-size:20px;cursor:pointer;">✕</button>
@@ -1280,6 +1335,58 @@
 </div>
 
 <script>
+function openNewShiftSidebar(staffId, staffName, dateStr) {
+  const el = document.getElementById('sidebar-content');
+  el.innerHTML =
+    '<h3>{% trans "新規シフト" %}</h3>' +
+    '<p><strong>' + staffName + '</strong> - ' + dateStr + '</p>' +
+    '<div style="margin-top:12px;">' +
+    '  <div style="margin-bottom:10px;"><label>{% trans "開始時刻" %}:</label>' +
+    '  <input type="time" id="new-start-time" value="09:00" style="width:100%;padding:4px;"></div>' +
+    '  <div style="margin-bottom:10px;"><label>{% trans "終了時刻" %}:</label>' +
+    '  <input type="time" id="new-end-time" value="17:00" style="width:100%;padding:4px;"></div>' +
+    '  <button class="btn btn-primary btn-sm" style="width:100%;" onclick="createShiftFromSidebar(' + staffId + ', \'' + dateStr + '\')">{% trans "作成" %}</button>' +
+    '</div>';
+}
+
+function createShiftFromSidebar(staffId, dateStr) {
+  const startTime = document.getElementById('new-start-time').value;
+  const endTime = document.getElementById('new-end-time').value;
+  if (!startTime || !endTime) { alert('時刻を入力してください'); return; }
+  const startH = parseInt(startTime.split(':')[0]);
+  const endH = parseInt(endTime.split(':')[0]) + (parseInt(endTime.split(':')[1]) > 0 ? 1 : 0);
+  const periodId = new URLSearchParams(location.search).get('period_id')
+    || document.querySelector('.period-card.selected')?.getAttribute('data-period-id')
+    || '{{ active_period.id }}';
+
+  fetch('/api/shift/assignments/', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-CSRFToken': '{{ csrf_token }}',
+    },
+    body: JSON.stringify({
+      period_id: periodId,
+      staff_id: staffId,
+      date: dateStr,
+      start_hour: startH,
+      end_hour: endH,
+      start_time: startTime,
+      end_time: endTime,
+    }),
+    credentials: 'same-origin',
+  })
+  .then(r => {
+    if (r.ok) return r.text();
+    return r.json().then(d => { throw new Error(d.error || 'エラー'); });
+  })
+  .then(html => {
+    const cell = document.getElementById(`cell-${staffId}-${dateStr}`);
+    if (cell) cell.innerHTML = html;
+  })
+  .catch(err => alert(err.message));
+}
+
 function createPeriod() {
   const ym = document.getElementById('new-year-month').value;
   const dl = document.getElementById('new-deadline').value;

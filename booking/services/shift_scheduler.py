@@ -232,6 +232,73 @@ def revoke_published_shifts(period, reason, revoked_by=None):
     return cancelled_count
 
 
+def revert_scheduled(period, reason='', reverted_by=None):
+    """スケジュール済み(scheduled)を open に戻す
+
+    1. 全 ShiftAssignment を削除
+    2. period.status = 'open' に戻す
+    3. ShiftPublishHistory に action='revert' エントリ作成
+    """
+    if period.status != 'scheduled':
+        raise ValueError(
+            f"取消は scheduled 状態でのみ可能です (現在: {period.status})",
+        )
+
+    with transaction.atomic():
+        deleted_count = period.assignments.count()
+        period.assignments.all().delete()
+
+        period.status = 'open'
+        period.save(update_fields=['status'])
+
+        ShiftPublishHistory.objects.create(
+            period=period,
+            published_by=reverted_by,
+            assignment_count=deleted_count,
+            action='revoke',
+            reason=reason or 'スケジュール取消',
+        )
+
+    logger.info(
+        "revert_scheduled: period=%s, deleted %d assignments, reason=%s",
+        period, deleted_count, reason,
+    )
+    return deleted_count
+
+
+def reopen_for_recruitment(period, reason='', reopened_by=None):
+    """スケジュール済み(scheduled)を再募集(open)に戻す（既存アサインメント保持）
+
+    1. period.status = 'open' に戻す（アサインメントは削除しない）
+    2. ShiftPublishHistory に action='reopen' エントリ作成
+    スタッフが追加希望を提出でき、再度自動配置を実行可能。
+    """
+    if period.status != 'scheduled':
+        raise ValueError(
+            f"再募集は scheduled 状態でのみ可能です (現在: {period.status})",
+        )
+
+    with transaction.atomic():
+        assignment_count = period.assignments.count()
+
+        period.status = 'open'
+        period.save(update_fields=['status'])
+
+        ShiftPublishHistory.objects.create(
+            period=period,
+            published_by=reopened_by,
+            assignment_count=assignment_count,
+            action='reopen',
+            reason=reason or '再募集',
+        )
+
+    logger.info(
+        "reopen_for_recruitment: period=%s, kept %d assignments, reason=%s",
+        period, assignment_count, reason,
+    )
+    return assignment_count
+
+
 def revise_assignment(assignment, new_data, revised_by=None, reason=''):
     """公開済みシフトの個別修正
 
