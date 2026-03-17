@@ -16,14 +16,43 @@ logger = logging.getLogger(__name__)
 
 @method_decorator(staff_member_required, name='dispatch')
 class StaffShiftRequestAPIView(View):
-    """スタッフ自身のシフト希望CRUD"""
+    """スタッフ自身のシフト希望CRUD（manager以上は代理操作可）"""
 
-    def _get_staff(self, request):
-        """リクエストユーザーのStaffを取得。なければ403レスポンスを返す。"""
-        staff = getattr(request.user, 'staff', None)
-        if not staff:
+    def _is_manager(self, request, own_staff):
+        """manager以上の権限チェック"""
+        return (
+            own_staff.is_store_manager
+            or own_staff.is_owner
+            or own_staff.is_developer
+            or request.user.is_superuser
+        )
+
+    def _get_staff(self, request, body_data=None):
+        """対象スタッフを取得。staff_id指定時はmanager以上のみ代理操作可。"""
+        own_staff = getattr(request.user, 'staff', None)
+        if not own_staff:
             return None, JsonResponse({'error': 'Staff not found'}, status=403)
-        return staff, None
+
+        staff_id = request.GET.get('staff_id')
+        if not staff_id and body_data:
+            staff_id = body_data.get('staff_id')
+
+        if not staff_id:
+            return own_staff, None
+
+        if not self._is_manager(request, own_staff):
+            return None, JsonResponse(
+                {'error': 'Permission denied'}, status=403,
+            )
+
+        target = Staff.objects.filter(
+            pk=staff_id, store=own_staff.store,
+        ).first()
+        if not target:
+            return None, JsonResponse(
+                {'error': 'Staff not found in your store'}, status=404,
+            )
+        return target, None
 
     def get(self, request):
         staff, err = self._get_staff(request)
@@ -49,14 +78,14 @@ class StaffShiftRequestAPIView(View):
         return JsonResponse(data, safe=False)
 
     def post(self, request):
-        staff, err = self._get_staff(request)
-        if err:
-            return err
-
         try:
             data = json.loads(request.body)
         except json.JSONDecodeError:
             return JsonResponse({'error': 'Invalid JSON'}, status=400)
+
+        staff, err = self._get_staff(request, body_data=data)
+        if err:
+            return err
 
         period_id = data.get('period_id')
         date_str = data.get('date')
@@ -114,7 +143,9 @@ class StaffShiftRequestAPIView(View):
         if err:
             return err
 
-        shift_req = ShiftRequest.objects.filter(pk=pk, staff=staff).first()
+        shift_req = ShiftRequest.objects.filter(
+            pk=pk, staff=staff,
+        ).first()
         if not shift_req:
             return JsonResponse({'error': 'Not found or not yours'}, status=404)
 

@@ -889,6 +889,209 @@
   </div>
   {% endif %}
 
+  {# ===== 代理入力パネル ===== #}
+  {% if active_period and active_period.status == 'open' %}
+  <div class="wf-panel" x-data="{
+    showProxy: false,
+    proxyStaffId: '',
+    proxyDate: null,
+    proxyCalMonth: new Date().getMonth(),
+    proxyCalYear: new Date().getFullYear(),
+    proxyCalDays: [],
+    proxyRequests: [],
+    proxyRequestDates: new Set(),
+    proxyStartHour: 10,
+    proxyEndHour: 18,
+    proxyPreference: 'preferred',
+    proxyNote: '',
+
+    buildProxyCalDays() {
+      const first = new Date(this.proxyCalYear, this.proxyCalMonth, 1);
+      const lastDay = new Date(this.proxyCalYear, this.proxyCalMonth + 1, 0).getDate();
+      const startDow = first.getDay();
+      const days = [];
+      for (let i = 0; i < startDow; i++) days.push(null);
+      for (let d = 1; d <= lastDay; d++) {
+        const ds = `${this.proxyCalYear}-${String(this.proxyCalMonth+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+        days.push({day: d, date: ds});
+      }
+      this.proxyCalDays = days;
+    },
+
+    prevProxyMonth() {
+      if (this.proxyCalMonth === 0) { this.proxyCalMonth = 11; this.proxyCalYear--; }
+      else this.proxyCalMonth--;
+      this.buildProxyCalDays();
+    },
+    nextProxyMonth() {
+      if (this.proxyCalMonth === 11) { this.proxyCalMonth = 0; this.proxyCalYear++; }
+      else this.proxyCalMonth++;
+      this.buildProxyCalDays();
+    },
+
+    get proxyCalMonthLabel() {
+      return `${this.proxyCalYear}年${this.proxyCalMonth + 1}月`;
+    },
+
+    async loadProxyRequests() {
+      if (!this.proxyStaffId) { this.proxyRequests = []; this.proxyRequestDates = new Set(); return; }
+      const url = `/api/shift/my-requests/?staff_id=${this.proxyStaffId}&period_id={{ active_period.id }}`;
+      const res = await fetch(url, {credentials: 'same-origin'});
+      if (res.ok) {
+        this.proxyRequests = await res.json();
+        this.proxyRequestDates = new Set(this.proxyRequests.map(r => r.date));
+      }
+    },
+
+    async submitProxyRequest() {
+      if (!this.proxyStaffId || !this.proxyDate) return;
+      const res = await fetch('/api/shift/my-requests/', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json', 'X-CSRFToken': '{{ csrf_token }}'},
+        body: JSON.stringify({
+          staff_id: parseInt(this.proxyStaffId),
+          period_id: {{ active_period.id }},
+          date: this.proxyDate,
+          start_hour: parseInt(this.proxyStartHour),
+          end_hour: parseInt(this.proxyEndHour),
+          preference: this.proxyPreference,
+          note: this.proxyNote,
+        }),
+        credentials: 'same-origin',
+      });
+      if (res.ok) {
+        await this.loadProxyRequests();
+        this.proxyNote = '';
+      } else {
+        const d = await res.json();
+        alert(d.error || 'エラーが発生しました');
+      }
+    },
+
+    async deleteProxyRequest(id) {
+      const res = await fetch(`/api/shift/my-requests/${id}/?staff_id=${this.proxyStaffId}`, {
+        method: 'DELETE',
+        headers: {'X-CSRFToken': '{{ csrf_token }}'},
+        credentials: 'same-origin',
+      });
+      if (res.ok) await this.loadProxyRequests();
+    },
+
+    proxyPrefLabel(pref) {
+      const m = {preferred: '{% trans '希望' %}', available: '{% trans '出勤可能' %}', unavailable: '{% trans '出勤不可' %}'};
+      return m[pref] || pref;
+    },
+  }" x-init="buildProxyCalDays()">
+    <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;">
+      <h3><i class="fas fa-user-edit" style="margin-right:6px;"></i>{% trans "シフト希望 代理入力" %}</h3>
+      <button class="btn btn-outline btn-sm" @click="showProxy = !showProxy">
+        <span x-text="showProxy ? '{% trans '閉じる' %}' : '{% trans '開く' %}'"></span>
+      </button>
+    </div>
+    <div x-show="showProxy" x-cloak style="margin-top:12px;">
+      {# スタッフ選択 #}
+      <div style="margin-bottom:16px;">
+        <label style="font-size:12px;font-weight:600;color:#6b7280;display:block;margin-bottom:4px;">{% trans "対象スタッフ" %}</label>
+        <select x-model="proxyStaffId" @change="loadProxyRequests(); proxyDate = null;" style="padding:6px 12px;border:1px solid #d1d5db;border-radius:4px;font-size:14px;min-width:200px;">
+          <option value="">{% trans "スタッフを選択..." %}</option>
+          {% for s in staffs %}
+          <option value="{{ s.id }}">{{ s.name }}{% if s.staff_type == 'fortune_teller' %} ({% trans "キャスト" %}){% else %} ({% trans "スタッフ" %}){% endif %}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <template x-if="proxyStaffId">
+        <div>
+          {# カレンダー #}
+          <div style="margin-bottom:16px;">
+            <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;">
+              <button class="btn btn-outline btn-sm" @click="prevProxyMonth()">◀</button>
+              <strong x-text="proxyCalMonthLabel" style="min-width:100px;text-align:center;"></strong>
+              <button class="btn btn-outline btn-sm" @click="nextProxyMonth()">▶</button>
+            </div>
+            <div class="ms-cal-grid">
+              <template x-for="dow in ['{% trans '日' %}','{% trans '月' %}','{% trans '火' %}','{% trans '水' %}','{% trans '木' %}','{% trans '金' %}','{% trans '土' %}']">
+                <div class="ms-cal-header" x-text="dow"></div>
+              </template>
+              <template x-for="cell in proxyCalDays">
+                <div class="ms-cal-cell"
+                     :class="{
+                       'selected': cell && cell.date === proxyDate,
+                       'has-request': cell && proxyRequestDates.has(cell.date),
+                     }"
+                     @click="cell && (proxyDate = cell.date)">
+                  <span x-text="cell ? cell.day : ''"></span>
+                </div>
+              </template>
+            </div>
+          </div>
+
+          {# 希望入力フォーム #}
+          <div x-show="proxyDate" style="padding-top:16px;border-top:1px solid #e5e7eb;">
+            <h3 style="font-size:14px;">
+              <span x-text="proxyDate"></span> {% trans "のシフト希望" %}
+            </h3>
+            <div class="ms-form">
+              <div>
+                <label>{% trans "開始時間" %}</label>
+                <select x-model="proxyStartHour">
+                  <template x-for="h in Array.from({length:16}, (_, i) => i + 8)">
+                    <option :value="h" x-text="h + ':00'"></option>
+                  </template>
+                </select>
+              </div>
+              <div>
+                <label>{% trans "終了時間" %}</label>
+                <select x-model="proxyEndHour">
+                  <template x-for="h in Array.from({length:16}, (_, i) => i + 9)">
+                    <option :value="h" x-text="h + ':00'"></option>
+                  </template>
+                </select>
+              </div>
+              <div>
+                <label>{% trans "希望区分" %}</label>
+                <select x-model="proxyPreference">
+                  <option value="preferred">{% trans "希望" %}</option>
+                  <option value="available">{% trans "出勤可能" %}</option>
+                  <option value="unavailable">{% trans "出勤不可" %}</option>
+                </select>
+              </div>
+              <div>
+                <label>{% trans "備考" %}</label>
+                <input type="text" x-model="proxyNote" placeholder="{% trans '任意' %}" style="width:140px;">
+              </div>
+              <button class="btn btn-primary btn-sm" @click="submitProxyRequest()">
+                {% trans "送信" %}
+              </button>
+            </div>
+          </div>
+
+          {# 送信済み希望一覧 #}
+          <div style="margin-top:16px;padding-top:16px;border-top:1px solid #e5e7eb;">
+            <h4 style="font-size:14px;margin:0 0 8px;">{% trans "送信済みの希望" %}</h4>
+            <template x-if="proxyRequests.length === 0">
+              <p style="color:#6b7280;font-size:13px;">{% trans "まだ希望を送信していません。" %}</p>
+            </template>
+            <div class="ms-req-list">
+              <template x-for="req in proxyRequests" :key="req.id">
+                <div class="ms-req-item">
+                  <span style="font-weight:600;" x-text="req.date"></span>
+                  <span x-text="req.start_hour + ':00 - ' + req.end_hour + ':00'"></span>
+                  <span class="ms-pref-badge" :class="'pref-' + req.preference" x-text="proxyPrefLabel(req.preference)"></span>
+                  <span x-show="req.note" style="color:#6b7280;" x-text="req.note"></span>
+                  <button class="btn btn-danger btn-sm" style="margin-left:auto;" @click="deleteProxyRequest(req.id)">
+                    {% trans "削除" %}
+                  </button>
+                </div>
+              </template>
+            </div>
+          </div>
+        </div>
+      </template>
+    </div>
+  </div>
+  {% endif %}
+
   {# ===== 週ナビゲーション + スタッフフィルタ + テンプレート ===== #}
   <div class="toolbar">
     <a href="?week_start={{ prev_week }}{% if active_period %}&period_id={{ active_period.id }}{% endif %}{% if staff_type_filter %}&staff_type={{ staff_type_filter }}{% endif %}"
