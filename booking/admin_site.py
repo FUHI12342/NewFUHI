@@ -31,8 +31,7 @@ GROUPS = [
     {'slug': 'pin_clock', 'name': _('PIN打刻'), 'models': []},
     {'slug': 'reservation', 'name': _('予約管理'), 'models': ['schedule']},
     {'slug': 'shift', 'name': _('シフト'), 'models': ['shiftperiod', 'shiftrequest', 'shiftassignment', 'shifttemplate', 'shiftpublishhistory', 'storecloseddate'], 'hidden_models': ['shiftperiod', 'shiftrequest', 'shiftassignment', 'shifttemplate', 'shiftpublishhistory', 'storecloseddate']},
-    {'slug': 'cast', 'name': _('キャスト管理'), 'models': ['staff', 'storescheduleconfig'], 'hidden_models': ['staff', 'storescheduleconfig']},
-    {'slug': 'staff_manage', 'name': _('スタッフ管理'), 'models': ['staff', 'employmentcontract', 'storescheduleconfig']},
+    {'slug': 'staff_manage', 'name': _('従業員管理'), 'models': ['staff', 'employmentcontract', 'storescheduleconfig']},
     {'slug': 'payroll', 'name': _('給与管理'), 'models': ['payrollperiod', 'payrollentry', 'employmentcontract', 'salarystructure'], 'hidden': True},
     {'slug': 'attendance', 'name': _('勤怠管理'), 'models': ['workattendance', 'attendancetotpconfig', 'attendancestamp'], 'hidden': True},
     {'slug': 'menu_manage', 'name': _('メニュー管理'), 'models': ['category', 'product']},
@@ -98,8 +97,9 @@ SIDEBAR_CUSTOM_LINKS = {
         {'name': _('本日のシフト'), 'admin_url': '/admin/shift/today/', 'icon': 'fas fa-clock'},
     ],
     'staff_manage': [
+        {'name': _('従業員一覧'), 'admin_url': '/admin/booking/staff/', 'icon': 'fas fa-users'},
         {'name': _('キャスト一覧'), 'admin_url': '/admin/booking/staff/?staff_type__exact=fortune_teller', 'icon': 'fas fa-star'},
-        {'name': _('店舗スタッフ一覧'), 'admin_url': '/admin/booking/staff/?staff_type__exact=store_staff', 'icon': 'fas fa-user'},
+        {'name': _('スタッフ一覧'), 'admin_url': '/admin/booking/staff/?staff_type__exact=store_staff', 'icon': 'fas fa-user'},
         {'name': _('勤怠実績'), 'admin_url': '/admin/attendance/performance/', 'icon': 'fas fa-chart-bar'},
     ],
     'order': [],
@@ -146,10 +146,11 @@ for _role in ('owner', 'developer', 'superuser'):
 # スタッフ管理: manager以上はフルメニュー、一般スタッフはマイページのみ
 SIDEBAR_CUSTOM_LINKS_BY_ROLE['staff_manage'] = {
     'manager': [
+        {'name': _('従業員一覧'), 'admin_url': '/admin/booking/staff/', 'icon': 'fas fa-users'},
         {'name': _('キャスト一覧'), 'admin_url': '/admin/booking/staff/?staff_type__exact=fortune_teller', 'icon': 'fas fa-star'},
-        {'name': _('店舗スタッフ一覧'), 'admin_url': '/admin/booking/staff/?staff_type__exact=store_staff', 'icon': 'fas fa-user'},
+        {'name': _('スタッフ一覧'), 'admin_url': '/admin/booking/staff/?staff_type__exact=store_staff', 'icon': 'fas fa-user'},
         {'name': _('勤怠実績'), 'admin_url': '/admin/attendance/performance/', 'icon': 'fas fa-chart-bar'},
-        {'name': _('スタッフ新規追加'), 'admin_url': '/admin/booking/staff/add/', 'icon': 'fas fa-user-plus'},
+        {'name': _('従業員追加'), 'admin_url': '/admin/booking/staff/add/', 'icon': 'fas fa-user-plus'},
     ],
     'staff': [
         {'name': _('マイページ'), 'admin_url': '/mypage/', 'icon': 'fas fa-id-card'},

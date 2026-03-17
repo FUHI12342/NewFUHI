@@ -54,10 +54,15 @@
             <!-- Store Badge -->
             <span class="inline-block bg-salon-beige text-salon-brown text-xs px-2 py-0.5 rounded">{{ staff.store.name }}</span>
 
-            <!-- Price -->
+            <!-- Price + Slot Duration -->
             <p class="text-sm text-salon-brown font-medium">
-                {{ price_label }}：{{ staff.price }} {% trans "円（１時間）" %}
+                {{ price_label }}：{{ staff.price }}{% trans "円" %}
             </p>
+            {% if staff.store.schedule_config %}
+            <p class="text-xs text-gray-500">
+                1{% trans "枠" %} {{ staff.store.schedule_config.slot_duration }}{% trans "分" %}
+            </p>
+            {% endif %}
 
             <!-- Introduction -->
             {% if staff.introduction %}

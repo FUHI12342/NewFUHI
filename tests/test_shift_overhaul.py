@@ -931,16 +931,16 @@ class TestStaffManageMenu:
     """サイドバー スタッフ管理メニューテスト"""
 
     def test_manager_sees_staff_manage(self, mgr_client):
-        """manager はスタッフ管理メニューを見る"""
+        """manager は従業員管理メニューを見る"""
         resp = mgr_client.get('/admin/')
         content = resp.content.decode()
-        assert 'スタッフ管理' in content
+        assert '従業員管理' in content
 
     def test_staff_sees_staff_manage(self, staff_client):
-        """一般スタッフもスタッフ管理グループを見る"""
+        """一般スタッフも従業員管理グループを見る"""
         resp = staff_client.get('/admin/')
         content = resp.content.decode()
-        assert 'スタッフ管理' in content
+        assert '従業員管理' in content
 
     def test_sidebar_staff_manage_role_config(self):
         """SIDEBAR_CUSTOM_LINKS_BY_ROLE に staff_manage がある"""
@@ -948,8 +948,8 @@ class TestStaffManageMenu:
         assert 'staff_manage' in SIDEBAR_CUSTOM_LINKS_BY_ROLE
         assert 'manager' in SIDEBAR_CUSTOM_LINKS_BY_ROLE['staff_manage']
         assert 'staff' in SIDEBAR_CUSTOM_LINKS_BY_ROLE['staff_manage']
-        # manager は4件（キャスト一覧、スタッフ一覧、勤怠、新規追加）
-        assert len(SIDEBAR_CUSTOM_LINKS_BY_ROLE['staff_manage']['manager']) == 4
+        # manager は5件（従業員一覧、キャスト一覧、スタッフ一覧、勤怠、従業員追加）
+        assert len(SIDEBAR_CUSTOM_LINKS_BY_ROLE['staff_manage']['manager']) == 5
         # staff は1件（マイページ）
         assert len(SIDEBAR_CUSTOM_LINKS_BY_ROLE['staff_manage']['staff']) == 1
 

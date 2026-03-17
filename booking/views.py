@@ -870,7 +870,7 @@ class AllFortuneTellerList(generic.ListView):
     def get_queryset(self):
         return super().get_queryset().filter(
             staff_type='fortune_teller'
-        ).select_related('store')
+        ).select_related('store', 'store__schedule_config')
 
 
 class DateFirstCalendar(generic.TemplateView):
@@ -1616,6 +1616,10 @@ def coiney_webhook(request, orderId):
     logger.info('coiney_webhook called: orderId=%s, headers=%s', orderId, safe_meta)
 
     if orderId:
+        # EC注文の場合は専用ハンドラに委譲
+        if orderId.startswith('ec_order_'):
+            from .views_ec_payment import process_ec_payment
+            return process_ec_payment(request, orderId)
         view = PayingSuccessView()
         view._called_from_webhook = True
         return view.post(request, orderId)
