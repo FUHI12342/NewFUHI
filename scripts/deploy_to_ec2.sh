@@ -77,10 +77,10 @@ echo ""
 
 # ========== Step 4: アプリケーション再起動 (Gunicorn + Celery) ==========
 echo -e "${GREEN}[4/5] アプリケーション再起動...${NC}"
-$SSH_CMD "sudo systemctl restart newfuhi newfuhi-celery newfuhi-celerybeat 2>/dev/null || \
+$SSH_CMD "sudo pkill -f gunicorn 2>/dev/null; sleep 1; \
+    sudo systemctl restart newfuhi newfuhi-celery newfuhi-celerybeat 2>/dev/null || \
     (echo 'systemd サービス未設定。Gunicorn を直接再起動します...' && \
-     pkill -f gunicorn 2>/dev/null; \
-     cd $REMOTE_PATH && source venv/bin/activate && \
+     cd $REMOTE_PATH && source .venv/bin/activate && \
      nohup gunicorn project.wsgi:application --bind 127.0.0.1:8000 --workers 2 --daemon)"
 echo -e "${GREEN}  再起動完了${NC}"
 echo ""

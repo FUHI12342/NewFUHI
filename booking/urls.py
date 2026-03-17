@@ -32,6 +32,7 @@ from .views import (
     NoticeDetailView,
 )
 from .views_attendance import AttendanceStampPageView
+from .views_ec_payment import ECPaymentView, ECOrderConfirmationView
 
 
 app_name = 'booking'
@@ -154,6 +155,8 @@ urlpatterns = [
     path('shop/', ShopView.as_view(), name='shop'),
     path('shop/cart/', CartView.as_view(), name='shop_cart'),
     path('shop/checkout/', ShopCheckoutView.as_view(), name='shop_checkout'),
+    path('shop/order/<int:order_id>/payment/', ECPaymentView.as_view(), name='shop_payment'),
+    path('shop/order/<int:order_id>/complete/', ECOrderConfirmationView.as_view(), name='shop_order_complete'),
 
     # QR勤怠: スマホ打刻ページ（ログイン不要）
     path('attendance/stamp/', AttendanceStampPageView.as_view(), name='attendance_stamp_page'),

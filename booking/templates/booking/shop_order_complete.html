@@ -1,0 +1,104 @@
+{% extends 'booking/base.html' %}
+{% load i18n %}
+{% load static %}
+
+{% block title %}{% trans "注文完了" %} | {{ block.super }}{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto text-center py-8">
+    <!-- 成功アニメーション -->
+    <div class="mb-6">
+        <div class="inline-flex items-center justify-center w-20 h-20 bg-green-100 rounded-full animate-bounce-once">
+            <svg class="w-10 h-10 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3"
+                      d="M5 13l4 4L19 7"/>
+            </svg>
+        </div>
+    </div>
+
+    <h2 class="text-2xl font-bold text-salon-dark mb-2">
+        {% trans "ご注文ありがとうございます" %}
+    </h2>
+    <p class="text-gray-500 mb-8">
+        {% trans "ご注文が正常に処理されました。" %}
+    </p>
+
+    <!-- 注文番号 -->
+    <div class="bg-salon-brown/5 border border-salon-brown/20 rounded-xl p-4 mb-6 inline-block">
+        <p class="text-sm text-gray-500">{% trans "注文番号" %}</p>
+        <p class="text-2xl font-bold text-salon-brown">#{{ order.id }}</p>
+    </div>
+
+    <!-- 注文明細 -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden mb-6 text-left">
+        <div class="px-4 py-3 bg-gray-50 border-b">
+            <h3 class="text-sm font-bold text-gray-700">{% trans "注文明細" %}</h3>
+        </div>
+        <table class="w-full">
+            <tbody class="divide-y">
+                {% for item in items %}
+                <tr>
+                    <td class="px-4 py-2 text-sm">{{ item.product.name }}</td>
+                    <td class="px-4 py-2 text-sm text-center text-gray-500">&times;{{ item.qty }}</td>
+                    <td class="px-4 py-2 text-sm text-right">&yen;{{ item.subtotal }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+            <tfoot class="border-t bg-gray-50">
+                <tr>
+                    <td colspan="2" class="px-4 py-3 text-sm font-bold text-right">{% trans "合計" %}</td>
+                    <td class="px-4 py-3 text-lg font-bold text-right text-salon-brown">&yen;{{ total }}</td>
+                </tr>
+            </tfoot>
+        </table>
+    </div>
+
+    <!-- 顧客情報 & 配送ステータス -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8 text-left">
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-4">
+            <h4 class="text-sm font-bold text-gray-700 mb-2">{% trans "お届け先" %}</h4>
+            <p class="text-sm text-gray-600">{{ order.customer_name }}</p>
+            <p class="text-sm text-gray-500">{{ order.customer_email }}</p>
+            {% if order.customer_phone %}
+            <p class="text-sm text-gray-500">{{ order.customer_phone }}</p>
+            {% endif %}
+            {% if order.customer_address %}
+            <p class="text-sm text-gray-500 mt-1">{{ order.customer_address }}</p>
+            {% endif %}
+        </div>
+
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-4">
+            <h4 class="text-sm font-bold text-gray-700 mb-2">{% trans "配送ステータス" %}</h4>
+            <div class="flex items-center gap-2">
+                <span class="inline-block w-3 h-3 bg-yellow-400 rounded-full"></span>
+                <span class="text-sm text-gray-600">{% trans "発送準備中" %}</span>
+            </div>
+            <p class="text-xs text-gray-400 mt-2">
+                {% trans "発送時にメールでお知らせいたします。" %}
+            </p>
+        </div>
+    </div>
+
+    <!-- ショップに戻る -->
+    <a href="{% url 'booking:shop' %}"
+       class="inline-flex items-center gap-2 bg-salon-brown text-white px-6 py-3 rounded-lg font-bold hover:opacity-80 transition">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
+        </svg>
+        {% trans "ショップに戻る" %}
+    </a>
+</div>
+
+<style>
+@keyframes bounce-once {
+    0% { transform: scale(0); opacity: 0; }
+    50% { transform: scale(1.2); }
+    70% { transform: scale(0.9); }
+    100% { transform: scale(1); opacity: 1; }
+}
+.animate-bounce-once {
+    animation: bounce-once 0.6s ease-out;
+}
+</style>
+{% endblock %}

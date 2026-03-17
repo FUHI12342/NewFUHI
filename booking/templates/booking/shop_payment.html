@@ -1,0 +1,169 @@
+{% extends 'booking/base.html' %}
+{% load i18n %}
+{% load static %}
+
+{% block title %}{% trans "お支払い" %} | {{ block.super }}{% endblock %}
+
+{% block content %}
+<h2 class="text-2xl font-bold text-salon-dark mb-6 border-b-2 border-salon-brown pb-3">
+    {% trans "お支払い" %}
+</h2>
+
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+    <!-- 注文サマリー -->
+    <div>
+        <h3 class="text-lg font-bold mb-3">{% trans "注文内容" %}</h3>
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden mb-4">
+            <table class="w-full">
+                <thead class="bg-gray-50 border-b">
+                    <tr>
+                        <th class="text-left px-4 py-2 text-xs font-medium text-gray-500">{% trans "商品" %}</th>
+                        <th class="text-center px-4 py-2 text-xs font-medium text-gray-500">{% trans "数量" %}</th>
+                        <th class="text-right px-4 py-2 text-xs font-medium text-gray-500">{% trans "小計" %}</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y">
+                    {% for item in items %}
+                    <tr>
+                        <td class="px-4 py-2 text-sm">{{ item.product.name }}</td>
+                        <td class="px-4 py-2 text-sm text-center">{{ item.qty }}</td>
+                        <td class="px-4 py-2 text-sm text-right">&yen;{{ item.subtotal }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+                <tfoot class="border-t bg-gray-50">
+                    <tr>
+                        <td colspan="2" class="px-4 py-3 text-sm font-bold text-right">{% trans "合計" %}</td>
+                        <td class="px-4 py-3 text-lg font-bold text-right text-salon-brown">&yen;{{ total }}</td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+
+        <!-- 顧客情報 -->
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-4">
+            <h4 class="text-sm font-bold text-gray-700 mb-2">{% trans "お届け先" %}</h4>
+            <p class="text-sm text-gray-600">{{ order.customer_name }}</p>
+            <p class="text-sm text-gray-500">{{ order.customer_email }}</p>
+            {% if order.customer_phone %}
+            <p class="text-sm text-gray-500">{{ order.customer_phone }}</p>
+            {% endif %}
+            {% if order.customer_address %}
+            <p class="text-sm text-gray-500 mt-1">{{ order.customer_address }}</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- クレジットカードフォーム -->
+    <div>
+        <h3 class="text-lg font-bold mb-3">{% trans "カード情報" %}</h3>
+        {% if messages %}
+        <div class="mb-4">
+            {% for message in messages %}
+            <div class="bg-red-50 border border-red-200 text-red-700 px-4 py-2 rounded-lg text-sm mb-2">
+                {{ message }}
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        <form method="post" id="payment-form"
+              class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 space-y-4">
+            {% csrf_token %}
+
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">
+                    {% trans "カード番号" %} <span class="text-red-500">*</span>
+                </label>
+                <input type="text" name="card_number" id="card-number" required
+                       maxlength="19" placeholder="4242 4242 4242 4242" inputmode="numeric"
+                       autocomplete="cc-number"
+                       class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:border-salon-brown focus:outline-none font-mono tracking-wider">
+            </div>
+
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">
+                        {% trans "有効期限" %} <span class="text-red-500">*</span>
+                    </label>
+                    <input type="text" name="card_expiry" id="card-expiry" required
+                           maxlength="5" placeholder="MM/YY" inputmode="numeric"
+                           autocomplete="cc-exp"
+                           class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:border-salon-brown focus:outline-none font-mono">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">
+                        CVV <span class="text-red-500">*</span>
+                    </label>
+                    <input type="text" name="card_cvv" id="card-cvv" required
+                           maxlength="4" placeholder="123" inputmode="numeric"
+                           autocomplete="cc-csc"
+                           class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:border-salon-brown focus:outline-none font-mono">
+                </div>
+            </div>
+
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">
+                    {% trans "カード名義人" %} <span class="text-red-500">*</span>
+                </label>
+                <input type="text" name="card_name" required
+                       placeholder="TARO YAMADA" autocomplete="cc-name"
+                       class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:border-salon-brown focus:outline-none uppercase">
+            </div>
+
+            <div class="border-t pt-4 mt-4">
+                <div class="flex justify-between items-center mb-4">
+                    <span class="text-sm text-gray-600">{% trans "お支払い金額" %}</span>
+                    <span class="text-xl font-bold text-salon-brown">&yen;{{ total }}</span>
+                </div>
+                <button type="submit" id="pay-btn"
+                        class="w-full bg-rose-500 text-white py-3 rounded-lg font-bold hover:bg-rose-600 transition flex items-center justify-center gap-2">
+                    <span id="pay-text">{% trans "お支払い" %}</span>
+                    <svg id="pay-spinner" class="hidden animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+                    </svg>
+                </button>
+            </div>
+
+            <p class="text-xs text-gray-400 text-center mt-2">
+                {% trans "※ デモ環境のため実際の課金は発生しません" %}
+            </p>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// カード番号の自動フォーマット（4桁区切り）
+document.getElementById('card-number').addEventListener('input', function(e) {
+    var v = e.target.value.replace(/\s/g, '').replace(/\D/g, '');
+    var formatted = v.match(/.{1,4}/g);
+    e.target.value = formatted ? formatted.join(' ') : '';
+});
+
+// 有効期限の自動フォーマット（MM/YY）
+document.getElementById('card-expiry').addEventListener('input', function(e) {
+    var v = e.target.value.replace(/\D/g, '');
+    if (v.length >= 2) {
+        v = v.substring(0, 2) + '/' + v.substring(2, 4);
+    }
+    e.target.value = v;
+});
+
+// CVV は数字のみ
+document.getElementById('card-cvv').addEventListener('input', function(e) {
+    e.target.value = e.target.value.replace(/\D/g, '');
+});
+
+// 送信時ローディング
+document.getElementById('payment-form').addEventListener('submit', function() {
+    var btn = document.getElementById('pay-btn');
+    btn.disabled = true;
+    btn.classList.add('opacity-50', 'cursor-not-allowed');
+    document.getElementById('pay-text').textContent = '処理中...';
+    document.getElementById('pay-spinner').classList.remove('hidden');
+});
+</script>
+{% endblock %}

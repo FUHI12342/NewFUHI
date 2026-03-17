@@ -2661,11 +2661,10 @@ class ShopCheckoutView(View):
                     note=f'EC order #{order.id}',
                 )
 
-        # Clear cart
+        # Clear cart & redirect to payment
         request.session['ec_cart'] = {}
-
-        messages.success(request, f'注文が完了しました。注文番号: {order.id}')
-        return redirect('booking:shop')
+        request.session['ec_pending_order_id'] = order.id
+        return redirect('booking:shop_payment', order_id=order.id)
 
 
 # ==============================
