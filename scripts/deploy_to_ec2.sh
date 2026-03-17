@@ -67,7 +67,7 @@ echo ""
 # ========== Step 3: 依存関係インストール & マイグレーション ==========
 echo -e "${GREEN}[3/5] 依存関係 & マイグレーション...${NC}"
 $SSH_CMD "cd $REMOTE_PATH && \
-    source venv/bin/activate && \
+    source .venv/bin/activate && \
     pip install -q -r requirements.txt && \
     DJANGO_SETTINGS_MODULE=project.settings python manage.py migrate --noinput && \
     DJANGO_SETTINGS_MODULE=project.settings python manage.py collectstatic --noinput"
