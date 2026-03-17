@@ -172,7 +172,7 @@ DEFAULT_ALLOWED_MODELS = {
         'property', 'propertydevice',
         'systemconfig',
         'shiftperiod', 'shiftrequest', 'shiftassignment',
-        'shifttemplate', 'shiftpublishhistory', 'storecloseddate',
+        'shifttemplate', 'shiftpublishhistory', 'shiftchangelog', 'storecloseddate',
         'storescheduleconfig', 'admintheme',
         'sitesettings', 'homepagecustomblock',
         'herobanner', 'bannerad', 'externallink',
@@ -219,19 +219,37 @@ def invalidate_menu_config_cache():
 
 
 def _get_allowed_models_for_role(role):
-    """ロールに対応する許可モデルリストを返す。DB設定優先、未設定時はデフォルト。"""
+    """ロールに対応する許可モデルリストを返す。
+
+    DB設定とコード側デフォルトをマージして返す。
+    これにより、新モデル追加時にDB側の更新漏れがあっても
+    DEFAULT_ALLOWED_MODELS に追加すれば自動的に反映される。
+    """
     global _menu_config_cache_time
     now = time.time()
     if now - _menu_config_cache_time > _MENU_CACHE_TTL:
         _refresh_menu_config_cache()
 
-    if role in _menu_config_cache:
+    defaults = DEFAULT_ALLOWED_MODELS.get(role)
+    # None = 全モデル表示（developer/owner のデフォルト）
+    if defaults is None:
+        # DB で明示的にリストが設定されていても、デフォルトが None なら None を返す
+        # （全モデル表示の意図を尊重）
+        if role not in _menu_config_cache:
+            return None
         db_value = _menu_config_cache[role]
         if isinstance(db_value, list) and len(db_value) > 0:
             return db_value
-        # DB行はあるが空リスト → デフォルトにフォールバック
+        return None
 
-    return DEFAULT_ALLOWED_MODELS.get(role)
+    # DB値とデフォルトをマージ（和集合）
+    if role in _menu_config_cache:
+        db_value = _menu_config_cache[role]
+        if isinstance(db_value, list) and len(db_value) > 0:
+            merged = list(set(defaults) | set(db_value))
+            return merged
+
+    return defaults
 
 
 class RoleBasedAdminSite(AdminSite):
