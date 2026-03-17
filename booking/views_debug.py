@@ -172,7 +172,7 @@ class LogLevelControlAPIView(APIView):
         return Response({'log_level': level, 'applied': True})
 
 
-class IoTDeviceDebugView(TemplateView):
+class IoTDeviceDebugView(AdminSidebarMixin, TemplateView):
     """Individual IoT device debug view."""
     template_name = 'admin/booking/iot_device_debug.html'
 

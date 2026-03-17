@@ -178,9 +178,9 @@ class Schedule(models.Model):
     )
     start = models.DateTimeField(_('開始時間'), db_index=True)
     end = models.DateTimeField(_('終了時間'))
-    staff = models.ForeignKey('Staff', verbose_name=_('占いスタッフ'), on_delete=models.CASCADE, db_index=True)
+    staff = models.ForeignKey('Staff', verbose_name=_('キャスト'), on_delete=models.CASCADE, db_index=True)
 
-    customer_name = models.CharField(max_length=255, null=True, blank=True)
+    customer_name = models.CharField(_('予約者名'), max_length=255, null=True, blank=True)
     hashed_id = models.CharField(max_length=255, null=True, blank=True, db_index=True)
 
     # ▼追加：生のLINE user_idは保存しない（検索用ハッシュ + 復号用暗号文のみ保存）
@@ -763,6 +763,27 @@ class Order(models.Model):
     payment_status = models.CharField(_('支払状態'), max_length=20, choices=PAYMENT_STATUS_CHOICES, default='pending')
     discount_amount = models.IntegerField(_('割引額'), default=0)
     tax_amount = models.IntegerField(_('税額'), default=0)
+
+    # EC顧客情報
+    customer_name = models.CharField(_('顧客名'), max_length=100, blank=True, default='')
+    customer_email = models.EmailField(_('メールアドレス'), blank=True, default='')
+    customer_phone = models.CharField(_('電話番号'), max_length=20, blank=True, default='')
+    customer_address = models.TextField(_('配送先住所'), blank=True, default='')
+
+    # 発送管理
+    SHIPPING_STATUS_CHOICES = [
+        ('none', '発送不要'),
+        ('pending', '発送待ち'),
+        ('shipped', '発送済み'),
+        ('delivered', '配達完了'),
+    ]
+    shipping_status = models.CharField(
+        _('発送ステータス'), max_length=20,
+        choices=SHIPPING_STATUS_CHOICES, default='none',
+    )
+    tracking_number = models.CharField(_('追跡番号'), max_length=100, blank=True, default='')
+    shipped_at = models.DateTimeField(_('発送日時'), null=True, blank=True)
+    shipping_note = models.TextField(_('発送メモ'), blank=True, default='')
 
     created_at = models.DateTimeField(auto_now_add=True, db_index=True)
     updated_at = models.DateTimeField(auto_now=True)

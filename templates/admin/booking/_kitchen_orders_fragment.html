@@ -1,61 +1,77 @@
 {% load i18n %}
-{% for order in open_orders %}
-{% with all_served=order.all_items_served table_name=order.table_seat.label %}
-<div class="order-card{% if all_served %} all-served{% endif %}">
-  <div class="header">
-    <span class="order-number">#{{ order.id }}</span>
-    <span class="table-badge">{{ table_name|default:order.table_label|default:"POS" }}</span>
-  </div>
-  {% for item in order.items.all %}
-  <div class="order-item">
-    <div>
-      <span class="status-dot dot-{{ item.status }}"></span>
-      {{ item.product.name }} x{{ item.qty }}
+<div class="kitchen-layout">
+  {# ===== 左パネル: オープン注文 ===== #}
+  <div class="kitchen-left">
+    <div class="kitchen-grid">
+      {% for order in open_orders %}
+      {% with all_served=order.all_items_served table_name=order.table_seat.label %}
+      <div class="order-card{% if all_served %} all-served{% endif %}">
+        <div class="header">
+          <span class="order-number">#{{ order.id }}</span>
+          <span class="table-badge">{{ table_name|default:order.table_label|default:"POS" }}</span>
+        </div>
+        {% for item in order.items.all %}
+        <div class="order-item">
+          <div>
+            <span class="status-dot dot-{{ item.status }}"></span>
+            {{ item.product.name }} x{{ item.qty }}
+          </div>
+          <div class="action-btns">
+            {% if item.status == "ORDERED" %}
+            <button class="action-btn btn-prepare"
+                    onclick="updateStatus({{ item.id }}, 'PREPARING', this)">{% trans "調理開始" %}</button>
+            {% elif item.status == "PREPARING" %}
+            <button class="action-btn btn-undo"
+                    onclick="updateStatus({{ item.id }}, 'ORDERED', this)">{% trans "戻す" %}</button>
+            <button class="action-btn btn-serve"
+                    onclick="updateStatus({{ item.id }}, 'SERVED', this)">{% trans "配膳完了" %}</button>
+            {% elif item.status == "SERVED" %}
+            <button class="action-btn btn-undo"
+                    onclick="updateStatus({{ item.id }}, 'PREPARING', this)">{% trans "戻す" %}</button>
+            <span style="color:#10B981; font-size:18px;">✓</span>
+            {% endif %}
+          </div>
+        </div>
+        {% endfor %}
+        {% if all_served %}
+        <div class="served-banner">
+          {% trans "提供完了" %}
+          <button class="action-btn btn-complete" onclick="completeOrder({{ order.id }}, this)"
+                  style="margin-left:12px;background:#fff;color:#10B981;border:2px solid #10B981;font-size:16px;padding:6px 20px;">
+            {% trans "完了" %}
+          </button>
+        </div>
+        {% endif %}
+      </div>
+      {% endwith %}
+      {% empty %}
+      <div class="empty-msg">{% trans "注文はありません" %}</div>
+      {% endfor %}
     </div>
-    <div class="action-btns">
-      {% if item.status == "ORDERED" %}
-      <button class="action-btn btn-prepare"
-              onclick="updateStatus({{ item.id }}, 'PREPARING', this)">{% trans "調理開始" %}</button>
-      {% elif item.status == "PREPARING" %}
-      <button class="action-btn btn-undo"
-              onclick="updateStatus({{ item.id }}, 'ORDERED', this)">{% trans "戻す" %}</button>
-      <button class="action-btn btn-serve"
-              onclick="updateStatus({{ item.id }}, 'SERVED', this)">{% trans "配膳完了" %}</button>
-      {% elif item.status == "SERVED" %}
-      <button class="action-btn btn-undo"
-              onclick="updateStatus({{ item.id }}, 'PREPARING', this)">{% trans "戻す" %}</button>
-      <span style="color:#10B981; font-size:18px;">✓</span>
-      {% endif %}
-    </div>
   </div>
-  {% endfor %}
-  {% if all_served %}
-  <div class="served-banner">
-    {% trans "提供完了" %}
-    <button class="action-btn btn-complete" onclick="completeOrder({{ order.id }}, this)"
-            style="margin-left:12px;background:#fff;color:#10B981;border:2px solid #10B981;font-size:16px;padding:6px 20px;">
-      {% trans "完了" %}
-    </button>
-  </div>
-  {% endif %}
-</div>
-{% endwith %}
-{% empty %}
-<div style="grid-column:1/-1;text-align:center;padding:40px;color:#999;">{% trans "注文はありません" %}</div>
-{% endfor %}
 
-{% if closed_orders %}
-<div class="closed-section" style="grid-column:1/-1;">
-  <h3 class="closed-header">{% trans "完了済み（本日）" %}</h3>
-  <div class="closed-grid">
-    {% for order in closed_orders %}
-    <div class="closed-card">
-      <span class="closed-number">#{{ order.id }}</span>
-      <span class="table-badge">{{ order.table_seat.label|default:order.table_label|default:"POS" }}</span>
-      <span class="closed-time">{{ order.updated_at|time:"H:i" }}</span>
-      <span class="closed-items">{{ order.items.count }}{% trans "品" %}</span>
+  {# ===== 右パネル: 完了済みタイムライン ===== #}
+  <div class="kitchen-right">
+    <h3 class="closed-header">{% trans "完了済み（本日）" %}</h3>
+    <div class="closed-timeline">
+      {% for order in closed_orders %}
+      <div class="closed-card">
+        <div class="closed-card-header">
+          <div>
+            <span class="closed-number">#{{ order.id }}</span>
+            <span class="table-badge" style="font-size:11px;padding:1px 6px;">{{ order.table_seat.label|default:order.table_label|default:"POS" }}</span>
+          </div>
+          <span class="closed-time">{{ order.updated_at|time:"H:i" }}</span>
+        </div>
+        <div class="closed-items-list">
+          {% for item in order.items.all %}
+          {{ item.product.name }} x{{ item.qty }}{% if not forloop.last %}, {% endif %}
+          {% endfor %}
+        </div>
+      </div>
+      {% empty %}
+      <div class="closed-empty">{% trans "本日の完了注文はありません" %}</div>
+      {% endfor %}
     </div>
-    {% endfor %}
   </div>
 </div>
-{% endif %}

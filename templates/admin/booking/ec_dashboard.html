@@ -1,0 +1,315 @@
+{% extends "admin/base_site.html" %}
+{% load i18n %}
+
+{% block extrahead %}
+{{ block.super }}
+<script src="https://cdn.tailwindcss.com"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.14.8/dist/cdn.min.js"></script>
+<style>
+  #content { max-width: 100%; padding: 0 !important; }
+  #content > h1 { display: none; }
+  div.breadcrumbs { display: none; }
+  .ec-wrap { padding: 0.5rem 1rem 2rem; font-family: system-ui, sans-serif; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="ec-wrap" x-data="ecDashboard()" x-init="fetchOrders()">
+
+  <!-- Header -->
+  <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
+    <h2 class="text-xl font-bold text-gray-800">{% trans "EC注文管理" %}</h2>
+    <div class="flex gap-2 text-sm">
+      <span class="bg-yellow-100 text-yellow-800 px-3 py-1 rounded-full font-semibold">
+        {% trans "発送待ち" %}: {{ pending_count }}
+      </span>
+      <span class="bg-blue-100 text-blue-800 px-3 py-1 rounded-full font-semibold">
+        {% trans "発送済み" %}: {{ shipped_count }}
+      </span>
+      <span class="bg-gray-100 text-gray-700 px-3 py-1 rounded-full font-semibold">
+        {% trans "合計" %}: {{ total_count }}
+      </span>
+    </div>
+  </div>
+
+  <!-- Filters -->
+  <div class="flex flex-wrap gap-3 mb-4 items-end">
+    <div>
+      <label class="block text-xs text-gray-500 mb-1">{% trans "発送ステータス" %}</label>
+      <select x-model="filter.shipping" @change="fetchOrders()"
+              class="border rounded px-3 py-1.5 text-sm bg-white">
+        <option value="all">{% trans "すべて" %}</option>
+        <option value="pending">{% trans "発送待ち" %}</option>
+        <option value="shipped">{% trans "発送済み" %}</option>
+        <option value="delivered">{% trans "配達完了" %}</option>
+        <option value="none">{% trans "発送不要" %}</option>
+      </select>
+    </div>
+    <div>
+      <label class="block text-xs text-gray-500 mb-1">{% trans "開始日" %}</label>
+      <input type="date" x-model="filter.date_from" @change="fetchOrders()"
+             class="border rounded px-3 py-1.5 text-sm">
+    </div>
+    <div>
+      <label class="block text-xs text-gray-500 mb-1">{% trans "終了日" %}</label>
+      <input type="date" x-model="filter.date_to" @change="fetchOrders()"
+             class="border rounded px-3 py-1.5 text-sm">
+    </div>
+    <button @click="filter = {shipping:'all', date_from:'', date_to:''}; fetchOrders()"
+            class="text-sm text-blue-600 hover:underline">{% trans "リセット" %}</button>
+  </div>
+
+  <!-- Loading -->
+  <div x-show="loading" class="text-center py-8 text-gray-400">{% trans "読み込み中..." %}</div>
+
+  <!-- Orders Table -->
+  <div x-show="!loading" class="overflow-x-auto">
+    <table class="w-full text-sm border-collapse">
+      <thead>
+        <tr class="bg-gray-50 text-gray-600 text-left">
+          <th class="px-3 py-2 border-b font-medium">#</th>
+          <th class="px-3 py-2 border-b font-medium">{% trans "顧客名" %}</th>
+          <th class="px-3 py-2 border-b font-medium">{% trans "商品" %}</th>
+          <th class="px-3 py-2 border-b font-medium text-right">{% trans "合計" %}</th>
+          <th class="px-3 py-2 border-b font-medium">{% trans "支払" %}</th>
+          <th class="px-3 py-2 border-b font-medium">{% trans "発送" %}</th>
+          <th class="px-3 py-2 border-b font-medium">{% trans "日時" %}</th>
+          <th class="px-3 py-2 border-b font-medium">{% trans "操作" %}</th>
+        </tr>
+      </thead>
+      <tbody>
+        <template x-for="order in orders" :key="order.id">
+          <tr class="border-b hover:bg-gray-50 cursor-pointer" @click="showDetail(order)">
+            <td class="px-3 py-2 font-mono text-gray-500" x-text="'#' + order.id"></td>
+            <td class="px-3 py-2 font-semibold" x-text="order.customer_name || order.table_label || '-'"></td>
+            <td class="px-3 py-2">
+              <template x-for="item in order.items.slice(0, 2)" :key="item.product_name">
+                <span class="inline-block bg-gray-100 rounded px-1.5 py-0.5 text-xs mr-1 mb-0.5"
+                      x-text="item.product_name + ' x' + item.qty"></span>
+              </template>
+              <span x-show="order.items.length > 2" class="text-xs text-gray-400"
+                    x-text="'+' + (order.items.length - 2) + '{% trans "件" %}'"></span>
+            </td>
+            <td class="px-3 py-2 text-right font-mono" x-text="'¥' + order.total.toLocaleString()"></td>
+            <td class="px-3 py-2">
+              <span class="px-2 py-0.5 rounded-full text-xs font-medium"
+                    :class="paymentClass(order.payment_status)"
+                    x-text="paymentLabel(order.payment_status)"></span>
+            </td>
+            <td class="px-3 py-2">
+              <span class="px-2 py-0.5 rounded-full text-xs font-medium"
+                    :class="shippingClass(order.shipping_status)"
+                    x-text="shippingLabel(order.shipping_status)"></span>
+            </td>
+            <td class="px-3 py-2 text-gray-500 text-xs whitespace-nowrap" x-text="fmtDate(order.created_at)"></td>
+            <td class="px-3 py-2" @click.stop>
+              <button x-show="order.shipping_status === 'pending'"
+                      @click="markShipped(order)"
+                      class="bg-blue-500 text-white px-2 py-1 rounded text-xs hover:bg-blue-600 transition">
+                {% trans "発送済みにする" %}
+              </button>
+              <button x-show="order.shipping_status === 'shipped'"
+                      @click="markDelivered(order)"
+                      class="bg-green-500 text-white px-2 py-1 rounded text-xs hover:bg-green-600 transition">
+                {% trans "配達完了" %}
+              </button>
+            </td>
+          </tr>
+        </template>
+        <tr x-show="orders.length === 0 && !loading">
+          <td colspan="8" class="px-3 py-8 text-center text-gray-400">{% trans "注文がありません" %}</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Detail Modal -->
+  <div x-show="detail !== null" x-cloak
+       class="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4"
+       @click.self="detail = null" @keydown.escape.window="detail = null">
+    <div class="bg-white rounded-lg shadow-xl w-full max-w-lg max-h-[90vh] overflow-y-auto" x-show="detail">
+      <div class="flex items-center justify-between px-5 py-3 border-b">
+        <h3 class="font-bold text-lg">{% trans "注文詳細" %} <span class="text-gray-400 font-mono" x-text="'#' + (detail?.id || '')"></span></h3>
+        <button @click="detail = null" class="text-gray-400 hover:text-gray-600 text-xl">&times;</button>
+      </div>
+      <div class="px-5 py-4 space-y-4">
+        <!-- Customer Info -->
+        <div>
+          <h4 class="text-xs text-gray-400 uppercase tracking-wide mb-1">{% trans "顧客情報" %}</h4>
+          <div class="grid grid-cols-2 gap-2 text-sm">
+            <div><span class="text-gray-500">{% trans "名前" %}:</span> <span x-text="detail?.customer_name || '-'" class="font-medium"></span></div>
+            <div><span class="text-gray-500">{% trans "電話" %}:</span> <span x-text="detail?.customer_phone || '-'"></span></div>
+            <div class="col-span-2"><span class="text-gray-500">{% trans "メール" %}:</span> <span x-text="detail?.customer_email || '-'"></span></div>
+            <div class="col-span-2"><span class="text-gray-500">{% trans "住所" %}:</span> <span x-text="detail?.customer_address || '-'"></span></div>
+          </div>
+        </div>
+
+        <!-- Items -->
+        <div>
+          <h4 class="text-xs text-gray-400 uppercase tracking-wide mb-1">{% trans "商品明細" %}</h4>
+          <table class="w-full text-sm">
+            <template x-for="item in (detail?.items || [])" :key="item.product_name">
+              <tr class="border-b last:border-0">
+                <td class="py-1" x-text="item.product_name"></td>
+                <td class="py-1 text-right text-gray-500" x-text="'x' + item.qty"></td>
+                <td class="py-1 text-right font-mono" x-text="'¥' + item.subtotal.toLocaleString()"></td>
+              </tr>
+            </template>
+            <tr class="font-bold">
+              <td class="py-1">{% trans "合計" %}</td>
+              <td></td>
+              <td class="py-1 text-right font-mono" x-text="'¥' + (detail?.total || 0).toLocaleString()"></td>
+            </tr>
+          </table>
+        </div>
+
+        <!-- Shipping -->
+        <div>
+          <h4 class="text-xs text-gray-400 uppercase tracking-wide mb-1">{% trans "発送情報" %}</h4>
+          <div class="space-y-2 text-sm">
+            <div class="flex items-center gap-2">
+              <span class="text-gray-500">{% trans "ステータス" %}:</span>
+              <span class="px-2 py-0.5 rounded-full text-xs font-medium"
+                    :class="shippingClass(detail?.shipping_status)"
+                    x-text="shippingLabel(detail?.shipping_status)"></span>
+            </div>
+            <div>
+              <label class="block text-gray-500 text-xs mb-0.5">{% trans "追跡番号" %}</label>
+              <div class="flex gap-2">
+                <input type="text" x-model="detailTracking"
+                       class="border rounded px-2 py-1 text-sm flex-1"
+                       placeholder="{% trans '追跡番号を入力' %}">
+                <button @click="saveTracking()"
+                        class="bg-gray-600 text-white px-3 py-1 rounded text-xs hover:bg-gray-700">
+                  {% trans "保存" %}
+                </button>
+              </div>
+            </div>
+            <div>
+              <label class="block text-gray-500 text-xs mb-0.5">{% trans "発送メモ" %}</label>
+              <textarea x-model="detailNote" rows="2"
+                        class="border rounded px-2 py-1 text-sm w-full"
+                        placeholder="{% trans '発送に関するメモ' %}"></textarea>
+              <button @click="saveNote()"
+                      class="mt-1 bg-gray-600 text-white px-3 py-1 rounded text-xs hover:bg-gray-700">
+                {% trans "メモ保存" %}
+              </button>
+            </div>
+            <div x-show="detail?.shipped_at" class="text-xs text-gray-400">
+              {% trans "発送日時" %}: <span x-text="fmtDate(detail?.shipped_at)"></span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+function ecDashboard() {
+  return {
+    orders: [],
+    loading: false,
+    detail: null,
+    detailTracking: '',
+    detailNote: '',
+    filter: { shipping: 'all', date_from: '', date_to: '' },
+
+    async fetchOrders() {
+      this.loading = true;
+      const params = new URLSearchParams();
+      if (this.filter.shipping) params.set('shipping', this.filter.shipping);
+      if (this.filter.date_from) params.set('date_from', this.filter.date_from);
+      if (this.filter.date_to) params.set('date_to', this.filter.date_to);
+      try {
+        const res = await fetch('/api/ec/orders/?' + params.toString());
+        const data = await res.json();
+        this.orders = data.orders || [];
+      } catch (e) {
+        console.error('Failed to fetch orders', e);
+      }
+      this.loading = false;
+    },
+
+    showDetail(order) {
+      this.detail = order;
+      this.detailTracking = order.tracking_number || '';
+      this.detailNote = order.shipping_note || '';
+    },
+
+    async updateShipping(order, payload) {
+      try {
+        const res = await fetch(`/api/ec/orders/${order.id}/shipping/`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]')?.value
+                           || document.cookie.match(/csrftoken=([^;]+)/)?.[1] || '',
+          },
+          body: JSON.stringify(payload),
+        });
+        if (res.ok) {
+          const data = await res.json();
+          order.shipping_status = data.shipping_status;
+          order.tracking_number = data.tracking_number;
+          order.shipped_at = data.shipped_at;
+          order.shipping_note = data.shipping_note;
+          if (this.detail && this.detail.id === order.id) {
+            this.detail = { ...this.detail, ...data };
+          }
+        }
+      } catch (e) {
+        console.error('Failed to update shipping', e);
+      }
+    },
+
+    markShipped(order) {
+      this.updateShipping(order, { shipping_status: 'shipped' });
+    },
+    markDelivered(order) {
+      this.updateShipping(order, { shipping_status: 'delivered' });
+    },
+    saveTracking() {
+      if (this.detail) {
+        this.updateShipping(this.detail, { tracking_number: this.detailTracking });
+      }
+    },
+    saveNote() {
+      if (this.detail) {
+        this.updateShipping(this.detail, { shipping_note: this.detailNote });
+      }
+    },
+
+    shippingLabel(s) {
+      return { none: '発送不要', pending: '発送待ち', shipped: '発送済み', delivered: '配達完了' }[s] || s;
+    },
+    shippingClass(s) {
+      return {
+        none: 'bg-gray-100 text-gray-600',
+        pending: 'bg-yellow-100 text-yellow-800',
+        shipped: 'bg-blue-100 text-blue-800',
+        delivered: 'bg-green-100 text-green-800',
+      }[s] || 'bg-gray-100 text-gray-600';
+    },
+    paymentLabel(s) {
+      return { pending: '未払い', partial: '一部支払', paid: '支払済', refunded: '返金済' }[s] || s;
+    },
+    paymentClass(s) {
+      return {
+        pending: 'bg-red-100 text-red-700',
+        partial: 'bg-yellow-100 text-yellow-700',
+        paid: 'bg-green-100 text-green-700',
+        refunded: 'bg-gray-100 text-gray-600',
+      }[s] || 'bg-gray-100 text-gray-600';
+    },
+    fmtDate(iso) {
+      if (!iso) return '-';
+      const d = new Date(iso);
+      return d.toLocaleDateString('ja-JP') + ' ' + d.toLocaleTimeString('ja-JP', { hour: '2-digit', minute: '2-digit' });
+    },
+  };
+}
+</script>
+{% csrf_token %}
+{% endblock %}

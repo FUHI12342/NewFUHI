@@ -11,7 +11,7 @@ from django.utils.translation import gettext as _
 from booking.views_restaurant_dashboard import AdminSidebarMixin
 from booking.models import (
     Store, Staff, ShiftPeriod, ShiftAssignment,
-    ShiftTemplate, ShiftPublishHistory,
+    ShiftTemplate, ShiftPublishHistory, ShiftRequest,
 )
 
 logger = logging.getLogger(__name__)
@@ -88,8 +88,18 @@ class ManagerShiftCalendarView(AdminSidebarMixin, TemplateView):
 
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
+        user = self.request.user
+        staff = getattr(user, 'staff', None)
         store = _get_user_store(self.request)
         week_dates = _get_week_dates(self.request.GET.get('week_start'))
+
+        # ロール判定
+        role = getattr(user, '_admin_role', None)
+        if not role:
+            role = 'staff' if staff and not user.is_superuser and not getattr(staff, 'is_store_manager', False) and not getattr(staff, 'is_owner', False) else 'manager'
+        is_staff_role = (role == 'staff')
+        ctx['user_role'] = role
+        ctx['is_staff_role'] = is_staff_role
 
         staffs = Staff.objects.filter(store=store).order_by('name') if store else Staff.objects.none()
         staff_count = staffs.count()
@@ -115,7 +125,6 @@ class ManagerShiftCalendarView(AdminSidebarMixin, TemplateView):
 
         request_stats = {}
         if active_period:
-            from booking.models import ShiftRequest
             reqs = ShiftRequest.objects.filter(period=active_period)
             submitted_staff = reqs.values('staff').distinct().count()
             total_requests = reqs.count()
@@ -152,6 +161,25 @@ class ManagerShiftCalendarView(AdminSidebarMixin, TemplateView):
             'prev_week': (week_dates[0] - timedelta(weeks=1)).isoformat(),
             'next_week': (week_dates[0] + timedelta(weeks=1)).isoformat(),
         })
+
+        # スタッフ用追加コンテキスト
+        if is_staff_role and staff:
+            open_periods = ShiftPeriod.objects.filter(
+                store=store, status='open',
+            ).order_by('-year_month')
+            my_assignments = ShiftAssignment.objects.filter(
+                staff=staff, date__gte=date.today(),
+            ).select_related('period').order_by('date', 'start_hour')
+            my_requests = ShiftRequest.objects.filter(
+                staff=staff, period__status='open',
+            ).select_related('period').order_by('date', 'start_hour')
+            ctx.update({
+                'open_periods': open_periods,
+                'my_assignments': my_assignments,
+                'my_requests': my_requests,
+                'staff_obj': staff,
+            })
+
         return ctx
 
 

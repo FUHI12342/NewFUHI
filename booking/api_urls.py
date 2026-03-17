@@ -39,8 +39,10 @@ from .views_attendance import (
     AttendancePINStampAPIView, QRStampAPIView, ManualStampAPIView,
 )
 from .views_pos import POSOrderAPIView, POSOrderItemAPIView, POSCheckoutAPIView, KitchenOrderStatusAPI, KitchenOrdersHTMLView, KitchenOrderCompleteAPI
+from .views_performance_dashboard import AttendancePerformanceAPIView
 from .views_analytics import VisitorCountAPIView, VisitorHeatmapAPIView, ConversionAnalyticsAPIView
 from .views_ai_recommend import AIRecommendationAPIView, AITrainModelAPIView, AIModelStatusAPIView
+from .views_ec_dashboard import ECOrderAPIView, ECOrderShippingAPIView
 
 app_name = 'booking_api'
 
@@ -144,6 +146,9 @@ urlpatterns = [
     # マニュアル打刻API（管理者用、端末忘れ時）
     path('attendance/manual-stamp/', ManualStampAPIView.as_view(), name='attendance_manual_stamp'),
 
+    # 勤務実績API
+    path('attendance/performance/', AttendancePerformanceAPIView.as_view(), name='attendance_performance_api'),
+
     # Air統合: POS API
     path('pos/orders/', POSOrderAPIView.as_view(), name='pos_orders'),
     path('pos/order-items/', POSOrderItemAPIView.as_view(), name='pos_order_items'),
@@ -157,6 +162,10 @@ urlpatterns = [
     path('analytics/visitors/', VisitorCountAPIView.as_view(), name='analytics_visitors'),
     path('analytics/heatmap/', VisitorHeatmapAPIView.as_view(), name='analytics_heatmap'),
     path('analytics/conversion/', ConversionAnalyticsAPIView.as_view(), name='analytics_conversion'),
+
+    # EC注文管理API
+    path('ec/orders/', ECOrderAPIView.as_view(), name='ec_orders_api'),
+    path('ec/orders/<int:pk>/shipping/', ECOrderShippingAPIView.as_view(), name='ec_order_shipping_api'),
 
     # Air統合: AI推薦API
     path('ai/recommendations/', AIRecommendationAPIView.as_view(), name='ai_recommendations'),

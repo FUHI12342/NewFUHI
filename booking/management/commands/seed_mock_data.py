@@ -17,6 +17,7 @@ from decimal import Decimal
 
 from django.core.management.base import BaseCommand
 from django.contrib.auth.models import User
+from django.db import models
 from django.utils import timezone
 
 from booking.models import (
@@ -899,9 +900,62 @@ class Command(BaseCommand):
                     )
                 order_count += 1
 
-        # 今日のオープン注文（POS・キッチンディスプレイ用）
+        # 今日の完了注文（キッチンディスプレイ右パネル用）
         for i in range(3):
-            table = tables[i] if i < len(tables) else None
+            table = tables[i % len(tables)] if tables else None
+            hour = random.randint(12, 17)
+            closed_time = now.replace(hour=hour, minute=random.randint(0, 59), second=0)
+            order = Order.objects.create(
+                store=self.store,
+                table_seat=table,
+                table_label=table.label if table else f'席{i+1}',
+                status='CLOSED',
+                payment_status='paid',
+                channel='table',
+            )
+            Order.objects.filter(pk=order.pk).update(
+                created_at=closed_time - timedelta(minutes=random.randint(20, 60)),
+                updated_at=closed_time,
+            )
+            total = 0
+            for prod in random.sample(products[:10], min(random.randint(2, 4), len(products))):
+                qty = random.randint(1, 2)
+                OrderItem.objects.create(
+                    order=order, product=prod,
+                    qty=qty, unit_price=prod.price,
+                    status='CLOSED',
+                )
+                total += prod.price * qty
+            tax = int(total * 0.1)
+            Order.objects.filter(pk=order.pk).update(tax_amount=tax)
+            if payment_methods:
+                receipt_counter += 1
+                POSTransaction.objects.create(
+                    order=order,
+                    payment_method=random.choice(payment_methods),
+                    total_amount=total + tax,
+                    tax_amount=tax,
+                    receipt_number=f'R{receipt_counter:06d}',
+                    staff=random.choice(staff_list) if staff_list else None,
+                    completed_at=closed_time,
+                )
+            order_count += 1
+
+        # 今日のオープン注文（POS・キッチンディスプレイ用）8件
+        open_configs = [
+            # (table_index, statuses_pattern, item_count)
+            (0, ['ORDERED', 'ORDERED', 'ORDERED'], 3),       # 全品注文済み
+            (1, ['PREPARING', 'ORDERED', 'ORDERED'], 3),     # 一部調理中
+            (2, ['PREPARING', 'PREPARING', 'SERVED'], 3),    # 混在
+            (3, ['SERVED', 'SERVED', 'SERVED'], 3),          # 全品配膳完了（提供完了待ち）
+            (4, ['ORDERED', 'PREPARING'], 2),                # 2品
+            (5, ['ORDERED'], 1),                              # 1品のみ
+            (0, ['SERVED', 'SERVED'], 2),                    # 全品配膳完了
+            (1, ['ORDERED', 'PREPARING', 'SERVED', 'ORDERED'], 4),  # 4品混在
+        ]
+
+        for i, (table_idx, status_pattern, item_count) in enumerate(open_configs):
+            table = tables[table_idx % len(tables)] if tables else None
             order = Order.objects.create(
                 store=self.store,
                 table_seat=table,
@@ -910,17 +964,26 @@ class Command(BaseCommand):
                 payment_status='pending',
                 channel='table',
             )
-            statuses = ['ORDERED', 'PREPARING', 'SERVED']
-            for prod in random.sample(products[:10], min(3, len(products))):
+            sample_prods = random.sample(products[:10], min(item_count, len(products)))
+            for j, prod in enumerate(sample_prods):
+                status = status_pattern[j % len(status_pattern)]
                 OrderItem.objects.create(
                     order=order, product=prod,
                     qty=random.randint(1, 2), unit_price=prod.price,
-                    status=random.choice(statuses),
+                    status=status,
                 )
             order_count += 1
 
+        # 空の注文を削除（アイテムなし）
+        empty_orders = Order.objects.filter(store=self.store).annotate(
+            item_count=models.Count('items'),
+        ).filter(item_count=0)
+        empty_count = empty_orders.count()
+        empty_orders.delete()
+
         self.stdout.write(self.style.SUCCESS(
-            f'  Order: {order_count}件（オープン注文3件含む）'))
+            f'  Order: {order_count}件（オープン注文8件 + 完了3件含む）'
+            + (f' / 空注文{empty_count}件削除' if empty_count else '')))
 
     # ═════════════════════════════════════════════
     # WorkAttendance（過去90日分）

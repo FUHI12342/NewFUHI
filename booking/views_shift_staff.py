@@ -1,60 +1,17 @@
-"""スタッフ向けシフト View + API"""
+"""スタッフ向けシフト API"""
 import json
 import logging
-from datetime import date
 
 from django.http import JsonResponse, HttpResponse
 from django.views import View
-from django.views.generic import TemplateView
 from django.utils.decorators import method_decorator
 from django.contrib.admin.views.decorators import staff_member_required
-from django.utils.translation import gettext as _
 
-from booking.views_restaurant_dashboard import AdminSidebarMixin
 from booking.models import (
-    Staff, ShiftPeriod, ShiftRequest, ShiftAssignment, ShiftTemplate,
+    Staff, ShiftPeriod, ShiftRequest,
 )
 
 logger = logging.getLogger(__name__)
-
-
-@method_decorator(staff_member_required, name='dispatch')
-class StaffMyShiftView(AdminSidebarMixin, TemplateView):
-    """スタッフ向け1画面: シフト希望入力 + 確定シフト閲覧"""
-    template_name = 'admin/booking/my_shift.html'
-
-    def get_context_data(self, **kwargs):
-        ctx = super().get_context_data(**kwargs)
-        staff = getattr(self.request.user, 'staff', None)
-        store = staff.store if staff else None
-
-        open_periods = ShiftPeriod.objects.filter(
-            store=store, status='open',
-        ).order_by('-year_month') if store else ShiftPeriod.objects.none()
-
-        my_assignments = ShiftAssignment.objects.filter(
-            staff=staff, date__gte=date.today(),
-        ).select_related('period').order_by('date', 'start_hour') if staff else ShiftAssignment.objects.none()
-
-        my_requests = ShiftRequest.objects.filter(
-            staff=staff, period__status='open',
-        ).select_related('period').order_by('date', 'start_hour') if staff else ShiftRequest.objects.none()
-
-        templates = ShiftTemplate.objects.filter(
-            store=store, is_active=True,
-        ) if store else ShiftTemplate.objects.none()
-
-        ctx.update({
-            'title': _('マイシフト'),
-            'has_permission': True,
-            'store': store,
-            'staff': staff,
-            'open_periods': open_periods,
-            'my_assignments': my_assignments,
-            'my_requests': my_requests,
-            'templates': templates,
-        })
-        return ctx
 
 
 @method_decorator(staff_member_required, name='dispatch')

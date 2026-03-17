@@ -62,7 +62,7 @@
     // Checkout
     let checkout = await fetch('/api/pos/checkout/', {method:'POST', headers:{'Content-Type':'application/json','X-CSRFToken':getCookie('csrftoken')}, body:JSON.stringify({order_id:order.id, payment_method_id:methodId})});
     let result = await checkout.json();
-    alert('会計完了: #' + result.receipt_number + ' ¥' + result.total.toLocaleString());
+    window.open('/admin/pos/receipt/' + result.receipt_number + '/', '_blank', 'width=400,height=700');
     this.cart = [];
   }
 }">

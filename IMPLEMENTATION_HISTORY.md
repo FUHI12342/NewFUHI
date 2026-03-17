@@ -1,7 +1,7 @@
 # NewFUHI 実装機能履歴 & テスト項目一覧
 
 > 最終更新: 2026-03-17
-> 自動テスト: **1088件 passed + 7 skipped** (pytest) | 手動テスト: **29セクション・220+項目** (HANDTEST.md)
+> 自動テスト: **1109件 passed + 7 skipped** (pytest) | 手動テスト: **29セクション・220+項目** (HANDTEST.md)
 
 ---
 
@@ -492,6 +492,24 @@ everything-claude-code 導入後、Django バックエンド (55モデル, 53 AP
 | Setup AP | Wi-Fi設定用APモード (動的パスワード) |
 | OTA | 未実装 |
 | Watchdog | ✅ 60秒 WDT |
+
+---
+
+## シフトカレンダー統合 (2026-03-17)
+
+### Task #46: マイシフト → シフトカレンダーに統合
+- **実装内容**:
+  - `ManagerShiftCalendarView` にロール判定を追加（`is_staff_role` / `user_role`）
+  - スタッフアクセス時: シフト希望入力タブ + 確定シフトタブ + 週グリッド（読み取り専用）を表示
+  - 店長アクセス時: 従来の休業日設定 + ステッパー + 期間管理 + 週グリッド（編集可能）を表示
+  - `shift_week_grid.html` に `is_readonly` 対応追加（スタッフ時はセルクリック無効）
+  - サイドバーリンク: スタッフの「マイシフト」→「シフトカレンダー」に変更
+  - `/admin/shift/my/` → `/admin/shift/calendar/` に 301 リダイレクト（後方互換）
+  - `StaffMyShiftView` クラス削除、`my_shift.html` テンプレート削除
+  - `StaffShiftRequestAPIView` は維持（API として使用中）
+- **変更ファイル**: `views_shift_manager.py`, `views_shift_staff.py`, `admin_site.py`, `urls.py`, `shift_calendar.html`, `shift_week_grid.html`
+- **テスト**: 42件（リダイレクト確認、ロール別コンテキスト確認、既存API/セキュリティテスト維持）
+- **全テスト**: 1109 passed + 7 skipped
 
 ---
 

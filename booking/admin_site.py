@@ -107,7 +107,8 @@ SIDEBAR_CUSTOM_LINKS = {
         {'name': _('メニュープレビュー'), 'admin_url': '/admin/menu/preview/', 'icon': 'fas fa-eye'},
     ],
     'ec_shop': [
-        {'name': _('EC注文一覧'), 'admin_url': '/admin/booking/order/?channel=ec', 'icon': 'fas fa-shopping-cart'},
+        {'name': _('EC注文管理'), 'admin_url': '/admin/ec/orders/', 'icon': 'fas fa-shipping-fast'},
+        {'name': _('EC注文一覧(raw)'), 'admin_url': '/admin/booking/order/?channel=ec', 'icon': 'fas fa-list'},
     ],
     'inventory': [
         {'name': _('在庫ダッシュボード'), 'admin_url': '/admin/inventory/', 'icon': 'fas fa-boxes'},
@@ -128,7 +129,7 @@ SIDEBAR_CUSTOM_LINKS_BY_ROLE = {
             {'name': _('本日のシフト'), 'admin_url': '/admin/shift/today/', 'icon': 'fas fa-clock'},
         ],
         'staff': [
-            {'name': _('マイシフト'), 'admin_url': '/admin/shift/my/', 'icon': 'fas fa-user-clock'},
+            {'name': _('シフトカレンダー'), 'admin_url': '/admin/shift/calendar/', 'icon': 'fas fa-calendar-alt'},
         ],
     },
 }

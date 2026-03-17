@@ -260,8 +260,8 @@ msgstr "開始時間"
 msgid "終了時間"
 msgstr "終了時間"
 
-msgid "占いスタッフ"
-msgstr "占いスタッフ"
+msgid "予約者名"
+msgstr "予約者名"
 
 msgid "LINEユーザーIDハッシュ"
 msgstr "LINEユーザーIDハッシュ"

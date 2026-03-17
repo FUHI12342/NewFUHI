@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>レシート #{{ tx.receipt_number }}</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Helvetica Neue', 'Hiragino Sans', sans-serif; width: 80mm; margin: 0 auto; padding: 8mm 4mm; font-size: 12px; color: #000; }
+  .header { text-align: center; margin-bottom: 8px; }
+  .header .store-name { font-size: 16px; font-weight: 700; }
+  .header .store-address { font-size: 10px; color: #666; margin-top: 2px; }
+  .divider { border-top: 1px dashed #999; margin: 6px 0; }
+  .meta { font-size: 11px; }
+  .meta .row { display: flex; justify-content: space-between; margin: 2px 0; }
+  table { width: 100%; border-collapse: collapse; margin: 6px 0; }
+  th { text-align: left; font-size: 10px; color: #666; border-bottom: 1px solid #ccc; padding: 2px 0; }
+  th.r, td.r { text-align: right; }
+  td { padding: 3px 0; font-size: 11px; }
+  .totals { margin: 6px 0; }
+  .totals .row { display: flex; justify-content: space-between; padding: 2px 0; font-size: 12px; }
+  .totals .grand { font-size: 16px; font-weight: 700; border-top: 2px solid #000; padding-top: 4px; margin-top: 4px; }
+  .payment-info { font-size: 11px; margin: 6px 0; }
+  .payment-info .row { display: flex; justify-content: space-between; margin: 2px 0; }
+  .footer { text-align: center; margin-top: 12px; font-size: 10px; color: #666; }
+  .no-print { margin-top: 16px; text-align: center; }
+  .no-print button { padding: 8px 24px; font-size: 14px; border: 1px solid #ccc; border-radius: 6px; cursor: pointer; margin: 0 4px; }
+  .no-print .btn-print { background: #3B82F6; color: #fff; border-color: #3B82F6; }
+  @media print {
+    body { padding: 0; }
+    .no-print { display: none !important; }
+  }
+</style>
+</head>
+<body>
+  <div class="header">
+    <div class="store-name">{{ store.name }}</div>
+    {% if store.address %}
+    <div class="store-address">{{ store.address }}</div>
+    {% endif %}
+  </div>
+
+  <div class="divider"></div>
+
+  <div class="meta">
+    <div class="row"><span>レシート番号</span><span>#{{ tx.receipt_number }}</span></div>
+    <div class="row"><span>日時</span><span>{{ tx.completed_at|date:"Y/m/d H:i" }}</span></div>
+    {% if tx.staff %}
+    <div class="row"><span>担当</span><span>{{ tx.staff.name }}</span></div>
+    {% endif %}
+  </div>
+
+  <div class="divider"></div>
+
+  <table>
+    <thead>
+      <tr><th>商品</th><th class="r">数量</th><th class="r">単価</th><th class="r">小計</th></tr>
+    </thead>
+    <tbody>
+      {% for item in items %}
+      <tr>
+        <td>{{ item.product.name }}</td>
+        <td class="r">{{ item.qty }}</td>
+        <td class="r">&yen;{{ item.unit_price|floatformat:0 }}</td>
+        <td class="r">&yen;{% widthratio item.qty 1 item.unit_price %}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <div class="divider"></div>
+
+  <div class="totals">
+    <div class="row"><span>小計</span><span>&yen;{{ subtotal|floatformat:0 }}</span></div>
+    <div class="row"><span>税額</span><span>&yen;{{ tx.tax_amount|floatformat:0 }}</span></div>
+    {% if tx.discount_amount %}
+    <div class="row"><span>割引</span><span>-&yen;{{ tx.discount_amount|floatformat:0 }}</span></div>
+    {% endif %}
+    <div class="row grand"><span>合計</span><span>&yen;{{ tx.total_amount|floatformat:0 }}</span></div>
+  </div>
+
+  <div class="divider"></div>
+
+  <div class="payment-info">
+    {% if tx.payment_method %}
+    <div class="row"><span>支払方法</span><span>{{ tx.payment_method.display_name }}</span></div>
+    {% endif %}
+    {% if tx.cash_received %}
+    <div class="row"><span>受取金額</span><span>&yen;{{ tx.cash_received|floatformat:0 }}</span></div>
+    {% endif %}
+    {% if tx.change_given is not None %}
+    <div class="row"><span>お釣り</span><span>&yen;{{ tx.change_given|floatformat:0 }}</span></div>
+    {% endif %}
+  </div>
+
+  <div class="footer">
+    <p>ありがとうございました</p>
+  </div>
+
+  <div class="no-print">
+    <button class="btn-print" onclick="window.print();">印刷</button>
+    <button onclick="window.close();">閉じる</button>
+  </div>
+</body>
+</html>

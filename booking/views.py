@@ -2579,8 +2579,13 @@ class ShopCheckoutView(View):
             order = Order.objects.create(
                 store=first_product.store,
                 status=Order.STATUS_OPEN,
-                table_label=f'EC: {customer_name} / {customer_phone}',
+                table_label=f'EC: {customer_name}',
                 channel='ec',
+                customer_name=customer_name,
+                customer_email=customer_email,
+                customer_phone=customer_phone,
+                customer_address=customer_address,
+                shipping_status='pending',
             )
 
             for product_id, item in cart.items():

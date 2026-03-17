@@ -115,11 +115,12 @@ class TestSidebarRoleLinks:
         assert resp.status_code == 200
         assert 'シフトカレンダー' in content
 
-    def test_staff_sees_my_shift(self, staff_client):
+    def test_staff_sees_shift_calendar(self, staff_client):
         resp = staff_client.get('/admin/')
         assert resp.status_code == 200
         content = resp.content.decode()
-        assert 'マイシフト' in content
+        assert 'シフトカレンダー' in content
+        assert 'マイシフト' not in content
 
     def test_sidebar_links_by_role_config(self):
         from booking.admin_site import SIDEBAR_CUSTOM_LINKS_BY_ROLE
@@ -127,7 +128,7 @@ class TestSidebarRoleLinks:
         assert 'manager' in shift_links
         assert 'staff' in shift_links
         assert len(shift_links['staff']) == 1
-        assert 'マイシフト' in str(shift_links['staff'][0]['name'])
+        assert 'シフトカレンダー' in str(shift_links['staff'][0]['name'])
         assert len(shift_links['manager']) == 2
 
 
@@ -187,14 +188,31 @@ class TestClosedDateAPI:
 # ==============================
 
 class TestStaffMyShift:
-    def test_my_shift_view_staff(self, staff_client):
+    def test_my_shift_redirects_to_calendar(self, staff_client):
+        """旧URL /admin/shift/my/ は /admin/shift/calendar/ にリダイレクト"""
         resp = staff_client.get('/admin/shift/my/')
-        assert resp.status_code == 200
-        assert 'マイシフト' in resp.content.decode()
+        assert resp.status_code == 301
+        assert '/admin/shift/calendar/' in resp.url
 
-    def test_my_shift_view_manager(self, mgr_client):
+    def test_my_shift_redirect_manager(self, mgr_client):
+        """店長も旧URLはリダイレクト"""
         resp = mgr_client.get('/admin/shift/my/')
+        assert resp.status_code == 301
+        assert '/admin/shift/calendar/' in resp.url
+
+    def test_calendar_staff_role_context(self, staff_client):
+        """スタッフがシフトカレンダーにアクセス→is_staff_role=True"""
+        resp = staff_client.get('/admin/shift/calendar/')
         assert resp.status_code == 200
+        assert resp.context['is_staff_role'] is True
+        assert resp.context['user_role'] == 'staff'
+
+    def test_calendar_manager_role_context(self, mgr_client):
+        """店長がシフトカレンダーにアクセス→is_staff_role=False"""
+        resp = mgr_client.get('/admin/shift/calendar/')
+        assert resp.status_code == 200
+        assert resp.context['is_staff_role'] is False
+        assert resp.context['user_role'] == 'manager'
 
     def test_shift_request_create(self, staff_client, open_period, staff_only_user):
         resp = staff_client.post(
@@ -386,10 +404,11 @@ class TestAPIAuthentication:
         )
         assert resp.status_code == 302
 
-    def test_unauthenticated_my_shift_page(self, db):
+    def test_unauthenticated_my_shift_redirect(self, db):
+        """旧URL: 未認証でも301リダイレクト"""
         c = Client()
         resp = c.get('/admin/shift/my/')
-        assert resp.status_code == 302
+        assert resp.status_code == 301
 
 
 class TestIDORProtection:

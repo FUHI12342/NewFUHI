@@ -70,6 +70,8 @@
   .shift-grid td.staff-name { text-align: left; font-weight: 600; position: sticky; left: 0; background: #fff; z-index: 5; min-width: 120px; }
   .shift-cell { cursor: pointer; min-height: 60px; transition: background .15s; }
   .shift-cell:hover { background: #f0f7ff; }
+  .shift-cell.readonly { cursor: default; }
+  .shift-cell.readonly:hover { background: transparent; }
   .shift-block { display: inline-block; padding: 2px 6px; border-radius: 4px; color: #fff; font-size: 12px; line-height: 1.3; }
 
   /* ===== ツールバー ===== */
@@ -136,10 +138,352 @@
   .alert-success { padding: 12px; background: #d1fae5; color: #065f46; border-radius: 6px; margin: 8px 0; }
   .alert-info { padding: 12px; background: #dbeafe; color: #1e40af; border-radius: 6px; margin: 8px 0; }
   .alert-warning { padding: 12px; background: #fef3c7; color: #92400e; border-radius: 6px; margin: 8px 0; }
+
+  /* ===== スタッフ用タブ ===== */
+  .ms-tabs { display: flex; gap: 0; border-bottom: 2px solid #e5e7eb; margin-bottom: 20px; }
+  .ms-tab {
+    padding: 10px 20px; cursor: pointer; font-weight: 600; font-size: 14px;
+    color: #6b7280; border-bottom: 2px solid transparent; margin-bottom: -2px;
+    transition: all .15s;
+  }
+  .ms-tab:hover { color: #374151; }
+  .ms-tab.active { color: #3B82F6; border-bottom-color: #3B82F6; }
+
+  /* ===== スタッフ用パネル ===== */
+  .ms-panel {
+    background: #fff; border: 1px solid #e5e7eb; border-radius: 8px;
+    padding: 20px; margin-bottom: 20px;
+  }
+  .ms-panel h3 { margin: 0 0 12px; font-size: 16px; }
+
+  /* ===== スタッフ用カレンダー ===== */
+  .ms-cal-grid {
+    display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px;
+    max-width: 500px;
+  }
+  .ms-cal-header {
+    text-align: center; font-size: 11px; font-weight: 600; color: #6b7280;
+    padding: 4px;
+  }
+  .ms-cal-cell {
+    text-align: center; padding: 8px 4px; border-radius: 6px;
+    cursor: pointer; position: relative; min-height: 40px;
+    transition: background .15s; font-size: 14px;
+    border: 1px solid transparent;
+  }
+  .ms-cal-cell:hover { background: #f0f7ff; }
+  .ms-cal-cell.selected { border-color: #3B82F6; background: #eff6ff; }
+  .ms-cal-cell.has-request { background: #dbeafe; }
+  .ms-cal-cell.pref-preferred { background: #dbeafe; }
+  .ms-cal-cell.pref-unavailable { background: #fee2e2; }
+
+  /* ===== スタッフ用フォーム ===== */
+  .ms-form { display: flex; gap: 12px; align-items: flex-end; flex-wrap: wrap; margin-top: 12px; }
+  .ms-form label { font-size: 12px; font-weight: 600; color: #6b7280; display: block; margin-bottom: 2px; }
+  .ms-form select, .ms-form input { padding: 6px 12px; border: 1px solid #d1d5db; border-radius: 4px; font-size: 14px; }
+
+  /* ===== スタッフ用希望リスト ===== */
+  .ms-req-list { margin-top: 16px; }
+  .ms-req-item {
+    display: flex; align-items: center; gap: 12px; padding: 8px 12px;
+    border: 1px solid #e5e7eb; border-radius: 6px; margin-bottom: 6px;
+    font-size: 13px;
+  }
+  .ms-req-item:hover { background: #f9fafb; }
+  .ms-pref-badge {
+    display: inline-block; padding: 2px 8px; border-radius: 12px;
+    font-size: 11px; font-weight: 600;
+  }
+  .pref-preferred { background: #DBEAFE; color: #1E40AF; }
+  .pref-available { background: #D1FAE5; color: #065F46; }
+  .pref-unavailable { background: #FEE2E2; color: #991B1B; }
+
+  /* ===== スタッフ用確定シフト ===== */
+  .ms-assign-item {
+    display: flex; align-items: center; gap: 12px; padding: 10px 12px;
+    border: 1px solid #e5e7eb; border-radius: 6px; margin-bottom: 6px;
+    font-size: 14px;
+  }
+  .ms-assign-color {
+    width: 8px; height: 32px; border-radius: 4px; flex-shrink: 0;
+  }
 </style>
 {% endblock %}
 
 {% block content %}
+{% if is_staff_role %}
+{# ===================================================================== #}
+{# ===== スタッフ用UI: シフト希望入力 + 確定シフト + 週グリッド(読み取り専用) ===== #}
+{# ===================================================================== #}
+<div x-data="{
+  staffTab: 'request',
+  selectedPeriodId: '{{ open_periods.0.id|default:'' }}',
+  selectedDate: null,
+  calMonth: new Date().getMonth(),
+  calYear: new Date().getFullYear(),
+  calDays: [],
+  myRequests: [],
+  formStartHour: 10,
+  formEndHour: 18,
+  formPreference: 'preferred',
+  formNote: '',
+  requestDates: new Set(),
+
+  async init() {
+    this.buildCalDays();
+    await this.loadRequests();
+  },
+
+  buildCalDays() {
+    const first = new Date(this.calYear, this.calMonth, 1);
+    const lastDay = new Date(this.calYear, this.calMonth + 1, 0).getDate();
+    const startDow = first.getDay();
+    const days = [];
+    for (let i = 0; i < startDow; i++) days.push(null);
+    for (let d = 1; d <= lastDay; d++) {
+      const ds = `${this.calYear}-${String(this.calMonth+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+      days.push({day: d, date: ds});
+    }
+    this.calDays = days;
+  },
+
+  prevMonth() {
+    if (this.calMonth === 0) { this.calMonth = 11; this.calYear--; }
+    else this.calMonth--;
+    this.buildCalDays();
+  },
+  nextMonth() {
+    if (this.calMonth === 11) { this.calMonth = 0; this.calYear++; }
+    else this.calMonth++;
+    this.buildCalDays();
+  },
+
+  get calMonthLabel() {
+    return `${this.calYear}年${this.calMonth + 1}月`;
+  },
+
+  async loadRequests() {
+    const url = this.selectedPeriodId
+      ? `/api/shift/my-requests/?period_id=${this.selectedPeriodId}`
+      : '/api/shift/my-requests/';
+    const res = await fetch(url, {credentials: 'same-origin'});
+    this.myRequests = await res.json();
+    this.requestDates = new Set(this.myRequests.map(r => r.date));
+  },
+
+  getReqForDate(ds) {
+    return this.myRequests.find(r => r.date === ds);
+  },
+
+  async submitRequest() {
+    if (!this.selectedDate || !this.selectedPeriodId) return;
+    const res = await fetch('/api/shift/my-requests/', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json', 'X-CSRFToken': '{{ csrf_token }}'},
+      body: JSON.stringify({
+        period_id: this.selectedPeriodId,
+        date: this.selectedDate,
+        start_hour: parseInt(this.formStartHour),
+        end_hour: parseInt(this.formEndHour),
+        preference: this.formPreference,
+        note: this.formNote,
+      }),
+      credentials: 'same-origin',
+    });
+    if (res.ok) {
+      await this.loadRequests();
+      this.formNote = '';
+    }
+  },
+
+  async deleteRequest(id) {
+    const res = await fetch(`/api/shift/my-requests/${id}/`, {
+      method: 'DELETE',
+      headers: {'X-CSRFToken': '{{ csrf_token }}'},
+      credentials: 'same-origin',
+    });
+    if (res.ok) await this.loadRequests();
+  },
+
+  prefLabel(pref) {
+    const m = {preferred: '{% trans '希望' %}', available: '{% trans '出勤可能' %}', unavailable: '{% trans '出勤不可' %}'};
+    return m[pref] || pref;
+  },
+}">
+
+  {# ===== タブ ===== #}
+  <div class="ms-tabs">
+    <div class="ms-tab" :class="staffTab === 'request' ? 'active' : ''" @click="staffTab = 'request'">
+      <i class="fas fa-edit" style="margin-right:4px;"></i> {% trans "シフト希望入力" %}
+    </div>
+    <div class="ms-tab" :class="staffTab === 'confirmed' ? 'active' : ''" @click="staffTab = 'confirmed'">
+      <i class="fas fa-calendar-check" style="margin-right:4px;"></i> {% trans "確定シフト" %}
+    </div>
+  </div>
+
+  {# ===== タブ1: シフト希望入力 ===== #}
+  <div x-show="staffTab === 'request'" x-cloak>
+    {# 期間選択 #}
+    {% if open_periods %}
+    <div class="ms-panel">
+      <h3>{% trans "募集中の期間" %}</h3>
+      <select x-model="selectedPeriodId" @change="loadRequests()" style="padding:6px 12px;border:1px solid #d1d5db;border-radius:4px;font-size:14px;">
+        {% for p in open_periods %}
+        <option value="{{ p.id }}">{{ p.year_month|date:"Y年m月" }}{% if p.deadline %} ({% trans "締切" %}: {{ p.deadline|date:"m/d" }}){% endif %}</option>
+        {% endfor %}
+      </select>
+    </div>
+    {% else %}
+    <div class="ms-panel">
+      <p style="color:#6b7280;">{% trans "現在、募集中のシフト期間はありません。" %}</p>
+    </div>
+    {% endif %}
+
+    {# カレンダー + フォーム #}
+    <div class="ms-panel">
+      <h3>{% trans "日付を選択" %}</h3>
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;">
+        <button class="btn btn-outline btn-sm" @click="prevMonth()">◀</button>
+        <strong x-text="calMonthLabel" style="min-width:100px;text-align:center;"></strong>
+        <button class="btn btn-outline btn-sm" @click="nextMonth()">▶</button>
+      </div>
+      <div class="ms-cal-grid">
+        <template x-for="dow in ['{% trans '日' %}','{% trans '月' %}','{% trans '火' %}','{% trans '水' %}','{% trans '木' %}','{% trans '金' %}','{% trans '土' %}']">
+          <div class="ms-cal-header" x-text="dow"></div>
+        </template>
+        <template x-for="cell in calDays">
+          <div class="ms-cal-cell"
+               :class="{
+                 'selected': cell && cell.date === selectedDate,
+                 'has-request': cell && requestDates.has(cell.date),
+               }"
+               @click="cell && (selectedDate = cell.date)">
+            <span x-text="cell ? cell.day : ''"></span>
+          </div>
+        </template>
+      </div>
+
+      {# 希望入力フォーム #}
+      <div x-show="selectedDate" style="margin-top:16px;padding-top:16px;border-top:1px solid #e5e7eb;">
+        <h3 style="font-size:14px;">
+          <span x-text="selectedDate"></span> {% trans "のシフト希望" %}
+        </h3>
+        <div class="ms-form">
+          <div>
+            <label>{% trans "開始時間" %}</label>
+            <select x-model="formStartHour">
+              <template x-for="h in Array.from({length:16}, (_, i) => i + 8)">
+                <option :value="h" x-text="h + ':00'"></option>
+              </template>
+            </select>
+          </div>
+          <div>
+            <label>{% trans "終了時間" %}</label>
+            <select x-model="formEndHour">
+              <template x-for="h in Array.from({length:16}, (_, i) => i + 9)">
+                <option :value="h" x-text="h + ':00'"></option>
+              </template>
+            </select>
+          </div>
+          <div>
+            <label>{% trans "希望区分" %}</label>
+            <select x-model="formPreference">
+              <option value="preferred">{% trans "希望" %}</option>
+              <option value="available">{% trans "出勤可能" %}</option>
+              <option value="unavailable">{% trans "出勤不可" %}</option>
+            </select>
+          </div>
+          <div>
+            <label>{% trans "備考" %}</label>
+            <input type="text" x-model="formNote" placeholder="{% trans '任意' %}" style="width:140px;">
+          </div>
+          <button class="btn btn-primary btn-sm" @click="submitRequest()" :disabled="!selectedPeriodId">
+            {% trans "送信" %}
+          </button>
+        </div>
+      </div>
+    </div>
+
+    {# 送信済み希望一覧 #}
+    <div class="ms-panel">
+      <h3>{% trans "送信済みの希望" %}</h3>
+      <template x-if="myRequests.length === 0">
+        <p style="color:#6b7280;font-size:13px;">{% trans "まだ希望を送信していません。" %}</p>
+      </template>
+      <div class="ms-req-list">
+        <template x-for="req in myRequests" :key="req.id">
+          <div class="ms-req-item">
+            <span style="font-weight:600;" x-text="req.date"></span>
+            <span x-text="req.start_hour + ':00 - ' + req.end_hour + ':00'"></span>
+            <span class="ms-pref-badge" :class="'pref-' + req.preference" x-text="prefLabel(req.preference)"></span>
+            <span x-show="req.note" style="color:#6b7280;" x-text="req.note"></span>
+            <button class="btn btn-danger btn-sm" style="margin-left:auto;" @click="deleteRequest(req.id)">
+              {% trans "削除" %}
+            </button>
+          </div>
+        </template>
+      </div>
+    </div>
+  </div>
+
+  {# ===== タブ2: 確定シフト ===== #}
+  <div x-show="staffTab === 'confirmed'" x-cloak>
+    <div class="ms-panel">
+      <h3>{% trans "確定シフト一覧" %}</h3>
+      {% if my_assignments %}
+      <div>
+        {% for a in my_assignments %}
+        <div class="ms-assign-item">
+          <div class="ms-assign-color" style="background:{{ a.color }};"></div>
+          <span style="font-weight:600;">{{ a.date|date:"Y/m/d (D)" }}</span>
+          <span>
+            {% if a.start_time %}{{ a.start_time|time:"H:i" }}{% else %}{{ a.start_hour }}:00{% endif %}
+            -
+            {% if a.end_time %}{{ a.end_time|time:"H:i" }}{% else %}{{ a.end_hour }}:00{% endif %}
+          </span>
+          <span style="color:#6b7280;">{{ a.period.year_month|date:"Y年m月" }}</span>
+        </div>
+        {% endfor %}
+      </div>
+      {% else %}
+      <p style="color:#6b7280;">{% trans "確定済みのシフトはありません。" %}</p>
+      {% endif %}
+    </div>
+  </div>
+
+  {# ===== 週ナビゲーション ===== #}
+  <div class="toolbar">
+    <a href="?week_start={{ prev_week }}{% if active_period %}&period_id={{ active_period.id }}{% endif %}"
+       class="btn btn-outline btn-sm">◀ {% trans "前週" %}</a>
+
+    <strong>
+      {{ week_dates.0|date:"Y年m月d日" }} 〜 {{ week_dates.6|date:"m月d日" }}
+    </strong>
+
+    <a href="?week_start={{ next_week }}{% if active_period %}&period_id={{ active_period.id }}{% endif %}"
+       class="btn btn-outline btn-sm">{% trans "次週" %} ▶</a>
+
+    {% if templates %}
+    <div class="template-chips" style="margin-left:auto;">
+      {% for t in templates %}
+      <span class="template-chip" style="background:{{ t.color }}" title="{{ t.start_time|time:'H:i' }}-{{ t.end_time|time:'H:i' }}">
+        {{ t.name }}
+      </span>
+      {% endfor %}
+    </div>
+    {% endif %}
+  </div>
+
+  {# ===== 週グリッド（読み取り専用） ===== #}
+  <div id="week-grid" style="overflow-x:auto;">
+    {% include "admin/booking/partials/shift_week_grid.html" with is_readonly=True %}
+  </div>
+</div>
+
+{% else %}
+{# ===================================================================== #}
+{# ===== 店長用UI: 休業日 + ステッパー + 期間管理 + 週グリッド(編集可能) ===== #}
+{# ===================================================================== #}
 <div x-data="{
   showSidebar: false,
   selectedStaff: null,
@@ -476,4 +820,5 @@ window.TOUR_STEPS = [
   },
 ];
 </script>
+{% endif %}
 {% endblock %}

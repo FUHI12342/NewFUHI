@@ -160,6 +160,52 @@ class TestKitchenDisplay:
         assert '注文はありません' in content
 
 
+@pytest.mark.django_db
+class TestPOSReceipt:
+    """レシートページのテスト"""
+
+    @pytest.fixture
+    def pos_transaction(self, order, order_item, store):
+        from django.utils import timezone
+        return POSTransaction.objects.create(
+            order=order,
+            total_amount=1100,
+            tax_amount=100,
+            discount_amount=0,
+            receipt_number='R250317120001',
+            completed_at=timezone.now(),
+        )
+
+    def test_receipt_returns_200(self, admin_client, pos_transaction):
+        resp = admin_client.get(f'/admin/pos/receipt/{pos_transaction.receipt_number}/')
+        assert resp.status_code == 200
+
+    def test_receipt_contains_context(self, admin_client, pos_transaction):
+        resp = admin_client.get(f'/admin/pos/receipt/{pos_transaction.receipt_number}/')
+        assert resp.context['tx'] == pos_transaction
+        assert resp.context['subtotal'] > 0
+        assert len(resp.context['items']) > 0
+
+    def test_receipt_shows_store_name(self, admin_client, pos_transaction, store):
+        resp = admin_client.get(f'/admin/pos/receipt/{pos_transaction.receipt_number}/')
+        content = resp.content.decode()
+        assert store.name in content
+
+    def test_receipt_shows_receipt_number(self, admin_client, pos_transaction):
+        resp = admin_client.get(f'/admin/pos/receipt/{pos_transaction.receipt_number}/')
+        content = resp.content.decode()
+        assert pos_transaction.receipt_number in content
+
+    def test_receipt_404_for_invalid_number(self, admin_client):
+        resp = admin_client.get('/admin/pos/receipt/INVALID999/')
+        assert resp.status_code == 404
+
+    def test_receipt_requires_auth(self):
+        client = Client()
+        resp = client.get('/admin/pos/receipt/R250317120001/')
+        assert resp.status_code in (302, 403)
+
+
 class TestIoTMenuHidden:
     """IoTメニュー: グループは表示、iotdeviceモデルのみ非表示"""
 

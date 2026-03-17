@@ -8,9 +8,10 @@ from django.utils.translation import gettext_lazy as _
 from django.views.generic import TemplateView, FormView
 
 from .models import Product, Category, StockMovement, Staff, Store
+from .views_restaurant_dashboard import AdminSidebarMixin
 
 
-class InventoryDashboardView(TemplateView):
+class InventoryDashboardView(AdminSidebarMixin, TemplateView):
     """在庫一覧ダッシュボード（管理画面カスタムビュー）"""
     template_name = 'admin/booking/inventory_dashboard.html'
 
@@ -92,7 +93,7 @@ class StockInForm(forms.Form):
             ).select_related('category').order_by('category__sort_order', 'name')
 
 
-class StockInFormView(FormView):
+class StockInFormView(AdminSidebarMixin, FormView):
     """入荷登録処理"""
     template_name = 'admin/booking/inventory_dashboard.html'
     form_class = StockInForm

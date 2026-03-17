@@ -12,13 +12,15 @@ from booking.health import healthz
 from booking.views_debug import AdminDebugPanelView, IoTDeviceDebugView
 from booking.views_restaurant_dashboard import RestaurantDashboardView
 from booking.views_shift_manager import ManagerShiftCalendarView, TodayShiftTimelineView
-from booking.views_shift_staff import StaffMyShiftView
+from django.views.generic import RedirectView
 from booking.views_attendance import AttendanceQRDisplayView, AttendanceBoardView, AttendancePINDisplayView
-from booking.views_pos import POSView, KitchenDisplayView
+from booking.views_pos import POSView, POSReceiptView, KitchenDisplayView
 from booking.views_analytics import VisitorAnalyticsDashboardView
 from booking.views_ai_recommend import AIRecommendationView
 from booking.views_menu_preview import MenuPreviewRedirectView
 from booking.views_inventory import InventoryDashboardView, StockInFormView
+from booking.views_performance_dashboard import StaffPerformanceDashboardView
+from booking.views_ec_dashboard import ECOrderDashboardView
 import booking.admin
 
 # Non-i18n URLs (APIs, health check)
@@ -83,10 +85,10 @@ urlpatterns += i18n_patterns(
         name="admin_today_shift",
     ),
 
-    # スタッフ用マイシフト
+    # 旧マイシフト → シフトカレンダーへリダイレクト（後方互換）
     path(
         "admin/shift/my/",
-        custom_site.admin_view(StaffMyShiftView.as_view()),
+        RedirectView.as_view(url='/admin/shift/calendar/', permanent=True),
         name="staff_my_shift",
     ),
 
@@ -107,11 +109,23 @@ urlpatterns += i18n_patterns(
         name="admin_attendance_board",
     ),
 
+    # 勤務実績ダッシュボード
+    path(
+        "admin/attendance/performance/",
+        custom_site.admin_view(StaffPerformanceDashboardView.as_view()),
+        name="admin_staff_performance",
+    ),
+
     # Air統合: POS
     path(
         "admin/pos/",
         custom_site.admin_view(POSView.as_view()),
         name="admin_pos",
+    ),
+    path(
+        "admin/pos/receipt/<str:receipt_number>/",
+        custom_site.admin_view(POSReceiptView.as_view()),
+        name="admin_pos_receipt",
     ),
     path(
         "admin/pos/kitchen/",
@@ -138,6 +152,13 @@ urlpatterns += i18n_patterns(
         "admin/ai/recommendation/",
         custom_site.admin_view(AIRecommendationView.as_view()),
         name="admin_ai_recommendation",
+    ),
+
+    # EC注文管理ダッシュボード
+    path(
+        "admin/ec/orders/",
+        custom_site.admin_view(ECOrderDashboardView.as_view()),
+        name="admin_ec_orders",
     ),
 
     # 在庫管理ダッシュボード

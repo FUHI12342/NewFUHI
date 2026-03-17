@@ -278,6 +278,31 @@ class POSCheckoutAPIView(LoginRequiredMixin, View):
         })
 
 
+class POSReceiptView(LoginRequiredMixin, TemplateView):
+    """レシート表示（印刷用独立ページ）"""
+    template_name = 'admin/booking/pos_receipt.html'
+
+    def get_context_data(self, **kwargs):
+        ctx = super().get_context_data(**kwargs)
+        receipt_number = self.kwargs['receipt_number']
+        tx = get_object_or_404(
+            POSTransaction.objects.select_related(
+                'order__store', 'payment_method', 'staff',
+            ).prefetch_related('order__items__product'),
+            receipt_number=receipt_number,
+        )
+        items = tx.order.items.all()
+        subtotal = sum(i.qty * i.unit_price for i in items)
+        ctx.update({
+            'tx': tx,
+            'order': tx.order,
+            'store': tx.order.store,
+            'items': items,
+            'subtotal': subtotal,
+        })
+        return ctx
+
+
 class KitchenDisplayView(AdminSidebarMixin, TemplateView):
     """キッチンディスプレイ"""
     template_name = 'admin/booking/kitchen_display.html'

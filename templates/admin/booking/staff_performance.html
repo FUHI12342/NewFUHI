@@ -1,0 +1,164 @@
+{% extends "admin/base_site.html" %}
+{% load i18n %}
+{% block title %}{{ title }}{% endblock %}
+{% block extrastyle %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.14.9/dist/cdn.min.js"></script>
+<style>
+  .perf-wrap { padding: 0.5rem 1rem 2rem; }
+  .toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin-bottom: 16px; }
+  .toolbar label { font-size: 13px; font-weight: 600; color: #6b7280; }
+  .toolbar select, .toolbar input[type=number] { border: 1px solid #d1d5db; border-radius: 6px; padding: 4px 8px; font-size: 13px; }
+  .view-toggle { margin-left: auto; display: flex; gap: 4px; }
+  .view-btn { padding: 5px 16px; border-radius: 20px; font-size: 13px; font-weight: 600; cursor: pointer; border: 1px solid #d1d5db; background: #f9fafb; color: #6b7280; transition: all .2s; }
+  .view-btn.active { background: #465fff; color: #fff; border-color: #465fff; }
+  .card { background: #fff; border: 1px solid #e5e7eb; border-radius: 12px; padding: 20px; box-shadow: 0 2px 6px rgba(0,0,0,.06); }
+  .perf-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  .perf-table th { text-align: left; padding: 8px 10px; background: #f9fafb; border-bottom: 2px solid #e5e7eb; color: #6b7280; white-space: nowrap; font-size: 12px; }
+  .perf-table td { padding: 8px 10px; border-bottom: 1px solid #f3f4f6; }
+  .perf-table tr:hover { background: #fafafa; }
+  .r { text-align: right !important; }
+  .chart-wrap { position: relative; height: 420px; }
+  .empty-msg { text-align: center; padding: 40px; color: #9ca3af; font-size: 14px; }
+</style>
+{% endblock %}
+{% block content %}
+<div class="perf-wrap"
+     x-data="{
+       view: 'table',
+       year: {{ current_year }},
+       month: {{ current_month }},
+       storeId: '',
+       rows: [],
+       loading: false,
+       chart: null,
+
+       async load() {
+         this.loading = true;
+         const p = new URLSearchParams({year: this.year, month: this.month});
+         if (this.storeId) p.set('store_id', this.storeId);
+         try {
+           const res = await fetch('/api/attendance/performance/?' + p);
+           const data = await res.json();
+           this.rows = data.rows || [];
+           if (this.view === 'graph') this.$nextTick(() => this.renderChart());
+         } catch(e) { console.error(e); }
+         finally { this.loading = false; }
+       },
+
+       renderChart() {
+         const c = document.getElementById('perfChart');
+         if (!c) return;
+         if (this.chart) this.chart.destroy();
+         const h = m => +(m/60).toFixed(1);
+         this.chart = new Chart(c.getContext('2d'), {
+           type: 'bar',
+           data: {
+             labels: this.rows.map(r => r.staff_name),
+             datasets: [
+               {label:'通常(h)', data:this.rows.map(r=>h(r.regular_minutes)), backgroundColor:'rgba(70,95,255,.7)'},
+               {label:'残業(h)', data:this.rows.map(r=>h(r.overtime_minutes)), backgroundColor:'rgba(245,158,11,.7)'},
+               {label:'深夜(h)', data:this.rows.map(r=>h(r.late_night_minutes)), backgroundColor:'rgba(99,102,241,.6)'},
+               {label:'休日(h)', data:this.rows.map(r=>h(r.holiday_minutes)), backgroundColor:'rgba(239,68,68,.6)'},
+             ]
+           },
+           options: {
+             responsive: true, maintainAspectRatio: false,
+             plugins: {legend:{position:'bottom'}},
+             scales: {x:{stacked:true}, y:{stacked:true, beginAtZero:true, title:{display:true,text:'時間 (h)'}}}
+           }
+         });
+       },
+
+       switchView(v) {
+         this.view = v;
+         if (v === 'graph') this.$nextTick(() => this.renderChart());
+       }
+     }"
+     x-init="load()">
+
+  <h2 style="font-size:18px;font-weight:700;margin-bottom:12px;">{% trans "勤務実績ダッシュボード" %}</h2>
+
+  <div class="toolbar">
+    <label>{% trans "年" %}</label>
+    <input type="number" x-model="year" min="2020" max="2099" style="width:80px;" @change="load()">
+    <label>{% trans "月" %}</label>
+    <select x-model="month" @change="load()" id="monthSelect"></select>
+
+    {% if request.user.is_superuser %}
+    <label>{% trans "店舗" %}</label>
+    <select x-model="storeId" @change="load()">
+      <option value="">{% trans "全店舗" %}</option>
+      {% for s in stores %}
+      <option value="{{ s.id }}">{{ s.name }}</option>
+      {% endfor %}
+    </select>
+    {% endif %}
+
+    <div class="view-toggle">
+      <button class="view-btn" :class="{active: view==='table'}" @click="switchView('table')">{% trans "表" %}</button>
+      <button class="view-btn" :class="{active: view==='graph'}" @click="switchView('graph')">{% trans "グラフ" %}</button>
+    </div>
+  </div>
+
+  {# Table view #}
+  <div class="card" x-show="view==='table'">
+    <div x-show="loading" class="empty-msg">{% trans "読み込み中..." %}</div>
+    <div x-show="!loading && rows.length===0" class="empty-msg">{% trans "データがありません" %}</div>
+    <div x-show="!loading && rows.length>0" style="overflow-x:auto;">
+      <table class="perf-table">
+        <thead><tr>
+          <th>{% trans "スタッフ" %}</th>
+          <th>{% trans "店舗" %}</th>
+          <th class="r">{% trans "出勤日数" %}</th>
+          <th class="r">{% trans "総勤務(h)" %}</th>
+          <th class="r">{% trans "通常(h)" %}</th>
+          <th class="r">{% trans "残業(h)" %}</th>
+          <th class="r">{% trans "深夜(h)" %}</th>
+          <th class="r">{% trans "休日(h)" %}</th>
+          <th class="r">{% trans "休憩(h)" %}</th>
+        </tr></thead>
+        <tbody>
+          <template x-for="r in rows" :key="r.staff_id">
+            <tr>
+              <td x-text="r.staff_name"></td>
+              <td x-text="r.store_name"></td>
+              <td class="r" x-text="r.attendance_days"></td>
+              <td class="r" style="font-weight:600;" x-text="(r.total_minutes/60).toFixed(1)"></td>
+              <td class="r" x-text="(r.regular_minutes/60).toFixed(1)"></td>
+              <td class="r" x-text="(r.overtime_minutes/60).toFixed(1)"></td>
+              <td class="r" x-text="(r.late_night_minutes/60).toFixed(1)"></td>
+              <td class="r" x-text="(r.holiday_minutes/60).toFixed(1)"></td>
+              <td class="r" x-text="(r.break_minutes/60).toFixed(1)"></td>
+            </tr>
+          </template>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  {# Graph view #}
+  <div class="card" x-show="view==='graph'">
+    <div x-show="loading" class="empty-msg">{% trans "読み込み中..." %}</div>
+    <div x-show="!loading && rows.length===0" class="empty-msg">{% trans "データがありません" %}</div>
+    <div x-show="!loading && rows.length>0" class="chart-wrap">
+      <canvas id="perfChart"></canvas>
+    </div>
+  </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  const sel = document.getElementById('monthSelect');
+  if (sel) {
+    for (let m = 1; m <= 12; m++) {
+      const opt = document.createElement('option');
+      opt.value = m;
+      opt.textContent = m + '月';
+      if (m === {{ current_month }}) opt.selected = true;
+      sel.appendChild(opt);
+    }
+  }
+});
+</script>
+{% endblock %}

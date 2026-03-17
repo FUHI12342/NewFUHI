@@ -632,12 +632,40 @@ class OrderItemInline(admin.TabularInline):
 
 
 class OrderAdmin(admin.ModelAdmin):
-    list_display = ('id', 'store', 'channel', 'status', 'table_label', 'schedule', 'created_at', 'updated_at')
-    list_filter = ('channel', 'status', 'payment_status')
-    search_fields = ('id', 'store__name', 'table_label', 'customer_line_user_hash')
+    list_display = (
+        'id', 'store', 'channel', 'status', 'customer_name',
+        'shipping_status', 'table_label', 'schedule', 'created_at',
+    )
+    list_filter = ('channel', 'status', 'payment_status', 'shipping_status')
+    search_fields = ('id', 'store__name', 'table_label', 'customer_line_user_hash', 'customer_name', 'customer_email')
     inlines = [OrderItemInline]
     readonly_fields = ('created_at', 'updated_at')
     date_hierarchy = 'created_at'
+    fieldsets = (
+        (None, {
+            'fields': ('store', 'schedule', 'channel', 'table_label', 'table_seat', 'status', 'payment_status', 'discount_amount', 'tax_amount'),
+        }),
+        ('EC顧客情報', {
+            'classes': ('collapse',),
+            'fields': ('customer_name', 'customer_email', 'customer_phone', 'customer_address'),
+        }),
+        ('発送情報', {
+            'classes': ('collapse',),
+            'fields': ('shipping_status', 'tracking_number', 'shipped_at', 'shipping_note'),
+        }),
+        ('タイムスタンプ', {
+            'fields': ('created_at', 'updated_at'),
+        }),
+    )
+    actions = ['mark_shipped']
+
+    @admin.action(description='発送済みにする')
+    def mark_shipped(self, request, queryset):
+        from django.utils import timezone
+        count = queryset.filter(shipping_status='pending').update(
+            shipping_status='shipped', shipped_at=timezone.now(),
+        )
+        self.message_user(request, f'{count} 件の注文を発送済みにしました。')
 
     def get_queryset(self, request):
         qs = super().get_queryset(request)
@@ -1480,10 +1508,15 @@ custom_site.register(AttendanceStamp, AttendanceStampAdmin)
 # Air統合: POS決済
 # ==============================
 class POSTransactionAdmin(admin.ModelAdmin):
-    list_display = ('receipt_number', 'order', 'total_amount', 'payment_method', 'staff', 'completed_at')
+    list_display = ('receipt_number', 'order', 'total_amount', 'payment_method', 'staff', 'completed_at', 'receipt_link')
     search_fields = ('receipt_number',)
     readonly_fields = ('completed_at',)
     date_hierarchy = 'completed_at'
+
+    def receipt_link(self, obj):
+        url = f'/admin/pos/receipt/{obj.receipt_number}/'
+        return format_html('<a href="{}" target="_blank">レシート</a>', url)
+    receipt_link.short_description = _('レシート')
 
 
 custom_site.register(POSTransaction, POSTransactionAdmin)
