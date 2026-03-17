@@ -1,7 +1,7 @@
 # NewFUHI 実装機能履歴 & テスト項目一覧
 
-> 最終更新: 2026-03-16
-> 自動テスト: **1041件 passed + 7 skipped** (pytest) | 手動テスト: **29セクション・220+項目** (HANDTEST.md)
+> 最終更新: 2026-03-17
+> 自動テスト: **1088件 passed + 7 skipped** (pytest) | 手動テスト: **29セクション・220+項目** (HANDTEST.md)
 
 ---
 
@@ -546,11 +546,28 @@ everything-claude-code 導入後、Django バックエンド (55モデル, 53 AP
   - `credentials: 'same-origin'` 追加
 - **ファイル**: `project/settings.py`, `attendance_pin.html`
 
+### Task #46: シフト管理 抜本的改修 — 休業日・ロール別サイドバー・マイシフト
+- **実装内容**:
+  - `StoreClosedDate` 新モデル — 店舗の休業日管理（シフト自動配置で除外）
+  - サイドバー「シフト管理」→「シフト」にリネーム
+  - `SIDEBAR_CUSTOM_LINKS_BY_ROLE` — ロール別サイドバーリンク分岐
+    - 店長以上: シフトカレンダー + 本日のシフト
+    - スタッフ: マイシフトのみ
+  - `StoreClosedDateAPIView` — 休業日トグルAPI（GET=月別一覧, POST=追加/削除）
+  - `StaffMyShiftView` — スタッフ用マイシフト画面（AlpineJSタブ: 希望入力 + 確定シフト閲覧）
+  - `StaffShiftRequestAPIView` — スタッフ自身のシフト希望CRUD API
+  - 休業日カレンダーパネル — シフトカレンダー画面に月間休業日トグルUI追加
+  - `auto_schedule()` 改修 — 休業日を自動スキップ
+  - ダークモード対応（マイシフト画面 + 休業日カレンダー）
+- **ファイル**: `models.py`, `admin.py`, `admin_site.py`, `views_shift_manager.py`, `shift_scheduler.py`, `shift_api_urls.py`, `project/urls.py`, `shift_calendar.html`, 新規 `my_shift.html`, `jazzmin_overrides.css`
+- **マイグレーション**: `0074_storecloseddate`
+- **テスト**: 21件追加 (`test_shift_overhaul.py`) — 合計 1088 passed + 7 skipped
+
 ---
 
 ## 自動テスト一覧
 
-**合計: 1041 passed + 7 skipped** (66テストファイル)
+**合計: 1088 passed + 7 skipped** (67テストファイル)
 
 > 7件のskipは `test_views_chat.py` のチャットAPI無効化テスト (URL未設定によりpytest.skip)
 

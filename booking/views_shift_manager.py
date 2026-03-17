@@ -18,6 +18,7 @@ from booking.views_restaurant_dashboard import AdminSidebarMixin
 from booking.models import (
     Store, Staff, ShiftPeriod, ShiftRequest, ShiftAssignment,
     ShiftTemplate, ShiftPublishHistory, StoreScheduleConfig,
+    StoreClosedDate,
 )
 
 logger = logging.getLogger(__name__)
@@ -647,3 +648,196 @@ class ShiftPeriodAPIView(View):
         period.save()
 
         return JsonResponse({'id': period.id, 'status': period.status})
+
+
+class StoreClosedDateAPIView(View):
+    """休業日トグルAPI: GET で月別一覧、POST で追加/削除トグル"""
+
+    def get(self, request):
+        store = _get_user_store(request)
+        if not store:
+            return JsonResponse([], safe=False)
+
+        year = request.GET.get('year', str(date.today().year))
+        month = request.GET.get('month', str(date.today().month))
+        try:
+            y, m = int(year), int(month)
+        except (ValueError, TypeError):
+            return JsonResponse({'error': 'Invalid year/month'}, status=400)
+
+        from calendar import monthrange
+        start = date(y, m, 1)
+        end = date(y, m, monthrange(y, m)[1])
+
+        closed = StoreClosedDate.objects.filter(
+            store=store, date__gte=start, date__lte=end,
+        ).order_by('date')
+
+        data = [
+            {'id': c.id, 'date': c.date.isoformat(), 'reason': c.reason}
+            for c in closed
+        ]
+        return JsonResponse(data, safe=False)
+
+    def post(self, request):
+        store = _get_user_store(request)
+        if not store:
+            return JsonResponse({'error': 'Store not found'}, status=400)
+
+        try:
+            data = json.loads(request.body)
+        except json.JSONDecodeError:
+            return JsonResponse({'error': 'Invalid JSON'}, status=400)
+
+        date_str = data.get('date')
+        if not date_str:
+            return JsonResponse({'error': 'date is required'}, status=400)
+
+        try:
+            target_date = datetime.strptime(date_str, '%Y-%m-%d').date()
+        except ValueError:
+            return JsonResponse({'error': 'Invalid date format'}, status=400)
+
+        reason = data.get('reason', '')
+
+        # トグル: 既存なら削除、なければ作成
+        existing = StoreClosedDate.objects.filter(store=store, date=target_date).first()
+        if existing:
+            existing.delete()
+            return JsonResponse({'action': 'removed', 'date': date_str})
+
+        StoreClosedDate.objects.create(store=store, date=target_date, reason=reason)
+        return JsonResponse({'action': 'added', 'date': date_str}, status=201)
+
+
+class StaffMyShiftView(AdminSidebarMixin, TemplateView):
+    """スタッフ向け1画面: シフト希望入力 + 確定シフト閲覧"""
+    template_name = 'admin/booking/my_shift.html'
+
+    def get_context_data(self, **kwargs):
+        ctx = super().get_context_data(**kwargs)
+        staff = getattr(self.request.user, 'staff', None)
+        store = staff.store if staff else _get_user_store(self.request)
+
+        # 募集中の期間 → 希望入力タブ
+        open_periods = ShiftPeriod.objects.filter(
+            store=store, status='open',
+        ).order_by('-year_month') if store else ShiftPeriod.objects.none()
+
+        # 確定済みシフト → 閲覧タブ
+        my_assignments = ShiftAssignment.objects.filter(
+            staff=staff, date__gte=date.today(),
+        ).select_related('period').order_by('date', 'start_hour') if staff else ShiftAssignment.objects.none()
+
+        # 自分の希望（既入力分）
+        my_requests = ShiftRequest.objects.filter(
+            staff=staff, period__status='open',
+        ).select_related('period').order_by('date', 'start_hour') if staff else ShiftRequest.objects.none()
+
+        # テンプレート一覧
+        templates = ShiftTemplate.objects.filter(
+            store=store, is_active=True,
+        ) if store else ShiftTemplate.objects.none()
+
+        ctx.update({
+            'title': _('マイシフト'),
+            'has_permission': True,
+            'store': store,
+            'staff': staff,
+            'open_periods': open_periods,
+            'my_assignments': my_assignments,
+            'my_requests': my_requests,
+            'templates': templates,
+        })
+        return ctx
+
+
+class StaffShiftRequestAPIView(View):
+    """スタッフ自身のシフト希望CRUD"""
+
+    def get(self, request):
+        staff = getattr(request.user, 'staff', None)
+        if not staff:
+            return JsonResponse({'error': 'Staff not found'}, status=403)
+
+        period_id = request.GET.get('period_id')
+        qs = ShiftRequest.objects.filter(staff=staff)
+        if period_id:
+            qs = qs.filter(period_id=period_id)
+        else:
+            qs = qs.filter(period__status='open')
+
+        data = [{
+            'id': r.id,
+            'period_id': r.period_id,
+            'date': r.date.isoformat(),
+            'start_hour': r.start_hour,
+            'end_hour': r.end_hour,
+            'preference': r.preference,
+            'note': r.note,
+        } for r in qs.order_by('date', 'start_hour')]
+        return JsonResponse(data, safe=False)
+
+    def post(self, request):
+        staff = getattr(request.user, 'staff', None)
+        if not staff:
+            return JsonResponse({'error': 'Staff not found'}, status=403)
+
+        try:
+            data = json.loads(request.body)
+        except json.JSONDecodeError:
+            return JsonResponse({'error': 'Invalid JSON'}, status=400)
+
+        period_id = data.get('period_id')
+        date_str = data.get('date')
+        start_hour = data.get('start_hour')
+        end_hour = data.get('end_hour')
+        preference = data.get('preference', 'available')
+
+        if not all([period_id, date_str, start_hour is not None, end_hour is not None]):
+            return JsonResponse({'error': 'Missing required fields'}, status=400)
+
+        store = staff.store
+        period = ShiftPeriod.objects.filter(
+            pk=period_id, store=store, status='open',
+        ).first()
+        if not period:
+            return JsonResponse({'error': '募集中の期間が見つかりません'}, status=404)
+
+        if preference not in ('available', 'preferred', 'unavailable'):
+            return JsonResponse({'error': 'Invalid preference'}, status=400)
+
+        shift_req, created = ShiftRequest.objects.update_or_create(
+            period=period,
+            staff=staff,
+            date=date_str,
+            start_hour=int(start_hour),
+            defaults={
+                'end_hour': int(end_hour),
+                'preference': preference,
+                'note': data.get('note', ''),
+            },
+        )
+
+        # refresh to get proper date object after update_or_create with string
+        shift_req.refresh_from_db()
+
+        return JsonResponse({
+            'id': shift_req.id,
+            'date': shift_req.date.isoformat(),
+            'start_hour': shift_req.start_hour,
+            'end_hour': shift_req.end_hour,
+            'preference': shift_req.preference,
+        }, status=201 if created else 200)
+
+    def delete(self, request, pk=None):
+        staff = getattr(request.user, 'staff', None)
+        if not staff:
+            return JsonResponse({'error': 'Staff not found'}, status=403)
+
+        shift_req = ShiftRequest.objects.filter(pk=pk, staff=staff).first()
+        if not shift_req:
+            return JsonResponse({'error': 'Not found or not yours'}, status=404)
+
+        shift_req.delete()
+        return HttpResponse('', status=204)

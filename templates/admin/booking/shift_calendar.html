@@ -107,6 +107,31 @@
   .new-period-form label { font-size: 12px; font-weight: 600; color: #6b7280; display: block; margin-bottom: 2px; }
   .new-period-form input { padding: 6px 12px; border: 1px solid #d1d5db; border-radius: 4px; font-size: 14px; }
 
+  /* ===== 休業日カレンダー ===== */
+  .closed-cal-grid {
+    display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px;
+    max-width: 420px;
+  }
+  .closed-cal-header {
+    text-align: center; font-size: 11px; font-weight: 600; color: #6b7280;
+    padding: 4px;
+  }
+  .closed-cal-cell {
+    text-align: center; padding: 8px 4px; border-radius: 6px;
+    cursor: pointer; position: relative; min-height: 36px;
+    transition: background .15s;
+    font-size: 14px;
+  }
+  .closed-cal-cell:hover { background: #f3f4f6; }
+  .closed-cal-cell.closed-day {
+    background: #fee2e2; color: #991b1b; font-weight: 700;
+  }
+  .closed-cal-cell.closed-day:hover { background: #fecaca; }
+  .closed-mark {
+    position: absolute; top: 2px; right: 4px;
+    font-size: 10px; color: #dc2626; font-weight: 700;
+  }
+
   /* ===== アラート ===== */
   .alert-success { padding: 12px; background: #d1fae5; color: #065f46; border-radius: 6px; margin: 8px 0; }
   .alert-info { padding: 12px; background: #dbeafe; color: #1e40af; border-radius: 6px; margin: 8px 0; }
@@ -120,8 +145,90 @@
   selectedStaff: null,
   selectedDate: null,
   confirmPublish: false,
-  showNewPeriod: false
-}" hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'>
+  showNewPeriod: false,
+  showClosedDates: false,
+  closedDates: new Set(),
+  closedMonth: new Date().getMonth(),
+  closedYear: new Date().getFullYear(),
+  closedCalDays: [],
+  async loadClosedDates() {
+    const res = await fetch(`/api/shift/closed-dates/?year=${this.closedYear}&month=${this.closedMonth + 1}`, {credentials: 'same-origin'});
+    const data = await res.json();
+    this.closedDates = new Set(data.map(d => d.date));
+    this.buildCalDays();
+  },
+  buildCalDays() {
+    const first = new Date(this.closedYear, this.closedMonth, 1);
+    const lastDay = new Date(this.closedYear, this.closedMonth + 1, 0).getDate();
+    const startDow = first.getDay(); // 0=Sun
+    const days = [];
+    for (let i = 0; i < startDow; i++) days.push(null);
+    for (let d = 1; d <= lastDay; d++) {
+      const ds = `${this.closedYear}-${String(this.closedMonth+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+      days.push({day: d, date: ds, closed: this.closedDates.has(ds)});
+    }
+    this.closedCalDays = days;
+  },
+  async toggleClosed(ds) {
+    const res = await fetch('/api/shift/closed-dates/', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json', 'X-CSRFToken': '{{ csrf_token }}'},
+      body: JSON.stringify({date: ds}),
+      credentials: 'same-origin',
+    });
+    const data = await res.json();
+    if (data.action === 'added') this.closedDates.add(ds);
+    else this.closedDates.delete(ds);
+    this.buildCalDays();
+  },
+  prevClosedMonth() {
+    if (this.closedMonth === 0) { this.closedMonth = 11; this.closedYear--; }
+    else this.closedMonth--;
+    this.loadClosedDates();
+  },
+  nextClosedMonth() {
+    if (this.closedMonth === 11) { this.closedMonth = 0; this.closedYear++; }
+    else this.closedMonth++;
+    this.loadClosedDates();
+  },
+  get closedMonthLabel() {
+    return `${this.closedYear}年${this.closedMonth + 1}月`;
+  },
+}" x-init="if(showClosedDates) loadClosedDates()" hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'>
+
+  {# ===== 休業日設定パネル ===== #}
+  <div class="wf-panel" style="margin-bottom:20px;">
+    <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;">
+      <h3><i class="fas fa-store-slash" style="margin-right:6px;"></i>{% trans "休業日設定" %}</h3>
+      <button class="btn btn-outline btn-sm" @click="showClosedDates = !showClosedDates; if(showClosedDates) loadClosedDates()">
+        <span x-text="showClosedDates ? '{% trans '閉じる' %}' : '{% trans '開く' %}'"></span>
+      </button>
+    </div>
+    <div x-show="showClosedDates" x-cloak style="margin-top:12px;">
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;">
+        <button class="btn btn-outline btn-sm" @click="prevClosedMonth()">◀</button>
+        <strong x-text="closedMonthLabel" style="min-width:100px;text-align:center;"></strong>
+        <button class="btn btn-outline btn-sm" @click="nextClosedMonth()">▶</button>
+      </div>
+      <div class="closed-cal-grid">
+        <template x-for="dow in ['{% trans '日' %}','{% trans '月' %}','{% trans '火' %}','{% trans '水' %}','{% trans '木' %}','{% trans '金' %}','{% trans '土' %}']">
+          <div class="closed-cal-header" x-text="dow"></div>
+        </template>
+        <template x-for="cell in closedCalDays">
+          <div class="closed-cal-cell"
+               :class="cell && cell.closed ? 'closed-day' : ''"
+               @click="cell && toggleClosed(cell.date)"
+               :title="cell && cell.closed ? '{% trans 'クリックで営業日に戻す' %}' : '{% trans 'クリックで休業日に設定' %}'">
+            <span x-text="cell ? cell.day : ''"></span>
+            <span x-show="cell && cell.closed" class="closed-mark">✕</span>
+          </div>
+        </template>
+      </div>
+      <p style="font-size:12px;color:#6b7280;margin-top:8px;">
+        {% trans "日付をクリックして休業日をトグルします。休業日はシフト自動配置で除外されます。" %}
+      </p>
+    </div>
+  </div>
 
   {# ===== ワークフローステッパー ===== #}
   <div class="wf-steps">

@@ -1371,6 +1371,23 @@ class ShiftPublishHistory(models.Model):
         return f"{self.period} - {self.published_at}"
 
 
+class StoreClosedDate(models.Model):
+    """店舗の休業日（シフト自動配置で除外）"""
+    store = models.ForeignKey(Store, on_delete=models.CASCADE, related_name='closed_dates')
+    date = models.DateField(_('休業日'))
+    reason = models.CharField(_('理由'), max_length=100, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        app_label = 'booking'
+        unique_together = ('store', 'date')
+        verbose_name = _('休業日')
+        verbose_name_plural = _('休業日')
+
+    def __str__(self):
+        return f"{self.store.name} {self.date} {self.reason}"
+
+
 class AdminTheme(models.Model):
     """管理画面UIカスタムテーマ"""
     store = models.OneToOneField(Store, on_delete=models.CASCADE, related_name='admin_theme')

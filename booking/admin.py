@@ -40,6 +40,7 @@ from .models import (
     ShiftAssignment,
     ShiftTemplate,
     ShiftPublishHistory,
+    StoreClosedDate,
     AdminTheme,
     SiteSettings,
     HomepageCustomBlock,
@@ -1443,6 +1444,16 @@ class ShiftPublishHistoryAdmin(admin.ModelAdmin):
 
 custom_site.register(ShiftTemplate, ShiftTemplateAdmin)
 custom_site.register(ShiftPublishHistory, ShiftPublishHistoryAdmin)
+
+
+class StoreClosedDateAdmin(admin.ModelAdmin):
+    list_display = ('store', 'date', 'reason', 'created_at')
+    list_filter = ('store',)
+    search_fields = ('reason',)
+    ordering = ('-date',)
+
+
+custom_site.register(StoreClosedDate, StoreClosedDateAdmin)
 
 
 # ==============================

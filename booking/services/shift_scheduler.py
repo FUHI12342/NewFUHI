@@ -10,6 +10,7 @@ from booking.models import (
     ShiftAssignment,
     Schedule,
     StoreScheduleConfig,
+    StoreClosedDate,
 )
 
 logger = logging.getLogger(__name__)
@@ -41,6 +42,11 @@ def auto_schedule(period):
     store = period.store
     open_h, close_h, duration = _get_store_config(store)
 
+    # 休業日を取得してスキップ対象にする
+    closed_dates = set(
+        StoreClosedDate.objects.filter(store=store).values_list('date', flat=True)
+    )
+
     # 既存のアサインメントをクリア（再スケジューリング対応）
     period.assignments.all().delete()
 
@@ -58,6 +64,11 @@ def auto_schedule(period):
 
     created_count = 0
     for req in requests:
+        # 休業日チェック
+        if req.date in closed_dates:
+            logger.info("Skipping request %s: store closed on %s", req, req.date)
+            continue
+
         # 営業時間外チェック
         if req.start_hour < open_h or req.end_hour > close_h:
             logger.info(

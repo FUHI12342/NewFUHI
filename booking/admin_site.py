@@ -30,7 +30,7 @@ def get_user_role(request):
 GROUPS = [
     {'slug': 'pin_clock', 'name': _('PIN打刻'), 'models': []},
     {'slug': 'reservation', 'name': _('予約管理'), 'models': ['schedule']},
-    {'slug': 'shift', 'name': _('シフト管理'), 'models': ['shiftperiod', 'shiftrequest', 'shiftassignment', 'shifttemplate', 'shiftpublishhistory']},
+    {'slug': 'shift', 'name': _('シフト'), 'models': ['shiftperiod', 'shiftrequest', 'shiftassignment', 'shifttemplate', 'shiftpublishhistory', 'storecloseddate']},
     {'slug': 'cast', 'name': _('キャスト管理'), 'models': ['staff', 'storescheduleconfig']},
     {'slug': 'payroll', 'name': _('給与管理'), 'models': ['payrollperiod', 'payrollentry', 'employmentcontract', 'salarystructure'], 'hidden': True},
     {'slug': 'attendance', 'name': _('勤怠管理'), 'models': ['workattendance', 'attendancetotpconfig', 'attendancestamp'], 'hidden': True},
@@ -120,6 +120,22 @@ SIDEBAR_CUSTOM_LINKS = {
     ],
 }
 
+# ロール別カスタムリンク（指定があればSIDEBAR_CUSTOM_LINKSより優先）
+SIDEBAR_CUSTOM_LINKS_BY_ROLE = {
+    'shift': {
+        'manager': [
+            {'name': _('シフトカレンダー'), 'admin_url': '/admin/shift/calendar/', 'icon': 'fas fa-calendar-alt'},
+            {'name': _('本日のシフト'), 'admin_url': '/admin/shift/today/', 'icon': 'fas fa-clock'},
+        ],
+        'staff': [
+            {'name': _('マイシフト'), 'admin_url': '/admin/shift/my/', 'icon': 'fas fa-user-clock'},
+        ],
+    },
+}
+# manager以上はシフトカレンダー + 本日のシフト
+for _role in ('owner', 'developer', 'superuser'):
+    SIDEBAR_CUSTOM_LINKS_BY_ROLE['shift'][_role] = SIDEBAR_CUSTOM_LINKS_BY_ROLE['shift']['manager']
+
 
 # ==============================
 # デフォルト許可モデル定数（DB未設定時のフォールバック）
@@ -134,7 +150,7 @@ DEFAULT_ALLOWED_MODELS = {
         'property', 'propertydevice',
         'systemconfig',
         'shiftperiod', 'shiftrequest', 'shiftassignment',
-        'shifttemplate', 'shiftpublishhistory',
+        'shifttemplate', 'shiftpublishhistory', 'storecloseddate',
         'storescheduleconfig', 'admintheme',
         'sitesettings', 'homepagecustomblock',
         'herobanner', 'bannerad', 'externallink',
@@ -323,8 +339,13 @@ class RoleBasedAdminSite(AdminSite):
                     used_keys.add(key)
                     if key not in hidden_in_group:
                         group_models.append(all_models[key])
-            # カスタムリンクをモデルエントリとして追加
-            for link in SIDEBAR_CUSTOM_LINKS.get(slug, []):
+            # カスタムリンクをモデルエントリとして追加（ロール別がある場合は優先）
+            role_links = SIDEBAR_CUSTOM_LINKS_BY_ROLE.get(slug, {})
+            if role and role in role_links:
+                custom_links = role_links[role]
+            else:
+                custom_links = SIDEBAR_CUSTOM_LINKS.get(slug, [])
+            for link in custom_links:
                 group_models.append({
                     'name': str(link['name']),
                     'object_name': '',

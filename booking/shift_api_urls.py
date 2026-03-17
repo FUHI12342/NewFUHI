@@ -10,6 +10,8 @@ from .views_shift_manager import (
     ShiftAutoScheduleAPIView,
     ShiftPublishAPIView,
     ShiftPeriodAPIView,
+    StoreClosedDateAPIView,
+    StaffShiftRequestAPIView,
 )
 
 app_name = 'shift_api'
@@ -27,4 +29,7 @@ urlpatterns = [
     path('publish/', ShiftPublishAPIView.as_view(), name='shift_publish'),
     path('periods/', ShiftPeriodAPIView.as_view(), name='shift_period_create'),
     path('periods/<int:pk>/', ShiftPeriodAPIView.as_view(), name='shift_period_detail'),
+    path('closed-dates/', StoreClosedDateAPIView.as_view(), name='closed_dates'),
+    path('my-requests/', StaffShiftRequestAPIView.as_view(), name='my_shift_requests'),
+    path('my-requests/<int:pk>/', StaffShiftRequestAPIView.as_view(), name='my_shift_request_detail'),
 ]

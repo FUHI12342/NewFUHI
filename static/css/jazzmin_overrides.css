@@ -408,6 +408,98 @@
     color: #fcd34d !important;
 }
 
+/* ---- マイシフト画面 ---- */
+[data-bs-theme="dark"] .ms-panel {
+    background: var(--dm-bg-card) !important;
+    color: var(--dm-text) !important;
+    border-color: var(--dm-border) !important;
+}
+[data-bs-theme="dark"] .ms-panel h3 {
+    color: var(--dm-text) !important;
+}
+[data-bs-theme="dark"] .ms-tabs {
+    border-bottom-color: var(--dm-border) !important;
+}
+[data-bs-theme="dark"] .ms-tab {
+    color: var(--dm-text-muted) !important;
+}
+[data-bs-theme="dark"] .ms-tab.active {
+    color: #93c5fd !important;
+    border-bottom-color: #93c5fd !important;
+}
+[data-bs-theme="dark"] .ms-cal-header {
+    color: var(--dm-text-muted) !important;
+}
+[data-bs-theme="dark"] .ms-cal-cell {
+    color: var(--dm-text) !important;
+}
+[data-bs-theme="dark"] .ms-cal-cell:hover {
+    background: var(--dm-hover) !important;
+}
+[data-bs-theme="dark"] .ms-cal-cell.selected {
+    background: var(--dm-bg-tertiary) !important;
+    border-color: #3B82F6 !important;
+}
+[data-bs-theme="dark"] .ms-cal-cell.has-request {
+    background: #1e3a5f !important;
+}
+[data-bs-theme="dark"] .ms-cal-cell.has-assignment {
+    background: #064e3b !important;
+}
+[data-bs-theme="dark"] .ms-req-item {
+    border-color: var(--dm-border) !important;
+    color: var(--dm-text) !important;
+}
+[data-bs-theme="dark"] .ms-req-item:hover {
+    background: var(--dm-hover) !important;
+}
+[data-bs-theme="dark"] .ms-assign-item {
+    border-color: var(--dm-border) !important;
+    color: var(--dm-text) !important;
+}
+[data-bs-theme="dark"] .ms-form select,
+[data-bs-theme="dark"] .ms-form input {
+    background: var(--dm-bg-secondary) !important;
+    color: var(--dm-text) !important;
+    border-color: var(--dm-border) !important;
+}
+[data-bs-theme="dark"] .ms-form label {
+    color: var(--dm-text-muted) !important;
+}
+[data-bs-theme="dark"] .pref-preferred {
+    background: #1e3a5f !important;
+    color: #93c5fd !important;
+}
+[data-bs-theme="dark"] .pref-available {
+    background: #064e3b !important;
+    color: #6ee7b7 !important;
+}
+[data-bs-theme="dark"] .pref-unavailable {
+    background: #7f1d1d !important;
+    color: #fca5a5 !important;
+}
+
+/* ---- 休業日カレンダー ---- */
+[data-bs-theme="dark"] .closed-cal-header {
+    color: var(--dm-text-muted) !important;
+}
+[data-bs-theme="dark"] .closed-cal-cell {
+    color: var(--dm-text) !important;
+}
+[data-bs-theme="dark"] .closed-cal-cell:hover {
+    background: var(--dm-hover) !important;
+}
+[data-bs-theme="dark"] .closed-cal-cell.closed-day {
+    background: #7f1d1d !important;
+    color: #fca5a5 !important;
+}
+[data-bs-theme="dark"] .closed-cal-cell.closed-day:hover {
+    background: #991b1b !important;
+}
+[data-bs-theme="dark"] .closed-mark {
+    color: #fca5a5 !important;
+}
+
 /* ---- Chart.js ダーク対応 ---- */
 [data-bs-theme="dark"] canvas {
     filter: brightness(0.95);

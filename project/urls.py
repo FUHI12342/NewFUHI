@@ -11,7 +11,7 @@ from booking.admin_site import custom_site
 from booking.health import healthz
 from booking.views_debug import AdminDebugPanelView, IoTDeviceDebugView
 from booking.views_restaurant_dashboard import RestaurantDashboardView
-from booking.views_shift_manager import ManagerShiftCalendarView, TodayShiftTimelineView
+from booking.views_shift_manager import ManagerShiftCalendarView, TodayShiftTimelineView, StaffMyShiftView
 from booking.views_attendance import AttendanceQRDisplayView, AttendanceBoardView, AttendancePINDisplayView
 from booking.views_pos import POSView, KitchenDisplayView
 from booking.views_analytics import VisitorAnalyticsDashboardView
@@ -80,6 +80,13 @@ urlpatterns += i18n_patterns(
         "admin/shift/today/",
         custom_site.admin_view(TodayShiftTimelineView.as_view()),
         name="admin_today_shift",
+    ),
+
+    # スタッフ用マイシフト
+    path(
+        "admin/shift/my/",
+        custom_site.admin_view(StaffMyShiftView.as_view()),
+        name="staff_my_shift",
     ),
 
     # Air統合: QR勤怠
