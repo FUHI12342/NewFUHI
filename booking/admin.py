@@ -816,8 +816,19 @@ custom_site.register(TaxServiceCharge, TaxServiceChargeAdmin)
 
 # User/Group も
 from django.contrib.auth.models import User, Group
-from django.contrib.auth.admin import UserAdmin, GroupAdmin
-custom_site.register(User, UserAdmin)
+from django.contrib.auth.admin import UserAdmin as BaseUserAdmin, GroupAdmin
+
+
+class CustomUserAdmin(BaseUserAdmin):
+    """「重要な日程」タブを除外したUserAdmin"""
+    fieldsets = (
+        (None, {'fields': ('username', 'password')}),
+        (_('個人情報'), {'fields': ('first_name', 'last_name', 'email')}),
+        (_('権限'), {'fields': ('is_active', 'is_staff', 'is_superuser', 'groups', 'user_permissions')}),
+    )
+
+
+custom_site.register(User, CustomUserAdmin)
 custom_site.register(Group, GroupAdmin)
 
 # ==============================

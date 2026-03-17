@@ -99,8 +99,8 @@ class Store(models.Model):
 
 
 STAFF_TYPE_CHOICES = [
-    ('fortune_teller', '占い師'),
-    ('store_staff', '店舗スタッフ'),
+    ('fortune_teller', 'キャスト'),
+    ('store_staff', 'スタッフ'),
 ]
 
 
