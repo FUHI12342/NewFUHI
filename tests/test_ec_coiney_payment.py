@@ -193,12 +193,15 @@ class TestAdminMenuRename:
         slugs = [g['slug'] for g in GROUPS]
         assert 'cast' not in slugs
 
-    def test_manager_links_include_employee_add(self):
-        """manager のスタッフ管理メニューに「従業員追加」がある"""
+    def test_manager_links_exactly_four(self):
+        """manager の従業員管理メニューは4項目のみ"""
         links = SIDEBAR_CUSTOM_LINKS_BY_ROLE['staff_manage']['manager']
+        assert len(links) == 4
         link_names = [str(link['name']) for link in links]
-        assert '従業員追加' in link_names
         assert '従業員一覧' in link_names
+        assert 'キャスト一覧' in link_names
+        assert 'スタッフ一覧' in link_names
+        assert '勤怠実績' in link_names
 
 
 # ------------------------------------------------------------------
