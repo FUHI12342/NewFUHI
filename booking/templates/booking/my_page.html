@@ -17,18 +17,36 @@
         </div>
         <div class="divide-y divide-gray-100">
             {% for staff in staff_list %}
-            <a href="{% url 'booking:my_page_calendar' staff.pk %}"
-               class="block px-5 py-4 hover:bg-gray-50 transition-colors duration-150">
+            <div class="px-5 py-4 hover:bg-gray-50 transition-colors duration-150">
                 <div class="flex items-center justify-between">
-                    <div>
-                        <p class="text-base font-semibold text-salon-dark">{{ staff.store.name }}店</p>
-                        <p class="text-sm text-gray-500 mt-0.5">{{ staff.name }}</p>
+                    <div class="flex items-center gap-3">
+                        {% if staff.thumbnail %}
+                        <img src="{{ staff.thumbnail.url }}" alt="{{ staff.name }}"
+                             style="width:40px;height:40px;border-radius:50%;object-fit:cover;">
+                        {% endif %}
+                        <div>
+                            <p class="text-base font-semibold text-salon-dark">{{ staff.store.name }}店</p>
+                            <p class="text-sm text-gray-500 mt-0.5">{{ staff.name }}
+                                {% if staff.staff_type == 'fortune_teller' %}
+                                <span style="background:#DBEAFE;color:#1E40AF;padding:1px 6px;border-radius:8px;font-size:11px;margin-left:4px;">{% trans "キャスト" %}</span>
+                                {% else %}
+                                <span style="background:#E5E7EB;color:#374151;padding:1px 6px;border-radius:8px;font-size:11px;margin-left:4px;">{% trans "スタッフ" %}</span>
+                                {% endif %}
+                            </p>
+                        </div>
                     </div>
-                    <svg class="w-5 h-5 text-gray-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
-                    </svg>
+                    <div class="flex items-center gap-2">
+                        <a href="{% url 'booking:my_page_profile' staff.pk %}"
+                           style="padding:4px 12px;background:#f3f4f6;border:1px solid #d1d5db;border-radius:6px;font-size:12px;font-weight:600;color:#374151;text-decoration:none;">
+                            {% trans "プロフィール" %}
+                        </a>
+                        <a href="{% url 'booking:my_page_calendar' staff.pk %}"
+                           style="padding:4px 12px;background:#3B82F6;border-radius:6px;font-size:12px;font-weight:600;color:#fff;text-decoration:none;">
+                            {% trans "カレンダー" %}
+                        </a>
+                    </div>
                 </div>
-            </a>
+            </div>
             {% empty %}
             <div class="px-5 py-10 text-center">
                 <p class="text-gray-400 text-sm">まだ在籍店舗がありません。</p>
@@ -37,10 +55,11 @@
         </div>
     </div>
 
-    <!-- ===== 直近の予約 Card ===== -->
+    <!-- ===== 直近の予約 Card (キャストのみ表示) ===== -->
+    {% if has_cast_role %}
     <div class="bg-white rounded-xl shadow-md overflow-hidden">
         <div class="bg-salon-beige px-5 py-3 border-b border-salon-brown/20">
-            <h2 class="text-lg font-bold text-salon-brown">直近の予約</h2>
+            <h2 class="text-lg font-bold text-salon-brown">{% trans "直近の予約" %}</h2>
         </div>
         <div class="divide-y divide-gray-100">
             {% for schedule in schedule_list %}
@@ -62,6 +81,7 @@
             {% endfor %}
         </div>
     </div>
+    {% endif %}
 
 </div>
 

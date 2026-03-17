@@ -48,19 +48,24 @@ def _get_week_dates(week_start_str=None):
     return [start + timedelta(days=i) for i in range(7)]
 
 
-def _render_week_grid(request, store, week_start_str=None):
+def _render_week_grid(request, store, week_start_str=None, staff_type_filter=None):
     """週グリッドHTMLをレンダリングするヘルパー"""
     week_dates = _get_week_dates(week_start_str)
-    staffs = Staff.objects.filter(store=store).order_by('name') if store else []
+    staff_qs = Staff.objects.filter(store=store).order_by('name') if store else Staff.objects.none()
+    if staff_type_filter and staff_type_filter in ('fortune_teller', 'store_staff'):
+        staff_qs = staff_qs.filter(staff_type=staff_type_filter)
+    staffs = staff_qs
 
-    assignments = ShiftAssignment.objects.filter(
+    assign_qs = ShiftAssignment.objects.filter(
         period__store=store,
         date__gte=week_dates[0],
         date__lte=week_dates[-1],
-    ).select_related('staff') if store else []
+    ).select_related('staff') if store else ShiftAssignment.objects.none()
+    if staff_type_filter and staff_type_filter in ('fortune_teller', 'store_staff'):
+        assign_qs = assign_qs.filter(staff__staff_type=staff_type_filter)
 
     grid = {}
-    for a in assignments:
+    for a in assign_qs:
         if a.staff_id not in grid:
             grid[a.staff_id] = {}
         grid[a.staff_id][a.date.isoformat()] = a
@@ -101,14 +106,20 @@ class ManagerShiftCalendarView(AdminSidebarMixin, TemplateView):
         ctx['user_role'] = role
         ctx['is_staff_role'] = is_staff_role
 
+        staff_type_filter = self.request.GET.get('staff_type', '')
         staffs = Staff.objects.filter(store=store).order_by('name') if store else Staff.objects.none()
-        staff_count = staffs.count()
+        all_staff_count = staffs.count()
+        if staff_type_filter in ('fortune_teller', 'store_staff'):
+            staffs = staffs.filter(staff_type=staff_type_filter)
+        staff_count = all_staff_count
 
         assign_qs = ShiftAssignment.objects.filter(
             period__store=store,
             date__gte=week_dates[0],
             date__lte=week_dates[-1],
         ).select_related('staff', 'period') if store else ShiftAssignment.objects.none()
+        if staff_type_filter in ('fortune_teller', 'store_staff'):
+            assign_qs = assign_qs.filter(staff__staff_type=staff_type_filter)
         assignments = assign_qs
 
         templates = ShiftTemplate.objects.filter(store=store, is_active=True) if store else ShiftTemplate.objects.none()
@@ -160,6 +171,9 @@ class ManagerShiftCalendarView(AdminSidebarMixin, TemplateView):
             'week_start': week_dates[0].isoformat(),
             'prev_week': (week_dates[0] - timedelta(weeks=1)).isoformat(),
             'next_week': (week_dates[0] + timedelta(weeks=1)).isoformat(),
+            'staff_type_filter': staff_type_filter,
+            'cast_count': Staff.objects.filter(store=store, staff_type='fortune_teller').count() if store else 0,
+            'store_staff_count': Staff.objects.filter(store=store, staff_type='store_staff').count() if store else 0,
         })
 
         # スタッフ用追加コンテキスト

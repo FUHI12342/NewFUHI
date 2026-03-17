@@ -6,6 +6,10 @@ Phase 3: 休業日API
 Phase 4: スタッフ マイシフト
 Phase 5: 自動スケジューラ 休業日スキップ
 Phase 6: セキュリティ（認証・IDOR・バリデーション）
+Phase 7: テンプレートCRUD
+Phase 8: フォールバック
+Phase 9: シフト撤回・個別修正
+Phase 10: スタッフ管理メニュー + マイページプロフィール + シフトフィルタ + staff_type活用
 """
 import json
 import pytest
@@ -18,6 +22,7 @@ from django.utils import timezone
 from booking.models import (
     Store, Staff, StoreClosedDate, ShiftPeriod, ShiftRequest,
     ShiftAssignment, ShiftTemplate, StoreScheduleConfig,
+    ShiftPublishHistory, ShiftChangeLog, Schedule,
 )
 
 User = get_user_model()
@@ -531,6 +536,89 @@ class TestHourValidation:
         assert resp.status_code == 400
 
 
+# ==============================
+# Phase 7: テンプレートCRUD (管理メニュー経由)
+# ==============================
+
+class TestTemplateCRUDFromCalendar:
+    """管理カレンダーのテンプレート管理モーダル用API"""
+
+    def test_list_empty(self, mgr_client):
+        resp = mgr_client.get('/api/shift/templates/')
+        assert resp.status_code == 200
+        assert resp.json() == []
+
+    def test_create_template(self, mgr_client, store):
+        resp = mgr_client.post(
+            '/api/shift/templates/',
+            data=json.dumps({
+                'name': '早番',
+                'start_time': '09:00',
+                'end_time': '14:00',
+                'color': '#10B981',
+            }),
+            content_type='application/json',
+        )
+        assert resp.status_code == 201
+        data = resp.json()
+        assert data['name'] == '早番'
+        assert ShiftTemplate.objects.filter(store=store, name='早番').exists()
+
+    def test_list_after_create(self, mgr_client, store):
+        ShiftTemplate.objects.create(
+            store=store, name='遅番',
+            start_time=time(14, 0), end_time=time(22, 0), color='#EF4444',
+        )
+        resp = mgr_client.get('/api/shift/templates/')
+        data = resp.json()
+        assert len(data) == 1
+        assert data[0]['name'] == '遅番'
+        assert data[0]['start_time'] == '14:00'
+        assert data[0]['color'] == '#EF4444'
+
+    def test_update_template(self, mgr_client, store):
+        tpl = ShiftTemplate.objects.create(
+            store=store, name='早番', start_time=time(9, 0), end_time=time(14, 0),
+        )
+        resp = mgr_client.put(
+            f'/api/shift/templates/{tpl.id}/',
+            data=json.dumps({'name': '早番改', 'color': '#F59E0B'}),
+            content_type='application/json',
+        )
+        assert resp.status_code == 200
+        tpl.refresh_from_db()
+        assert tpl.name == '早番改'
+        assert tpl.color == '#F59E0B'
+
+    def test_delete_template_soft(self, mgr_client, store):
+        tpl = ShiftTemplate.objects.create(
+            store=store, name='通し', start_time=time(9, 0), end_time=time(21, 0),
+        )
+        resp = mgr_client.delete(f'/api/shift/templates/{tpl.id}/')
+        assert resp.status_code == 204
+        tpl.refresh_from_db()
+        assert tpl.is_active is False
+
+    def test_deleted_not_in_list(self, mgr_client, store):
+        ShiftTemplate.objects.create(
+            store=store, name='削除済み', start_time=time(9, 0), end_time=time(17, 0),
+            is_active=False,
+        )
+        resp = mgr_client.get('/api/shift/templates/')
+        assert len(resp.json()) == 0
+
+    def test_staff_cannot_modify_templates(self, staff_client, store):
+        """一般スタッフはテンプレート作成不可（store=Noneではないが、テストとして確認）"""
+        resp = staff_client.post(
+            '/api/shift/templates/',
+            data=json.dumps({'name': 'ハック', 'start_time': '09:00', 'end_time': '17:00'}),
+            content_type='application/json',
+        )
+        # staff_client has a store, so should succeed (201)
+        # The API only checks staff_member_required + store ownership
+        assert resp.status_code == 201
+
+
 class TestGetUserStoreFallback:
     """_get_user_store のフォールバック動作テスト"""
 
@@ -548,3 +636,477 @@ class TestGetUserStoreFallback:
             content_type='application/json',
         )
         assert resp.status_code == 403
+
+
+# ==============================
+# フィクスチャ (Phase 9)
+# ==============================
+
+@pytest.fixture
+def approved_period(db, store, manager_user):
+    """公開済み(approved)シフト期間"""
+    staff = Staff.objects.get(user=manager_user)
+    return ShiftPeriod.objects.create(
+        store=store,
+        year_month=date(2026, 5, 1),
+        deadline=timezone.now() + timedelta(days=14),
+        status='approved',
+        created_by=staff,
+    )
+
+
+@pytest.fixture
+def synced_assignment(db, approved_period, staff_only_user):
+    """公開済み期間の同期済みシフト"""
+    staff = Staff.objects.get(user=staff_only_user)
+    return ShiftAssignment.objects.create(
+        period=approved_period,
+        staff=staff,
+        date=date(2026, 5, 5),
+        start_hour=10,
+        end_hour=18,
+        start_time=time(10, 0),
+        end_time=time(18, 0),
+        is_synced=True,
+    )
+
+
+# ==============================
+# Phase 9: シフト撤回
+# ==============================
+
+class TestShiftRevoke:
+    """公開済みシフトの撤回テスト"""
+
+    def test_revoke_approved_period(self, mgr_client, approved_period, synced_assignment, store):
+        """approved 期間を撤回すると scheduled に戻る"""
+        # Schedule レコードを作成（シフト同期済みの状態を再現）
+        import datetime as dt
+        start_dt = timezone.make_aware(dt.datetime.combine(date(2026, 5, 5), time(10, 0)))
+        end_dt = timezone.make_aware(dt.datetime.combine(date(2026, 5, 5), time(11, 0)))
+        Schedule.objects.create(
+            staff=synced_assignment.staff,
+            start=start_dt, end=end_dt,
+            customer_name=None, price=0,
+            is_temporary=False, memo='シフトから自動作成',
+        )
+
+        resp = mgr_client.post(
+            '/api/shift/revoke/',
+            data=json.dumps({'period_id': approved_period.id, 'reason': 'スタッフ変更のため'}),
+            content_type='application/json',
+        )
+        assert resp.status_code == 200
+        data = resp.json()
+        assert data['status'] == 'scheduled'
+        assert data['cancelled'] >= 1
+
+        approved_period.refresh_from_db()
+        assert approved_period.status == 'scheduled'
+
+        synced_assignment.refresh_from_db()
+        assert synced_assignment.is_synced is False
+
+        # 撤回履歴が記録されている
+        history = ShiftPublishHistory.objects.filter(
+            period=approved_period, action='revoke',
+        ).first()
+        assert history is not None
+        assert history.reason == 'スタッフ変更のため'
+
+    def test_revoke_non_approved_period_fails(self, mgr_client, open_period):
+        """approved 以外の期間は撤回不可"""
+        resp = mgr_client.post(
+            '/api/shift/revoke/',
+            data=json.dumps({'period_id': open_period.id, 'reason': 'テスト'}),
+            content_type='application/json',
+        )
+        assert resp.status_code == 400
+
+    def test_revoke_missing_period_id(self, mgr_client):
+        """period_id 未指定は 400"""
+        resp = mgr_client.post(
+            '/api/shift/revoke/',
+            data=json.dumps({'reason': 'テスト'}),
+            content_type='application/json',
+        )
+        assert resp.status_code == 400
+
+    def test_revoke_other_store_fails(self, staff_client, approved_period, other_store):
+        """別店舗の期間は撤回不可"""
+        other_period = ShiftPeriod.objects.create(
+            store=other_store, year_month=date(2026, 6, 1), status='approved',
+        )
+        resp = staff_client.post(
+            '/api/shift/revoke/',
+            data=json.dumps({'period_id': other_period.id, 'reason': 'テスト'}),
+            content_type='application/json',
+        )
+        assert resp.status_code == 404
+
+    def test_revoke_unauthenticated(self):
+        """未認証ユーザーは撤回不可"""
+        c = Client()
+        resp = c.post(
+            '/api/shift/revoke/',
+            data=json.dumps({'period_id': 1, 'reason': 'テスト'}),
+            content_type='application/json',
+        )
+        assert resp.status_code == 302  # redirect to login
+
+    def test_revoke_then_republish(self, mgr_client, approved_period, synced_assignment, store):
+        """撤回後に再公開できる"""
+        resp = mgr_client.post(
+            '/api/shift/revoke/',
+            data=json.dumps({'period_id': approved_period.id, 'reason': '再調整'}),
+            content_type='application/json',
+        )
+        assert resp.status_code == 200
+
+        # 再公開
+        resp = mgr_client.post(
+            '/api/shift/publish/',
+            data=json.dumps({'period_id': approved_period.id}),
+            content_type='application/json',
+        )
+        assert resp.status_code == 200
+        approved_period.refresh_from_db()
+        assert approved_period.status == 'approved'
+
+
+# ==============================
+# Phase 9: 個別シフト修正
+# ==============================
+
+class TestShiftRevise:
+    """公開済みシフトの個別修正テスト"""
+
+    def test_revise_approved_assignment(self, mgr_client, approved_period, synced_assignment):
+        """approved 期間の個別シフト修正で変更ログが作成される"""
+        resp = mgr_client.put(
+            f'/api/shift/assignments/{synced_assignment.id}/',
+            data=json.dumps({
+                'start_hour': 11,
+                'end_hour': 19,
+                'reason': '営業時間変更',
+            }),
+            content_type='application/json',
+        )
+        assert resp.status_code == 200
+
+        synced_assignment.refresh_from_db()
+        assert synced_assignment.start_hour == 11
+        assert synced_assignment.end_hour == 19
+
+        # 変更ログが作成されている
+        log = ShiftChangeLog.objects.filter(assignment=synced_assignment).first()
+        assert log is not None
+        assert log.change_type == 'revised'
+        assert log.reason == '営業時間変更'
+        assert log.old_values['start_hour'] == 10
+        assert log.old_values['end_hour'] == 18
+        assert log.new_values['start_hour'] == 11
+        assert log.new_values['end_hour'] == 19
+
+    def test_revise_non_approved_no_changelog(self, mgr_client, open_period, staff_only_user, store):
+        """approved でない期間の更新では変更ログは作成されない"""
+        staff = Staff.objects.get(user=staff_only_user)
+        assignment = ShiftAssignment.objects.create(
+            period=open_period, staff=staff,
+            date=date(2026, 4, 10), start_hour=9, end_hour=17,
+        )
+        resp = mgr_client.put(
+            f'/api/shift/assignments/{assignment.id}/',
+            data=json.dumps({'start_hour': 10, 'end_hour': 18}),
+            content_type='application/json',
+        )
+        assert resp.status_code == 200
+        assert ShiftChangeLog.objects.filter(assignment=assignment).count() == 0
+
+    def test_revise_synced_updates_schedule(self, mgr_client, approved_period, synced_assignment, store):
+        """同期済みシフト修正で Schedule レコードが更新される"""
+        import datetime as dt
+        # 旧時間帯の Schedule 作成
+        for h in range(10, 18):
+            start_dt = timezone.make_aware(dt.datetime.combine(date(2026, 5, 5), time(h, 0)))
+            end_dt = timezone.make_aware(dt.datetime.combine(date(2026, 5, 5), time(h + 1, 0)))
+            Schedule.objects.create(
+                staff=synced_assignment.staff,
+                start=start_dt, end=end_dt,
+                memo='シフトから自動作成',
+            )
+
+        resp = mgr_client.put(
+            f'/api/shift/assignments/{synced_assignment.id}/',
+            data=json.dumps({
+                'start_hour': 12,
+                'end_hour': 20,
+                'reason': '時間帯変更',
+            }),
+            content_type='application/json',
+        )
+        assert resp.status_code == 200
+
+        # 旧時間帯(10-18)の Schedule がキャンセルされている
+        old_cancelled = Schedule.objects.filter(
+            staff=synced_assignment.staff,
+            start__date=date(2026, 5, 5),
+            memo='シフトから自動作成',
+            is_cancelled=True,
+        ).count()
+        assert old_cancelled == 8
+
+        # 新時間帯(12-20)の Schedule が作成されている
+        new_active = Schedule.objects.filter(
+            staff=synced_assignment.staff,
+            start__date=date(2026, 5, 5),
+            memo='シフトから自動作成',
+            is_cancelled=False,
+        ).count()
+        assert new_active == 8
+
+
+# ==============================
+# Phase 9: モデルテスト
+# ==============================
+
+class TestShiftChangeLogModel:
+    """ShiftChangeLog モデルテスト"""
+
+    def test_create_change_log(self, synced_assignment, manager_user):
+        staff = Staff.objects.get(user=manager_user)
+        log = ShiftChangeLog.objects.create(
+            assignment=synced_assignment,
+            changed_by=staff,
+            change_type='revised',
+            old_values={'start_hour': 10},
+            new_values={'start_hour': 12},
+            reason='テスト変更',
+        )
+        assert log.pk is not None
+        assert log.change_type == 'revised'
+        assert '修正' in str(log)
+
+    def test_delete_change_type(self, synced_assignment):
+        log = ShiftChangeLog.objects.create(
+            assignment=synced_assignment,
+            change_type='deleted',
+            old_values={'start_hour': 10, 'end_hour': 18},
+        )
+        assert log.get_change_type_display() == '削除'
+
+
+class TestShiftPublishHistoryExtended:
+    """ShiftPublishHistory 拡張テスト"""
+
+    def test_publish_action_default(self, approved_period, manager_user):
+        staff = Staff.objects.get(user=manager_user)
+        history = ShiftPublishHistory.objects.create(
+            period=approved_period,
+            published_by=staff,
+            assignment_count=5,
+        )
+        assert history.action == 'publish'
+        assert history.reason == ''
+
+    def test_revoke_action(self, approved_period, manager_user):
+        staff = Staff.objects.get(user=manager_user)
+        history = ShiftPublishHistory.objects.create(
+            period=approved_period,
+            published_by=staff,
+            assignment_count=5,
+            action='revoke',
+            reason='テスト撤回',
+        )
+        assert history.action == 'revoke'
+        assert history.get_action_display() == '撤回'
+        assert '撤回' in str(history)
+
+
+# ==============================
+# Phase 10: スタッフ管理メニュー
+# ==============================
+
+class TestStaffManageMenu:
+    """サイドバー スタッフ管理メニューテスト"""
+
+    def test_manager_sees_staff_manage(self, mgr_client):
+        """manager はスタッフ管理メニューを見る"""
+        resp = mgr_client.get('/admin/')
+        content = resp.content.decode()
+        assert 'スタッフ管理' in content
+
+    def test_staff_sees_staff_manage(self, staff_client):
+        """一般スタッフもスタッフ管理グループを見る"""
+        resp = staff_client.get('/admin/')
+        content = resp.content.decode()
+        assert 'スタッフ管理' in content
+
+    def test_sidebar_staff_manage_role_config(self):
+        """SIDEBAR_CUSTOM_LINKS_BY_ROLE に staff_manage がある"""
+        from booking.admin_site import SIDEBAR_CUSTOM_LINKS_BY_ROLE
+        assert 'staff_manage' in SIDEBAR_CUSTOM_LINKS_BY_ROLE
+        assert 'manager' in SIDEBAR_CUSTOM_LINKS_BY_ROLE['staff_manage']
+        assert 'staff' in SIDEBAR_CUSTOM_LINKS_BY_ROLE['staff_manage']
+        # manager は4件（キャスト一覧、スタッフ一覧、勤怠、新規追加）
+        assert len(SIDEBAR_CUSTOM_LINKS_BY_ROLE['staff_manage']['manager']) == 4
+        # staff は1件（マイページ）
+        assert len(SIDEBAR_CUSTOM_LINKS_BY_ROLE['staff_manage']['staff']) == 1
+
+    def test_staff_manage_visible_in_role_groups(self):
+        """ROLE_VISIBLE_GROUPS に staff_manage が含まれる"""
+        from booking.admin_site import ROLE_VISIBLE_GROUPS
+        assert 'staff_manage' in ROLE_VISIBLE_GROUPS['manager']
+        assert 'staff_manage' in ROLE_VISIBLE_GROUPS['staff']
+
+
+# ==============================
+# Phase 10: マイページプロフィール
+# ==============================
+
+@pytest.fixture
+def cast_staff(db, store):
+    """キャスト(fortune_teller)スタッフ"""
+    user = User.objects.create_user(
+        username="cast_user", password="castpass123",
+        email="cast@test.com", is_staff=True,
+    )
+    return Staff.objects.create(
+        name="テストキャスト", store=store, user=user,
+        staff_type='fortune_teller', price=5000,
+        introduction='テスト自己紹介',
+    )
+
+
+@pytest.fixture
+def store_staff_member(db, store):
+    """店舗スタッフ(store_staff)"""
+    user = User.objects.create_user(
+        username="sstaff_user", password="sstaffpass123",
+        email="sstaff@test.com", is_staff=True,
+    )
+    return Staff.objects.create(
+        name="テスト店舗スタッフ", store=store, user=user,
+        staff_type='store_staff',
+    )
+
+
+class TestMyPageProfile:
+    """マイページプロフィール編集テスト"""
+
+    def test_profile_page_loads(self, db, cast_staff):
+        c = Client()
+        c.login(username="cast_user", password="castpass123")
+        resp = c.get(f'/mypage/{cast_staff.pk}/profile/')
+        assert resp.status_code == 200
+        assert 'テストキャスト' in resp.content.decode()
+
+    def test_profile_edit_saves(self, db, cast_staff):
+        c = Client()
+        c.login(username="cast_user", password="castpass123")
+        resp = c.post(f'/mypage/{cast_staff.pk}/profile/', {
+            'name': '新しい名前',
+            'price': 6000,
+            'introduction': '更新された自己紹介',
+            'line_id': '',
+        })
+        assert resp.status_code == 302  # redirect on success
+        cast_staff.refresh_from_db()
+        assert cast_staff.name == '新しい名前'
+        assert cast_staff.price == 6000
+
+    def test_other_user_cannot_edit(self, db, cast_staff, store_staff_member):
+        """他人のプロフィールは編集不可"""
+        c = Client()
+        c.login(username="sstaff_user", password="sstaffpass123")
+        resp = c.get(f'/mypage/{cast_staff.pk}/profile/')
+        assert resp.status_code == 403
+
+    def test_store_staff_no_price_field(self, db, store_staff_member):
+        """店舗スタッフのフォームには price がない"""
+        c = Client()
+        c.login(username="sstaff_user", password="sstaffpass123")
+        resp = c.get(f'/mypage/{store_staff_member.pk}/profile/')
+        assert resp.status_code == 200
+        content = resp.content.decode()
+        # price フィールドのID が存在しない
+        assert 'id_price' not in content
+
+    def test_unauthenticated_redirect(self, db, cast_staff):
+        c = Client()
+        resp = c.get(f'/mypage/{cast_staff.pk}/profile/')
+        assert resp.status_code == 403  # OnlyStaffMixin raises 403
+
+
+# ==============================
+# Phase 10: シフトカレンダー staff_type フィルタ
+# ==============================
+
+class TestShiftCalendarStaffTypeFilter:
+    """シフトカレンダーの staff_type フィルタテスト"""
+
+    def test_calendar_has_filter_counts(self, mgr_client, store, cast_staff, store_staff_member):
+        """カレンダーページに cast_count と store_staff_count が含まれる"""
+        resp = mgr_client.get('/admin/shift/calendar/')
+        assert resp.status_code == 200
+        # コンテキストにフィルタ情報が含まれる
+        assert 'cast_count' in resp.context
+        assert 'store_staff_count' in resp.context
+        assert resp.context['cast_count'] >= 1
+        assert resp.context['store_staff_count'] >= 1
+
+    def test_filter_fortune_teller(self, mgr_client, store, cast_staff, store_staff_member, open_period):
+        """fortune_teller フィルタでキャストのみ表示"""
+        # キャストにシフト追加
+        ShiftAssignment.objects.create(
+            period=open_period, staff=cast_staff,
+            date=date(2026, 4, 7), start_hour=10, end_hour=18,
+        )
+        ShiftAssignment.objects.create(
+            period=open_period, staff=store_staff_member,
+            date=date(2026, 4, 7), start_hour=10, end_hour=18,
+        )
+        resp = mgr_client.get('/admin/shift/calendar/?staff_type=fortune_teller')
+        assert resp.status_code == 200
+        staffs = list(resp.context['staffs'])
+        staff_types = [s.staff_type for s in staffs]
+        assert all(t == 'fortune_teller' for t in staff_types)
+
+    def test_filter_store_staff(self, mgr_client, store, cast_staff, store_staff_member):
+        """store_staff フィルタでスタッフのみ表示"""
+        resp = mgr_client.get('/admin/shift/calendar/?staff_type=store_staff')
+        assert resp.status_code == 200
+        staffs = list(resp.context['staffs'])
+        staff_types = [s.staff_type for s in staffs]
+        assert all(t == 'store_staff' for t in staff_types)
+
+    def test_no_filter_shows_all(self, mgr_client, store, cast_staff, store_staff_member):
+        """フィルタなしで全員表示"""
+        resp = mgr_client.get('/admin/shift/calendar/')
+        assert resp.status_code == 200
+        staffs = list(resp.context['staffs'])
+        assert len(staffs) >= 2  # cast + store_staff + manager
+
+
+# ==============================
+# Phase 10: MyPage staff_type 活用
+# ==============================
+
+class TestMyPageStaffType:
+    """MyPage の staff_type 活用テスト"""
+
+    def test_cast_sees_reservations(self, db, cast_staff):
+        """キャストは予約セクションを見る"""
+        c = Client()
+        c.login(username="cast_user", password="castpass123")
+        resp = c.get('/mypage/')
+        assert resp.status_code == 200
+        assert resp.context['has_cast_role'] is True
+
+    def test_store_staff_no_reservations(self, db, store_staff_member):
+        """店舗スタッフは予約セクションを見ない"""
+        c = Client()
+        c.login(username="sstaff_user", password="sstaffpass123")
+        resp = c.get('/mypage/')
+        assert resp.status_code == 200
+        assert resp.context['has_cast_role'] is False

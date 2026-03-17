@@ -1,0 +1,57 @@
+{% extends 'booking/base.html' %}
+{% load i18n %}
+
+{% block content %}
+
+<h1 class="text-2xl md:text-3xl font-bold text-salon-dark mb-6 border-b-2 border-salon-brown pb-3">
+    {% trans "プロフィール編集" %}
+</h1>
+
+{% if profile_saved %}
+<div style="padding:12px;background:#d1fae5;color:#065f46;border-radius:8px;margin-bottom:16px;font-weight:600;">
+    {% trans "プロフィールを保存しました。" %}
+</div>
+{% endif %}
+
+<div class="bg-white rounded-xl shadow-md overflow-hidden" style="max-width:600px;">
+    <div class="bg-salon-beige px-5 py-3 border-b border-salon-brown/20">
+        <h2 class="text-lg font-bold text-salon-brown">{{ staff.name }}</h2>
+        <p class="text-sm text-gray-500">{{ staff.store.name }} /
+            {% if staff.staff_type == 'fortune_teller' %}{% trans "キャスト" %}{% else %}{% trans "店舗スタッフ" %}{% endif %}
+        </p>
+    </div>
+
+    <form method="post" enctype="multipart/form-data" class="px-5 py-4 space-y-4">
+        {% csrf_token %}
+
+        {% if staff.thumbnail %}
+        <div style="margin-bottom:8px;">
+            <img src="{{ staff.thumbnail.url }}" alt="{{ staff.name }}"
+                 style="width:80px;height:80px;border-radius:50%;object-fit:cover;border:2px solid #e5e7eb;">
+        </div>
+        {% endif %}
+
+        {% for field in form %}
+        <div>
+            <label for="{{ field.id_for_label }}" style="display:block;font-size:13px;font-weight:600;color:#6b7280;margin-bottom:4px;">
+                {{ field.label }}
+            </label>
+            {{ field }}
+            {% if field.errors %}
+            <p style="color:#dc2626;font-size:12px;margin-top:2px;">{{ field.errors.0 }}</p>
+            {% endif %}
+        </div>
+        {% endfor %}
+
+        <div style="display:flex;gap:8px;padding-top:8px;">
+            <button type="submit" style="padding:8px 24px;background:#3B82F6;color:#fff;border:none;border-radius:6px;font-weight:600;cursor:pointer;">
+                {% trans "保存" %}
+            </button>
+            <a href="{% url 'booking:my_page' %}" style="padding:8px 24px;background:#e5e7eb;color:#374151;border:none;border-radius:6px;font-weight:600;text-decoration:none;display:inline-block;">
+                {% trans "戻る" %}
+            </a>
+        </div>
+    </form>
+</div>
+
+{% endblock %}

@@ -40,6 +40,7 @@ from .models import (
     ShiftAssignment,
     ShiftTemplate,
     ShiftPublishHistory,
+    ShiftChangeLog,
     StoreClosedDate,
     AdminTheme,
     SiteSettings,
@@ -131,7 +132,7 @@ class ScheduleAdmin(admin.ModelAdmin):
 # ==============================
 class StaffAdmin(admin.ModelAdmin):
     list_display = ('name', 'store', 'staff_type', 'is_store_manager', 'is_owner', 'is_recommended', 'display_thumbnail')
-
+    list_filter = ('staff_type', 'is_store_manager', 'store')
     list_editable = ('is_recommended',)
     search_fields = ('name', 'store__name')
 
@@ -927,9 +928,23 @@ class ShiftAssignmentAdmin(admin.ModelAdmin):
     search_fields = ('staff__name',)
 
 
+class ShiftChangeLogAdmin(admin.ModelAdmin):
+    list_display = ('assignment', 'changed_by', 'changed_at', 'change_type', 'reason')
+    list_filter = ('change_type',)
+    readonly_fields = ('assignment', 'changed_by', 'changed_at', 'change_type', 'old_values', 'new_values', 'reason')
+    search_fields = ('assignment__staff__name', 'reason')
+
+    def has_add_permission(self, request):
+        return False
+
+    def has_change_permission(self, request, obj=None):
+        return False
+
+
 custom_site.register(ShiftPeriod, ShiftPeriodAdmin)
 custom_site.register(ShiftRequest, ShiftRequestAdmin)
 custom_site.register(ShiftAssignment, ShiftAssignmentAdmin)
+custom_site.register(ShiftChangeLog, ShiftChangeLogAdmin)
 
 
 # ==============================

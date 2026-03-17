@@ -95,6 +95,7 @@ urlpatterns = [
     # My Page
     path('mypage/', views.MyPage.as_view(), name='my_page'),
     path('mypage/<int:pk>/', views.MyPageWithPk.as_view(), name='my_page_with_pk'),
+    path('mypage/<int:pk>/profile/', views.MyPageProfile.as_view(), name='my_page_profile'),
     path('mypage/<int:pk>/calendar/', views.MyPageCalendar.as_view(), name='my_page_calendar'),
     path(
         'mypage/<int:pk>/calendar/<int:year>/<int:month>/<int:day>/',

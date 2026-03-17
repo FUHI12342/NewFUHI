@@ -14,7 +14,7 @@ from django.template.loader import render_to_string
 
 from booking.models import (
     Store, Staff, ShiftPeriod, ShiftRequest, ShiftAssignment,
-    ShiftTemplate, ShiftPublishHistory, StoreClosedDate,
+    ShiftTemplate, ShiftPublishHistory, ShiftChangeLog, StoreClosedDate,
 )
 from booking.views_shift_manager import _get_user_store, _render_week_grid
 
@@ -48,7 +48,11 @@ class ShiftWeekGridView(View):
         store = _get_user_store(request)
         if not store:
             return HttpResponse('')
-        html = _render_week_grid(request, store, request.GET.get('week_start'))
+        html = _render_week_grid(
+            request, store,
+            request.GET.get('week_start'),
+            staff_type_filter=request.GET.get('staff_type'),
+        )
         return HttpResponse(html)
 
 
@@ -131,7 +135,7 @@ class ShiftAssignmentAPIView(View):
         return HttpResponse(html, status=201)
 
     def put(self, request, pk=None):
-        """シフト更新"""
+        """シフト更新（approved 期間の場合は変更ログ + Schedule 更新 + 差分通知）"""
         store, err = _require_store(request)
         if err:
             return err
@@ -146,22 +150,62 @@ class ShiftAssignmentAPIView(View):
         except json.JSONDecodeError:
             return JsonResponse({'error': 'Invalid JSON'}, status=400)
 
-        for field in ['start_hour', 'end_hour', 'color', 'note']:
-            if field in data:
-                setattr(assignment, field, data[field])
-        if 'start_time' in data:
-            assignment.start_time = data['start_time']
-        if 'end_time' in data:
-            assignment.end_time = data['end_time']
-        if 'template_id' in data:
-            template = get_object_or_404(ShiftTemplate, pk=data['template_id'], store=store)
-            assignment.start_time = template.start_time
-            assignment.end_time = template.end_time
-            assignment.color = template.color
-            assignment.start_hour = template.start_time.hour
-            assignment.end_hour = template.end_time.hour
+        is_approved = assignment.period.status == 'approved'
 
-        assignment.save()
+        if is_approved:
+            # approved 期間: revise_assignment で変更ログ付き更新
+            reason = data.pop('reason', '')
+            new_data = {}
+
+            if 'template_id' in data:
+                template = get_object_or_404(ShiftTemplate, pk=data['template_id'], store=store)
+                new_data['start_time'] = template.start_time
+                new_data['end_time'] = template.end_time
+                new_data['color'] = template.color
+                new_data['start_hour'] = template.start_time.hour
+                new_data['end_hour'] = template.end_time.hour
+            else:
+                for field in ['start_hour', 'end_hour', 'color', 'note', 'start_time', 'end_time']:
+                    if field in data:
+                        new_data[field] = data[field]
+
+            revised_by = None
+            try:
+                revised_by = request.user.staff
+            except (Staff.DoesNotExist, AttributeError):
+                pass
+
+            old_start = assignment.start_hour
+            old_end = assignment.end_hour
+
+            from booking.services.shift_scheduler import revise_assignment
+            revise_assignment(assignment, new_data, revised_by=revised_by, reason=reason)
+
+            try:
+                from booking.services.shift_notifications import notify_shift_revised
+                notify_shift_revised(assignment, {
+                    'old_start_hour': old_start,
+                    'old_end_hour': old_end,
+                })
+            except Exception as e:
+                logger.warning("Failed to send shift revision notification: %s", e)
+        else:
+            # 通常の更新（変更ログなし）
+            for field in ['start_hour', 'end_hour', 'color', 'note']:
+                if field in data:
+                    setattr(assignment, field, data[field])
+            if 'start_time' in data:
+                assignment.start_time = data['start_time']
+            if 'end_time' in data:
+                assignment.end_time = data['end_time']
+            if 'template_id' in data:
+                template = get_object_or_404(ShiftTemplate, pk=data['template_id'], store=store)
+                assignment.start_time = template.start_time
+                assignment.end_time = template.end_time
+                assignment.color = template.color
+                assignment.start_hour = template.start_time.hour
+                assignment.end_hour = template.end_time.hour
+            assignment.save()
 
         html = render_to_string('admin/booking/partials/shift_cell.html', {
             'assignment': assignment,
@@ -552,6 +596,59 @@ class ShiftPeriodAPIView(View):
         period.save()
 
         return JsonResponse({'id': period.id, 'status': period.status})
+
+
+@method_decorator(staff_member_required, name='dispatch')
+class ShiftRevokeAPIView(View):
+    """公開済みシフトの撤回"""
+
+    def post(self, request):
+        store, err = _require_store(request)
+        if err:
+            return err
+
+        try:
+            data = json.loads(request.body)
+        except json.JSONDecodeError:
+            return JsonResponse({'error': 'Invalid JSON'}, status=400)
+
+        period_id = data.get('period_id')
+        reason = data.get('reason', '')
+
+        if not period_id:
+            return JsonResponse({'error': 'period_id is required'}, status=400)
+
+        period = get_object_or_404(ShiftPeriod, pk=period_id, store=store)
+
+        if period.status != 'approved':
+            return JsonResponse({
+                'error': '撤回は公開済み(approved)状態でのみ可能です',
+            }, status=400)
+
+        revoked_by = None
+        try:
+            revoked_by = request.user.staff
+        except (Staff.DoesNotExist, AttributeError):
+            pass
+
+        from booking.services.shift_scheduler import revoke_published_shifts
+        cancelled = revoke_published_shifts(period, reason=reason, revoked_by=revoked_by)
+
+        try:
+            from booking.services.shift_notifications import notify_shift_revoked
+            notify_shift_revoked(period, reason=reason)
+        except Exception as e:
+            logger.warning("Failed to send revoke notification: %s", e)
+
+        if request.headers.get('HX-Request'):
+            from booking.views_shift_manager import _render_week_grid
+            html = _render_week_grid(request, store, request.GET.get('week_start'))
+            return HttpResponse(html)
+        return JsonResponse({
+            'cancelled': cancelled,
+            'period_id': period.id,
+            'status': period.status,
+        })
 
 
 @method_decorator(staff_member_required, name='dispatch')

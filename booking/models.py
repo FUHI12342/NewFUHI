@@ -1385,11 +1385,17 @@ class ShiftTemplate(models.Model):
 
 class ShiftPublishHistory(models.Model):
     """シフト公開履歴"""
+    ACTION_CHOICES = [
+        ('publish', '公開'),
+        ('revoke', '撤回'),
+    ]
     period = models.ForeignKey(ShiftPeriod, verbose_name=_('シフト期間'), on_delete=models.CASCADE, related_name='publish_history')
     published_by = models.ForeignKey(Staff, verbose_name=_('公開者'), on_delete=models.SET_NULL, null=True, blank=True)
     published_at = models.DateTimeField(_('公開日時'), auto_now_add=True)
     assignment_count = models.IntegerField(_('シフト数'), default=0)
     note = models.TextField(_('備考'), blank=True, default='')
+    action = models.CharField(_('操作'), max_length=10, choices=ACTION_CHOICES, default='publish')
+    reason = models.TextField(_('理由'), blank=True, default='')
 
     class Meta:
         app_label = 'booking'
@@ -1398,7 +1404,31 @@ class ShiftPublishHistory(models.Model):
         ordering = ('-published_at',)
 
     def __str__(self):
-        return f"{self.period} - {self.published_at}"
+        return f"{self.period} - {self.get_action_display()} - {self.published_at}"
+
+
+class ShiftChangeLog(models.Model):
+    """個別シフト変更の監査証跡"""
+    CHANGE_TYPE_CHOICES = [
+        ('revised', '修正'),
+        ('deleted', '削除'),
+    ]
+    assignment = models.ForeignKey(ShiftAssignment, on_delete=models.CASCADE, related_name='change_logs')
+    changed_by = models.ForeignKey(Staff, on_delete=models.SET_NULL, null=True)
+    changed_at = models.DateTimeField(auto_now_add=True)
+    change_type = models.CharField(_('変更種別'), max_length=20, choices=CHANGE_TYPE_CHOICES)
+    old_values = models.JSONField(_('変更前'), default=dict)
+    new_values = models.JSONField(_('変更後'), default=dict)
+    reason = models.TextField(_('変更理由'), blank=True, default='')
+
+    class Meta:
+        app_label = 'booking'
+        verbose_name = _('シフト変更ログ')
+        verbose_name_plural = _('シフト変更ログ')
+        ordering = ('-changed_at',)
+
+    def __str__(self):
+        return f"{self.assignment} - {self.get_change_type_display()} - {self.changed_at}"
 
 
 class StoreClosedDate(models.Model):

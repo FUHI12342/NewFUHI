@@ -134,6 +134,46 @@
     font-size: 10px; color: #dc2626; font-weight: 700;
   }
 
+  /* ===== 管理メニュードロップダウン ===== */
+  .admin-menu-wrap { position: relative; display: inline-block; margin-bottom: 16px; }
+  .admin-menu-btn {
+    padding: 8px 16px; border: 1px solid #d1d5db; border-radius: 6px;
+    background: #fff; cursor: pointer; font-weight: 600; font-size: 14px;
+    display: flex; align-items: center; gap: 6px; color: #374151;
+    transition: background .15s;
+  }
+  .admin-menu-btn:hover { background: #f3f4f6; }
+  .admin-menu-drop {
+    position: absolute; top: 100%; left: 0; z-index: 50;
+    background: #fff; border: 1px solid #e5e7eb; border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0,0,0,.1); min-width: 220px; margin-top: 4px;
+    padding: 4px 0;
+  }
+  .admin-menu-drop a {
+    display: block; padding: 8px 16px; font-size: 13px; color: #374151;
+    text-decoration: none; transition: background .1s;
+  }
+  .admin-menu-drop a:hover { background: #f3f4f6; }
+  .admin-menu-drop .menu-divider { border-top: 1px solid #e5e7eb; margin: 4px 0; }
+
+  /* ===== テンプレート管理モーダル ===== */
+  .tpl-overlay {
+    position: fixed; inset: 0; background: rgba(0,0,0,.4); z-index: 200;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .tpl-modal {
+    background: #fff; border-radius: 12px; padding: 24px; width: 90%; max-width: 640px;
+    max-height: 80vh; overflow-y: auto; box-shadow: 0 8px 24px rgba(0,0,0,.15);
+  }
+  .tpl-modal h2 { margin: 0 0 16px; font-size: 18px; }
+  .tpl-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  .tpl-table th, .tpl-table td { padding: 8px 10px; border-bottom: 1px solid #e5e7eb; text-align: left; }
+  .tpl-table th { background: #f9fafb; font-weight: 600; color: #6b7280; font-size: 12px; }
+  .tpl-color-dot { width: 16px; height: 16px; border-radius: 50%; display: inline-block; }
+  .tpl-form { display: flex; gap: 8px; align-items: flex-end; flex-wrap: wrap; margin-top: 16px; padding-top: 16px; border-top: 1px solid #e5e7eb; }
+  .tpl-form label { font-size: 12px; font-weight: 600; color: #6b7280; display: block; margin-bottom: 2px; }
+  .tpl-form input { padding: 6px 10px; border: 1px solid #d1d5db; border-radius: 4px; font-size: 13px; }
+
   /* ===== アラート ===== */
   .alert-success { padding: 12px; background: #d1fae5; color: #065f46; border-radius: 6px; margin: 8px 0; }
   .alert-info { padding: 12px; background: #dbeafe; color: #1e40af; border-radius: 6px; margin: 8px 0; }
@@ -489,6 +529,12 @@
   selectedStaff: null,
   selectedDate: null,
   confirmPublish: false,
+  showRevokeDialog: false,
+  revokeReason: '',
+  showReviseReasonDialog: false,
+  reviseReason: '',
+  pendingReviseData: null,
+  pendingReviseAssignmentId: null,
   showNewPeriod: false,
   showClosedDates: false,
   closedDates: new Set(),
@@ -538,7 +584,139 @@
   get closedMonthLabel() {
     return `${this.closedYear}年${this.closedMonth + 1}月`;
   },
+  showTemplateModal: false,
+  tplList: [],
+  tplForm: { name: '', start_time: '09:00', end_time: '17:00', color: '#3B82F6' },
+  tplEditId: null,
+  tplLoading: false,
+
+  async loadTemplates() {
+    this.tplLoading = true;
+    const res = await fetch('/api/shift/templates/', {credentials: 'same-origin'});
+    this.tplList = await res.json();
+    this.tplLoading = false;
+  },
+  async saveTemplate() {
+    const url = this.tplEditId
+      ? `/api/shift/templates/${this.tplEditId}/`
+      : '/api/shift/templates/';
+    const method = this.tplEditId ? 'PUT' : 'POST';
+    const res = await fetch(url, {
+      method,
+      headers: {'Content-Type': 'application/json', 'X-CSRFToken': '{{ csrf_token }}'},
+      body: JSON.stringify(this.tplForm),
+      credentials: 'same-origin',
+    });
+    if (res.ok) {
+      await this.loadTemplates();
+      this.resetTplForm();
+    }
+  },
+  editTemplate(t) {
+    this.tplEditId = t.id;
+    this.tplForm = { name: t.name, start_time: t.start_time, end_time: t.end_time, color: t.color };
+  },
+  async deleteTemplate(id) {
+    if (!confirm('このテンプレートを削除しますか？')) return;
+    await fetch(`/api/shift/templates/${id}/`, {
+      method: 'DELETE',
+      headers: {'X-CSRFToken': '{{ csrf_token }}'},
+      credentials: 'same-origin',
+    });
+    await this.loadTemplates();
+  },
+  resetTplForm() {
+    this.tplEditId = null;
+    this.tplForm = { name: '', start_time: '09:00', end_time: '17:00', color: '#3B82F6' };
+  },
+  openTemplateModal() {
+    this.showTemplateModal = true;
+    this.loadTemplates();
+  },
 }" x-init="if(showClosedDates) loadClosedDates()" hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'>
+
+  {# ===== 管理メニュードロップダウン ===== #}
+  <div x-data="{ openMenu: false }" class="admin-menu-wrap">
+    <button @click="openMenu = !openMenu" class="admin-menu-btn">
+      <i class="fas fa-cog"></i> {% trans "管理メニュー" %} ▾
+    </button>
+    <div x-show="openMenu" @click.outside="openMenu = false" x-cloak class="admin-menu-drop">
+      <a href="/admin/booking/shiftperiod/"><i class="fas fa-calendar-alt" style="width:16px;margin-right:6px;"></i>{% trans "シフト募集期間" %}</a>
+      <a href="/admin/booking/shiftrequest/"><i class="fas fa-hand-paper" style="width:16px;margin-right:6px;"></i>{% trans "シフト希望一覧" %}</a>
+      <a href="/admin/booking/shiftassignment/"><i class="fas fa-user-check" style="width:16px;margin-right:6px;"></i>{% trans "確定シフト一覧" %}</a>
+      <div class="menu-divider"></div>
+      <a href="#" @click.prevent="openMenu = false; openTemplateModal()"><i class="fas fa-puzzle-piece" style="width:16px;margin-right:6px;"></i>{% trans "シフトテンプレート" %}</a>
+      <div class="menu-divider"></div>
+      <a href="/admin/booking/shiftpublishhistory/"><i class="fas fa-history" style="width:16px;margin-right:6px;"></i>{% trans "公開履歴" %}</a>
+      <a href="/admin/booking/storecloseddate/"><i class="fas fa-store-slash" style="width:16px;margin-right:6px;"></i>{% trans "休業日一覧" %}</a>
+    </div>
+  </div>
+
+  {# ===== テンプレート管理モーダル ===== #}
+  <div x-show="showTemplateModal" x-cloak class="tpl-overlay" @keydown.escape.window="showTemplateModal = false">
+    <div class="tpl-modal" @click.outside="showTemplateModal = false">
+      <div style="display:flex;justify-content:space-between;align-items:center;">
+        <h2><i class="fas fa-puzzle-piece" style="margin-right:8px;"></i>{% trans "シフトテンプレート管理" %}</h2>
+        <button @click="showTemplateModal = false" style="border:none;background:none;font-size:20px;cursor:pointer;color:#6b7280;">✕</button>
+      </div>
+
+      {# テンプレート一覧 #}
+      <template x-if="tplList.length > 0">
+        <table class="tpl-table">
+          <thead>
+            <tr>
+              <th>{% trans "色" %}</th>
+              <th>{% trans "名前" %}</th>
+              <th>{% trans "開始" %}</th>
+              <th>{% trans "終了" %}</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            <template x-for="t in tplList" :key="t.id">
+              <tr>
+                <td><span class="tpl-color-dot" :style="`background:${t.color}`"></span></td>
+                <td x-text="t.name" style="font-weight:600;"></td>
+                <td x-text="t.start_time"></td>
+                <td x-text="t.end_time"></td>
+                <td style="text-align:right;">
+                  <button class="btn btn-outline btn-sm" @click="editTemplate(t)" style="margin-right:4px;">{% trans "編集" %}</button>
+                  <button class="btn btn-danger btn-sm" @click="deleteTemplate(t.id)">{% trans "削除" %}</button>
+                </td>
+              </tr>
+            </template>
+          </tbody>
+        </table>
+      </template>
+      <template x-if="tplList.length === 0 && !tplLoading">
+        <p style="color:#6b7280;font-size:14px;">{% trans "テンプレートがありません。下のフォームから追加してください。" %}</p>
+      </template>
+
+      {# 追加/編集フォーム #}
+      <div class="tpl-form">
+        <div>
+          <label>{% trans "名前" %}</label>
+          <input type="text" x-model="tplForm.name" placeholder="{% trans '早番' %}" style="width:100px;">
+        </div>
+        <div>
+          <label>{% trans "開始時刻" %}</label>
+          <input type="time" x-model="tplForm.start_time">
+        </div>
+        <div>
+          <label>{% trans "終了時刻" %}</label>
+          <input type="time" x-model="tplForm.end_time">
+        </div>
+        <div>
+          <label>{% trans "色" %}</label>
+          <input type="color" x-model="tplForm.color" style="width:40px;height:32px;padding:2px;cursor:pointer;">
+        </div>
+        <button class="btn btn-primary btn-sm" @click="saveTemplate()" :disabled="!tplForm.name">
+          <span x-text="tplEditId ? '{% trans '更新' %}' : '{% trans '追加' %}'"></span>
+        </button>
+        <button x-show="tplEditId" class="btn btn-outline btn-sm" @click="resetTplForm()">{% trans "キャンセル" %}</button>
+      </div>
+    </div>
+  </div>
 
   {# ===== 休業日設定パネル ===== #}
   <div class="wf-panel" style="margin-bottom:20px;">
@@ -698,25 +876,46 @@
       {% endif %}
 
       {% if active_period.status == 'approved' %}
-        <div class="alert-success" style="margin:0;">
-          {% trans "このシフトは公開済みです。スタッフに通知されました。" %}
+        <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap;">
+          <div class="alert-success" style="margin:0;">
+            {% trans "このシフトは公開済みです。スタッフに通知されました。" %}
+          </div>
+          <button class="btn btn-danger btn-sm" @click="showRevokeDialog = true">
+            {% trans "シフトを撤回する" %}
+          </button>
         </div>
       {% endif %}
     </div>
   </div>
   {% endif %}
 
-  {# ===== 週ナビゲーション + テンプレート ===== #}
+  {# ===== 週ナビゲーション + スタッフフィルタ + テンプレート ===== #}
   <div class="toolbar">
-    <a href="?week_start={{ prev_week }}{% if active_period %}&period_id={{ active_period.id }}{% endif %}"
+    <a href="?week_start={{ prev_week }}{% if active_period %}&period_id={{ active_period.id }}{% endif %}{% if staff_type_filter %}&staff_type={{ staff_type_filter }}{% endif %}"
        class="btn btn-outline btn-sm">◀ {% trans "前週" %}</a>
 
     <strong>
       {{ week_dates.0|date:"Y年m月d日" }} 〜 {{ week_dates.6|date:"m月d日" }}
     </strong>
 
-    <a href="?week_start={{ next_week }}{% if active_period %}&period_id={{ active_period.id }}{% endif %}"
+    <a href="?week_start={{ next_week }}{% if active_period %}&period_id={{ active_period.id }}{% endif %}{% if staff_type_filter %}&staff_type={{ staff_type_filter }}{% endif %}"
        class="btn btn-outline btn-sm">{% trans "次週" %} ▶</a>
+
+    {# スタッフ種別フィルタ #}
+    <div style="display:flex;gap:4px;margin-left:12px;">
+      <a href="?week_start={{ week_start }}{% if active_period %}&period_id={{ active_period.id }}{% endif %}"
+         class="btn btn-sm {% if not staff_type_filter %}btn-primary{% else %}btn-outline{% endif %}">
+        {% trans "全員" %} ({{ staff_count }})
+      </a>
+      <a href="?week_start={{ week_start }}{% if active_period %}&period_id={{ active_period.id }}{% endif %}&staff_type=fortune_teller"
+         class="btn btn-sm {% if staff_type_filter == 'fortune_teller' %}btn-primary{% else %}btn-outline{% endif %}">
+        {% trans "キャスト" %} ({{ cast_count }})
+      </a>
+      <a href="?week_start={{ week_start }}{% if active_period %}&period_id={{ active_period.id }}{% endif %}&staff_type=store_staff"
+         class="btn btn-sm {% if staff_type_filter == 'store_staff' %}btn-primary{% else %}btn-outline{% endif %}">
+        {% trans "スタッフ" %} ({{ store_staff_count }})
+      </a>
+    </div>
 
     {% if templates %}
     <div class="template-chips" style="margin-left:auto;">
@@ -743,18 +942,89 @@
     <div class="publish-log">
       {% for ph in publish_history %}
       <div class="publish-log-item">
+        {% if ph.action == 'revoke' %}
+        <span style="color:#EF4444;">●</span>
+        <span style="color:#EF4444;font-weight:600;">{% trans "撤回" %}</span>
+        {% else %}
         <span style="color:#10B981;">●</span>
+        <span style="color:#10B981;font-weight:600;">{% trans "公開" %}</span>
+        {% endif %}
         <span>{{ ph.published_at|date:"Y/m/d H:i" }}</span>
         <span>{{ ph.period.year_month|date:"Y年m月" }}</span>
         <span style="color:#6b7280;">{{ ph.assignment_count }}{% trans "件" %}</span>
         {% if ph.published_by %}
         <span style="color:#6b7280;">by {{ ph.published_by.name }}</span>
         {% endif %}
+        {% if ph.reason %}
+        <span style="color:#6b7280;font-size:12px;" title="{{ ph.reason }}">- {{ ph.reason|truncatewords:10 }}</span>
+        {% endif %}
       </div>
       {% endfor %}
     </div>
   </div>
   {% endif %}
+
+  {# ===== 撤回確認ダイアログ ===== #}
+  <div x-show="showRevokeDialog" x-cloak class="tpl-overlay" @keydown.escape.window="showRevokeDialog = false">
+    <div class="tpl-modal" style="max-width:480px;" @click.outside="showRevokeDialog = false">
+      <h2 style="color:#DC2626;"><i class="fas fa-exclamation-triangle" style="margin-right:8px;"></i>{% trans "シフト撤回確認" %}</h2>
+      <p style="margin:12px 0;font-size:14px;color:#374151;">
+        {% trans "公開済みシフトを撤回します。スケジュールがキャンセルされ、スタッフに通知されます。" %}
+      </p>
+      <div style="margin:16px 0;">
+        <label style="font-size:12px;font-weight:600;color:#6b7280;display:block;margin-bottom:4px;">{% trans "撤回理由" %}</label>
+        <textarea x-model="revokeReason" rows="3" style="width:100%;padding:8px;border:1px solid #d1d5db;border-radius:6px;font-size:14px;" placeholder="{% trans '撤回の理由を入力してください' %}"></textarea>
+      </div>
+      <div style="display:flex;gap:8px;justify-content:flex-end;">
+        <button class="btn btn-outline btn-sm" @click="showRevokeDialog = false; revokeReason = ''">{% trans "キャンセル" %}</button>
+        <button class="btn btn-danger btn-sm" @click="
+          fetch('/api/shift/revoke/', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json', 'X-CSRFToken': '{{ csrf_token }}'},
+            body: JSON.stringify({period_id: '{{ active_period.id }}', reason: revokeReason}),
+            credentials: 'same-origin',
+          }).then(r => {
+            if (r.ok) { location.reload(); }
+            else { r.json().then(d => alert(d.error || 'エラーが発生しました')); }
+          });
+          showRevokeDialog = false;
+          revokeReason = '';
+        ">{% trans "撤回する" %}</button>
+      </div>
+    </div>
+  </div>
+
+  {# ===== 個別修正理由ダイアログ ===== #}
+  <div x-show="showReviseReasonDialog" x-cloak class="tpl-overlay" @keydown.escape.window="showReviseReasonDialog = false">
+    <div class="tpl-modal" style="max-width:480px;" @click.outside="showReviseReasonDialog = false">
+      <h2><i class="fas fa-edit" style="margin-right:8px;"></i>{% trans "シフト変更理由" %}</h2>
+      <p style="margin:12px 0;font-size:14px;color:#374151;">
+        {% trans "公開済みシフトを変更します。変更ログが記録され、対象スタッフに通知されます。" %}
+      </p>
+      <div style="margin:16px 0;">
+        <label style="font-size:12px;font-weight:600;color:#6b7280;display:block;margin-bottom:4px;">{% trans "変更理由" %}</label>
+        <textarea x-model="reviseReason" rows="2" style="width:100%;padding:8px;border:1px solid #d1d5db;border-radius:6px;font-size:14px;" placeholder="{% trans '変更の理由を入力してください' %}"></textarea>
+      </div>
+      <div style="display:flex;gap:8px;justify-content:flex-end;">
+        <button class="btn btn-outline btn-sm" @click="showReviseReasonDialog = false; reviseReason = ''; pendingReviseData = null;">{% trans "キャンセル" %}</button>
+        <button class="btn btn-primary btn-sm" @click="
+          if (pendingReviseAssignmentId && pendingReviseData) {
+            pendingReviseData.reason = reviseReason;
+            fetch(`/api/shift/assignments/${pendingReviseAssignmentId}/`, {
+              method: 'PUT',
+              headers: {'Content-Type': 'application/json', 'X-CSRFToken': '{{ csrf_token }}'},
+              body: JSON.stringify(pendingReviseData),
+              credentials: 'same-origin',
+            }).then(r => { if (r.ok) location.reload(); else r.json().then(d => alert(d.error || 'エラーが発生しました')); });
+          }
+          showReviseReasonDialog = false;
+          reviseReason = '';
+          pendingReviseData = null;
+          pendingReviseAssignmentId = null;
+        ">{% trans "変更を保存" %}</button>
+      </div>
+    </div>
+  </div>
 
   {# ===== サイドバー ===== #}
   <div id="sidebar" class="sidebar-panel" :class="{ 'hidden': !showSidebar }">

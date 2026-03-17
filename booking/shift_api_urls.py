@@ -9,6 +9,7 @@ from .views_shift_api import (
     ShiftBulkAssignAPIView,
     ShiftAutoScheduleAPIView,
     ShiftPublishAPIView,
+    ShiftRevokeAPIView,
     ShiftPeriodAPIView,
     StoreClosedDateAPIView,
 )
@@ -27,6 +28,7 @@ urlpatterns = [
     path('bulk-assign/', ShiftBulkAssignAPIView.as_view(), name='shift_bulk_assign'),
     path('auto-schedule/', ShiftAutoScheduleAPIView.as_view(), name='shift_auto_schedule'),
     path('publish/', ShiftPublishAPIView.as_view(), name='shift_publish'),
+    path('revoke/', ShiftRevokeAPIView.as_view(), name='shift_revoke'),
     path('periods/', ShiftPeriodAPIView.as_view(), name='shift_period_create'),
     path('periods/<int:pk>/', ShiftPeriodAPIView.as_view(), name='shift_period_detail'),
     path('closed-dates/', StoreClosedDateAPIView.as_view(), name='closed_dates'),

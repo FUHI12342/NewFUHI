@@ -1309,11 +1309,14 @@ class MyPage(LoginRequiredMixin, generic.TemplateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['staff_list'] = Staff.objects.filter(user=self.request.user).order_by('name')
+        staff_list = Staff.objects.filter(user=self.request.user).select_related('store').order_by('name')
+        context['staff_list'] = staff_list
         context['schedule_list'] = Schedule.objects.filter(
             staff__user=self.request.user,
             start__gte=timezone.now()
         ).order_by('start')
+        # キャストのみ予約表示（店舗スタッフは予約を受けない）
+        context['has_cast_role'] = staff_list.filter(staff_type='fortune_teller').exists()
         return context
 
 
@@ -1329,6 +1332,49 @@ class MyPageWithPk(OnlyUserMixin, generic.TemplateView):
             start__gte=timezone.now()
         ).order_by('start')
         return context
+
+
+class MyPageProfileForm(forms.ModelForm):
+    """プロフィール編集フォーム（staff_type に応じてフィールドを制御）"""
+    class Meta:
+        model = Staff
+        fields = ['name', 'thumbnail', 'introduction', 'line_id', 'price']
+        widgets = {
+            'introduction': forms.Textarea(attrs={'rows': 4}),
+        }
+
+    def __init__(self, *args, **kwargs):
+        staff_type = kwargs.pop('staff_type', 'fortune_teller')
+        super().__init__(*args, **kwargs)
+        # 店舗スタッフは price と introduction を非表示（顧客向け表示なし）
+        if staff_type == 'store_staff':
+            self.fields.pop('price', None)
+            self.fields.pop('introduction', None)
+
+
+class MyPageProfile(OnlyStaffMixin, generic.UpdateView):
+    """マイページ: プロフィール編集"""
+    model = Staff
+    template_name = 'booking/my_page_profile.html'
+    form_class = MyPageProfileForm
+
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs['staff_type'] = self.object.staff_type
+        return kwargs
+
+    def get_success_url(self):
+        return reverse('booking:my_page_profile', kwargs={'pk': self.object.pk})
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['staff'] = self.object
+        context['profile_saved'] = self.request.GET.get('saved') == '1'
+        return context
+
+    def form_valid(self, form):
+        response = super().form_valid(form)
+        return redirect(f"{self.get_success_url()}?saved=1")
 
 
 class MyPageCalendar(OnlyStaffMixin, StaffCalendar):
