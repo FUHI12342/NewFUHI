@@ -5,7 +5,7 @@ from django.utils.translation import gettext_lazy as _
 from django.utils import timezone
 from django.core.exceptions import ImproperlyConfigured
 from django.contrib.auth.hashers import make_password, check_password
-from django.core.validators import RegexValidator
+from django.core.validators import RegexValidator, MinValueValidator, MaxValueValidator
 
 from rest_framework import serializers
 from django.contrib.auth.models import User
@@ -1290,9 +1290,9 @@ class ShiftRequest(models.Model):
     ]
     period = models.ForeignKey(ShiftPeriod, on_delete=models.CASCADE, related_name='requests')
     staff = models.ForeignKey(Staff, on_delete=models.CASCADE, related_name='shift_requests')
-    date = models.DateField(_('日付'))
-    start_hour = models.IntegerField(_('開始時間'))
-    end_hour = models.IntegerField(_('終了時間'))
+    date = models.DateField(_('日付'), db_index=True)
+    start_hour = models.IntegerField(_('開始時間'), validators=[MinValueValidator(0), MaxValueValidator(23)])
+    end_hour = models.IntegerField(_('終了時間'), validators=[MinValueValidator(1), MaxValueValidator(24)])
     start_time = models.TimeField(_('開始時刻'), null=True, blank=True)
     end_time = models.TimeField(_('終了時刻'), null=True, blank=True)
     preference = models.CharField(_('希望区分'), max_length=20, choices=PREF_CHOICES, default='available')
@@ -1304,6 +1304,10 @@ class ShiftRequest(models.Model):
         verbose_name = _('シフト希望')
         verbose_name_plural = _('シフト希望')
         unique_together = ('period', 'staff', 'date', 'start_hour')
+        indexes = [
+            models.Index(fields=['period', 'date'], name='idx_shiftreq_period_date'),
+            models.Index(fields=['staff', 'date'], name='idx_shiftreq_staff_date'),
+        ]
 
     def __str__(self):
         return f"{self.staff.name} {self.date} {self.start_hour}:00-{self.end_hour}:00 ({self.get_preference_display()})"
@@ -1313,9 +1317,9 @@ class ShiftAssignment(models.Model):
     """確定シフト"""
     period = models.ForeignKey(ShiftPeriod, on_delete=models.CASCADE, related_name='assignments')
     staff = models.ForeignKey(Staff, on_delete=models.CASCADE, related_name='shift_assignments')
-    date = models.DateField(_('日付'))
-    start_hour = models.IntegerField(_('開始時間'))
-    end_hour = models.IntegerField(_('終了時間'))
+    date = models.DateField(_('日付'), db_index=True)
+    start_hour = models.IntegerField(_('開始時間'), validators=[MinValueValidator(0), MaxValueValidator(23)])
+    end_hour = models.IntegerField(_('終了時間'), validators=[MinValueValidator(1), MaxValueValidator(24)])
     start_time = models.TimeField(_('開始時刻'), null=True, blank=True)
     end_time = models.TimeField(_('終了時刻'), null=True, blank=True)
     color = models.CharField(_('表示色'), max_length=7, default='#3B82F6')
@@ -1328,6 +1332,11 @@ class ShiftAssignment(models.Model):
         verbose_name = _('確定シフト')
         verbose_name_plural = _('確定シフト')
         unique_together = ('period', 'staff', 'date', 'start_hour')
+        indexes = [
+            models.Index(fields=['period', 'date'], name='idx_shiftasgn_period_date'),
+            models.Index(fields=['staff', 'date'], name='idx_shiftasgn_staff_date'),
+            models.Index(fields=['is_synced'], name='idx_shiftasgn_synced'),
+        ]
 
     def __str__(self):
         return f"{self.staff.name} {self.date} {self.start_hour}:00-{self.end_hour}:00"

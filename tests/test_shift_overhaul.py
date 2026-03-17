@@ -5,6 +5,7 @@ Phase 2: サイドバーロール別リンク
 Phase 3: 休業日API
 Phase 4: スタッフ マイシフト
 Phase 5: 自動スケジューラ 休業日スキップ
+Phase 6: セキュリティ（認証・IDOR・バリデーション）
 """
 import json
 import pytest
@@ -74,6 +75,12 @@ def open_period(db, store, manager_user):
     )
 
 
+@pytest.fixture
+def other_store(db):
+    """別店舗（IDOR テスト用）"""
+    return Store.objects.create(name="別店舗", address="大阪", business_hours="10-20", nearest_station="梅田")
+
+
 # ==============================
 # Phase 1: StoreClosedDate モデル
 # ==============================
@@ -105,13 +112,14 @@ class TestSidebarRoleLinks:
     def test_manager_sees_shift_calendar(self, mgr_client):
         resp = mgr_client.get('/admin/')
         content = resp.content.decode()
-        assert 'シフトカレンダー' in content or resp.status_code == 200
+        assert resp.status_code == 200
+        assert 'シフトカレンダー' in content
 
     def test_staff_sees_my_shift(self, staff_client):
         resp = staff_client.get('/admin/')
+        assert resp.status_code == 200
         content = resp.content.decode()
-        # スタッフはマイシフトリンクが表示される
-        assert 'マイシフト' in content or resp.status_code == 200
+        assert 'マイシフト' in content
 
     def test_sidebar_links_by_role_config(self):
         from booking.admin_site import SIDEBAR_CUSTOM_LINKS_BY_ROLE
@@ -268,10 +276,8 @@ class TestStaffMyShift:
 class TestAutoScheduleClosedDates:
     def test_skips_closed_dates(self, store, open_period, staff_only_user, store_schedule_config):
         staff = Staff.objects.get(user=staff_only_user)
-        # 4/10 を休業日に設定
         StoreClosedDate.objects.create(store=store, date=date(2026, 4, 10))
 
-        # 4/10 と 4/11 に希望を出す
         ShiftRequest.objects.create(
             period=open_period, staff=staff,
             date=date(2026, 4, 10), start_hour=10, end_hour=18,
@@ -286,7 +292,6 @@ class TestAutoScheduleClosedDates:
         from booking.services.shift_scheduler import auto_schedule
         count = auto_schedule(open_period)
 
-        # 4/10 はスキップ、4/11 のみアサイン
         assert count == 1
         assert not ShiftAssignment.objects.filter(date=date(2026, 4, 10)).exists()
         assert ShiftAssignment.objects.filter(date=date(2026, 4, 11)).exists()
@@ -301,3 +306,226 @@ class TestAutoScheduleClosedDates:
         from booking.services.shift_scheduler import auto_schedule
         count = auto_schedule(open_period)
         assert count == 1
+
+    def test_preferred_before_available(self, store, open_period, staff_only_user, store_schedule_config):
+        """preferred が available より先に処理されることを確認"""
+        staff = Staff.objects.get(user=staff_only_user)
+        # available を先に作成
+        ShiftRequest.objects.create(
+            period=open_period, staff=staff,
+            date=date(2026, 4, 10), start_hour=10, end_hour=18,
+            preference='available',
+        )
+        ShiftRequest.objects.create(
+            period=open_period, staff=staff,
+            date=date(2026, 4, 11), start_hour=10, end_hour=18,
+            preference='preferred',
+        )
+
+        from booking.services.shift_scheduler import auto_schedule
+        count = auto_schedule(open_period)
+        assert count == 2
+
+
+# ==============================
+# Phase 6: セキュリティ
+# ==============================
+
+class TestAPIAuthentication:
+    """未認証ユーザーが API にアクセスできないことを確認"""
+
+    def test_unauthenticated_closed_dates_get(self, db):
+        c = Client()
+        resp = c.get('/api/shift/closed-dates/?year=2026&month=4')
+        assert resp.status_code == 302  # リダイレクト→ログイン
+
+    def test_unauthenticated_closed_dates_post(self, db):
+        c = Client()
+        resp = c.post(
+            '/api/shift/closed-dates/',
+            data=json.dumps({'date': '2026-04-10'}),
+            content_type='application/json',
+        )
+        assert resp.status_code == 302
+
+    def test_unauthenticated_my_requests(self, db):
+        c = Client()
+        resp = c.get('/api/shift/my-requests/')
+        assert resp.status_code == 302
+
+    def test_unauthenticated_assignments(self, db):
+        c = Client()
+        resp = c.post(
+            '/api/shift/assignments/',
+            data=json.dumps({'period_id': 1, 'staff_id': 1, 'date': '2026-04-10'}),
+            content_type='application/json',
+        )
+        assert resp.status_code == 302
+
+    def test_unauthenticated_templates(self, db):
+        c = Client()
+        resp = c.get('/api/shift/templates/')
+        assert resp.status_code == 302
+
+    def test_unauthenticated_auto_schedule(self, db):
+        c = Client()
+        resp = c.post('/api/shift/auto-schedule/', content_type='application/json')
+        assert resp.status_code == 302
+
+    def test_unauthenticated_publish(self, db):
+        c = Client()
+        resp = c.post('/api/shift/publish/', content_type='application/json')
+        assert resp.status_code == 302
+
+    def test_unauthenticated_periods(self, db):
+        c = Client()
+        resp = c.post(
+            '/api/shift/periods/',
+            data=json.dumps({'year_month': '2026-04-01'}),
+            content_type='application/json',
+        )
+        assert resp.status_code == 302
+
+    def test_unauthenticated_my_shift_page(self, db):
+        c = Client()
+        resp = c.get('/admin/shift/my/')
+        assert resp.status_code == 302
+
+
+class TestIDORProtection:
+    """他店舗のリソースにアクセスできないことを確認"""
+
+    def test_assignment_put_other_store(self, mgr_client, store, other_store, open_period):
+        """他店舗のアサインメントは更新不可"""
+        other_period = ShiftPeriod.objects.create(
+            store=other_store, year_month=date(2026, 4, 1), status='open',
+        )
+        other_user = User.objects.create_user(username="other1", password="pass123", is_staff=True)
+        other_staff = Staff.objects.create(name="別店舗スタッフ", store=other_store, user=other_user)
+        assignment = ShiftAssignment.objects.create(
+            period=other_period, staff=other_staff,
+            date=date(2026, 4, 10), start_hour=10, end_hour=18,
+        )
+        resp = mgr_client.put(
+            f'/api/shift/assignments/{assignment.id}/',
+            data=json.dumps({'start_hour': 11}),
+            content_type='application/json',
+        )
+        assert resp.status_code == 403
+
+    def test_assignment_delete_other_store(self, mgr_client, store, other_store, open_period):
+        """他店舗のアサインメントは削除不可"""
+        other_period = ShiftPeriod.objects.create(
+            store=other_store, year_month=date(2026, 5, 1), status='open',
+        )
+        other_user = User.objects.create_user(username="other2", password="pass123", is_staff=True)
+        other_staff = Staff.objects.create(name="別店舗スタッフ2", store=other_store, user=other_user)
+        assignment = ShiftAssignment.objects.create(
+            period=other_period, staff=other_staff,
+            date=date(2026, 4, 10), start_hour=10, end_hour=18,
+        )
+        resp = mgr_client.delete(
+            f'/api/shift/assignments/{assignment.id}/',
+            content_type='application/json',
+        )
+        assert resp.status_code == 403
+
+    def test_template_put_other_store(self, mgr_client, store, other_store):
+        """他店舗のテンプレートは更新不可"""
+        template = ShiftTemplate.objects.create(
+            store=other_store, name="他店テンプレ",
+            start_time=time(9, 0), end_time=time(17, 0),
+        )
+        resp = mgr_client.put(
+            f'/api/shift/templates/{template.id}/',
+            data=json.dumps({'name': 'hacked'}),
+            content_type='application/json',
+        )
+        assert resp.status_code == 403
+
+    def test_period_put_other_store(self, mgr_client, store, other_store):
+        """他店舗の期間は更新不可"""
+        other_period = ShiftPeriod.objects.create(
+            store=other_store, year_month=date(2026, 5, 1), status='open',
+        )
+        resp = mgr_client.put(
+            f'/api/shift/periods/{other_period.id}/',
+            data=json.dumps({'status': 'closed'}),
+            content_type='application/json',
+        )
+        assert resp.status_code == 404  # get_object_or_404 with store filter
+
+
+class TestHourValidation:
+    """start_hour/end_hour の範囲バリデーション"""
+
+    def test_invalid_start_hour_negative(self, staff_client, open_period):
+        resp = staff_client.post(
+            '/api/shift/my-requests/',
+            data=json.dumps({
+                'period_id': open_period.id,
+                'date': '2026-04-15',
+                'start_hour': -1,
+                'end_hour': 18,
+            }),
+            content_type='application/json',
+        )
+        assert resp.status_code == 400
+
+    def test_invalid_end_hour_over_24(self, staff_client, open_period):
+        resp = staff_client.post(
+            '/api/shift/my-requests/',
+            data=json.dumps({
+                'period_id': open_period.id,
+                'date': '2026-04-15',
+                'start_hour': 10,
+                'end_hour': 25,
+            }),
+            content_type='application/json',
+        )
+        assert resp.status_code == 400
+
+    def test_start_after_end(self, staff_client, open_period):
+        resp = staff_client.post(
+            '/api/shift/my-requests/',
+            data=json.dumps({
+                'period_id': open_period.id,
+                'date': '2026-04-15',
+                'start_hour': 18,
+                'end_hour': 10,
+            }),
+            content_type='application/json',
+        )
+        assert resp.status_code == 400
+
+    def test_start_equals_end(self, staff_client, open_period):
+        resp = staff_client.post(
+            '/api/shift/my-requests/',
+            data=json.dumps({
+                'period_id': open_period.id,
+                'date': '2026-04-15',
+                'start_hour': 10,
+                'end_hour': 10,
+            }),
+            content_type='application/json',
+        )
+        assert resp.status_code == 400
+
+
+class TestGetUserStoreFallback:
+    """_get_user_store のフォールバック動作テスト"""
+
+    def test_no_staff_returns_none(self, db):
+        """Staff に紐付かないユーザーは None を返す"""
+        user = User.objects.create_user(
+            username="nostaffuser", password="pass123", is_staff=True,
+        )
+        c = Client()
+        c.login(username="nostaffuser", password="pass123")
+        # API は store=None で 403 を返すはず
+        resp = c.post(
+            '/api/shift/closed-dates/',
+            data=json.dumps({'date': '2026-04-10'}),
+            content_type='application/json',
+        )
+        assert resp.status_code == 403

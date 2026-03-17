@@ -242,6 +242,10 @@
 [data-bs-theme="dark"] input[type="text"],
 [data-bs-theme="dark"] input[type="password"],
 [data-bs-theme="dark"] input[type="number"],
+[data-bs-theme="dark"] input[type="date"],
+[data-bs-theme="dark"] input[type="month"],
+[data-bs-theme="dark"] input[type="time"],
+[data-bs-theme="dark"] input[type="datetime-local"],
 [data-bs-theme="dark"] textarea {
     background: var(--dm-bg-secondary) !important;
     color: var(--dm-text) !important;

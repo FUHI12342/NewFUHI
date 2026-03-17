@@ -2,6 +2,8 @@
 import datetime
 import logging
 
+from django.db import transaction
+from django.db.models import Case, When, IntegerField
 from django.utils import timezone
 
 from booking.models import (
@@ -47,59 +49,67 @@ def auto_schedule(period):
         StoreClosedDate.objects.filter(store=store).values_list('date', flat=True)
     )
 
-    # 既存のアサインメントをクリア（再スケジューリング対応）
-    period.assignments.all().delete()
+    with transaction.atomic():
+        # 既存のアサインメントをクリア（再スケジューリング対応）
+        period.assignments.all().delete()
 
-    # 割り当て済みスロットの追跡: (date, start_hour) → staff_id のセット
-    assigned_slots = {}
+        # 割り当て済みスロットの追跡: (date, start_hour) → staff_id のセット
+        assigned_slots = {}
 
-    requests = period.requests.exclude(
-        preference='unavailable'
-    ).order_by(
-        # preferred を先に処理
-        '-preference',  # 'preferred' > 'available' (alphabetically reversed)
-        'date',
-        'start_hour',
-    )
-
-    created_count = 0
-    for req in requests:
-        # 休業日チェック
-        if req.date in closed_dates:
-            logger.info("Skipping request %s: store closed on %s", req, req.date)
-            continue
-
-        # 営業時間外チェック
-        if req.start_hour < open_h or req.end_hour > close_h:
-            logger.info(
-                "Skipping request %s: outside business hours (%d-%d)",
-                req, open_h, close_h,
-            )
-            continue
-
-        # 重複チェック: 同一日・同一時間帯に既にアサインされていないか
-        slot_key = (req.date, req.start_hour)
-        if slot_key not in assigned_slots:
-            assigned_slots[slot_key] = set()
-
-        if req.staff_id in assigned_slots[slot_key]:
-            continue  # 既にこのスタッフはこのスロットにアサイン済み
-
-        import datetime as _dt
-        ShiftAssignment.objects.create(
-            period=period,
-            staff=req.staff,
-            date=req.date,
-            start_hour=req.start_hour,
-            end_hour=req.end_hour,
-            start_time=req.start_time or _dt.time(req.start_hour, 0),
-            end_time=req.end_time or _dt.time(req.end_hour, 0),
+        # preferred を先に処理（明示的な優先度順。アルファベット順に依存しない）
+        preference_order = Case(
+            When(preference='preferred', then=0),
+            When(preference='available', then=1),
+            default=2,
+            output_field=IntegerField(),
         )
-        assigned_slots[slot_key].add(req.staff_id)
-        created_count += 1
+        requests = period.requests.exclude(
+            preference='unavailable'
+        ).annotate(
+            pref_order=preference_order,
+        ).order_by(
+            'pref_order',
+            'date',
+            'start_hour',
+        )
 
-    period.status = 'scheduled'
-    period.save(update_fields=['status'])
+        created_count = 0
+        for req in requests:
+            # 休業日チェック
+            if req.date in closed_dates:
+                logger.info("Skipping request %s: store closed on %s", req, req.date)
+                continue
+
+            # 営業時間外チェック
+            if req.start_hour < open_h or req.end_hour > close_h:
+                logger.info(
+                    "Skipping request %s: outside business hours (%d-%d)",
+                    req, open_h, close_h,
+                )
+                continue
+
+            # 重複チェック: 同一日・同一時間帯に既にアサインされていないか
+            slot_key = (req.date, req.start_hour)
+            if slot_key not in assigned_slots:
+                assigned_slots[slot_key] = set()
+
+            if req.staff_id in assigned_slots[slot_key]:
+                continue  # 既にこのスタッフはこのスロットにアサイン済み
+
+            ShiftAssignment.objects.create(
+                period=period,
+                staff=req.staff,
+                date=req.date,
+                start_hour=req.start_hour,
+                end_hour=req.end_hour,
+                start_time=req.start_time or datetime.time(req.start_hour, 0),
+                end_time=req.end_time or datetime.time(req.end_hour, 0),
+            )
+            assigned_slots[slot_key].add(req.staff_id)
+            created_count += 1
+
+        period.status = 'scheduled'
+        period.save(update_fields=['status'])
 
     logger.info("auto_schedule: period=%s, created %d assignments", period, created_count)
     return created_count

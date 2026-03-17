@@ -563,11 +563,29 @@ everything-claude-code 導入後、Django バックエンド (55モデル, 53 AP
 - **マイグレーション**: `0074_storecloseddate`
 - **テスト**: 21件追加 (`test_shift_overhaul.py`) — 合計 1088 passed + 7 skipped
 
+### Task #47: シフトAPI セキュリティ・品質改修
+- **実装内容**:
+  - **C1: API認証** — 全14 `/api/shift/` エンドポイントに `@method_decorator(staff_member_required)` 追加
+  - **C2: _get_user_store** — Staff未紐付ユーザーのフォールバックを `Store.objects.first()` → `None` に変更
+  - **C3: preference sort** — `auto_schedule()` の並び順を `-preference`（アルファベット依存）→ `Case/When` 明示的優先度に修正
+  - **H1: IDOR防止** — PUT/DELETE に `_verify_store_ownership()` ヘルパーで店舗スコープチェック追加
+  - **H2: ファイル分割** — `views_shift_manager.py`(844行) → 3ファイル分割:
+    - `views_shift_manager.py` (167行) — 店長ページView + ヘルパー
+    - `views_shift_api.py` (487行) — 全API View（認証・IDOR付き）
+    - `views_shift_staff.py` (152行) — スタッフView + API
+  - **H3: DBインデックス** — ShiftRequest/ShiftAssignment に `(period,date)`, `(staff,date)`, `(is_synced)` インデックス追加
+  - **H4: バリデーション** — `start_hour`/`end_hour` に `MinValueValidator`/`MaxValueValidator` + API側レンジチェック
+  - **H5: DRY** — テンプレート適用ロジックを `_apply_template_to_kwargs()` に抽出
+  - **MEDIUM: トランザクション** — `auto_schedule()`, `ShiftPublishAPIView`, `ShiftBulkAssignAPIView` を `transaction.atomic()` で保護
+- **ファイル**: `views_shift_manager.py`, 新規 `views_shift_api.py`, 新規 `views_shift_staff.py`, `shift_api_urls.py`, `project/urls.py`, `models.py`, `shift_scheduler.py`, `test_shift_overhaul.py`
+- **マイグレーション**: `0075_shift_indexes_validators`
+- **テスト**: 40件 (19件追加) — 合計 1107 passed + 7 skipped
+
 ---
 
 ## 自動テスト一覧
 
-**合計: 1088 passed + 7 skipped** (67テストファイル)
+**合計: 1107 passed + 7 skipped** (67テストファイル)
 
 > 7件のskipは `test_views_chat.py` のチャットAPI無効化テスト (URL未設定によりpytest.skip)
 

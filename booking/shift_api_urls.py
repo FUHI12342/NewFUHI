@@ -1,6 +1,6 @@
 """シフトAPI URLconf"""
 from django.urls import path
-from .views_shift_manager import (
+from .views_shift_api import (
     ShiftWeekGridView,
     ShiftCellDetailView,
     ShiftAssignmentAPIView,
@@ -11,8 +11,8 @@ from .views_shift_manager import (
     ShiftPublishAPIView,
     ShiftPeriodAPIView,
     StoreClosedDateAPIView,
-    StaffShiftRequestAPIView,
 )
+from .views_shift_staff import StaffShiftRequestAPIView
 
 app_name = 'shift_api'
 
