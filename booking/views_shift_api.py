@@ -21,6 +21,15 @@ from booking.views_shift_manager import _get_user_store, _render_week_grid
 logger = logging.getLogger(__name__)
 
 
+def _parse_body(request):
+    """リクエストボディを JSON or POST (form-encoded) から取得"""
+    try:
+        return json.loads(request.body)
+    except (json.JSONDecodeError, ValueError):
+        # HTMX hx-vals sends form-encoded data
+        return {k: v for k, v in request.POST.items()}
+
+
 def _require_store(request):
     """店舗取得。取得できなければ JsonResponse を返す。"""
     store = _get_user_store(request)
@@ -423,11 +432,7 @@ class ShiftAutoScheduleAPIView(View):
         if err:
             return err
 
-        try:
-            data = json.loads(request.body)
-        except json.JSONDecodeError:
-            data = {}
-
+        data = _parse_body(request)
         period_id = data.get('period_id')
 
         if period_id:
@@ -446,7 +451,11 @@ class ShiftAutoScheduleAPIView(View):
         count = auto_schedule(period)
 
         if request.headers.get('HX-Request'):
-            html = _render_week_grid(request, store, request.GET.get('week_start'))
+            # 期間の月初の週を表示（HTMXリクエスト時week_startがない場合）
+            week_start = request.GET.get('week_start') or data.get('week_start')
+            if not week_start:
+                week_start = period.year_month.isoformat()
+            html = _render_week_grid(request, store, week_start)
             return HttpResponse(html)
         return JsonResponse({'created': count, 'period_id': period.id})
 
@@ -460,10 +469,7 @@ class ShiftPublishAPIView(View):
         if err:
             return err
 
-        try:
-            data = json.loads(request.body)
-        except json.JSONDecodeError:
-            data = {}
+        data = _parse_body(request)
 
         period_id = data.get('period_id')
         note = data.get('note', '')

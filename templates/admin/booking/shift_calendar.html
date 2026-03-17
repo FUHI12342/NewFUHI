@@ -493,6 +493,8 @@
 
   {# ===== 週ナビゲーション ===== #}
   <div class="toolbar">
+    <a href="?week_start={{ prev_month }}{% if active_period %}&period_id={{ active_period.id }}{% endif %}"
+       class="btn btn-outline btn-sm" title="{% trans '前月' %}">◀◀</a>
     <a href="?week_start={{ prev_week }}{% if active_period %}&period_id={{ active_period.id }}{% endif %}"
        class="btn btn-outline btn-sm">◀ {% trans "前週" %}</a>
 
@@ -502,6 +504,8 @@
 
     <a href="?week_start={{ next_week }}{% if active_period %}&period_id={{ active_period.id }}{% endif %}"
        class="btn btn-outline btn-sm">{% trans "次週" %} ▶</a>
+    <a href="?week_start={{ next_month }}{% if active_period %}&period_id={{ active_period.id }}{% endif %}"
+       class="btn btn-outline btn-sm" title="{% trans '次月' %}">▶▶</a>
 
     {% if templates %}
     <div class="template-chips" style="margin-left:auto;">
@@ -718,40 +722,6 @@
     </div>
   </div>
 
-  {# ===== 休業日設定パネル ===== #}
-  <div class="wf-panel" style="margin-bottom:20px;">
-    <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;">
-      <h3><i class="fas fa-store-slash" style="margin-right:6px;"></i>{% trans "休業日設定" %}</h3>
-      <button class="btn btn-outline btn-sm" @click="showClosedDates = !showClosedDates; if(showClosedDates) loadClosedDates()">
-        <span x-text="showClosedDates ? '{% trans '閉じる' %}' : '{% trans '開く' %}'"></span>
-      </button>
-    </div>
-    <div x-show="showClosedDates" x-cloak style="margin-top:12px;">
-      <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;">
-        <button class="btn btn-outline btn-sm" @click="prevClosedMonth()">◀</button>
-        <strong x-text="closedMonthLabel" style="min-width:100px;text-align:center;"></strong>
-        <button class="btn btn-outline btn-sm" @click="nextClosedMonth()">▶</button>
-      </div>
-      <div class="closed-cal-grid">
-        <template x-for="dow in ['{% trans '日' %}','{% trans '月' %}','{% trans '火' %}','{% trans '水' %}','{% trans '木' %}','{% trans '金' %}','{% trans '土' %}']">
-          <div class="closed-cal-header" x-text="dow"></div>
-        </template>
-        <template x-for="cell in closedCalDays">
-          <div class="closed-cal-cell"
-               :class="cell && cell.closed ? 'closed-day' : ''"
-               @click="cell && toggleClosed(cell.date)"
-               :title="cell && cell.closed ? '{% trans 'クリックで営業日に戻す' %}' : '{% trans 'クリックで休業日に設定' %}'">
-            <span x-text="cell ? cell.day : ''"></span>
-            <span x-show="cell && cell.closed" class="closed-mark">✕</span>
-          </div>
-        </template>
-      </div>
-      <p style="font-size:12px;color:#6b7280;margin-top:8px;">
-        {% trans "日付をクリックして休業日をトグルします。休業日はシフト自動配置で除外されます。" %}
-      </p>
-    </div>
-  </div>
-
   {# ===== ワークフローステッパー ===== #}
   <div class="wf-steps">
     <div class="wf-step {% if active_period and active_period.status == 'open' %}active{% elif active_period %}done{% endif %}">
@@ -824,6 +794,40 @@
     {% endif %}
   </div>
 
+  {# ===== 休業日設定パネル ===== #}
+  <div class="wf-panel" style="margin-bottom:20px;">
+    <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;">
+      <h3><i class="fas fa-store-slash" style="margin-right:6px;"></i>{% trans "休業日設定" %}</h3>
+      <button class="btn btn-outline btn-sm" @click="showClosedDates = !showClosedDates; if(showClosedDates) loadClosedDates()">
+        <span x-text="showClosedDates ? '{% trans '閉じる' %}' : '{% trans '開く' %}'"></span>
+      </button>
+    </div>
+    <div x-show="showClosedDates" x-cloak style="margin-top:12px;">
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;">
+        <button class="btn btn-outline btn-sm" @click="prevClosedMonth()">◀</button>
+        <strong x-text="closedMonthLabel" style="min-width:100px;text-align:center;"></strong>
+        <button class="btn btn-outline btn-sm" @click="nextClosedMonth()">▶</button>
+      </div>
+      <div class="closed-cal-grid">
+        <template x-for="dow in ['{% trans '日' %}','{% trans '月' %}','{% trans '火' %}','{% trans '水' %}','{% trans '木' %}','{% trans '金' %}','{% trans '土' %}']">
+          <div class="closed-cal-header" x-text="dow"></div>
+        </template>
+        <template x-for="cell in closedCalDays">
+          <div class="closed-cal-cell"
+               :class="cell && cell.closed ? 'closed-day' : ''"
+               @click="cell && toggleClosed(cell.date)"
+               :title="cell && cell.closed ? '{% trans 'クリックで営業日に戻す' %}' : '{% trans 'クリックで休業日に設定' %}'">
+            <span x-text="cell ? cell.day : ''"></span>
+            <span x-show="cell && cell.closed" class="closed-mark">✕</span>
+          </div>
+        </template>
+      </div>
+      <p style="font-size:12px;color:#6b7280;margin-top:8px;">
+        {% trans "日付をクリックして休業日をトグルします。休業日はシフト自動配置で除外されます。" %}
+      </p>
+    </div>
+  </div>
+
   {# ===== 希望提出状況パネル ===== #}
   {% if active_period %}
   <div class="wf-panel">
@@ -844,12 +848,47 @@
       </div>
     </div>
 
+    {# 提出済みスタッフ展開 #}
+    {% if submitted_staff_details %}
+    <div x-data="{ showStaffDetail: false }" style="margin-top:12px;">
+      <button class="btn btn-outline btn-sm" @click="showStaffDetail = !showStaffDetail" style="margin-bottom:8px;">
+        <span x-text="showStaffDetail ? '{% trans '提出者を閉じる' %}' : '{% trans '提出者を表示' %}'"></span>
+      </button>
+      <div x-show="showStaffDetail" x-cloak>
+        {% for detail in submitted_staff_details %}
+        <div x-data="{ expanded: false }" style="border:1px solid #e5e7eb;border-radius:6px;margin-bottom:6px;">
+          <div @click="expanded = !expanded" style="display:flex;align-items:center;gap:8px;padding:8px 12px;cursor:pointer;">
+            <span style="font-weight:600;">{{ detail.staff.name }}</span>
+            <span style="font-size:12px;color:#6b7280;">
+              {% if detail.staff.staff_type == 'fortune_teller' %}({% trans "キャスト" %}){% else %}({% trans "スタッフ" %}){% endif %}
+            </span>
+            <span style="font-size:12px;color:#3B82F6;font-weight:600;margin-left:auto;">{{ detail.count }}{% trans "件" %}</span>
+            <span x-text="expanded ? '▲' : '▼'" style="font-size:10px;color:#6b7280;"></span>
+          </div>
+          <div x-show="expanded" x-cloak style="padding:0 12px 8px;">
+            {% for req in detail.requests %}
+            <div style="display:flex;align-items:center;gap:8px;padding:4px 0;border-top:1px solid #f3f4f6;font-size:13px;">
+              <span style="font-weight:600;min-width:90px;">{{ req.date|date:"m/d (D)" }}</span>
+              <span>{{ req.start_hour }}:00 - {{ req.end_hour }}:00</span>
+              <span class="ms-pref-badge pref-{{ req.preference }}">
+                {% if req.preference == 'preferred' %}{% trans "希望" %}{% elif req.preference == 'available' %}{% trans "出勤可能" %}{% else %}{% trans "出勤不可" %}{% endif %}
+              </span>
+              {% if req.note %}<span style="color:#6b7280;">{{ req.note }}</span>{% endif %}
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+    {% endif %}
+
     {# アクションボタン #}
     <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px;">
       {% if active_period.status == 'open' %}
         <button class="btn btn-warning btn-sm"
                 hx-post="/api/shift/auto-schedule/"
-                hx-vals='{"period_id": "{{ active_period.id }}"}'
+                hx-vals='{"period_id": "{{ active_period.id }}", "week_start": "{{ week_start }}"}'
                 hx-target="#week-grid" hx-swap="innerHTML"
                 hx-confirm="{% trans '希望データを元にシフトを自動作成しますか？（既存のシフトは上書きされます）' %}">
           {% trans "自動配置を実行" %}
@@ -866,7 +905,7 @@
           <span style="font-size:14px;font-weight:600;color:#DC2626;">{% trans "本当に公開しますか？スタッフに通知されます。" %}</span>
           <button class="btn btn-success btn-sm"
                   hx-post="/api/shift/publish/"
-                  hx-vals='{"period_id": "{{ active_period.id }}"}'
+                  hx-vals='{"period_id": "{{ active_period.id }}", "week_start": "{{ week_start }}"}'
                   hx-target="#week-grid" hx-swap="innerHTML"
                   @click="confirmPublish = false">
             {% trans "はい、公開する" %}
@@ -1094,6 +1133,8 @@
 
   {# ===== 週ナビゲーション + スタッフフィルタ + テンプレート ===== #}
   <div class="toolbar">
+    <a href="?week_start={{ prev_month }}{% if active_period %}&period_id={{ active_period.id }}{% endif %}{% if staff_type_filter %}&staff_type={{ staff_type_filter }}{% endif %}"
+       class="btn btn-outline btn-sm" title="{% trans '前月' %}">◀◀</a>
     <a href="?week_start={{ prev_week }}{% if active_period %}&period_id={{ active_period.id }}{% endif %}{% if staff_type_filter %}&staff_type={{ staff_type_filter }}{% endif %}"
        class="btn btn-outline btn-sm">◀ {% trans "前週" %}</a>
 
@@ -1103,6 +1144,8 @@
 
     <a href="?week_start={{ next_week }}{% if active_period %}&period_id={{ active_period.id }}{% endif %}{% if staff_type_filter %}&staff_type={{ staff_type_filter }}{% endif %}"
        class="btn btn-outline btn-sm">{% trans "次週" %} ▶</a>
+    <a href="?week_start={{ next_month }}{% if active_period %}&period_id={{ active_period.id }}{% endif %}{% if staff_type_filter %}&staff_type={{ staff_type_filter }}{% endif %}"
+       class="btn btn-outline btn-sm" title="{% trans '次月' %}">▶▶</a>
 
     {# スタッフ種別フィルタ #}
     <div style="display:flex;gap:4px;margin-left:12px;">

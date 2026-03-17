@@ -135,14 +135,30 @@ class ManagerShiftCalendarView(AdminSidebarMixin, TemplateView):
             active_period = periods.first()
 
         request_stats = {}
+        submitted_staff_details = []
         if active_period:
-            reqs = ShiftRequest.objects.filter(period=active_period)
+            reqs = ShiftRequest.objects.filter(
+                period=active_period,
+            ).select_related('staff')
             submitted_staff = reqs.values('staff').distinct().count()
             total_requests = reqs.count()
             request_stats = {
                 'submitted_staff': submitted_staff,
                 'total_requests': total_requests,
             }
+            # 提出済みスタッフ別の希望一覧
+            if not is_staff_role:
+                from collections import defaultdict
+                by_staff = defaultdict(list)
+                for r in reqs.order_by('staff__name', 'date', 'start_hour'):
+                    by_staff[r.staff_id].append(r)
+                for staff_id, staff_reqs in by_staff.items():
+                    s = staff_reqs[0].staff
+                    submitted_staff_details.append({
+                        'staff': s,
+                        'requests': staff_reqs,
+                        'count': len(staff_reqs),
+                    })
 
         grid = {}
         for a in assignments:
@@ -171,6 +187,9 @@ class ManagerShiftCalendarView(AdminSidebarMixin, TemplateView):
             'week_start': week_dates[0].isoformat(),
             'prev_week': (week_dates[0] - timedelta(weeks=1)).isoformat(),
             'next_week': (week_dates[0] + timedelta(weeks=1)).isoformat(),
+            'prev_month': (week_dates[0] - timedelta(days=28)).isoformat(),
+            'next_month': (week_dates[0] + timedelta(days=28)).isoformat(),
+            'submitted_staff_details': submitted_staff_details,
             'staff_type_filter': staff_type_filter,
             'cast_count': Staff.objects.filter(store=store, staff_type='fortune_teller').count() if store else 0,
             'store_staff_count': Staff.objects.filter(store=store, staff_type='store_staff').count() if store else 0,
