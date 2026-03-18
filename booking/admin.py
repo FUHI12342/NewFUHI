@@ -988,8 +988,13 @@ class SiteSettingsAdmin(admin.ModelAdmin):
         (_('SNS連携'), {'fields': ('twitter_url', 'instagram_url', 'instagram_embed_html')}),
         (_('機能ON/OFF'), {'fields': ('show_ai_chat',)}),
         (_('管理サイドバー機能ON/OFF'), {
-            'fields': ('show_admin_menu_manage', 'show_admin_inventory', 'show_admin_ec_shop'),
-            'description': _('管理画面サイドバーに表示する機能を選択します。使わない機能はOFFにして非表示にできます。'),
+            'fields': (
+                'show_admin_reservation', 'show_admin_shift', 'show_admin_staff_manage',
+                'show_admin_menu_manage', 'show_admin_inventory',
+                'show_admin_order', 'show_admin_pos', 'show_admin_order_history',
+                'show_admin_ec_shop', 'show_admin_table_order', 'show_admin_iot',
+            ),
+            'description': _('管理画面サイドバーに表示する機能を選択します。業態に合わせて使わない機能はOFFにして非表示にできます。'),
         }),
         (_('法定ページ'), {
             'fields': ('privacy_policy_html', 'tokushoho_html'),

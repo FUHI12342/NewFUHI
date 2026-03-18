@@ -373,3 +373,88 @@ class TestStaffForm:
         form = StaffForm(data={'name': '', 'price': 5000})
         assert not form.is_valid()
         assert 'name' in form.errors
+
+
+# ==============================
+# Sidebar Feature Toggle tests
+# ==============================
+
+class TestSidebarFeatureToggles:
+    """SiteSettings の show_admin_* トグルが正しくサイドバーを制御するか"""
+
+    @pytest.fixture
+    def site_settings(self, db):
+        return SiteSettings.load()
+
+    @pytest.fixture
+    def admin_site(self):
+        from booking.admin_site import custom_site
+        return custom_site
+
+    @pytest.fixture
+    def manager_request(self, store_a):
+        """manager ロールのリクエスト"""
+        user = User.objects.create_user(
+            username='toggle_mgr', password='pass123',
+            email='mgr@test.com', is_staff=True,
+        )
+        Staff.objects.create(
+            user=user, store=store_a, name='Toggle Manager',
+            is_store_manager=True, staff_type='store_staff',
+        )
+        factory = RequestFactory()
+        request = factory.get('/admin/')
+        request.user = user
+        return request
+
+    def _get_slugs(self, admin_site, request):
+        """admin_site.get_app_list() から slug 一覧を取得"""
+        app_list = admin_site.get_app_list(request)
+        return [app.get('slug', '') for app in app_list]
+
+    def test_all_toggles_on_by_default(self, site_settings, admin_site, manager_request):
+        """全トグルON（デフォルト）で manager は全グループ表示"""
+        slugs = self._get_slugs(admin_site, manager_request)
+        for expected in ['reservation', 'shift', 'staff_manage', 'menu_manage',
+                         'order', 'pos', 'order_history', 'table_order']:
+            assert expected in slugs, f'{expected} should be visible when toggle is ON'
+
+    def test_toggle_off_hides_group(self, site_settings, admin_site, manager_request):
+        """トグルOFFでグループが非表示になる"""
+        toggle_slug_pairs = [
+            ('show_admin_reservation', 'reservation'),
+            ('show_admin_shift', 'shift'),
+            ('show_admin_staff_manage', 'staff_manage'),
+            ('show_admin_menu_manage', 'menu_manage'),
+            ('show_admin_order', 'order'),
+            ('show_admin_pos', 'pos'),
+            ('show_admin_order_history', 'order_history'),
+            ('show_admin_table_order', 'table_order'),
+            ('show_admin_iot', 'iot'),
+        ]
+        for field, slug in toggle_slug_pairs:
+            # Reset all toggles to True
+            for f, _ in toggle_slug_pairs:
+                setattr(site_settings, f, True)
+            # Turn off this one
+            setattr(site_settings, field, False)
+            site_settings.save()
+            # Clear menu config cache
+            from booking.admin_site import invalidate_menu_config_cache
+            invalidate_menu_config_cache()
+
+            slugs = self._get_slugs(admin_site, manager_request)
+            assert slug not in slugs, f'{slug} should be hidden when {field}=False'
+
+    def test_toggle_off_does_not_affect_other_groups(self, site_settings, admin_site, manager_request):
+        """1つのトグルOFFが他のグループに影響しない"""
+        site_settings.show_admin_pos = False
+        site_settings.save()
+        from booking.admin_site import invalidate_menu_config_cache
+        invalidate_menu_config_cache()
+
+        slugs = self._get_slugs(admin_site, manager_request)
+        assert 'pos' not in slugs
+        assert 'shift' in slugs
+        assert 'order' in slugs
+        assert 'menu_manage' in slugs

@@ -361,13 +361,21 @@ class RoleBasedAdminSite(AdminSite):
         try:
             from .models import SiteSettings
             site_cfg = SiteSettings.load()
-            show_menu_manage = site_cfg.show_admin_menu_manage
-            show_inventory = site_cfg.show_admin_inventory
-            show_ec_shop = site_cfg.show_admin_ec_shop
+            sidebar_flags = {
+                'reservation': site_cfg.show_admin_reservation,
+                'shift': site_cfg.show_admin_shift,
+                'staff_manage': site_cfg.show_admin_staff_manage,
+                'menu_manage': site_cfg.show_admin_menu_manage,
+                'inventory': site_cfg.show_admin_inventory,
+                'order': site_cfg.show_admin_order,
+                'pos': site_cfg.show_admin_pos,
+                'order_history': site_cfg.show_admin_order_history,
+                'ec_shop': site_cfg.show_admin_ec_shop,
+                'table_order': site_cfg.show_admin_table_order,
+                'iot': site_cfg.show_admin_iot,
+            }
         except Exception:
-            show_menu_manage = True
-            show_inventory = True
-            show_ec_shop = True
+            sidebar_flags = {}
 
         # ロール別グループフィルタ
         visible_groups = ROLE_VISIBLE_GROUPS.get(role)
@@ -390,11 +398,7 @@ class RoleBasedAdminSite(AdminSite):
             if slug == 'ec_shop' and not ec_enabled:
                 continue
             # SiteSettings トグルでサイドバー非表示
-            if slug == 'menu_manage' and not show_menu_manage:
-                continue
-            if slug == 'inventory' and not show_inventory:
-                continue
-            if slug == 'ec_shop' and not show_ec_shop:
+            if slug in sidebar_flags and not sidebar_flags[slug]:
                 continue
             hidden_in_group = set(g.get('hidden_models', []))
             group_models = []

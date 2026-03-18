@@ -1520,12 +1520,28 @@ class SiteSettings(models.Model):
         help_text=_('フロントページにAIアシスタントチャットを表示するかどうか'))
 
     # 管理画面サイドバー機能ON/OFF
+    show_admin_reservation = models.BooleanField(_('予約管理を表示'), default=True,
+        help_text=_('管理サイドバーに「予約管理」を表示するかどうか'))
+    show_admin_shift = models.BooleanField(_('シフト管理を表示'), default=True,
+        help_text=_('管理サイドバーに「シフト」を表示するかどうか'))
+    show_admin_staff_manage = models.BooleanField(_('従業員管理を表示'), default=True,
+        help_text=_('管理サイドバーに「従業員管理」を表示するかどうか'))
     show_admin_menu_manage = models.BooleanField(_('メニュー管理を表示'), default=True,
         help_text=_('管理サイドバーに「メニュー管理」を表示するかどうか'))
     show_admin_inventory = models.BooleanField(_('在庫管理を表示'), default=True,
         help_text=_('管理サイドバーに「在庫管理」を表示するかどうか'))
+    show_admin_order = models.BooleanField(_('注文管理を表示'), default=True,
+        help_text=_('管理サイドバーに「注文管理」を表示するかどうか'))
+    show_admin_pos = models.BooleanField(_('レジ（POS）を表示'), default=True,
+        help_text=_('管理サイドバーに「レジ（POS）」を表示するかどうか'))
+    show_admin_order_history = models.BooleanField(_('店内オーダー履歴を表示'), default=True,
+        help_text=_('管理サイドバーに「店内オーダー履歴」を表示するかどうか'))
     show_admin_ec_shop = models.BooleanField(_('オンラインショップを表示'), default=True,
         help_text=_('管理サイドバーに「オンラインショップ」を表示するかどうか'))
+    show_admin_table_order = models.BooleanField(_('店舗管理を表示'), default=True,
+        help_text=_('管理サイドバーに「店舗管理」を表示するかどうか'))
+    show_admin_iot = models.BooleanField(_('IoT管理を表示'), default=True,
+        help_text=_('管理サイドバーに「IoT管理」を表示するかどうか'))
 
     # 法定ページ（HTML編集可能）
     privacy_policy_html = models.TextField(_('プライバシーポリシー'), blank=True, default='',
