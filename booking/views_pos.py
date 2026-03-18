@@ -319,12 +319,12 @@ class KitchenDisplayView(AdminSidebarMixin, TemplateView):
             channel__in=in_store_channels,
         ).select_related('table_seat').prefetch_related('items__product').order_by('created_at') if store else []
 
-        # 本日の完了済み注文（新しい順・店内のみ）
+        # 本日の完了済み注文（古い順＝完了順・店内のみ）
         closed_orders = Order.objects.filter(
             store=store, status=Order.STATUS_CLOSED,
             channel__in=in_store_channels,
             updated_at__date=today,
-        ).select_related('table_seat').prefetch_related('items__product').order_by('-updated_at')[:30] if store else []
+        ).select_related('table_seat').prefetch_related('items__product').order_by('updated_at')[:30] if store else []
 
         ctx.update({
             'title': _('キッチンディスプレイ'),
@@ -354,7 +354,7 @@ class KitchenOrdersHTMLView(View):
             store=store, status=Order.STATUS_CLOSED,
             channel__in=in_store_channels,
             updated_at__date=today,
-        ).select_related('table_seat').prefetch_related('items__product').order_by('-updated_at')[:30] if store else []
+        ).select_related('table_seat').prefetch_related('items__product').order_by('updated_at')[:30] if store else []
 
         html = render_to_string(
             'admin/booking/_kitchen_orders_fragment.html',
@@ -415,6 +415,8 @@ class KitchenOrderUncompleteAPI(LoginRequiredMixin, View):
             )
         order.status = Order.STATUS_OPEN
         order.save(update_fields=['status'])
+        # 全アイテムをSERVED（提供完了押下前の状態）に戻す
+        order.items.update(status=OrderItem.STATUS_SERVED)
         return JsonResponse({
             'id': order.id,
             'status': order.status,
