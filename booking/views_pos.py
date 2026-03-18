@@ -312,13 +312,17 @@ class KitchenDisplayView(AdminSidebarMixin, TemplateView):
         store = _get_user_store(self.request)
         today = timezone.now().date()
 
+        # 店内注文のみ（EC注文を除外）
+        in_store_channels = ['pos', 'table', 'reservation']
         open_orders = Order.objects.filter(
             store=store, status=Order.STATUS_OPEN,
+            channel__in=in_store_channels,
         ).select_related('table_seat').prefetch_related('items__product').order_by('created_at') if store else []
 
-        # 本日の完了済み注文（新しい順）
+        # 本日の完了済み注文（新しい順・店内のみ）
         closed_orders = Order.objects.filter(
             store=store, status=Order.STATUS_CLOSED,
+            channel__in=in_store_channels,
             updated_at__date=today,
         ).select_related('table_seat').prefetch_related('items__product').order_by('-updated_at')[:30] if store else []
 
@@ -339,12 +343,16 @@ class KitchenOrdersHTMLView(View):
         store = _get_user_store(request)
         today = timezone.now().date()
 
+        # 店内注文のみ（EC注文を除外）
+        in_store_channels = ['pos', 'table', 'reservation']
         open_orders = Order.objects.filter(
             store=store, status=Order.STATUS_OPEN,
+            channel__in=in_store_channels,
         ).select_related('table_seat').prefetch_related('items__product').order_by('created_at') if store else []
 
         closed_orders = Order.objects.filter(
             store=store, status=Order.STATUS_CLOSED,
+            channel__in=in_store_channels,
             updated_at__date=today,
         ).select_related('table_seat').prefetch_related('items__product').order_by('-updated_at')[:30] if store else []
 

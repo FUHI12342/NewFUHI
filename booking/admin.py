@@ -658,7 +658,7 @@ class OrderAdmin(admin.ModelAdmin):
             'fields': ('created_at', 'updated_at'),
         }),
     )
-    actions = ['mark_shipped']
+    actions = ['mark_shipped', 'delete_selected_orders']
 
     @admin.action(description='発送済みにする')
     def mark_shipped(self, request, queryset):
@@ -667,6 +667,12 @@ class OrderAdmin(admin.ModelAdmin):
             shipping_status='shipped', shipped_at=timezone.now(),
         )
         self.message_user(request, f'{count} 件の注文を発送済みにしました。')
+
+    @admin.action(description='選択した注文を削除')
+    def delete_selected_orders(self, request, queryset):
+        count = queryset.count()
+        queryset.delete()
+        self.message_user(request, f'{count} 件の注文を削除しました。')
 
     def get_queryset(self, request):
         qs = super().get_queryset(request)
