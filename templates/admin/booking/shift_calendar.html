@@ -889,7 +889,7 @@
         <button class="btn btn-warning btn-sm"
                 hx-post="/api/shift/auto-schedule/"
                 hx-vals='{"period_id": "{{ active_period.id }}", "week_start": "{{ week_start }}"}'
-                hx-target="#week-grid" hx-swap="innerHTML"
+                hx-target="body" hx-swap="none"
                 hx-confirm="{% trans '希望データを元にシフトを自動作成しますか？（既存のシフトは上書きされます）' %}">
           {% trans "自動配置を実行" %}
         </button>
@@ -912,7 +912,7 @@
           <button class="btn btn-success btn-sm"
                   hx-post="/api/shift/publish/"
                   hx-vals='{"period_id": "{{ active_period.id }}", "week_start": "{{ week_start }}"}'
-                  hx-target="#week-grid" hx-swap="innerHTML"
+                  hx-target="body" hx-swap="none"
                   @click="confirmPublish = false">
             {% trans "はい、公開する" %}
           </button>
