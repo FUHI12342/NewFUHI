@@ -898,19 +898,17 @@ class Command(BaseCommand):
                     )
                 order_count += 1
 
-        # 今日の完了注文（キッチンディスプレイ右パネル用）
-        # 最初の2件はunpaid（取消可能）、3件目のみpaid
-        for i in range(3):
+        # 今日の完了注文（キッチンディスプレイ右パネル用）全件unpaid＝取消可能
+        for i in range(4):
             table = tables[i % len(tables)] if tables else None
             hour = random.randint(12, 17)
             closed_time = now.replace(hour=hour, minute=random.randint(0, 59), second=0)
-            is_paid = (i == 2)
             order = Order.objects.create(
                 store=self.store,
                 table_seat=table,
                 table_label=table.label if table else f'席{i+1}',
                 status='CLOSED',
-                payment_status='paid' if is_paid else 'pending',
+                payment_status='pending',
                 channel='table',
             )
             Order.objects.filter(pk=order.pk).update(
@@ -928,17 +926,6 @@ class Command(BaseCommand):
                 total += prod.price * qty
             tax = int(total * 0.1)
             Order.objects.filter(pk=order.pk).update(tax_amount=tax)
-            if payment_methods and is_paid:
-                receipt_counter += 1
-                POSTransaction.objects.create(
-                    order=order,
-                    payment_method=random.choice(payment_methods),
-                    total_amount=total + tax,
-                    tax_amount=tax,
-                    receipt_number=f'R{receipt_counter:06d}',
-                    staff=random.choice(staff_list) if staff_list else None,
-                    completed_at=closed_time,
-                )
             order_count += 1
 
         # 今日のオープン注文（POS・キッチンディスプレイ用）8件
