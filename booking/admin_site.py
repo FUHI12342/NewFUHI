@@ -39,7 +39,7 @@ GROUPS = [
     {'slug': 'order', 'name': _('注文管理'), 'models': ['order']},
     {'slug': 'pos', 'name': _('レジ（POS）'), 'models': ['postransaction', 'taxservicecharge']},
     {'slug': 'kitchen', 'name': _('キッチンディスプレイ'), 'models': []},
-    {'slug': 'ec_shop', 'name': _('オンラインショップ'), 'models': []},
+    {'slug': 'ec_shop', 'name': _('オンラインショップ'), 'models': ['eccategory', 'ecproduct']},
     {'slug': 'table_order', 'name': _('店舗管理'), 'models': ['store', 'tableseat']},
     {'slug': 'iot', 'name': _('IoT管理'), 'models': ['iotdevice', 'ventilationautocontrol'], 'hidden_models': ['iotdevice']},
     {'slug': 'payment', 'name': _('決済'), 'models': ['paymentmethod'], 'hidden': True},
@@ -122,7 +122,6 @@ SIDEBAR_CUSTOM_LINKS = {
     ],
     'ec_shop': [
         {'name': _('EC注文管理'), 'admin_url': '/admin/ec/orders/', 'icon': 'fas fa-shipping-fast'},
-        {'name': _('EC商品管理'), 'admin_url': '/admin/booking/product/?is_ec_visible__exact=1', 'icon': 'fas fa-boxes'},
     ],
     'inventory': [
         {'name': _('在庫ダッシュボード'), 'admin_url': '/admin/inventory/', 'icon': 'fas fa-boxes'},
@@ -190,6 +189,7 @@ DEFAULT_ALLOWED_MODELS = {
         'visitorcount', 'visitoranalyticsconfig',
         'staffrecommendationmodel', 'staffrecommendationresult',
         'staffevaluation', 'evaluationcriteria',
+        'eccategory', 'ecproduct',
     ],
     'staff': [
         'schedule', 'order', 'staff',

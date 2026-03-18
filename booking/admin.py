@@ -76,6 +76,8 @@ from .models import (
     CustomerFeedback,
     EvaluationCriteria,
     StaffEvaluation,
+    ECCategory,
+    ECProduct,
 )
 
 
@@ -568,12 +570,13 @@ class ProductTranslationInline(admin.TabularInline):
 
 
 class CategoryAdmin(admin.ModelAdmin):
-    list_display = ('store', 'name', 'sort_order', 'is_restaurant_menu')
+    """店内メニュー用カテゴリ（is_restaurant_menu=True のみ）"""
+    list_display = ('store', 'name', 'sort_order')
     search_fields = ('name', 'store__name')
-    list_editable = ('sort_order', 'is_restaurant_menu')
+    list_editable = ('sort_order',)
 
     def get_queryset(self, request):
-        qs = super().get_queryset(request)
+        qs = super().get_queryset(request).filter(is_restaurant_menu=True)
         if _is_owner_or_super(request):
             return qs
         try:
@@ -581,6 +584,10 @@ class CategoryAdmin(admin.ModelAdmin):
             return qs.filter(store=staff.store)
         except Staff.DoesNotExist:
             return qs.none()
+
+    def save_model(self, request, obj, form, change):
+        obj.is_restaurant_menu = True
+        super().save_model(request, obj, form, change)
 
     def has_change_permission(self, request, obj=None):
         if _is_owner_or_super(request):
@@ -626,6 +633,7 @@ class CategoryAdmin(admin.ModelAdmin):
 
 
 class ProductAdmin(admin.ModelAdmin):
+    """店内メニュー用商品（is_restaurant_menu カテゴリのみ）"""
     list_display = (
         'short_store',
         'sku',
@@ -635,16 +643,26 @@ class ProductAdmin(admin.ModelAdmin):
         'stock',
         'low_stock_threshold',
         'is_active',
-        'is_ec_visible',
         'is_sold_out',
         'display_image',
     )
 
     search_fields = ('sku', 'name', 'store__name')
-    list_editable = ('price', 'stock', 'low_stock_threshold', 'is_active', 'is_ec_visible')
+    list_editable = ('price', 'stock', 'low_stock_threshold', 'is_active')
     inlines = [ProductTranslationInline]
     autocomplete_fields = ('category',)
     ordering = ('store', 'category', 'name')
+
+    def get_queryset(self, request):
+        qs = super().get_queryset(request).filter(
+            category__is_restaurant_menu=True,
+        )
+        if _is_owner_or_super(request):
+            return qs
+        try:
+            return qs.filter(store=request.user.staff.store)
+        except (Staff.DoesNotExist, AttributeError):
+            return qs.none()
 
     def short_store(self, obj):
         name = obj.store.name if obj.store else ''
@@ -680,8 +698,7 @@ class ProductAdmin(admin.ModelAdmin):
         return '-'
     display_image.short_description = _('画像')
 
-    actions = ['clear_low_stock_notification', 'stock_in', 'stock_out', 'stock_adjust_zero',
-               'enable_ec_visibility', 'disable_ec_visibility']
+    actions = ['clear_low_stock_notification', 'stock_in', 'stock_out', 'stock_adjust_zero']
 
     @admin.action(description=_('閾値通知フラグを解除（last_low_stock_notified_at を空にする）'))
     def clear_low_stock_notification(self, request, queryset):
@@ -750,15 +767,179 @@ class ProductAdmin(admin.ModelAdmin):
             count += 1
         self.message_user(request, f'{count} 件の商品の在庫を0に調整しました。')
 
-    @admin.action(description=_('EC公開をONにする'))
-    def enable_ec_visibility(self, request, queryset):
-        count = queryset.update(is_ec_visible=True)
-        self.message_user(request, f'{count} 件の商品をEC公開にしました。')
 
-    @admin.action(description=_('EC公開をOFFにする'))
-    def disable_ec_visibility(self, request, queryset):
-        count = queryset.update(is_ec_visible=False)
-        self.message_user(request, f'{count} 件の商品のEC公開を解除しました。')
+
+# ==============================
+# EC商品管理（プロキシモデル用）
+# ==============================
+class ECCategoryAdmin(admin.ModelAdmin):
+    """EC商品カテゴリ（is_restaurant_menu=False のみ）"""
+    list_display = ('store', 'name', 'sort_order')
+    search_fields = ('name', 'store__name')
+    list_editable = ('sort_order',)
+
+    def get_queryset(self, request):
+        qs = super().get_queryset(request).filter(is_restaurant_menu=False)
+        if _is_owner_or_super(request):
+            return qs
+        try:
+            return qs.filter(store=request.user.staff.store)
+        except (Staff.DoesNotExist, AttributeError):
+            return qs.none()
+
+    def save_model(self, request, obj, form, change):
+        obj.is_restaurant_menu = False
+        super().save_model(request, obj, form, change)
+
+    def has_change_permission(self, request, obj=None):
+        if _is_owner_or_super(request):
+            return True
+        try:
+            staff = request.user.staff
+            return staff.is_store_manager
+        except Staff.DoesNotExist:
+            return False
+
+    def has_add_permission(self, request):
+        return self.has_change_permission(request)
+
+    def has_delete_permission(self, request, obj=None):
+        return self.has_change_permission(request)
+
+    def has_view_permission(self, request, obj=None):
+        if request.user.is_superuser:
+            return True
+        from .admin_site import get_user_role, _get_allowed_models_for_role
+        role = get_user_role(request)
+        if role == 'none':
+            return False
+        allowed = _get_allowed_models_for_role(role)
+        return allowed is None or 'eccategory' in allowed
+
+    def has_module_permission(self, request):
+        return self.has_view_permission(request)
+
+
+class ECProductAdmin(admin.ModelAdmin):
+    """EC商品（is_ec_visible=True / ECカテゴリのみ）"""
+    list_display = (
+        'short_store', 'sku', 'short_name', 'short_category',
+        'price', 'stock', 'low_stock_threshold',
+        'is_active', 'is_sold_out', 'display_image',
+    )
+    search_fields = ('sku', 'name', 'store__name')
+    list_editable = ('price', 'stock', 'low_stock_threshold', 'is_active')
+    inlines = [ProductTranslationInline]
+    ordering = ('store', 'category', 'name')
+
+    def get_queryset(self, request):
+        qs = super().get_queryset(request).filter(is_ec_visible=True)
+        if _is_owner_or_super(request):
+            return qs
+        try:
+            return qs.filter(store=request.user.staff.store)
+        except (Staff.DoesNotExist, AttributeError):
+            return qs.none()
+
+    def save_model(self, request, obj, form, change):
+        obj.is_ec_visible = True
+        super().save_model(request, obj, form, change)
+
+    def short_store(self, obj):
+        name = obj.store.name if obj.store else ''
+        if len(name) > 8:
+            return format_html('<span title="{}">{}&hellip;</span>', name, name[:8])
+        return name
+    short_store.short_description = _('店舗')
+    short_store.admin_order_field = 'store__name'
+
+    def short_name(self, obj):
+        if len(obj.name) > 12:
+            return format_html('<span title="{}">{}&hellip;</span>', obj.name, obj.name[:12])
+        return obj.name
+    short_name.short_description = _('商品名')
+    short_name.admin_order_field = 'name'
+
+    def short_category(self, obj):
+        name = obj.category.name if obj.category else '-'
+        if len(name) > 8:
+            return format_html('<span title="{}">{}&hellip;</span>', name, name[:8])
+        return name
+    short_category.short_description = _('カテゴリ')
+    short_category.admin_order_field = 'category__name'
+
+    def is_sold_out(self, obj):
+        return obj.stock <= 0
+    is_sold_out.short_description = _('売切')
+    is_sold_out.boolean = True
+
+    def display_image(self, obj):
+        if obj.image:
+            return format_html('<img src="{}" width="40" height="40" style="object-fit:cover;border-radius:4px;" />', obj.image.url)
+        return '-'
+    display_image.short_description = _('画像')
+
+    actions = ['stock_in', 'stock_out']
+
+    @admin.action(description=_('入庫（1個）'))
+    def stock_in(self, request, queryset):
+        count = 0
+        for product in queryset:
+            StockMovement.objects.create(
+                store=product.store, product=product,
+                movement_type=StockMovement.TYPE_IN, qty=1,
+                by_staff=getattr(request.user, 'staff', None),
+                note='EC admin: stock_in',
+            )
+            product.stock += 1
+            product.save()
+            count += 1
+        self.message_user(request, f'{count} 件入庫しました。')
+
+    @admin.action(description=_('出庫（1個）'))
+    def stock_out(self, request, queryset):
+        count = 0
+        for product in queryset:
+            if product.stock < 1:
+                continue
+            StockMovement.objects.create(
+                store=product.store, product=product,
+                movement_type=StockMovement.TYPE_OUT, qty=1,
+                by_staff=getattr(request.user, 'staff', None),
+                note='EC admin: stock_out',
+            )
+            product.stock -= 1
+            product.save()
+            count += 1
+        self.message_user(request, f'{count} 件出庫しました。')
+
+    def has_change_permission(self, request, obj=None):
+        if _is_owner_or_super(request):
+            return True
+        try:
+            staff = request.user.staff
+            return staff.is_store_manager
+        except Staff.DoesNotExist:
+            return False
+
+    def has_add_permission(self, request):
+        return self.has_change_permission(request)
+
+    def has_delete_permission(self, request, obj=None):
+        return self.has_change_permission(request)
+
+    def has_view_permission(self, request, obj=None):
+        if request.user.is_superuser:
+            return True
+        from .admin_site import get_user_role, _get_allowed_models_for_role
+        role = get_user_role(request)
+        if role == 'none':
+            return False
+        allowed = _get_allowed_models_for_role(role)
+        return allowed is None or 'ecproduct' in allowed
+
+    def has_module_permission(self, request):
+        return self.has_view_permission(request)
 
 
 # ==============================
@@ -943,6 +1124,8 @@ custom_site.register(IoTDevice, IoTDeviceAdmin)
 custom_site.register(VentilationAutoControl, VentilationAutoControlAdmin)
 custom_site.register(Category, CategoryAdmin)
 custom_site.register(Product, ProductAdmin)
+custom_site.register(ECCategory, ECCategoryAdmin)
+custom_site.register(ECProduct, ECProductAdmin)
 custom_site.register(Order, OrderAdmin)
 # StockMovement: 管理画面から廃止（モデルは残す）
 # custom_site.register(StockMovement, StockMovementAdmin)

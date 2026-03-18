@@ -736,6 +736,24 @@ class Product(models.Model):
         self.last_low_stock_notified_at = timezone.now()
 
 
+class ECCategory(Category):
+    """EC商品カテゴリ（プロキシ）"""
+    class Meta:
+        proxy = True
+        app_label = 'booking'
+        verbose_name = _('EC商品カテゴリ')
+        verbose_name_plural = _('EC商品カテゴリ')
+
+
+class ECProduct(Product):
+    """EC商品（プロキシ）"""
+    class Meta:
+        proxy = True
+        app_label = 'booking'
+        verbose_name = _('EC商品')
+        verbose_name_plural = _('EC商品')
+
+
 class ProductTranslation(models.Model):
     """商品データ文言の多言語テーブル"""
     LANG_CHOICES = LANG_CHOICES  # backward compat alias
