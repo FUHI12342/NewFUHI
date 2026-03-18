@@ -508,3 +508,30 @@
 [data-bs-theme="dark"] canvas {
     filter: brightness(0.95);
 }
+
+/* ---- 管理画面共通: 右カラム保存ボタンをsticky化 ---- */
+#jazzy-actions {
+    position: sticky;
+    top: 60px;
+}
+
+/* ---- 管理画面共通: fieldset見出しの統一 ---- */
+.change-form fieldset > h2,
+.change-form .module > h2 {
+    font-size: 15px;
+    font-weight: 700;
+    color: #2c5f78;
+    border-bottom: 2px solid #dee2e6;
+    padding-bottom: 8px;
+    margin-top: 8px;
+}
+
+/* ---- ダーク対応 ---- */
+[data-bs-theme="dark"] #jazzy-actions {
+    background: var(--dm-bg-card, #16213e);
+}
+[data-bs-theme="dark"] .change-form fieldset > h2,
+[data-bs-theme="dark"] .change-form .module > h2 {
+    color: #93c5fd;
+    border-bottom-color: #2d3a5c;
+}

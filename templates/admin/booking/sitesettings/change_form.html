@@ -4,71 +4,223 @@
 {% block extrahead %}
 {{ block.super }}
 <style>
-  .sticky-save-bar {
+  /* ── sticky保存バー ── */
+  .site-save-bar {
     position: sticky;
     top: 0;
-    z-index: 100;
-    background: #417690;
-    padding: 10px 20px;
+    z-index: 50;
+    background: linear-gradient(135deg, #417690 0%, #2c5f78 100%);
+    padding: 12px 20px;
     display: flex;
     align-items: center;
-    gap: 12px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
-    border-radius: 0 0 8px 8px;
+    gap: 16px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.18);
+    border-radius: 8px;
     margin-bottom: 16px;
   }
-  .sticky-save-bar .save-btn {
+  .site-save-bar .bar-title {
+    color: #fff;
+    font-size: 16px;
+    font-weight: 700;
+    flex: 1;
+    white-space: nowrap;
+  }
+  .site-save-bar .bar-save-btn {
     background: #fff;
     color: #417690;
     border: none;
-    padding: 8px 24px;
+    padding: 8px 28px;
     font-size: 14px;
-    font-weight: bold;
+    font-weight: 700;
     border-radius: 6px;
     cursor: pointer;
-    transition: background 0.2s;
+    transition: all 0.2s;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.12);
   }
-  .sticky-save-bar .save-btn:hover {
-    background: #e8f0fe;
+  .site-save-bar .bar-save-btn:hover {
+    background: #e8f4fd;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.18);
   }
-  .sticky-save-bar .page-title {
+
+  /* ── セクションナビ ── */
+  .section-nav {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    padding: 12px 16px;
+    background: #f8f9fa;
+    border: 1px solid #dee2e6;
+    border-radius: 8px;
+    margin-bottom: 16px;
+  }
+  .section-nav a {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 14px;
+    font-size: 13px;
+    font-weight: 600;
+    color: #495057;
+    text-decoration: none;
+    background: #fff;
+    border: 1px solid #dee2e6;
+    border-radius: 20px;
+    transition: all 0.15s;
+    white-space: nowrap;
+  }
+  .section-nav a:hover,
+  .section-nav a.active {
+    background: #417690;
     color: #fff;
-    font-size: 16px;
-    font-weight: bold;
-    flex: 1;
+    border-color: #417690;
+  }
+  .section-nav a .nav-icon { font-size: 12px; }
+
+  /* ── fieldset見出しの統一スタイル ── */
+  .change-form fieldset h2,
+  .module h2 {
+    font-size: 15px !important;
+    font-weight: 700 !important;
+    color: #2c5f78 !important;
+    border-bottom: 2px solid #417690 !important;
+    padding-bottom: 8px !important;
+    margin-top: 8px !important;
+  }
+
+  /* ── 関連ページカードの統一デザイン ── */
+  .sub-model-card {
+    border: 1px solid #dee2e6;
+    border-radius: 8px;
+    padding: 16px;
+    background: #fff;
+    transition: box-shadow 0.2s;
+  }
+  .sub-model-card:hover {
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  }
+  .sub-model-card .card-title {
+    font-weight: 700;
+    font-size: 15px;
+    margin-bottom: 6px;
+    color: #2c5f78;
+  }
+  .sub-model-card .card-count {
+    color: #6c757d;
+    font-size: 13px;
+    margin-bottom: 12px;
+  }
+  .sub-model-card .card-actions {
+    display: flex;
+    gap: 8px;
+  }
+  .sub-model-card .btn-manage {
+    padding: 6px 14px;
+    font-size: 13px;
+    text-decoration: none;
+    background: #417690;
+    color: #fff;
+    border-radius: 4px;
+    transition: background 0.15s;
+  }
+  .sub-model-card .btn-manage:hover { background: #2c5f78; color: #fff; }
+  .sub-model-card .btn-add {
+    padding: 6px 14px;
+    font-size: 13px;
+    text-decoration: none;
+    background: #79aec8;
+    color: #fff;
+    border-radius: 4px;
+    transition: background 0.15s;
+  }
+  .sub-model-card .btn-add:hover { background: #5a9ab5; color: #fff; }
+
+  /* Jazzmin右カラムの保存ボタンもsticky化 */
+  #jazzy-actions {
+    position: sticky;
+    top: 80px;
   }
 </style>
 {% endblock %}
 
 {% block form_top %}
-<div class="sticky-save-bar">
-  <span class="page-title">{% trans "メインページ設定" %}</span>
-  <button type="submit" class="save-btn" name="_save">
-    {% trans "保存する" %}
-  </button>
+{# ── sticky保存バー ── #}
+<div class="site-save-bar">
+  <span class="bar-title">{% trans "メインページ設定" %}</span>
+  <button type="submit" class="bar-save-btn" name="_save">{% trans "保存する" %}</button>
 </div>
+
+{# ── セクションナビ ── #}
+<nav class="section-nav" id="section-nav">
+  <a href="#基本設定-tab" class="active"><span class="nav-icon">&#9881;</span> {% trans "基本設定" %}</a>
+  <a href="#ホームページカード表示-tab"><span class="nav-icon">&#9638;</span> {% trans "カード表示" %}</a>
+  <a href="#ヒーローバナー%20/%20ランキング-tab"><span class="nav-icon">&#9733;</span> {% trans "バナー" %}</a>
+  <a href="#サイドバー表示-tab"><span class="nav-icon">&#9776;</span> {% trans "サイドバー" %}</a>
+  <a href="#SNS連携-tab"><span class="nav-icon">&#128279;</span> {% trans "SNS" %}</a>
+  <a href="#法定ページ-tab"><span class="nav-icon">&#128196;</span> {% trans "法定ページ" %}</a>
+  <a href="#related-pages"><span class="nav-icon">&#128194;</span> {% trans "関連ページ" %}</a>
+</nav>
 {% endblock %}
 
 {% block after_related_objects %}
-<div class="sub-models-section" style="margin-top: 30px;">
-  <h2 style="font-size: 18px; border-bottom: 2px solid #417690; padding-bottom: 8px; margin-bottom: 16px;">
+<div id="related-pages" class="sub-models-section" style="margin-top: 30px;">
+  <h2 style="font-size: 16px; font-weight: 700; color: #2c5f78; border-bottom: 2px solid #417690; padding-bottom: 8px; margin-bottom: 16px;">
     {% trans "関連ページ設定" %}
   </h2>
   <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px;">
     {% for tab in sub_model_tabs %}
-    <div style="border: 1px solid #ddd; border-radius: 8px; padding: 16px; background: #fafafa;">
-      <div style="font-weight: bold; font-size: 15px; margin-bottom: 8px;">{{ tab.name }}</div>
-      <div style="color: #666; font-size: 13px; margin-bottom: 12px;">{{ tab.count }} 件登録</div>
-      <div style="display: flex; gap: 8px;">
-        <a href="{{ tab.changelist_url }}" class="button" style="padding: 6px 14px; font-size: 13px; text-decoration: none; background: #417690; color: #fff; border-radius: 4px;">
-          {% trans "管理" %}
-        </a>
-        <a href="{{ tab.add_url }}" class="button" style="padding: 6px 14px; font-size: 13px; text-decoration: none; background: #79aec8; color: #fff; border-radius: 4px;">
-          {% trans "追加" %}
-        </a>
+    <div class="sub-model-card">
+      <div class="card-title">{{ tab.name }}</div>
+      <div class="card-count">{{ tab.count }} {% trans "件登録" %}</div>
+      <div class="card-actions">
+        <a href="{{ tab.changelist_url }}" class="btn-manage">{% trans "管理" %}</a>
+        <a href="{{ tab.add_url }}" class="btn-add">{% trans "追加" %}</a>
       </div>
     </div>
     {% endfor %}
   </div>
 </div>
+{% endblock %}
+
+{% block extrajs %}
+{{ block.super }}
+<script>
+(function() {
+  /* セクションナビ: クリック時にactiveクラスを切り替え */
+  var nav = document.getElementById('section-nav');
+  if (!nav) return;
+  var links = nav.querySelectorAll('a');
+  links.forEach(function(link) {
+    link.addEventListener('click', function() {
+      links.forEach(function(l) { l.classList.remove('active'); });
+      link.classList.add('active');
+    });
+  });
+
+  /* スクロール時にセクションナビのactiveを更新 */
+  var fieldsets = document.querySelectorAll('fieldset');
+  if (fieldsets.length === 0) return;
+  window.addEventListener('scroll', function() {
+    var scrollY = window.scrollY + 120;
+    var currentId = '';
+    fieldsets.forEach(function(fs) {
+      var h2 = fs.querySelector('h2');
+      if (h2 && fs.getBoundingClientRect().top + window.scrollY <= scrollY) {
+        currentId = h2.textContent.trim() + '-tab';
+      }
+    });
+    /* 関連ページセクション */
+    var related = document.getElementById('related-pages');
+    if (related && related.getBoundingClientRect().top + window.scrollY <= scrollY) {
+      currentId = 'related-pages';
+    }
+    if (currentId) {
+      links.forEach(function(l) {
+        var href = decodeURIComponent(l.getAttribute('href').replace('#', ''));
+        l.classList.toggle('active', href === currentId);
+      });
+    }
+  });
+})();
+</script>
 {% endblock %}
