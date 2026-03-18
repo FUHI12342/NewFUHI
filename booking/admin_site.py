@@ -39,7 +39,7 @@ GROUPS = [
     {'slug': 'order', 'name': _('注文管理'), 'models': ['order'], 'hidden_models': ['order']},
     {'slug': 'pos', 'name': _('レジ（POS）'), 'models': ['postransaction', 'taxservicecharge']},
     {'slug': 'kitchen', 'name': _('キッチンディスプレイ'), 'models': []},
-    {'slug': 'ec_shop', 'name': _('オンラインショップ'), 'models': ['eccategory', 'ecproduct', 'shippingconfig']},
+    {'slug': 'ec_shop', 'name': _('オンラインショップ'), 'models': ['eccategory', 'ecproduct', 'shippingconfig'], 'hidden_models': ['shippingconfig']},
     {'slug': 'table_order', 'name': _('店舗管理'), 'models': ['store', 'tableseat']},
     {'slug': 'iot', 'name': _('IoT管理'), 'models': ['iotdevice', 'ventilationautocontrol'], 'hidden_models': ['iotdevice']},
     {'slug': 'payment', 'name': _('決済'), 'models': ['paymentmethod'], 'hidden': True},
