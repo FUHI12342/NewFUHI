@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-03-09 15:41+0900\n"
+"POT-Creation-Date: 2026-03-18 19:23+0900\n"
 "PO-Revision-Date: 2026-02-21 18:29+0900\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: Portuguese <LL@li.org>\n"
@@ -17,1075 +17,1293 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
-#: booking/admin.py:103 booking/models.py:135
-#: booking/templates/booking/checkin_scan.html:33
-#: booking/templates/booking/reservation_qr.html:25
 msgid "予約番号"
 msgstr "Número da reserva"
 
-#: booking/admin.py:114 templates/admin/booking/schedule/change_list.html:8
 msgid "予約を追加"
 msgstr "Adicionar reserva"
 
-#: booking/admin.py:133
+msgid "プロフィール"
+msgstr "Perfil"
+
+msgid "通知設定"
+msgstr "Configurações de notificação"
+
+msgid "メニュー表示設定"
+msgstr "Configuração de exibição do menu"
+
+msgid "権限"
+msgstr "Permissões"
+
+msgid "勤怠"
+msgstr "Frequência"
+
+msgid "マイプロフィール"
+msgstr "Meu perfil"
+
 msgid "サムネイル"
 msgstr "Miniatura"
 
-#: booking/admin.py:290
+msgid "選択したスタッフにLINE業務連絡を送信"
+msgstr "Enviar comunicação interna pelo LINE para a equipe selecionada"
+
+msgid "メッセージを入力してください。"
+msgstr "Insira a mensagem."
+
+msgid "LINE業務連絡送信"
+msgstr "Enviar comunicação interna pelo LINE"
+
+msgid "店舗紹介"
+msgstr "Apresentação da loja"
+
+msgid "店舗写真"
+msgstr "Foto da loja"
+
+msgid "本文"
+msgstr "Corpo do texto"
+
+msgid "外部リンク"
+msgstr "Links externos"
+
+msgid "日時"
+msgstr "Data e hora"
+
 msgid "センサー要約"
 msgstr "Resumo de Sensores"
 
-#: booking/admin.py:300
+msgid "パルス数"
+msgstr "Número de pulsos"
+
 msgid "IRコードを送信"
 msgstr "Enviar código IR"
 
-#: booking/admin.py:406 booking/templates/booking/shop.html:65
-#: booking/templates/booking/table_menu.html:43
-msgid "売り切れ"
+msgid "店舗"
+msgstr "Loja"
+
+msgid "商品名"
+msgstr "Nome do produto"
+
+msgid "カテゴリ"
+msgstr "Categoria"
+
+msgid "売切"
 msgstr "Esgotado"
 
-#: booking/admin.py:413
 msgid "画像"
 msgstr "Imagem"
 
-#: booking/admin.py:418
 msgid "閾値通知フラグを解除（last_low_stock_notified_at を空にする）"
 msgstr ""
 "Limpar flag de notificação de limite (esvaziar last_low_stock_notified_at)"
 
-#: booking/admin.py:422
 msgid "入庫（1個）"
 msgstr "Entrada (1 unidade)"
 
-#: booking/admin.py:440
 msgid "出庫（1個、在庫不足時はスキップ）"
 msgstr "Saída (1 unidade, ignorar se estoque insuficiente)"
 
-#: booking/admin.py:465
 msgid "棚卸（在庫を0に調整）"
 msgstr "Inventário (ajustar estoque para 0)"
 
-#: booking/admin.py:485
-msgid "EC公開をONにする"
-msgstr "Ativar publicação EC"
+msgid "出庫（1個）"
+msgstr "Saída (1 unidade)"
 
-#: booking/admin.py:490
-msgid "EC公開をOFFにする"
-msgstr "Desativar publicação EC"
+msgid "注文種別"
+msgstr "Tipo de pedido"
 
-#: booking/admin.py:555
+msgid "店内注文"
+msgstr "Pedido na loja"
+
+msgid "EC注文"
+msgstr "Pedido EC"
+
 msgid "（上級）入出庫履歴の合計で在庫を再計算して反映"
 msgstr ""
 "(Avançado) Recalcular estoque pelo total do histórico de entradas/saídas"
 
-#: booking/admin.py:709
+msgid "配達情報"
+msgstr "Informações de entrega"
+
+msgid "個人情報"
+msgstr "Informações pessoais"
+
 msgid "希望数"
 msgstr "Quantidade solicitada"
 
-#: booking/admin.py:714
 msgid "確定数"
 msgstr "Quantidade confirmada"
 
-#: booking/admin.py:716
 msgid "自動スケジューリング実行"
 msgstr "Executar agendamento automático"
 
-#: booking/admin.py:725
 msgid "承認してScheduleに同期"
 msgstr "Aprovar e sincronizar com o Schedule"
 
-#: booking/admin.py:772
 msgid "基本設定"
 msgstr "Configurações básicas"
 
-#: booking/admin.py:773
 msgid "ホームページカード表示"
 msgstr "Exibição de cards na página inicial"
 
-#: booking/admin.py:777
 msgid "ヒーローバナー / ランキング"
 msgstr "Banner principal / Ranking"
 
-#: booking/admin.py:780
 msgid "サイドバー表示"
 msgstr "Exibição da barra lateral"
 
-#: booking/admin.py:785
 msgid "SNS連携"
 msgstr "Integração com redes sociais"
 
-#: booking/admin.py:786
-msgid "機能ON/OFF"
-msgstr "Ativar/Desativar funcionalidades"
-
-#: booking/admin.py:787
 msgid "法定ページ"
 msgstr "Páginas legais"
 
-#: booking/admin.py:789
 msgid "HTMLで記述できます。空の場合はデフォルトの内容が表示されます。"
 msgstr "Pode ser escrito em HTML. Se vazio, o conteúdo padrão será exibido."
 
-#: booking/admin.py:826
+msgid "管理サイドバー機能ON/OFF"
+msgstr "Ativar/desativar funções da barra lateral de administração"
+
+msgid ""
+"管理画面サイドバーに表示する機能を選択します。業態に合わせて使わない機能はOFF"
+"にして非表示にできます。"
+msgstr "Selecione as funções exibidas na barra lateral da administração. Desative e oculte as funções que não utiliza conforme o tipo de negócio."
+
 msgid "リンク設定"
 msgstr "Configurações de link"
 
-#: booking/admin.py:862
 msgid "ロール名"
 msgstr "Nome do papel"
 
-#: booking/admin.py:868
 msgid "許可モデル数"
 msgstr "Nº de modelos permitidos"
 
-#: booking/admin.py:949
 msgid "確定シフトから勤怠データを自動生成"
 msgstr ""
 "Gerar dados de frequência automaticamente a partir dos turnos confirmados"
 
-#: booking/admin.py:1032
 msgid "給与計算を実行"
 msgstr "Executar cálculo de folha de pagamento"
 
-#: booking/admin.py:1041
 msgid "全銀フォーマットCSVダウンロード"
 msgstr "Download CSV no formato Zengin"
 
-#: booking/admin.py:1058
 msgid "支払済みにする"
 msgstr "Marcar como pago"
 
-#: booking/admin.py:1093
 msgid "QRコード"
 msgstr "Código QR"
 
-#: booking/admin.py:1106
 msgid "QRプレビュー"
 msgstr "Pré-visualização QR"
 
-#: booking/admin.py:1119
 msgid "QRコード生成"
 msgstr "Gerar código QR"
 
-#: booking/admin.py:1130
 msgid "QRコードZIPダウンロード"
 msgstr "Download ZIP de códigos QR"
 
-#: booking/admin.py:1169
 msgid "API設定"
 msgstr "Configurações de API"
 
-#: booking/admin.py:1215
 msgid "セキュリティ監査を実行"
 msgstr "Executar auditoria de segurança"
 
-#: booking/admin.py:1250
 msgid "AWSコストチェックを実行"
 msgstr "Executar verificação de custos AWS"
 
-#: booking/admin_site.py:31
-msgid "予約管理"
-msgstr "Reservas"
+msgid "曜日"
+msgstr "Dia da semana"
 
-#: booking/admin_site.py:32
-#: booking/templates/booking/staff_shift_calendar.html:4
-#: booking/templates/booking/staff_shift_calendar.html:9
-msgid "シフト管理"
-msgstr "Gestão de Turnos"
-
-#: booking/admin_site.py:33
-msgid "キャスト管理"
-msgstr "Gestão de Cast"
-
-#: booking/admin_site.py:34
-msgid "給与管理"
-msgstr "Folha de Pagamento"
-
-#: booking/admin_site.py:35
-msgid "勤怠管理"
-msgstr "Frequência"
-
-#: booking/admin_site.py:36
-msgid "在庫管理"
-msgstr "Estoque"
-
-#: booking/admin_site.py:37
-msgid "注文管理"
-msgstr "Pedidos"
-
-#: booking/admin_site.py:38
-msgid "テーブル注文"
-msgstr "Pedidos de Mesa"
-
-#: booking/admin_site.py:39
-msgid "IoT管理"
-msgstr "Gestão IoT"
-
-#: booking/admin_site.py:40
-msgid "物件管理"
-msgstr "Imóveis"
-
-#: booking/admin_site.py:41
-msgid "分析"
-msgstr "Análise"
-
-#: booking/admin_site.py:42
-msgid "ページ設定"
-msgstr "Configurações de Página"
-
-#: booking/admin_site.py:43
-msgid "システム"
-msgstr "Sistema"
-
-#: booking/admin_site.py:44
-msgid "セキュリティ"
-msgstr "Segurança"
-
-#: booking/admin_site.py:45
-msgid "ユーザーアカウント管理"
-msgstr "Gestão de Contas"
-
-#: booking/admin_site.py:251 booking/templates/booking/base.html:294
-#: booking/templates/booking/property_list.html:68
-msgid "その他"
-msgstr "Outros"
-
-#: booking/models.py:50 booking/models.py:51
-msgid "タイマー"
-msgstr "Temporizador"
-
-#: booking/models.py:59
-msgid "店名"
-msgstr "Nome da loja"
-
-#: booking/models.py:60 booking/models.py:119
-msgid "サムネイル画像"
-msgstr "Imagem em miniatura"
-
-#: booking/models.py:61 booking/models.py:254 booking/models.py:831
-#: booking/templates/booking/shop_checkout.html:66
-msgid "住所"
-msgstr "Endereço"
-
-#: booking/models.py:62 booking/templates/booking/store_list.html:54
-msgid "営業時間"
-msgstr "Horário de funcionamento"
-
-#: booking/models.py:63
-msgid "最寄り駅"
-msgstr "Estação mais próxima"
-
-#: booking/models.py:64 booking/templates/booking/store_list.html:68
-msgid "定休日"
-msgstr "Dias de folga"
-
-#: booking/models.py:65 booking/templates/booking/base.html:78
-msgid "店舗情報"
-msgstr "Informações da loja"
-
-#: booking/models.py:66 booking/models.py:112
-#: booking/templates/booking/booking_top.html:189
-msgid "おすすめ"
-msgstr "Recomendado"
-
-#: booking/models.py:70
-msgid "既定言語"
-msgstr "Idioma padrão"
-
-#: booking/models.py:75 booking/models.py:76
-#: booking/templates/booking/base.html:100
-msgid "店舗一覧"
-msgstr "Lista de lojas"
-
-#: booking/models.py:95 booking/models.py:968
-msgid "表示名"
-msgstr "Nome de exibição"
-
-#: booking/models.py:98
-msgid "ログインユーザー"
-msgstr "Utilizador logado"
-
-#: booking/models.py:102 booking/models.py:346 booking/models.py:474
-#: booking/models.py:490 booking/models.py:590 booking/models.py:679
-#: booking/models.py:936 booking/models.py:966 booking/models.py:1066
-#: booking/models.py:1435 booking/models.py:1522 booking/models.py:1706
-#: booking/models.py:1793 booking/models.py:1815 booking/models.py:1835
-#: booking/models.py:1857 booking/templates/booking/booking.html:19
-msgid "店舗"
-msgstr "Loja"
-
-#: booking/models.py:103
-msgid "LINE ID"
-msgstr "ID do LINE"
-
-#: booking/models.py:106
-msgid "スタッフ種別"
-msgstr "Tipo de equipe"
-
-#: booking/models.py:115
-msgid "店長"
-msgstr "Gerente da loja"
-
-#: booking/models.py:116 booking/templates/booking/property_detail.html:25
-msgid "オーナー"
-msgstr "Proprietário"
-
-#: booking/models.py:117
-msgid "開発者"
-msgstr "Desenvolvedor"
-
-#: booking/models.py:120
-msgid "自己紹介文"
-msgstr "Texto de apresentação"
-
-#: booking/models.py:121 booking/models.py:155 booking/models.py:504
-#: booking/templates/booking/tokushoho.html:41
-msgid "価格"
-msgstr "Preço"
-
-#: booking/models.py:125
-msgid "キャスト"
-msgstr "Cast"
-
-#: booking/models.py:126
-msgid "キャスト一覧"
-msgstr "Lista de Cast"
-
-#: booking/models.py:141 booking/models.py:1022 booking/models.py:1045
-#: booking/templates/booking/staff_shift_submit.html:49
-msgid "開始時間"
-msgstr "Hora de início"
-
-#: booking/models.py:142 booking/models.py:1023 booking/models.py:1046
-#: booking/templates/booking/staff_shift_submit.html:58
-msgid "終了時間"
-msgstr "Hora de término"
-
-#: booking/models.py:143
-msgid "占いスタッフ"
-msgstr "Adivinho/a"
-
-#: booking/models.py:149
-msgid "LINEユーザーIDハッシュ"
-msgstr "Hash do ID de utilizador LINE"
-
-#: booking/models.py:150
-msgid "LINEユーザーID(暗号化)"
-msgstr "ID de utilizador LINE (encriptado)"
-
-#: booking/models.py:152
-msgid "仮予約フラグ"
-msgstr "Flag de reserva provisória"
-
-#: booking/models.py:153
-msgid "キャンセルフラグ"
-msgstr "Flag de cancelamento"
-
-#: booking/models.py:156 booking/models.py:649 booking/models.py:1027
-#: booking/models.py:1050 booking/models.py:1090
-#: booking/templates/booking/staff_shift_submit.html:64
-#: booking/templates/booking/staff_shift_submit.html:84
-msgid "備考"
-msgstr "Observações"
-
-#: booking/models.py:161
-msgid "予約経路"
-msgstr "Canal de reserva"
-
-#: booking/models.py:165
-msgid "顧客メール"
-msgstr "E-mail do cliente"
-
-#: booking/models.py:166
-msgid "OTPハッシュ"
-msgstr "Hash OTP"
-
-#: booking/models.py:167
-msgid "OTP有効期限"
-msgstr "Validade do OTP"
-
-#: booking/models.py:168
-msgid "メール認証済み"
-msgstr "E-mail verificado"
-
-#: booking/models.py:169
-msgid "決済URL"
-msgstr "URL de pagamento"
-
-#: booking/models.py:172
-msgid "チェックインQR"
-msgstr "QR de check-in"
-
-#: booking/models.py:173 booking/templates/booking/reservation_qr.html:48
-msgid "チェックイン済み"
-msgstr "Check-in realizado"
-
-#: booking/models.py:174
-msgid "チェックイン日時"
-msgstr "Data e hora do check-in"
-
-#: booking/models.py:178 booking/models.py:179
-msgid "予約確定済みのスケジュール"
-msgstr "Agenda com reservas confirmadas"
-
-#: booking/models.py:253
-msgid "会社名"
-msgstr "Nome da empresa"
-
-#: booking/models.py:255 booking/templates/booking/shop_checkout.html:61
-#: booking/templates/booking/tokushoho.html:33
-msgid "電話番号"
-msgstr "Número de telefone"
-
-#: booking/models.py:259 booking/models.py:260
-msgid "運営会社情報"
-msgstr "Informações da empresa operadora"
-
-#: booking/models.py:274 booking/models.py:275
-#: booking/templates/booking/base.html:150
-msgid "お知らせ"
-msgstr "Notícias"
-
-#: booking/models.py:286
-msgid "サムネイルURL"
-msgstr "URL da miniatura"
-
-#: booking/models.py:330 booking/models.py:331
-#: booking/templates/booking/base.html:224
-msgid "メディア掲載情報"
-msgstr "Cobertura na mídia"
-
-#: booking/models.py:345
-msgid "デバイス名"
-msgstr "Nome do dispositivo"
-
-#: booking/models.py:347 booking/models.py:682 booking/models.py:832
-#: booking/models.py:892 booking/templates/booking/property_detail.html:126
-#: booking/templates/booking/property_detail.html:198
 msgid "種別"
 msgstr "Tipo"
 
-#: booking/models.py:349
+msgid "全曜日×全種別のデフォルト設定を一括作成"
+msgstr "Criar configurações padrão para todos os dias da semana e todos os tipos de uma só vez"
+
+msgid "レシート"
+msgstr "Recibo"
+
+msgid "自動評価（勤怠データより）"
+msgstr "Avaliação automática (dados de frequência)"
+
+msgid "手動評価"
+msgstr "Avaliação manual"
+
+msgid "総合"
+msgstr "Geral"
+
+msgid "スタッフコメント"
+msgstr "Comentário da equipe"
+
+msgid "公開設定"
+msgstr "Configurações de publicação"
+
+msgid "自動評価を実行"
+msgstr "Executar avaliação automática"
+
+msgid "選択した評価を公開"
+msgstr "Publicar avaliações selecionadas"
+
+msgid "タイムカード打刻"
+msgstr "Registro de ponto"
+
+msgid "予約管理"
+msgstr "Reservas"
+
+msgid "シフト"
+msgstr "Turno"
+
+msgid "従業員管理"
+msgstr "Gestão de funcionários"
+
+msgid "給与管理"
+msgstr "Folha de Pagamento"
+
+msgid "勤怠管理"
+msgstr "Frequência"
+
+msgid "店内メニュー"
+msgstr "Menu da loja"
+
+msgid "在庫管理"
+msgstr "Estoque"
+
+msgid "注文履歴管理"
+msgstr "Gestão do histórico de pedidos"
+
+msgid "レジ（POS）"
+msgstr "Caixa (POS)"
+
+msgid "キッチンディスプレイ"
+msgstr "Display de cozinha"
+
+msgid "オンラインショップ"
+msgstr "Loja online"
+
+msgid "店舗管理"
+msgstr "Gestão de loja"
+
+msgid "IoT管理"
+msgstr "Gestão IoT"
+
+msgid "決済"
+msgstr "Pagamento"
+
+msgid "物件管理"
+msgstr "Imóveis"
+
+msgid "分析"
+msgstr "Análise"
+
+msgid "メインページ設定"
+msgstr "Configurações da página principal"
+
+msgid "ページ設定(サブ)"
+msgstr "Configurações de página (sub)"
+
+msgid "システム"
+msgstr "Sistema"
+
+msgid "セキュリティ"
+msgstr "Segurança"
+
+msgid "ユーザーアカウント管理"
+msgstr "Gestão de Contas"
+
+msgid "出退勤ボード"
+msgstr "Painel de frequência"
+
+msgid "売上ダッシュボード"
+msgstr "Painel de vendas"
+
+msgid "顧客分析"
+msgstr "Análise de clientes"
+
+msgid "AI推薦"
+msgstr "Recomendação IA"
+
+msgid "シフトカレンダー"
+msgstr "Calendário de turnos"
+
+msgid "本日のシフト"
+msgstr "Turnos de hoje"
+
+msgid "必要人数設定（曜日別）"
+msgstr "Configuração de pessoal necessário (por dia da semana)"
+
+msgid "必要人数設定（日付指定）"
+msgstr "Configuração de pessoal necessário (por data)"
+
+msgid "従業員一覧"
+msgstr "Lista de funcionários"
+
+msgid "キャスト一覧"
+msgstr "Lista de Cast"
+
+msgid "スタッフ一覧"
+msgstr "Lista de equipe"
+
+msgid "勤怠実績"
+msgstr "Histórico de frequência"
+
+msgid "店内注文履歴一覧"
+msgstr "Lista de histórico de pedidos na loja"
+
+msgid "EC注文履歴一覧"
+msgstr "Lista de histórico de pedidos EC"
+
+msgid "レジ画面"
+msgstr "Tela do caixa"
+
+msgid "メニュープレビュー"
+msgstr "Pré-visualização do menu"
+
+msgid "EC注文管理"
+msgstr "Gestão de pedidos EC"
+
+msgid "送料設定"
+msgstr "Configuração de frete"
+
+msgid "在庫ダッシュボード"
+msgstr "Painel de estoque"
+
+msgid "センサーグラフ"
+msgstr "Gráfico de sensores"
+
+msgid "デバッグパネル"
+msgstr "Painel de depuração"
+
+msgid "マイページ"
+msgstr "Minha página"
+
+msgid "その他"
+msgstr "Outros"
+
+msgid "タイマー"
+msgstr "Temporizador"
+
+msgid "店名"
+msgstr "Nome da loja"
+
+msgid "サムネイル画像"
+msgstr "Imagem em miniatura"
+
+msgid "住所"
+msgstr "Endereço"
+
+msgid "営業時間"
+msgstr "Horário de funcionamento"
+
+msgid "最寄り駅"
+msgstr "Estação mais próxima"
+
+msgid "定休日"
+msgstr "Dias de folga"
+
+msgid "店舗情報"
+msgstr "Informações da loja"
+
+msgid "おすすめ"
+msgstr "Recomendado"
+
+msgid "地図URL"
+msgstr "URL do mapa"
+
+msgid "Google Maps埋め込みコード"
+msgstr "Código de incorporação do Google Maps"
+
+msgid ""
+"Google Mapsの「共有→地図を埋め込む」からiframeコードを貼り付けてください"
+msgstr "Cole o código iframe de \"Compartilhar -> Incorporar um mapa\" do Google Maps"
+
+msgid "アクセス情報"
+msgstr "Informações de acesso"
+
+msgid "店舗写真2"
+msgstr "Foto da loja 2"
+
+msgid "店舗写真3"
+msgstr "Foto da loja 3"
+
+msgid "既定言語"
+msgstr "Idioma padrão"
+
+msgid "店舗一覧"
+msgstr "Lista de lojas"
+
+msgid "表示名"
+msgstr "Nome de exibição"
+
+msgid "ログインユーザー"
+msgstr "Utilizador logado"
+
+msgid "LINE ID"
+msgstr "ID do LINE"
+
+msgid "スタッフ種別"
+msgstr "Tipo de equipe"
+
+msgid "店長"
+msgstr "Gerente da loja"
+
+msgid "オーナー"
+msgstr "Proprietário"
+
+msgid "開発者"
+msgstr "Desenvolvedor"
+
+msgid "自己紹介文"
+msgstr "Texto de apresentação"
+
+msgid "価格"
+msgstr "Preço"
+
+msgid "1枠の時間(分)"
+msgstr "Duração por intervalo (min)"
+
+msgid "未設定の場合は店舗設定を使用"
+msgstr "Se não definido, usa a configuração da loja"
+
+msgid "予約通知"
+msgstr "Notificação de reserva"
+
+msgid "予約が入った時にLINEで通知を受け取る"
+msgstr "Receber notificação pelo LINE quando houver uma reserva"
+
+msgid "シフト通知"
+msgstr "Notificação de turno"
+
+msgid "シフト公開・変更時にLINEで通知を受け取る"
+msgstr "Receber notificação pelo LINE quando turnos forem publicados ou alterados"
+
+msgid "業務連絡通知"
+msgstr "Notificação de comunicação interna"
+
+msgid "管理者からの業務連絡をLINEで受け取る"
+msgstr "Receber comunicações internas do administrador pelo LINE"
+
+msgid "在庫管理を表示"
+msgstr "Exibir gestão de estoque"
+
+msgid "ONにすると在庫管理メニューがサイドバーに表示されます"
+msgstr "Quando ativado, o menu de gestão de estoque é exibido na barra lateral"
+
+msgid "注文管理を表示"
+msgstr "Exibir gestão de pedidos"
+
+msgid "ONにすると注文管理メニューがサイドバーに表示されます"
+msgstr "Quando ativado, o menu de gestão de pedidos é exibido na barra lateral"
+
+msgid "勤怠PIN"
+msgstr "PIN de frequência"
+
+msgid "4桁の打刻用PINコード（ハッシュ化して保存）"
+msgstr "Código PIN de 4 dígitos para registro de ponto (armazenado como hash)"
+
+msgid "従業員"
+msgstr "Funcionário"
+
+msgid "開始時間"
+msgstr "Hora de início"
+
+msgid "終了時間"
+msgstr "Hora de término"
+
+msgid "キャスト"
+msgstr "Cast"
+
+msgid "予約者名"
+msgstr "Nome do reservante"
+
+msgid "LINEユーザーIDハッシュ"
+msgstr "Hash do ID de utilizador LINE"
+
+msgid "LINEユーザーID(暗号化)"
+msgstr "ID de utilizador LINE (encriptado)"
+
+msgid "仮予約フラグ"
+msgstr "Flag de reserva provisória"
+
+msgid "キャンセルフラグ"
+msgstr "Flag de cancelamento"
+
+msgid "備考"
+msgstr "Observações"
+
+msgid "予約経路"
+msgstr "Canal de reserva"
+
+msgid "顧客メール"
+msgstr "E-mail do cliente"
+
+msgid "OTPハッシュ"
+msgstr "Hash OTP"
+
+msgid "OTP有効期限"
+msgstr "Validade do OTP"
+
+msgid "メール認証済み"
+msgstr "E-mail verificado"
+
+msgid "決済URL"
+msgstr "URL de pagamento"
+
+msgid "チェックインQR"
+msgstr "QR de check-in"
+
+msgid "チェックイン済み"
+msgstr "Check-in realizado"
+
+msgid "チェックイン日時"
+msgstr "Data e hora do check-in"
+
+msgid "予約確定済みのスケジュール"
+msgstr "Agenda com reservas confirmadas"
+
+msgid "確定予約一覧"
+msgstr "Lista de reservas confirmadas"
+
+msgid "会社名"
+msgstr "Nome da empresa"
+
+msgid "電話番号"
+msgstr "Número de telefone"
+
+msgid "運営会社情報"
+msgstr "Informações da empresa operadora"
+
+msgid "URLスラッグ（空欄なら自動生成）"
+msgstr "Slug da URL (gerado automaticamente se vazio)"
+
+msgid "HTML形式で記述できます"
+msgstr "Pode ser escrito em formato HTML"
+
+msgid "公開"
+msgstr "Publicado"
+
+msgid "お知らせ"
+msgstr "Notícias"
+
+msgid "サムネイルURL"
+msgstr "URL da miniatura"
+
+msgid "メディア掲載情報"
+msgstr "Cobertura na mídia"
+
+msgid "デバイス名"
+msgstr "Nome do dispositivo"
+
 msgid "デバイスID（AWS側）"
 msgstr "ID do dispositivo (lado AWS)"
 
-#: booking/models.py:350
 msgid "APIキーハッシュ"
 msgstr "Hash da chave API"
 
-#: booking/models.py:351
 msgid "SHA-256ハッシュ。認証時の照合用"
 msgstr "Hash SHA-256. Para verificação na autenticação"
 
-#: booking/models.py:352
 msgid "APIキープレフィックス"
 msgstr "Prefixo da chave API"
 
-#: booking/models.py:353
 msgid "管理画面表示用（先頭8文字）"
 msgstr "Para exibição na administração (primeiros 8 caracteres)"
 
-#: booking/models.py:355
 msgid "MQ-9閾値"
 msgstr "Limite MQ-9"
 
-#: booking/models.py:356
 msgid "ガス検知アラート有効"
 msgstr "Alerta de detecção de gás ativado"
 
-#: booking/models.py:357
 msgid "アラート送信メール"
 msgstr "E-mail de envio de alertas"
 
-#: booking/models.py:359
 msgid "アラートLINE通知先ID"
 msgstr "ID do destinatário LINE para alertas"
 
-#: booking/models.py:360
 msgid "閾値超過時にLINE通知を送信するユーザーID"
 msgstr ""
 "ID do utilizador para enviar notificação LINE quando o limite for excedido"
 
-#: booking/models.py:363
 msgid "Wi-Fi SSID"
 msgstr "SSID Wi-Fi"
 
-#: booking/models.py:364
 msgid "Wi-Fi パスワード（暗号化）"
 msgstr "Senha Wi-Fi (encriptada)"
 
-#: booking/models.py:365
 msgid "保留中IRコマンド"
 msgstr "Comando IR pendente"
 
-#: booking/models.py:366
 msgid "デバイスが次回config取得時に実行するIRコマンド（JSON）"
 msgstr ""
 "Comando IR (JSON) a ser executado pelo dispositivo na próxima obtenção de "
 "config"
 
-#: booking/models.py:411 booking/models.py:839 booking/models.py:938
-#: booking/models.py:969 booking/models.py:1071 booking/models.py:1368
-#: booking/models.py:1713 booking/models.py:1740 booking/models.py:1843
 msgid "有効"
 msgstr "Ativo"
 
-#: booking/models.py:412
 msgid "最終通信日時"
 msgstr "Última comunicação"
 
-#: booking/models.py:416 booking/models.py:417
-msgid "IoTデバイス"
-msgstr "Dispositivo IoT"
+msgid "店舗センサー"
+msgstr "Sensores da loja"
 
-#: booking/models.py:425 booking/models.py:451 booking/models.py:857
-#: booking/models.py:889 booking/templates/booking/property_list.html:32
 msgid "デバイス"
 msgstr "Dispositivo"
 
-#: booking/models.py:426
 msgid "受信日時"
 msgstr "Data e hora de recebimento"
 
-#: booking/models.py:427 booking/models.py:1612
 msgid "イベント種別"
 msgstr "Tipo de evento"
 
-#: booking/models.py:428
 msgid "ペイロード(JSON)"
 msgstr "Payload (JSON)"
 
-#: booking/models.py:429
 msgid "MQ-9値"
 msgstr "Valor MQ-9"
 
-#: booking/models.py:430
 msgid "照度値"
 msgstr "Valor de iluminação"
 
-#: booking/models.py:431
 msgid "音値"
 msgstr "Valor de som"
 
-#: booking/models.py:432
 msgid "PIR検知"
 msgstr "Detecção PIR"
 
-#: booking/models.py:436 booking/models.py:437
 msgid "IoTイベントログ"
 msgstr "Log de eventos IoT"
 
-#: booking/models.py:452
+msgid "対象デバイス"
+msgstr "Dispositivo alvo"
+
+msgid "ルール名"
+msgstr "Nome da regra"
+
+msgid "ON閾値（MQ-9 ADC値）"
+msgstr "Limite para ON (valor ADC MQ-9)"
+
+msgid "この値を連続で超えたら換気扇ON"
+msgstr "Ligar o exaustor quando este valor for excedido consecutivamente"
+
+msgid "OFF閾値（MQ-9 ADC値）"
+msgstr "Limite para OFF (valor ADC MQ-9)"
+
+msgid "この値以下になったら換気扇OFF"
+msgstr "Desligar o exaustor quando o valor ficar abaixo deste limite"
+
+msgid "連続超過回数"
+msgstr "Nº de excedências consecutivas"
+
+msgid "ON閾値をこの回数連続で超えたらON実行（20秒間隔×3=約1分）"
+msgstr "Executar ON quando o limite for excedido consecutivamente este número de vezes (intervalo de 20s x 3 = aprox. 1 min)"
+
+msgid "SwitchBotトークン（暗号化）"
+msgstr "Token SwitchBot (encriptado)"
+
+msgid "SwitchBotシークレット（暗号化）"
+msgstr "Segredo SwitchBot (encriptado)"
+
+msgid "SwitchBotデバイスID"
+msgstr "ID do dispositivo SwitchBot"
+
+msgid "スマートプラグのデバイスID"
+msgstr "ID do dispositivo do smart plug"
+
+msgid "現在の状態"
+msgstr "Estado atual"
+
+msgid "最後にONした日時"
+msgstr "Data e hora do último ON"
+
+msgid "最後にOFFした日時"
+msgstr "Data e hora do último OFF"
+
+msgid "クールダウン（秒）"
+msgstr "Cooldown (segundos)"
+
+msgid "ON/OFF切替後、次の切替までの最小待機時間"
+msgstr "Tempo mínimo de espera entre alternâncias ON/OFF"
+
+msgid "換気扇自動制御"
+msgstr "Controle automático do exaustor"
+
 msgid "名前"
 msgstr "Nome"
 
-#: booking/models.py:453
 msgid "プロトコル"
 msgstr "Protocolo"
 
-#: booking/models.py:454
 msgid "コード"
 msgstr "Código"
 
-#: booking/models.py:455
 msgid "アドレス"
 msgstr "Endereço"
 
-#: booking/models.py:456
 msgid "コマンド"
 msgstr "Comando"
 
-#: booking/models.py:457
 msgid "RAWデータ"
 msgstr "Dados RAW"
 
-#: booking/models.py:462 booking/models.py:463
 msgid "IRコード"
 msgstr "Código IR"
 
-#: booking/models.py:475
 msgid "カテゴリ名"
 msgstr "Nome da categoria"
 
-#: booking/models.py:476 booking/models.py:974 booking/models.py:1072
-#: booking/models.py:1200 booking/models.py:1254 booking/models.py:1293
-#: booking/models.py:1313
 msgid "並び順"
 msgstr "Ordem de exibição"
 
-#: booking/models.py:480 booking/models.py:481
+msgid "飲食メニュー表示"
+msgstr "Exibição no menu de alimentos e bebidas"
+
+msgid "チェックを外すとテーブル注文メニューに表示されません（ECのみ等）"
+msgstr "Se desmarcado, não será exibido no menu de pedidos de mesa (apenas EC, etc.)"
+
 msgid "商品カテゴリ"
 msgstr "Categoria de produto"
 
-#: booking/models.py:493 booking/models.py:1579
-msgid "カテゴリ"
-msgstr "Categoria"
-
-#: booking/models.py:500
 msgid "商品コード"
 msgstr "Código do produto"
 
-#: booking/models.py:501
 msgid "商品名(デフォルト)"
 msgstr "Nome do produto (padrão)"
 
-#: booking/models.py:502
 msgid "説明(デフォルト)"
 msgstr "Descrição (padrão)"
 
-#: booking/models.py:507
 msgid "現在庫"
 msgstr "Estoque atual"
 
-#: booking/models.py:508
 msgid "閾値"
 msgstr "Limite"
 
-#: booking/models.py:509
 msgid "閾値通知済み(最後)"
 msgstr "Notificação de limite enviada (última)"
 
-#: booking/models.py:511 booking/models.py:1201 booking/models.py:1255
-#: booking/models.py:1294 booking/models.py:1314
-msgid "公開"
-msgstr "Publicado"
-
-#: booking/models.py:512
 msgid "EC公開"
 msgstr "Publicação EC"
 
-#: booking/models.py:513
 msgid "チェックするとオンラインショップに表示されます"
 msgstr "Se marcado, será exibido na loja online"
 
-#: booking/models.py:515
 msgid "商品画像"
 msgstr "Imagem do produto"
 
-#: booking/models.py:518
 msgid "人気スコア"
 msgstr "Pontuação de popularidade"
 
-#: booking/models.py:519
 msgid "利益率(概算)"
 msgstr "Margem de lucro (estimativa)"
 
-#: booking/models.py:526 booking/models.py:527 booking/models.py:555
-#: booking/models.py:643 booking/models.py:680
-#: booking/templates/booking/shop_cart.html:17
-#: booking/templates/booking/shop_checkout.html:20
 msgid "商品"
 msgstr "Produto"
 
-#: booking/models.py:556
+msgid "EC商品カテゴリ"
+msgstr "Categoria de produto EC"
+
+msgid "EC商品"
+msgstr "Produto EC"
+
 msgid "言語"
 msgstr "Idioma"
 
-#: booking/models.py:557
-msgid "商品名"
-msgstr "Nome do produto"
-
-#: booking/models.py:558 booking/models.py:1312
 msgid "説明"
 msgstr "Descrição"
 
-#: booking/models.py:562 booking/models.py:563
 msgid "商品翻訳"
 msgstr "Tradução de produto"
 
-#: booking/models.py:593 booking/templates/booking/email_form.html:35
 msgid "予約"
 msgstr "Reserva"
 
-#: booking/models.py:600
+msgid "注文チャネル"
+msgstr "Canal de pedido"
+
 msgid "顧客LINEハッシュ"
 msgstr "Hash LINE do cliente"
 
-#: booking/models.py:601
 msgid "席/テーブル"
 msgstr "Assento/Mesa"
 
-#: booking/models.py:603
 msgid "席"
 msgstr "Assento"
 
-#: booking/models.py:607 booking/models.py:648 booking/models.py:999
-#: booking/models.py:1439 booking/models.py:1660
 msgid "状態"
 msgstr "Estado"
 
-#: booking/models.py:608
 msgid "支払状態"
 msgstr "Estado do pagamento"
 
-#: booking/models.py:609 booking/models.py:1767
 msgid "割引額"
 msgstr "Valor do desconto"
 
-#: booking/models.py:610 booking/models.py:1766
 msgid "税額"
 msgstr "Valor do imposto"
 
-#: booking/models.py:617 booking/models.py:618 booking/models.py:642
-#: booking/models.py:1763 booking/templates/booking/table_order_history.html:14
+msgid "顧客名"
+msgstr "Nome do cliente"
+
+msgid "メールアドレス"
+msgstr "Endereço de e-mail"
+
+msgid "配送先住所"
+msgstr "Endereço de entrega"
+
+msgid "発送ステータス"
+msgstr "Estado de envio"
+
+msgid "追跡番号"
+msgstr "Número de rastreio"
+
+msgid "発送日時"
+msgstr "Data e hora de envio"
+
+msgid "発送メモ"
+msgstr "Nota de envio"
+
+msgid "送料"
+msgstr "Frete"
+
+msgid "注文履歴"
+msgstr "Histórico de Pedidos"
+
 msgid "注文"
 msgstr "Pedido"
 
-#: booking/models.py:645 booking/models.py:683
-#: booking/templates/booking/shop_cart.html:19
-#: booking/templates/booking/shop_checkout.html:21
 msgid "数量"
 msgstr "Quantidade"
 
-#: booking/models.py:646 booking/templates/booking/shop_cart.html:18
 msgid "単価"
 msgstr "Preço unitário"
 
-#: booking/models.py:656 booking/models.py:657
 msgid "注文明細"
 msgstr "Detalhes do pedido"
 
-#: booking/models.py:685
 msgid "実施スタッフ"
 msgstr "Responsável"
 
-#: booking/models.py:686
 msgid "メモ"
 msgstr "Memo"
 
-#: booking/models.py:692 booking/models.py:693
 msgid "入出庫履歴"
 msgstr "Histórico de entradas/saídas"
 
-#: booking/models.py:773
 msgid "レイアウトJSON"
 msgstr "Layout JSON"
 
-#: booking/models.py:774
 msgid "ダークモード"
 msgstr "Modo escuro"
 
-#: booking/models.py:779 booking/models.py:780
 msgid "ダッシュボードレイアウト"
 msgstr "Layout do painel"
 
-#: booking/models.py:792
-msgid "キー"
-msgstr "Chave"
-
-#: booking/models.py:793
-msgid "値"
-msgstr "Valor"
-
-#: booking/models.py:794 booking/models.py:1203 booking/models.py:1257
-#: booking/models.py:1296 booking/models.py:1442 booking/models.py:1480
-#: booking/models.py:1687
-msgid "更新日時"
-msgstr "Data de atualização"
-
-#: booking/models.py:798 booking/models.py:799
-msgid "システム設定"
-msgstr "Configurações do sistema"
-
-#: booking/models.py:830
-msgid "物件名"
-msgstr "Nome do imóvel"
-
-#: booking/models.py:833
-msgid "オーナー名"
-msgstr "Nome do proprietário"
-
-#: booking/models.py:834
-msgid "オーナー連絡先"
-msgstr "Contato do proprietário"
-
-#: booking/models.py:836
-msgid "関連店舗"
-msgstr "Loja associada"
-
-#: booking/models.py:844 booking/models.py:845 booking/models.py:854
-#: booking/models.py:886
-msgid "物件"
-msgstr "Imóvel"
-
-#: booking/models.py:859
-msgid "設置場所"
-msgstr "Local de instalação"
-
-#: booking/models.py:859
-msgid "例: リビング, 玄関, 寝室"
-msgstr "Ex: Sala de estar, Entrada, Quarto"
-
-#: booking/models.py:863 booking/models.py:864
-msgid "物件デバイス"
-msgstr "Dispositivo do imóvel"
-
-#: booking/models.py:893 booking/models.py:1613
-#: booking/templates/booking/property_detail.html:125
-#: booking/templates/booking/property_detail.html:197
 msgid "重要度"
 msgstr "Gravidade"
 
-#: booking/models.py:894 booking/models.py:1582
-#: booking/templates/booking/property_detail.html:127
-#: booking/templates/booking/property_detail.html:199
+msgid "タイトル"
+msgstr "Título"
+
 msgid "メッセージ"
 msgstr "Mensagem"
 
-#: booking/models.py:895
-msgid "解決済み"
-msgstr "Resolvido"
+msgid "関連データ"
+msgstr "Dados relacionados"
 
-#: booking/models.py:897
-msgid "解決日時"
-msgstr "Data e hora de resolução"
+msgid "既読"
+msgstr "Lido"
 
-#: booking/models.py:901 booking/models.py:902
-msgid "物件アラート"
-msgstr "Alerta do imóvel"
-
-#: booking/models.py:919
-msgid "営業開始時間"
-msgstr "Horário de abertura"
-
-#: booking/models.py:920
-msgid "営業終了時間"
-msgstr "Horário de encerramento"
-
-#: booking/models.py:921
-msgid "予約コマ(分)"
-msgstr "Intervalo de reserva (min)"
-
-#: booking/models.py:922
-msgid "15, 30, 45, 60 のいずれか"
-msgstr "15, 30, 45 ou 60"
-
-#: booking/models.py:926 booking/models.py:927
-msgid "店舗スケジュール設定"
-msgstr "Configuração de horário da loja"
-
-#: booking/models.py:937
-msgid "席名"
-msgstr "Nome do assento"
-
-#: booking/models.py:937
-msgid "例: A1, テーブル1, カウンター3"
-msgstr "Ex: A1, Mesa 1, Balcão 3"
-
-#: booking/models.py:939
-msgid "QRコード画像"
-msgstr "Imagem do código QR"
-
-#: booking/models.py:940 booking/models.py:1202 booking/models.py:1256
-#: booking/models.py:1295 booking/models.py:1441 booking/models.py:1479
-#: booking/models.py:1863
 msgid "作成日時"
 msgstr "Data de criação"
 
-#: booking/models.py:944 booking/models.py:945
-msgid "テーブル/席"
-msgstr "Mesa/Assento"
+msgid "ビジネスインサイト"
+msgstr "Insights de negócio"
 
-#: booking/models.py:967
+msgid "顧客ハッシュ"
+msgstr "Hash do cliente"
+
+msgid "NPS (0-10)"
+msgstr "NPS (0-10)"
+
+msgid "0=推奨しない 〜 10=強く推奨"
+msgstr "0=Não recomenda - 10=Recomenda fortemente"
+
+msgid "料理評価 (1-5)"
+msgstr "Avaliação da comida (1-5)"
+
+msgid "サービス評価 (1-5)"
+msgstr "Avaliação do serviço (1-5)"
+
+msgid "雰囲気評価 (1-5)"
+msgstr "Avaliação do ambiente (1-5)"
+
+msgid "コメント"
+msgstr "Comentário"
+
+msgid "感情分析"
+msgstr "Análise de sentimento"
+
+msgid "顧客フィードバック"
+msgstr "Feedback do cliente"
+
+msgid "評価項目名"
+msgstr "Nome do item de avaliação"
+
+msgid "重み (0.0-1.0)"
+msgstr "Peso (0.0-1.0)"
+
+msgid "総合スコア計算時の重み付け"
+msgstr "Ponderação no cálculo da pontuação geral"
+
+msgid "自動評価"
+msgstr "Avaliação automática"
+
+msgid "勤怠データから自動計算する項目"
+msgstr "Item calculado automaticamente a partir dos dados de frequência"
+
+msgid "表示順"
+msgstr "Ordem de exibição"
+
+msgid "評価基準"
+msgstr "Critérios de avaliação"
+
+msgid "スタッフ"
+msgstr "Equipe"
+
+msgid "評価者"
+msgstr "Avaliador"
+
+msgid "評価期間（開始）"
+msgstr "Período de avaliação (início)"
+
+msgid "評価期間（終了）"
+msgstr "Período de avaliação (fim)"
+
+msgid "出勤率 (%)"
+msgstr "Taxa de assiduidade (%)"
+
+msgid "シフト割当に対する実際の出勤率"
+msgstr "Taxa real de comparecimento em relação aos turnos atribuídos"
+
+msgid "定時出勤スコア (0-5)"
+msgstr "Pontuação de pontualidade (0-5)"
+
+msgid "遅刻・早退の少なさ"
+msgstr "Baixa ocorrência de atrasos e saídas antecipadas"
+
+msgid "総勤務時間"
+msgstr "Total de horas trabalhadas"
+
+msgid "項目別スコア"
+msgstr "Pontuação por item"
+
+msgid "{\"criteria_id\": score} 形式。各スコアは1-5"
+msgstr "Formato {\"criteria_id\": score}. Cada pontuação é de 1-5"
+
+msgid "総合評価 (1.0-5.0)"
+msgstr "Avaliação geral (1.0-5.0)"
+
+msgid "評価ランク"
+msgstr "Nível de avaliação"
+
+msgid "評価コメント"
+msgstr "Comentário de avaliação"
+
+msgid "スタッフ自己評価"
+msgstr "Autoavaliação da equipe"
+
+msgid "スタッフ本人のコメント"
+msgstr "Comentário do próprio funcionário"
+
+msgid "評価ソース"
+msgstr "Fonte da avaliação"
+
+msgid "公開済み"
+msgstr "Publicado"
+
+msgid "チェックするとスタッフ本人に表示されます"
+msgstr "Se marcado, será exibido para o próprio funcionário"
+
+msgid "更新日時"
+msgstr "Data de atualização"
+
+msgid "スタッフ評価"
+msgstr "Avaliação da equipe"
+
+msgid "キー"
+msgstr "Chave"
+
+msgid "値"
+msgstr "Valor"
+
+msgid "システム設定"
+msgstr "Configurações do sistema"
+
+msgid "物件名"
+msgstr "Nome do imóvel"
+
+msgid "オーナー名"
+msgstr "Nome do proprietário"
+
+msgid "オーナー連絡先"
+msgstr "Contato do proprietário"
+
+msgid "関連店舗"
+msgstr "Loja associada"
+
+msgid "物件"
+msgstr "Imóvel"
+
+msgid "設置場所"
+msgstr "Local de instalação"
+
+msgid "例: リビング, 玄関, 寝室"
+msgstr "Ex: Sala de estar, Entrada, Quarto"
+
+msgid "物件デバイス"
+msgstr "Dispositivo do imóvel"
+
+msgid "解決済み"
+msgstr "Resolvido"
+
+msgid "解決日時"
+msgstr "Data e hora de resolução"
+
+msgid "物件アラート"
+msgstr "Alerta do imóvel"
+
+msgid "営業開始時間"
+msgstr "Horário de abertura"
+
+msgid "営業終了時間"
+msgstr "Horário de encerramento"
+
+msgid "予約コマ(分)"
+msgstr "Intervalo de reserva (min)"
+
+msgid "15, 30, 45, 60 のいずれか"
+msgstr "15, 30, 45 ou 60"
+
+msgid "店舗スケジュール設定"
+msgstr "Configuração de horário da loja"
+
+msgid "席名"
+msgstr "Nome do assento"
+
+msgid "例: A1, テーブル1, カウンター3"
+msgstr "Ex: A1, Mesa 1, Balcão 3"
+
+msgid "QRコード画像"
+msgstr "Imagem do código QR"
+
+msgid "テーブルQR登録・管理"
+msgstr "Registro e gestão de QR de mesas"
+
+msgid "名称"
+msgstr "Nome"
+
+msgid "例: 消費税、深夜料金、サービス料"
+msgstr "Ex: Imposto sobre consumo, Taxa noturna, Taxa de serviço"
+
+msgid "税率(%)"
+msgstr "Taxa de imposto (%)"
+
+msgid "パーセンテージで入力（例: 10.00）"
+msgstr "Inserir em porcentagem (ex: 10.00)"
+
+msgid "適用開始時間"
+msgstr "Hora de início da aplicação"
+
+msgid "この時間以降に適用（例: 22 = 22時以降）。空欄の場合は常時適用"
+msgstr "Aplicável a partir desta hora (ex: 22 = após 22h). Se vazio, sempre aplicável"
+
+msgid "税・サービス料"
+msgstr "Impostos e taxas de serviço"
+
+msgid "税・サービス料設定"
+msgstr "Configuração de impostos e taxas de serviço"
+
 msgid "決済種別"
 msgstr "Tipo de pagamento"
 
-#: booking/models.py:970
 msgid "APIキー"
 msgstr "Chave API"
 
-#: booking/models.py:971
 msgid "APIシークレット"
 msgstr "Segredo API"
 
-#: booking/models.py:972
 msgid "APIエンドポイント"
 msgstr "Endpoint da API"
 
-#: booking/models.py:973
 msgid "追加設定"
 msgstr "Configurações adicionais"
 
-#: booking/models.py:979 booking/models.py:980 booking/models.py:1764
 msgid "決済方法"
 msgstr "Método de pagamento"
 
-#: booking/models.py:997 booking/models.py:1436
 msgid "対象年月"
 msgstr "Mês de referência"
 
-#: booking/models.py:998
 msgid "申請締切"
 msgstr "Prazo de solicitação"
 
-#: booking/models.py:1005 booking/models.py:1006
 msgid "シフト募集期間"
 msgstr "Período de recrutamento de turnos"
 
-#: booking/models.py:1021 booking/models.py:1044 booking/models.py:1389
-#: booking/models.py:1794 booking/models.py:1858
-#: booking/templates/booking/staff_shift_calendar.html:48
-#: booking/templates/booking/staff_shift_submit.html:36
-#: booking/templates/booking/staff_shift_submit.html:81
 msgid "日付"
 msgstr "Data"
 
-#: booking/models.py:1024 booking/models.py:1047 booking/models.py:1068
 msgid "開始時刻"
 msgstr "Hora de início"
 
-#: booking/models.py:1025 booking/models.py:1048 booking/models.py:1069
 msgid "終了時刻"
 msgstr "Hora de término"
 
-#: booking/models.py:1026
-#: booking/templates/booking/staff_shift_calendar.html:50
-#: booking/templates/booking/staff_shift_submit.html:41
-#: booking/templates/booking/staff_shift_submit.html:83
 msgid "希望区分"
 msgstr "Tipo de preferência"
 
-#: booking/models.py:1032 booking/models.py:1033
 msgid "シフト希望"
 msgstr "Preferência de turno"
 
-#: booking/models.py:1049 booking/models.py:1070
 msgid "表示色"
 msgstr "Cor de exibição"
 
-#: booking/models.py:1051
 msgid "Schedule同期済み"
 msgstr "Sincronizado com Schedule"
 
-#: booking/models.py:1056 booking/models.py:1057
 msgid "確定シフト"
 msgstr "Turno confirmado"
 
-#: booking/models.py:1067
 msgid "テンプレート名"
 msgstr "Nome do modelo"
 
-#: booking/models.py:1076 booking/models.py:1077
 msgid "シフトテンプレート"
 msgstr "Modelo de turno"
 
-#: booking/models.py:1086
 msgid "シフト期間"
 msgstr "Período de turno"
 
-#: booking/models.py:1087
 msgid "公開者"
 msgstr "Publicador"
 
-#: booking/models.py:1088
 msgid "公開日時"
 msgstr "Data e hora da publicação"
 
-#: booking/models.py:1089
 msgid "シフト数"
 msgstr "Número de turnos"
 
-#: booking/models.py:1094 booking/models.py:1095
+msgid "操作"
+msgstr "Operação"
+
+msgid "理由"
+msgstr "Motivo"
+
 msgid "シフト公開履歴"
 msgstr "Histórico de publicação de turnos"
 
-#: booking/models.py:1105
+msgid "変更種別"
+msgstr "Tipo de alteração"
+
+msgid "変更前"
+msgstr "Antes da alteração"
+
+msgid "変更後"
+msgstr "Após a alteração"
+
+msgid "変更理由"
+msgstr "Motivo da alteração"
+
+msgid "シフト変更ログ"
+msgstr "Log de alterações de turno"
+
+msgid "休業日"
+msgstr "Dia de encerramento"
+
+msgid "従業員種別"
+msgstr "Tipo de funcionário"
+
+msgid "必要人数"
+msgstr "Pessoal necessário"
+
+msgid "シフト必要人数（曜日別）"
+msgstr "Pessoal necessário por turno (por dia da semana)"
+
+msgid "シフト必要人数（日付指定）"
+msgstr "Pessoal necessário por turno (por data)"
+
 msgid "メインカラー"
 msgstr "Cor principal"
 
-#: booking/models.py:1106
 msgid "サブカラー"
 msgstr "Cor secundária"
 
-#: booking/models.py:1107
 msgid "ヘッダー画像"
 msgstr "Imagem do cabeçalho"
 
-#: booking/models.py:1111 booking/models.py:1112
 msgid "管理画面テーマ"
 msgstr "Tema da administração"
 
-#: booking/models.py:1124
 msgid "サイト名"
 msgstr "Nome do site"
 
-#: booking/models.py:1127
 msgid "店舗カード表示"
 msgstr "Exibir card da loja"
 
-#: booking/models.py:1128
 msgid "占い師カード表示"
 msgstr "Exibir card do adivinho"
 
-#: booking/models.py:1129
 msgid "カレンダーカード表示"
 msgstr "Exibir card do calendário"
 
-#: booking/models.py:1130
 msgid "ショップカード表示"
 msgstr "Exibir card da loja online"
 
-#: booking/models.py:1133
 msgid "お知らせ表示"
 msgstr "Exibir notícias"
 
-#: booking/models.py:1134
 msgid "運営会社表示"
 msgstr "Exibir empresa operadora"
 
-#: booking/models.py:1135
 msgid "メディア掲載表示"
 msgstr "Exibir cobertura na mídia"
 
-#: booking/models.py:1136
 msgid "SNSフィード表示"
 msgstr "Exibir feed de redes sociais"
 
-#: booking/models.py:1139
 msgid "X(Twitter) URL"
 msgstr "URL do X (Twitter)"
 
-#: booking/models.py:1140
 msgid "例: https://twitter.com/youraccount"
 msgstr "Ex: https://twitter.com/youraccount"
 
-#: booking/models.py:1141
 msgid "Instagram URL"
 msgstr "URL do Instagram"
 
-#: booking/models.py:1142
 msgid "例: https://www.instagram.com/youraccount"
 msgstr "Ex: https://www.instagram.com/youraccount"
 
-#: booking/models.py:1145
 msgid "ヒーローバナー表示"
 msgstr "Exibir banner principal"
 
-#: booking/models.py:1148
 msgid "予約ランキング表示"
 msgstr "Exibir ranking de reservas"
 
-#: booking/models.py:1149
 msgid "ランキング表示件数"
 msgstr "Nº de itens no ranking"
 
-#: booking/models.py:1152
 msgid "外部リンク表示"
 msgstr "Exibir links externos"
 
-#: booking/models.py:1155
 msgid "Instagram埋め込みHTML"
 msgstr "HTML incorporado do Instagram"
 
-#: booking/models.py:1156
 msgid "Instagramの投稿埋め込みHTMLを貼り付けてください"
 msgstr "Cole o HTML incorporado da publicação do Instagram"
 
-#: booking/models.py:1159
 msgid "スタッフの呼称"
 msgstr "Denominação da equipe"
 
-#: booking/models.py:1160
 msgid ""
 "管理画面・フロントで「占い師」「スタッフ」の代わりに表示する名称（例: キャス"
 "ト、セラピスト）"
@@ -1093,823 +1311,672 @@ msgstr ""
 "Nome exibido em vez de \"adivinho\" ou \"equipe\" na administração e no site "
 "(ex: pessoal, terapeuta)"
 
-#: booking/models.py:1163
+msgid "スタッフ呼称（多言語）"
+msgstr "Denominação da equipe (multilíngue)"
+
+msgid ""
+"言語コードをキーとした翻訳辞書。例: {\"en\": \"Cast\", \"ko\": \"캐스트\", "
+"\"zh-hant\": \"演員\"}。未設定の言語はデフォルト呼称を使用。"
+msgstr ""
+"Dicionário de tradução com código de idioma como chave. Ex: {\"en\": "
+"\"Cast\", \"ko\": \"캐스트\", \"zh-hant\": \"演員\"}. Idiomas não "
+"configurados usam a denominação padrão."
+
+msgid "料金ラベル"
+msgstr "Rótulo de tarifa"
+
+msgid "スタッフ一覧で表示する料金の名称（例: 鑑定料、指名料、施術料）"
+msgstr "Nome da tarifa exibida na lista de equipe (ex: taxa de sessão, taxa de indicação, taxa de tratamento)"
+
 msgid "AIアシスタント表示"
 msgstr "Exibir assistente IA"
 
-#: booking/models.py:1164
 msgid "フロントページにAIアシスタントチャットを表示するかどうか"
 msgstr "Exibir ou não o chat do assistente IA na página inicial"
 
-#: booking/models.py:1167 booking/templates/booking/base.html:296
-#: booking/templates/booking/privacy_policy.html:4
-#: booking/templates/booking/privacy_policy.html:9
+msgid "予約管理を表示"
+msgstr "Exibir gestão de reservas"
+
+msgid "管理サイドバーに「予約管理」を表示するかどうか"
+msgstr "Exibir ou não \"Gestão de reservas\" na barra lateral de administração"
+
+msgid "シフト管理を表示"
+msgstr "Exibir gestão de turnos"
+
+msgid "管理サイドバーに「シフト」を表示するかどうか"
+msgstr "Exibir ou não \"Turnos\" na barra lateral de administração"
+
+msgid "従業員管理を表示"
+msgstr "Exibir gestão de funcionários"
+
+msgid "管理サイドバーに「従業員管理」を表示するかどうか"
+msgstr "Exibir ou não \"Gestão de funcionários\" na barra lateral de administração"
+
+msgid "メニュー管理を表示"
+msgstr "Exibir gestão de menu"
+
+msgid "管理サイドバーに「メニュー管理」を表示するかどうか"
+msgstr "Exibir ou não \"Gestão de menu\" na barra lateral de administração"
+
+msgid "管理サイドバーに「在庫管理」を表示するかどうか"
+msgstr "Exibir ou não \"Gestão de estoque\" na barra lateral de administração"
+
+msgid "管理サイドバーに「注文管理」を表示するかどうか"
+msgstr "Exibir ou não \"Gestão de pedidos\" na barra lateral de administração"
+
+msgid "レジ（POS）を表示"
+msgstr "Exibir caixa (POS)"
+
+msgid "管理サイドバーに「レジ（POS）」を表示するかどうか"
+msgstr "Exibir ou não \"Caixa (POS)\" na barra lateral de administração"
+
+msgid "キッチンディスプレイを表示"
+msgstr "Exibir display de cozinha"
+
+msgid "管理サイドバーに「キッチンディスプレイ」を表示するかどうか"
+msgstr "Exibir ou não \"Display de cozinha\" na barra lateral de administração"
+
+msgid "オンラインショップを表示"
+msgstr "Exibir loja online"
+
+msgid "管理サイドバーに「オンラインショップ」を表示するかどうか"
+msgstr "Exibir ou não \"Loja online\" na barra lateral de administração"
+
+msgid "店舗管理を表示"
+msgstr "Exibir gestão de loja"
+
+msgid "管理サイドバーに「店舗管理」を表示するかどうか"
+msgstr "Exibir ou não \"Gestão de loja\" na barra lateral de administração"
+
+msgid "IoT管理を表示"
+msgstr "Exibir gestão IoT"
+
+msgid "管理サイドバーに「IoT管理」を表示するかどうか"
+msgstr "Exibir ou não \"Gestão IoT\" na barra lateral de administração"
+
 msgid "プライバシーポリシー"
 msgstr "Política de privacidade"
 
-#: booking/models.py:1168 booking/models.py:1170
 msgid "HTMLで記述。空の場合はデフォルトテンプレートが表示されます。"
 msgstr "Escrever em HTML. Se vazio, o modelo padrão será exibido."
 
-#: booking/models.py:1169 booking/templates/booking/base.html:297
-#: booking/templates/booking/tokushoho.html:4
-#: booking/templates/booking/tokushoho.html:9
 msgid "特定商取引法に基づく表記"
 msgstr "Lei de transações comerciais específicas"
 
-#: booking/models.py:1174 booking/models.py:1175
-msgid "サイト設定"
-msgstr "Configurações do site"
+msgid "メインサイト設定"
+msgstr "Configurações do site principal"
 
-#: booking/models.py:1197 booking/models.py:1234 booking/models.py:1289
-#: booking/models.py:1310
-msgid "タイトル"
-msgstr "Título"
+msgid "管理サイドバー設定"
+msgstr "Configurações da barra lateral de administração"
 
-#: booking/models.py:1198
 msgid "HTML内容"
 msgstr "Conteúdo HTML"
 
-#: booking/models.py:1198
 msgid "HTMLを直接記述できます"
 msgstr "Pode escrever HTML diretamente"
 
-#: booking/models.py:1199 booking/models.py:1292
 msgid "表示位置"
 msgstr "Posição de exibição"
 
-#: booking/models.py:1207 booking/models.py:1208
 msgid "カスタムブロック"
 msgstr "Bloco personalizado"
 
-#: booking/models.py:1235 booking/models.py:1290
 msgid "バナー画像"
 msgstr "Imagem do banner"
 
-#: booking/models.py:1237
 msgid "画像表示位置"
 msgstr "Posição de exibição da imagem"
 
-#: booking/models.py:1239
 msgid "バナー内で画像のどの部分を表示するかを指定します"
 msgstr "Especifica qual parte da imagem exibir dentro do banner"
 
-#: booking/models.py:1242
 msgid "リンク種別"
 msgstr "Tipo de link"
 
-#: booking/models.py:1246
 msgid "リンク先店舗"
 msgstr "Loja de destino do link"
 
-#: booking/models.py:1250
 msgid "リンク先占い師"
 msgstr "Adivinho de destino do link"
 
-#: booking/models.py:1253 booking/models.py:1291
 msgid "リンクURL"
 msgstr "URL do link"
 
-#: booking/models.py:1262 booking/models.py:1263
 msgid "ヒーローバナー"
 msgstr "Banner principal"
 
-#: booking/models.py:1301 booking/models.py:1302
 msgid "バナー広告"
 msgstr "Anúncio em banner"
 
-#: booking/models.py:1311
 msgid "URL"
 msgstr "URL"
 
-#: booking/models.py:1315
 msgid "新しいタブで開く"
 msgstr "Abrir em nova aba"
 
-#: booking/models.py:1320 booking/models.py:1321
-#: booking/templates/booking/base.html:240
-#: booking/templates/booking/base.html:287
-msgid "外部リンク"
-msgstr "Links externos"
-
-#: booking/models.py:1348 booking/models.py:1388 booking/models.py:1457
-#: booking/models.py:1732 booking/templates/booking/base.html:273
-#: templates/admin/booking/partials/shift_week_grid.html:5
-msgid "スタッフ"
-msgstr "Equipe"
-
-#: booking/models.py:1350
 msgid "雇用形態"
 msgstr "Tipo de emprego"
 
-#: booking/models.py:1351
 msgid "給与形態"
 msgstr "Tipo de remuneração"
 
-#: booking/models.py:1352
 msgid "時給（円）"
 msgstr "Salário por hora (ienes)"
 
-#: booking/models.py:1352
 msgid "時給制の場合に設定"
 msgstr "Definir para remuneração por hora"
 
-#: booking/models.py:1353
 msgid "月給（円）"
 msgstr "Salário mensal (ienes)"
 
-#: booking/models.py:1353
 msgid "月給制の場合に設定"
 msgstr "Definir para salário mensal"
 
-#: booking/models.py:1355
 msgid "通勤手当（円/月）"
 msgstr "Auxílio transporte (ienes/mês)"
 
-#: booking/models.py:1356
 msgid "住宅手当（円/月）"
 msgstr "Auxílio moradia (ienes/mês)"
 
-#: booking/models.py:1357
 msgid "家族手当（円/月）"
 msgstr "Auxílio família (ienes/mês)"
 
-#: booking/models.py:1360
 msgid "標準報酬月額（円）"
 msgstr "Remuneração mensal padrão (ienes)"
 
-#: booking/models.py:1361
 msgid "社会保険料計算の基準額。4〜6月の平均報酬から算定。"
 msgstr ""
 "Valor base para cálculo do seguro social. Calculado pela média de "
 "remuneração de abril a junho."
 
-#: booking/models.py:1363
 msgid "住民税月額（円）"
 msgstr "Imposto residencial mensal (ienes)"
 
-#: booking/models.py:1363
 msgid "特別徴収の月額"
 msgstr "Valor mensal de retenção especial"
 
-#: booking/models.py:1365
 msgid "生年月日"
 msgstr "Data de nascimento"
 
-#: booking/models.py:1365
 msgid "介護保険適用判定に使用（40歳以上）"
 msgstr ""
 "Usado para determinar a aplicação do seguro de cuidados (acima de 40 anos)"
 
-#: booking/models.py:1366
 msgid "契約開始日"
 msgstr "Data de início do contrato"
 
-#: booking/models.py:1367
 msgid "契約終了日"
 msgstr "Data de término do contrato"
 
-#: booking/models.py:1372 booking/models.py:1373 booking/models.py:1459
 msgid "雇用契約"
 msgstr "Contrato de trabalho"
 
-#: booking/models.py:1390
 msgid "出勤時刻"
 msgstr "Hora de entrada"
 
-#: booking/models.py:1391
 msgid "退勤時刻"
 msgstr "Hora de saída"
 
-#: booking/models.py:1393
 msgid "通常勤務（分）"
 msgstr "Trabalho normal (min)"
 
-#: booking/models.py:1394
 msgid "残業（分）"
 msgstr "Horas extras (min)"
 
-#: booking/models.py:1395
 msgid "深夜勤務（分）"
 msgstr "Trabalho noturno (min)"
 
-#: booking/models.py:1396
 msgid "休日勤務（分）"
 msgstr "Trabalho em feriado (min)"
 
-#: booking/models.py:1397
 msgid "休憩（分）"
 msgstr "Intervalo (min)"
 
-#: booking/models.py:1399
 msgid "QR出勤日時"
 msgstr "Data e hora de entrada QR"
 
-#: booking/models.py:1400
 msgid "QR退勤日時"
 msgstr "Data e hora de saída QR"
 
-#: booking/models.py:1402
 msgid "データソース"
 msgstr "Fonte de dados"
 
-#: booking/models.py:1404
 msgid "元シフト"
 msgstr "Turno original"
 
-#: booking/models.py:1410 booking/models.py:1411
 msgid "勤怠記録"
 msgstr "Registro de frequência"
 
-#: booking/models.py:1436
 msgid "YYYY-MM形式"
 msgstr "Formato AAAA-MM"
 
-#: booking/models.py:1437
 msgid "計算期間開始"
 msgstr "Início do período de cálculo"
 
-#: booking/models.py:1438
 msgid "計算期間終了"
 msgstr "Fim do período de cálculo"
 
-#: booking/models.py:1440
 msgid "支給日"
 msgstr "Data de pagamento"
 
-#: booking/models.py:1446 booking/models.py:1447
 msgid "給与計算期間"
 msgstr "Período de cálculo salarial"
 
-#: booking/models.py:1456
 msgid "給与期間"
 msgstr "Período salarial"
 
-#: booking/models.py:1463
 msgid "出勤日数"
 msgstr "Dias trabalhados"
 
-#: booking/models.py:1464
 msgid "通常勤務時間"
 msgstr "Horas de trabalho normal"
 
-#: booking/models.py:1465
 msgid "残業時間"
 msgstr "Horas extras"
 
-#: booking/models.py:1466
 msgid "深夜勤務時間"
 msgstr "Horas de trabalho noturno"
 
-#: booking/models.py:1467
 msgid "休日勤務時間"
 msgstr "Horas de trabalho em feriado"
 
-#: booking/models.py:1469
 msgid "基本給"
 msgstr "Salário base"
 
-#: booking/models.py:1470
 msgid "残業手当"
 msgstr "Adicional de horas extras"
 
-#: booking/models.py:1471
 msgid "深夜手当"
 msgstr "Adicional noturno"
 
-#: booking/models.py:1472
 msgid "休日手当"
 msgstr "Adicional de feriado"
 
-#: booking/models.py:1473
 msgid "各種手当合計"
 msgstr "Total de auxílios"
 
-#: booking/models.py:1473
 msgid "通勤+住宅+家族手当"
 msgstr "Transporte + moradia + família"
 
-#: booking/models.py:1475
 msgid "総支給額"
 msgstr "Remuneração bruta"
 
-#: booking/models.py:1476
 msgid "控除合計"
 msgstr "Total de deduções"
 
-#: booking/models.py:1477
 msgid "差引支給額"
 msgstr "Remuneração líquida"
 
-#: booking/models.py:1484 booking/models.py:1485 booking/models.py:1505
 msgid "給与明細"
 msgstr "Holerite"
 
-#: booking/models.py:1506
 msgid "控除種別"
 msgstr "Tipo de dedução"
 
-#: booking/models.py:1507
 msgid "金額"
 msgstr "Valor"
 
-#: booking/models.py:1508
 msgid "事業主負担のみ"
 msgstr "Apenas encargo do empregador"
 
-#: booking/models.py:1508
 msgid "労災保険等、従業員控除なし"
 msgstr "Seguro de acidentes de trabalho, etc., sem dedução do funcionário"
 
-#: booking/models.py:1512 booking/models.py:1513
 msgid "控除明細"
 msgstr "Detalhes de dedução"
 
-#: booking/models.py:1525
 msgid "厚生年金料率(%)"
 msgstr "Taxa de previdência social (%)"
 
-#: booking/models.py:1526
 msgid "従業員負担分 例: 9.150"
 msgstr "Parte do funcionário. Ex: 9.150"
 
-#: booking/models.py:1527
 msgid "健康保険料率(%)"
 msgstr "Taxa de seguro de saúde (%)"
 
-#: booking/models.py:1528
 msgid "従業員負担分 例: 5.000（協会けんぽ東京支部）"
 msgstr "Parte do funcionário. Ex: 5.000 (Kyokai Kenpo filial Tóquio)"
 
-#: booking/models.py:1529
 msgid "雇用保険料率(%)"
 msgstr "Taxa de seguro-desemprego (%)"
 
-#: booking/models.py:1530
 msgid "従業員負担分 例: 0.600"
 msgstr "Parte do funcionário. Ex: 0.600"
 
-#: booking/models.py:1531
 msgid "介護保険料率(%)"
 msgstr "Taxa de seguro de cuidados (%)"
 
-#: booking/models.py:1532
 msgid "40歳以上のみ適用 例: 0.820"
 msgstr "Aplicável apenas para maiores de 40 anos. Ex: 0.820"
 
-#: booking/models.py:1533
 msgid "労災保険料率(%)"
 msgstr "Taxa de seguro de acidentes de trabalho (%)"
 
-#: booking/models.py:1534
 msgid "事業主全額負担（記録用） 例: 0.300"
 msgstr "Encargo total do empregador (para registro). Ex: 0.300"
 
-#: booking/models.py:1537
 msgid "残業割増率"
 msgstr "Taxa de adicional de horas extras"
 
-#: booking/models.py:1538
 msgid "深夜割増率"
 msgstr "Taxa de adicional noturno"
 
-#: booking/models.py:1539
 msgid "休日割増率"
 msgstr "Taxa de adicional de feriado"
 
-#: booking/models.py:1543 booking/models.py:1544
 msgid "給与体系"
 msgstr "Estrutura salarial"
 
-#: booking/models.py:1577 booking/models.py:1656
 msgid "実行ID"
 msgstr "ID de execução"
 
-#: booking/models.py:1578 booking/models.py:1657
 msgid "チェック名"
 msgstr "Nome da verificação"
 
-#: booking/models.py:1580
 msgid "重大度"
 msgstr "Severidade"
 
-#: booking/models.py:1581
 msgid "結果"
 msgstr "Resultado"
 
-#: booking/models.py:1583 booking/models.py:1663
 msgid "推奨事項"
 msgstr "Recomendações"
 
-#: booking/models.py:1584 booking/models.py:1664
 msgid "実行日時"
 msgstr "Data e hora de execução"
 
-#: booking/models.py:1588 booking/models.py:1589
 msgid "セキュリティ監査"
 msgstr "Auditoria de segurança"
 
-#: booking/models.py:1615
 msgid "ユーザー"
 msgstr "Utilizador"
 
-#: booking/models.py:1618
 msgid "ユーザー名"
 msgstr "Nome de utilizador"
 
-#: booking/models.py:1619 booking/models.py:1736
 msgid "IPアドレス"
 msgstr "Endereço IP"
 
-#: booking/models.py:1620 booking/models.py:1737
 msgid "User-Agent"
 msgstr "User-Agent"
 
-#: booking/models.py:1621
 msgid "パス"
 msgstr "Caminho"
 
-#: booking/models.py:1622
 msgid "メソッド"
 msgstr "Método"
 
-#: booking/models.py:1623 booking/models.py:1662
-#: booking/templates/booking/my_page_calendar.html:52
 msgid "詳細"
 msgstr "Detalhes"
 
-#: booking/models.py:1624 booking/templates/booking/property_detail.html:128
-#: booking/templates/booking/property_detail.html:200
 msgid "発生日時"
 msgstr "Data e hora do evento"
 
-#: booking/models.py:1628 booking/models.py:1629
 msgid "セキュリティログ"
 msgstr "Log de segurança"
 
-#: booking/models.py:1658
 msgid "リソース種別"
 msgstr "Tipo de recurso"
 
-#: booking/models.py:1659
 msgid "リソースID"
 msgstr "ID do recurso"
 
-#: booking/models.py:1661
 msgid "推定月額コスト"
 msgstr "Custo mensal estimado"
 
-#: booking/models.py:1668 booking/models.py:1669
 msgid "AWSコストレポート"
 msgstr "Relatório de custos AWS"
 
-#: booking/models.py:1684
 msgid "ロール"
 msgstr "Papel"
 
-#: booking/models.py:1685
 msgid "superuserは常に全モデルを表示するため設定不要"
 msgstr ""
 "Superusuários sempre exibem todos os modelos, não é necessário configurar"
 
-#: booking/models.py:1686
 msgid "表示許可モデル"
 msgstr "Modelos com permissão de exibição"
 
-#: booking/models.py:1688
 msgid "更新者"
 msgstr "Atualizado por"
 
-#: booking/models.py:1693 booking/models.py:1694
-msgid "メニュー権限設定"
-msgstr "Configuração de permissões do menu"
+msgid "権限設定"
+msgstr "Configuração de permissões"
 
-#: booking/models.py:1707
 msgid "TOTPシークレット"
 msgstr "Segredo TOTP"
 
-#: booking/models.py:1708
 msgid "TOTP間隔(秒)"
 msgstr "Intervalo TOTP (seg)"
 
-#: booking/models.py:1709 booking/models.py:1738
 msgid "緯度"
 msgstr "Latitude"
 
-#: booking/models.py:1710 booking/models.py:1739
 msgid "経度"
 msgstr "Longitude"
 
-#: booking/models.py:1711
 msgid "ジオフェンス半径(m)"
 msgstr "Raio de geofence (m)"
 
-#: booking/models.py:1712
 msgid "位置確認必須"
 msgstr "Verificação de localização obrigatória"
 
-#: booking/models.py:1717 booking/models.py:1718
 msgid "TOTP勤怠設定"
 msgstr "Configuração de frequência TOTP"
 
-#: booking/models.py:1733
 msgid "打刻種別"
 msgstr "Tipo de registro"
 
-#: booking/models.py:1734
 msgid "打刻日時"
 msgstr "Data e hora do registro"
 
-#: booking/models.py:1735
 msgid "使用TOTP"
 msgstr "TOTP utilizado"
 
-#: booking/models.py:1741
 msgid "無効理由"
 msgstr "Motivo de invalidação"
 
-#: booking/models.py:1745 booking/models.py:1746
 msgid "打刻ログ"
 msgstr "Registro de ponto"
 
-#: booking/models.py:1765 booking/templates/booking/table_order_history.html:55
 msgid "合計金額"
 msgstr "Valor Total"
 
-#: booking/models.py:1768
 msgid "受取金額"
 msgstr "Valor recebido"
 
-#: booking/models.py:1769
 msgid "お釣り"
 msgstr "Troco"
 
-#: booking/models.py:1770
 msgid "レシート番号"
 msgstr "Número do recibo"
 
-#: booking/models.py:1771
 msgid "担当"
 msgstr "Responsável"
 
-#: booking/models.py:1772
 msgid "完了日時"
 msgstr "Data e hora de conclusão"
 
-#: booking/models.py:1776 booking/models.py:1777
-msgid "POS決済"
-msgstr "Pagamento POS"
+msgid "POS決済履歴"
+msgstr "Histórico de pagamentos POS"
 
-#: booking/models.py:1795 booking/models.py:1859
 msgid "時間帯"
 msgstr "Faixa horária"
 
-#: booking/models.py:1796
 msgid "PIR検知数"
 msgstr "Detecções PIR"
 
-#: booking/models.py:1797
 msgid "推定来客数"
 msgstr "Número estimado de visitantes"
 
-#: booking/models.py:1798
 msgid "注文数"
 msgstr "Número de pedidos"
 
-#: booking/models.py:1802 booking/models.py:1803
 msgid "来客数"
 msgstr "Número de visitantes"
 
-#: booking/models.py:1816
 msgid "PIRデバイス"
 msgstr "Dispositivo PIR"
 
-#: booking/models.py:1817
 msgid "セッション間隔(秒)"
 msgstr "Intervalo de sessão (seg)"
 
-#: booking/models.py:1818
 msgid "この秒数以内の連続検知は同一来客とカウント"
-msgstr "Detecções consecutivas dentro destes segundos são contadas como o mesmo visitante"
+msgstr ""
+"Detecções consecutivas dentro destes segundos são contadas como o mesmo "
+"visitante"
 
-#: booking/models.py:1822 booking/models.py:1823
 msgid "来客分析設定"
 msgstr "Configuração de análise de visitantes"
 
-#: booking/models.py:1836
 msgid "モデルファイル"
 msgstr "Arquivo do modelo"
 
-#: booking/models.py:1837
 msgid "モデル種別"
 msgstr "Tipo de modelo"
 
-#: booking/models.py:1838
 msgid "特徴量名"
 msgstr "Nome da característica"
 
-#: booking/models.py:1839
 msgid "精度スコア"
 msgstr "Pontuação de precisão"
 
-#: booking/models.py:1840
 msgid "MAEスコア"
 msgstr "Pontuação MAE"
 
-#: booking/models.py:1841
 msgid "学習サンプル数"
 msgstr "Número de amostras de treinamento"
 
-#: booking/models.py:1842
 msgid "学習日時"
 msgstr "Data e hora do treinamento"
 
-#: booking/models.py:1847 booking/models.py:1848
 msgid "AI推薦モデル"
 msgstr "Modelo de recomendação IA"
 
-#: booking/models.py:1860
 msgid "推薦スタッフ数"
 msgstr "Número de pessoal recomendado"
 
-#: booking/models.py:1861
 msgid "信頼度"
 msgstr "Confiabilidade"
 
-#: booking/models.py:1862 templates/admin/booking/ai_recommendation.html:58
 msgid "特徴量重要度"
 msgstr "Importância das características"
 
-#: booking/models.py:1867 booking/models.py:1868
 msgid "AI推薦結果"
 msgstr "Resultado de recomendação IA"
 
-#: booking/templates/booking/all_fortune_tellers.html:13
-#: booking/templates/booking/base.html:76
-#: booking/templates/booking/base.html:99
-#: booking/templates/booking/base.html:267
-#: booking/templates/booking/channel_choice.html:13
-#: booking/templates/booking/date_first_calendar.html:13
-#: booking/templates/booking/email_form.html:12
-#: booking/templates/booking/email_verify.html:12
-#: booking/templates/booking/staff_list.html:13 project/settings.py:457
+msgid "送料を有効にする"
+msgstr "Ativar frete"
+
+msgid "送料（税込）"
+msgstr "Frete (com impostos)"
+
+msgid "送料無料の注文金額"
+msgstr "Valor do pedido para frete grátis"
+
+msgid "0の場合は常に送料がかかります"
+msgstr "Se 0, o frete é sempre cobrado"
+
+msgid "配達対応範囲"
+msgstr "Área de cobertura de entrega"
+
+msgid "送料に関する備考"
+msgstr "Observações sobre o frete"
+
 msgid "ホーム"
 msgstr "Início"
 
-#: booking/templates/booking/all_fortune_tellers.html:51
-#: booking/templates/booking/booking.html:25
-#: booking/templates/booking/date_first_calendar.html:87
-#: booking/templates/booking/staff_list.html:54
 msgid "先生"
 msgstr "Mestre"
 
-#: booking/templates/booking/all_fortune_tellers.html:59
-#: booking/templates/booking/staff_list.html:59
-msgid "鑑定料"
-msgstr "Tarifa de sessão"
+msgid "円"
+msgstr "ienes"
 
-#: booking/templates/booking/all_fortune_tellers.html:59
-#: booking/templates/booking/staff_list.html:59
-msgid "円（１時間）"
-msgstr "ienes (1 hora)"
+msgid "枠"
+msgstr "intervalo"
 
-#: booking/templates/booking/all_fortune_tellers.html:72
-#: booking/templates/booking/staff_list.html:72
+msgid "分"
+msgstr "minutos"
+
 msgid "予約カレンダーを見る"
 msgstr "Ver calendário de reservas"
 
-#: booking/templates/booking/base.html:7
 msgid "占いサロンチャンス　オンライン予約ページ"
 msgstr "Salão de Adivinhação Chance - Página de reservas online"
 
-#: booking/templates/booking/base.html:9
 msgid ""
 "占いサロンチャンスのオンライン予約サイト。新宿・池袋の占い師に簡単予約。"
 msgstr ""
 "Site de reservas online do Salão de Adivinhação Chance. Reserve facilmente "
 "com adivinhos em Shinjuku e Ikebukuro."
 
-#: booking/templates/booking/base.html:56
-#: booking/templates/booking/base.html:126
-#: booking/templates/booking/base.html:278
-#: booking/templates/booking/line_logout.html:4
 msgid "ログアウト"
 msgstr "Sair"
 
-#: booking/templates/booking/base.html:60
-#: booking/templates/booking/base.html:130
-#: booking/templates/booking/base.html:282
-msgid "ログイン"
-msgstr "Entrar"
-
-#: booking/templates/booking/base.html:85
-#: booking/templates/booking/base.html:101
-#: booking/templates/booking/base.html:268
 msgid "ご予約"
 msgstr "Reservas"
 
-#: booking/templates/booking/base.html:86
-#: booking/templates/booking/base.html:102
 #, python-format
 msgid "所属%(staff_label)s"
 msgstr "Membros %(staff_label)s"
 
-#: booking/templates/booking/base.html:87
-#: booking/templates/booking/base.html:103
-#: booking/templates/booking/base.html:269
 msgid "ヘルプ"
 msgstr "Ajuda"
 
-#: booking/templates/booking/base.html:88
-#: booking/templates/booking/base.html:104
-#: booking/templates/booking/booking_top.html:163
-#: booking/templates/booking/shop.html:5
 msgid "ショップ"
 msgstr "Loja"
 
-#: booking/templates/booking/base.html:90
-#: booking/templates/booking/base.html:106
 msgid "管理画面"
 msgstr "Administração"
 
-#: booking/templates/booking/base.html:154
 msgid "更新日："
 msgstr "Atualizado:"
 
-#: booking/templates/booking/base.html:157
 msgid "お知らせはありません"
 msgstr "Não há notícias"
 
-#: booking/templates/booking/base.html:165
+msgid "もっと見る"
+msgstr "Ver mais"
+
 msgid "運営会社"
 msgstr "Empresa"
 
-#: booking/templates/booking/base.html:178
 msgid "SNS"
 msgstr "Redes Sociais"
 
-#: booking/templates/booking/base.html:213
 msgid "読み込み中..."
 msgstr "Carregando..."
 
-#: booking/templates/booking/base.html:265
-#: booking/templates/booking/table_base.html:57
-#: booking/templates/booking/table_menu.html:3
 msgid "メニュー"
 msgstr "Menu"
 
-#: booking/templates/booking/base.html:276
-msgid "マイページ"
-msgstr "Minha página"
+msgid "ログイン"
+msgstr "Entrar"
 
-#: booking/templates/booking/base.html:289
 msgid "大久保占い研究室"
 msgstr "Laboratório Okubo"
 
-#: booking/templates/booking/base.html:290
 msgid "占い掲示板"
 msgstr "Fórum de Adivinhação"
 
-#: booking/templates/booking/base.html:302 project/settings.py:386
 msgid "占いサロンチャンス"
 msgstr "Salão de Adivinhação Chance"
 
-#: booking/templates/booking/booking.html:12
 msgid "予約内容の確認"
 msgstr "Confirmação da reserva"
 
-#: booking/templates/booking/booking.html:29
-#: booking/templates/booking/channel_choice.html:29
-#: booking/templates/booking/reservation_qr.html:37
-msgid "日時"
-msgstr "Data e hora"
-
-#: booking/templates/booking/booking.html:31
 msgid "年"
 msgstr "Ano"
 
-#: booking/templates/booking/booking.html:31
 msgid "月"
 msgstr "Mês"
 
-#: booking/templates/booking/booking.html:31
 msgid "日"
 msgstr "Dia"
 
-#: booking/templates/booking/booking.html:36
-#: booking/templates/booking/channel_choice.html:31
-#: booking/templates/booking/reservation_qr.html:41
 msgid "料金"
 msgstr "Tarifa"
 
-#: booking/templates/booking/booking.html:37
-#: booking/templates/booking/channel_choice.html:32
-#: booking/templates/booking/date_first_calendar.html:89
-#: booking/templates/booking/email_form.html:36
-msgid "円"
-msgstr "ienes"
-
-#: booking/templates/booking/booking.html:44
 msgid ""
 "予約ボタンを押すとLINE認証画面に移動します。認証後、決済リンクをLINEでお送り"
 "します。"
@@ -1918,38 +1985,30 @@ msgstr ""
 "autenticação do LINE. Após a autenticação, enviaremos o link de pagamento "
 "pelo LINE."
 
-#: booking/templates/booking/booking.html:52
 msgid "LINEで予約手続きに進む"
 msgstr "Prosseguir com a reserva pelo LINE"
 
-#: booking/templates/booking/booking_top.html:5
 msgid "占いサロンチャンス　ご予約"
 msgstr "Salão de Adivinhação Chance - Reservas"
 
-#: booking/templates/booking/booking_top.html:97
 msgid "ご予約方法を選択してください"
 msgstr "Selecione o método de reserva"
 
-#: booking/templates/booking/booking_top.html:112
 msgid "店舗から選ぶ"
 msgstr "Buscar por loja"
 
-#: booking/templates/booking/booking_top.html:113
 #, python-format
 msgid "お近くの店舗を選んで、在籍する%(staff_label)sの中から予約できます。"
 msgstr ""
 "Escolha uma loja próxima e reserve entre os %(staff_label)s disponíveis."
 
-#: booking/templates/booking/booking_top.html:116
 msgid "店舗一覧へ"
 msgstr "Ver lojas"
 
-#: booking/templates/booking/booking_top.html:129
 #, python-format
 msgid "%(staff_label)sから選ぶ"
 msgstr "Escolher por %(staff_label)s"
 
-#: booking/templates/booking/booking_top.html:130
 #, python-format
 msgid ""
 "全店舗の%(staff_label)s一覧から、お気に入りの%(staff_label)sを見つけて予約で"
@@ -1958,286 +2017,198 @@ msgstr ""
 "Pesquise na lista de %(staff_label)s de todas as lojas e reserve o seu "
 "favorito."
 
-#: booking/templates/booking/booking_top.html:133
 #, python-format
 msgid "%(staff_label)s一覧へ"
 msgstr "Ver lista de %(staff_label)s"
 
-#: booking/templates/booking/booking_top.html:146
 msgid "日付から選ぶ"
 msgstr "Buscar por data"
 
-#: booking/templates/booking/booking_top.html:147
 #, python-format
 msgid "ご希望の日付を選んで、その日に空きのある%(staff_label)sを探せます。"
 msgstr "Escolha uma data e encontre %(staff_label)s disponíveis."
 
-#: booking/templates/booking/booking_top.html:150
 msgid "カレンダーへ"
 msgstr "Ver calendário"
 
-#: booking/templates/booking/booking_top.html:164
 msgid "占いグッズやパワーストーンなど、オンラインショップでお買い物できます。"
 msgstr ""
 "Compre artigos de adivinhação e pedras energéticas na nossa loja online."
 
-#: booking/templates/booking/booking_top.html:167
-#: booking/templates/booking/shop_cart.html:65
 msgid "ショップへ"
 msgstr "Ir para a loja"
 
-#: booking/templates/booking/booking_top.html:177
 msgid "ランキング"
 msgstr "Ranking"
 
-#: booking/templates/booking/booking_top.html:183
 #, python-format
 msgid "人気%(staff_label)s"
 msgstr "%(staff_label)s Populares"
 
-#: booking/templates/booking/booking_top.html:186
 msgid "人気店舗"
 msgstr "Lojas populares"
 
-#: booking/templates/booking/booking_top.html:217
-#: booking/templates/booking/booking_top.html:248
 msgid "予約数"
 msgstr "Reservas"
 
-#: booking/templates/booking/booking_top.html:217
-#: booking/templates/booking/booking_top.html:248
 msgid "件"
 msgstr "itens"
 
-#: booking/templates/booking/booking_top.html:272
 #, python-format
 msgid "おすすめ%(staff_label)s"
 msgstr "%(staff_label)s recomendados"
 
-#: booking/templates/booking/booking_top.html:290
 msgid "おすすめ店舗"
 msgstr "Lojas recomendadas"
 
-#: booking/templates/booking/calendar.html:5
-#: booking/templates/booking/calendar.html:45
 msgid "予約カレンダー"
 msgstr "Calendário de reservas"
 
-#: booking/templates/booking/calendar.html:58
-#: booking/templates/booking/calendar.html:116
 msgid "前の週"
 msgstr "Semana anterior"
 
-#: booking/templates/booking/calendar.html:62
-#: booking/templates/booking/calendar.html:210
-#: booking/templates/booking/my_page_calendar.html:23
 msgid "前週"
 msgstr "Sem. anterior"
 
-#: booking/templates/booking/calendar.html:75
-#: booking/templates/booking/calendar.html:147
 msgid "次の週"
 msgstr "Próxima semana"
 
-#: booking/templates/booking/calendar.html:76
-#: booking/templates/booking/calendar.html:218
-#: booking/templates/booking/my_page_calendar.html:27
 msgid "次週"
 msgstr "Próx. semana"
 
-#: booking/templates/booking/calendar.html:84
 msgid "予約したい日時をカレンダーから選択してください"
 msgstr "Selecione a data e hora desejada no calendário"
 
-#: booking/templates/booking/calendar.html:90
 msgid "空き"
 msgstr "Disponível"
 
-#: booking/templates/booking/calendar.html:94
-#: booking/templates/booking/calendar.html:173
 msgid "予約済み"
 msgstr "Reservado"
 
-#: booking/templates/booking/calendar.html:98
 msgid "仮予約"
 msgstr "Reserva provisória"
 
-#: booking/templates/booking/calendar.html:102
 msgid "受付終了"
 msgstr "Recepção encerrada"
 
-#: booking/templates/booking/calendar.html:138
-#: booking/templates/booking/date_first_calendar.html:58
 msgid "祝"
 msgstr "Feriado"
 
-#: booking/templates/booking/calendar.html:177
 msgid "仮予約中"
 msgstr "Reserva provisória em andamento"
 
-#: booking/templates/booking/calendar.html:184
 msgid "予約する"
 msgstr "Reservar"
 
-#: booking/templates/booking/cancel_success.html:4
-#: booking/templates/booking/cancel_success.html:13
 msgid "予約キャンセル完了"
 msgstr "Reserva Cancelada"
 
-#: booking/templates/booking/cancel_success.html:14
 msgid "予約のキャンセルが完了しました。"
 msgstr "A reserva foi cancelada."
 
-#: booking/templates/booking/cancel_success.html:16
 msgid "キャンセルされた予約:"
 msgstr "Reservas canceladas:"
 
-#: booking/templates/booking/cancel_success.html:18
 msgid "トップへ戻る"
 msgstr "Voltar ao Início"
 
-#: booking/templates/booking/channel_choice.html:5
-#: booking/templates/booking/channel_choice.html:16
 msgid "予約方法の選択"
 msgstr "Selecionar método de reserva"
 
-#: booking/templates/booking/channel_choice.html:20
 msgid "予約方法を選択してください"
 msgstr "Selecione o método de reserva"
 
-#: booking/templates/booking/channel_choice.html:25
 msgid "予約概要"
 msgstr "Resumo da reserva"
 
-#: booking/templates/booking/channel_choice.html:34
 msgid "※ 15分以内にお支払いがない場合、仮予約は自動キャンセルされます。"
 msgstr ""
 "* Se o pagamento não for efetuado em 15 minutos, a reserva provisória será "
 "cancelada automaticamente."
 
-#: booking/templates/booking/channel_choice.html:47
 msgid "LINEアカウントで予約"
 msgstr "Reservar com conta LINE"
 
-#: booking/templates/booking/channel_choice.html:57
 msgid "メール"
 msgstr "E-mail"
 
-#: booking/templates/booking/channel_choice.html:58
 msgid "メールアドレスで予約"
 msgstr "Reservar com endereço de e-mail"
 
-#: booking/templates/booking/channel_choice.html:64
 msgid "予約情報が見つかりません。最初からやり直してください。"
 msgstr ""
 "Informações da reserva não encontradas. Por favor, tente novamente desde o "
 "início."
 
-#: booking/templates/booking/channel_choice.html:66
-#: booking/templates/booking/email_payment_sent.html:47
 msgid "トップに戻る"
 msgstr "Voltar ao início"
 
-#: booking/templates/booking/checkin_scan.html:5
-#: booking/templates/booking/checkin_scan.html:17
 msgid "チェックインスキャン"
 msgstr "Leitura de check-in"
 
-#: booking/templates/booking/checkin_scan.html:20
 msgid "お客様のQRコードをカメラでスキャンしてください。"
 msgstr "Escaneie o código QR do cliente com a câmera."
 
-#: booking/templates/booking/checkin_scan.html:31
 msgid "手動入力"
 msgstr "Entrada manual"
 
-#: booking/templates/booking/checkin_scan.html:37
-#: booking/templates/booking/reservation_qr.html:45
 msgid "チェックイン"
 msgstr "Check-in"
 
-#: booking/templates/booking/checkin_scan.html:81
 msgid "チェックイン成功"
 msgstr "Check-in bem-sucedido"
 
-#: booking/templates/booking/checkin_scan.html:83
 msgid "エラーが発生しました"
 msgstr "Ocorreu um erro"
 
-#: booking/templates/booking/checkin_scan.html:110
 msgid "カメラを利用できません。手動入力をご利用ください。"
 msgstr "Câmera indisponível. Use a entrada manual."
 
-#: booking/templates/booking/date_first_calendar.html:5
-#: booking/templates/booking/date_first_calendar.html:16
-#: booking/templates/booking/date_first_calendar.html:22
 msgid "日付から予約"
 msgstr "Reservar por data"
 
-#: booking/templates/booking/date_first_calendar.html:23
 msgid "ご希望の日付を選択してください"
 msgstr "Selecione a data desejada"
 
-#: booking/templates/booking/date_first_calendar.html:95
 msgid "空き時間"
 msgstr "Horário disponível"
 
-#: booking/templates/booking/date_first_calendar.html:127
 msgid "上のカレンダーから日付を選択してください。"
 msgstr "Selecione uma data no calendário acima."
 
-#: booking/templates/booking/email_form.html:4
 msgid "メールで予約"
 msgstr "Reservar por e-mail"
 
-#: booking/templates/booking/email_form.html:16
-#: booking/templates/booking/email_verify.html:16
 msgid "予約方法"
 msgstr "Método de reserva"
 
-#: booking/templates/booking/email_form.html:19
 msgid "メール認証"
 msgstr "Verificação de e-mail"
 
-#: booking/templates/booking/email_form.html:23
 msgid "メールアドレスとお名前を入力してください"
 msgstr "Insira seu endereço de e-mail e nome"
 
-#: booking/templates/booking/email_form.html:44
-#: booking/templates/booking/shop_checkout.html:51
 msgid "お名前"
 msgstr "Nome"
 
-#: booking/templates/booking/email_form.html:55
-#: booking/templates/booking/shop_checkout.html:56
-msgid "メールアドレス"
-msgstr "Endereço de e-mail"
-
-#: booking/templates/booking/email_form.html:67
 msgid "認証コードを送信"
 msgstr "Enviar código de verificação"
 
-#: booking/templates/booking/email_payment_sent.html:4
 msgid "決済URLを送信しました"
 msgstr "URL de pagamento enviada"
 
-#: booking/templates/booking/email_payment_sent.html:18
 msgid "決済URLをメールで送信しました"
 msgstr "A URL de pagamento foi enviada por e-mail"
 
-#: booking/templates/booking/email_payment_sent.html:21
 msgid "様"
 msgstr "Sr./Sra."
 
-#: booking/templates/booking/email_payment_sent.html:22
 msgid "以下のメールアドレスに決済URLを送信しました。"
 msgstr "A URL de pagamento foi enviada para o seguinte endereço de e-mail."
 
-#: booking/templates/booking/email_payment_sent.html:27
 msgid "ご注意"
 msgstr "Atenção"
 
-#: booking/templates/booking/email_payment_sent.html:29
 msgid ""
 "15分以内にお支払いがない場合、仮予約は自動キャンセルされます。メールをご確認"
 "の上、お早めにお支払いください。"
@@ -2246,38 +2217,29 @@ msgstr ""
 "cancelada automaticamente. Verifique seu e-mail e efetue o pagamento o mais "
 "breve possível."
 
-#: booking/templates/booking/email_payment_sent.html:41
 msgid "決済URLの取得に失敗しました"
 msgstr "Falha ao obter a URL de pagamento"
 
-#: booking/templates/booking/email_payment_sent.html:42
 msgid "申し訳ございません。しばらくしてからもう一度お試しください。"
 msgstr "Pedimos desculpas. Por favor, tente novamente mais tarde."
 
-#: booking/templates/booking/email_verify.html:4
-#: booking/templates/booking/email_verify.html:19
 msgid "認証コード入力"
 msgstr "Inserir código de verificação"
 
-#: booking/templates/booking/email_verify.html:23
 msgid "認証コードを入力してください"
 msgstr "Insira o código de verificação"
 
-#: booking/templates/booking/email_verify.html:25
 msgid "以下のメールアドレスに6桁の認証コードを送信しました。"
 msgstr ""
 "Um código de verificação de 6 dígitos foi enviado para o seguinte endereço "
 "de e-mail."
 
-#: booking/templates/booking/email_verify.html:41
 msgid "認証コード（6桁）"
 msgstr "Código de verificação (6 dígitos)"
 
-#: booking/templates/booking/email_verify.html:51
 msgid "認証して予約を確定"
 msgstr "Verificar e confirmar reserva"
 
-#: booking/templates/booking/email_verify.html:55
 msgid ""
 "認証コードの有効期限は10分です。届かない場合は迷惑メールフォルダもご確認くだ"
 "さい。"
@@ -2285,19 +2247,15 @@ msgstr ""
 "O código de verificação é válido por 10 minutos. Se não receber, verifique "
 "também a pasta de spam."
 
-#: booking/templates/booking/help.html:4 booking/templates/booking/help.html:8
 msgid "ヘルプ・よくある質問"
 msgstr "Ajuda e perguntas frequentes"
 
-#: booking/templates/booking/help.html:15
 msgid "ご予約について"
 msgstr "Sobre as reservas"
 
-#: booking/templates/booking/help.html:20
 msgid "予約はどのように行いますか？"
 msgstr "Como fazer uma reserva?"
 
-#: booking/templates/booking/help.html:24
 msgid ""
 "トップページの「ご予約」から店舗を選び、ご希望の占い師のカレンダーから空き時"
 "間を選択してください。LINE認証後に予約が確定します。"
@@ -2306,11 +2264,9 @@ msgstr ""
 "disponível no calendário do adivinho/a de sua preferência. A reserva é "
 "confirmada após a autenticação com o LINE."
 
-#: booking/templates/booking/help.html:30
 msgid "予約のキャンセルはできますか？"
 msgstr "É possível cancelar uma reserva?"
 
-#: booking/templates/booking/help.html:34
 msgid ""
 "はい。予約確定後にLINEで届くメッセージ内のリンクからキャンセルが可能です。"
 "キャンセル料はかかりません。"
@@ -2318,33 +2274,26 @@ msgstr ""
 "Sim. Você pode cancelar pelo link na mensagem recebida pelo LINE após a "
 "confirmação da reserva. Não há taxa de cancelamento."
 
-#: booking/templates/booking/help.html:40
 msgid "予約の変更はできますか？"
 msgstr "É possível alterar uma reserva?"
 
-#: booking/templates/booking/help.html:44
 msgid "現在の予約をキャンセルして、改めてご予約ください。"
 msgstr "Cancele a reserva atual e faça uma nova reserva."
 
-#: booking/templates/booking/help.html:50
 msgid "当日予約はできますか？"
 msgstr "É possível reservar para o mesmo dia?"
 
-#: booking/templates/booking/help.html:54
 msgid "カレンダーに空きがあれば当日でもご予約いただけます。"
 msgstr ""
 "Se houver disponibilidade no calendário, é possível reservar inclusive para "
 "o mesmo dia."
 
-#: booking/templates/booking/help.html:63
 msgid "お支払いについて"
 msgstr "Sobre o pagamento"
 
-#: booking/templates/booking/help.html:68
 msgid "支払い方法は？"
 msgstr "Quais são os métodos de pagamento?"
 
-#: booking/templates/booking/help.html:72
 msgid ""
 "オンライン決済（クレジットカード）をご利用いただけます。予約時にLINE経由で決"
 "済リンクをお送りします。"
@@ -2352,11 +2301,9 @@ msgstr ""
 "Você pode utilizar o pagamento online (cartão de crédito). Enviaremos o link "
 "de pagamento pelo LINE no momento da reserva."
 
-#: booking/templates/booking/help.html:78
 msgid "鑑定料金はいくらですか？"
 msgstr "Quanto custa uma sessão de adivinhação?"
 
-#: booking/templates/booking/help.html:82
 msgid ""
 "占い師により異なります。各占い師のプロフィールページに料金（1時間あたり）が記"
 "載されています。"
@@ -2364,15 +2311,12 @@ msgstr ""
 "Varia de acordo com o/a adivinho/a. A tarifa (por hora) está indicada na "
 "página de perfil de cada adivinho/a."
 
-#: booking/templates/booking/help.html:91
 msgid "LINE連携について"
 msgstr "Sobre a integração com o LINE"
 
-#: booking/templates/booking/help.html:96
 msgid "LINEアカウントは必要ですか？"
 msgstr "É necessária uma conta do LINE?"
 
-#: booking/templates/booking/help.html:100
 msgid ""
 "はい。ご予約にはLINEログインが必要です。予約通知やタイマー機能もLINEを通じて"
 "お届けします。"
@@ -2381,25 +2325,20 @@ msgstr ""
 "notificações de reserva e a função de temporizador também são enviadas "
 "através do LINE."
 
-#: booking/templates/booking/help.html:106
 msgid "LINEの通知はどんな内容ですか？"
 msgstr "Que tipo de notificações são enviadas pelo LINE?"
 
-#: booking/templates/booking/help.html:110
 msgid "予約確定、キャンセル、鑑定タイマーのリンクなどをお送りします。"
 msgstr ""
 "Enviamos confirmações de reserva, cancelamentos, links do temporizador de "
 "sessão, entre outros."
 
-#: booking/templates/booking/help.html:119
 msgid "店舗について"
 msgstr "Sobre as lojas"
 
-#: booking/templates/booking/help.html:124
 msgid "どの店舗がありますか？"
 msgstr "Quais lojas estão disponíveis?"
 
-#: booking/templates/booking/help.html:128
 msgid ""
 "現在、新宿・池袋に店舗を展開しています。「店舗情報」メニューから詳細をご確認"
 "ください。"
@@ -2407,11 +2346,9 @@ msgstr ""
 "Atualmente temos lojas em Shinjuku e Ikebukuro. Consulte os detalhes no menu "
 "\"Informações das lojas\"."
 
-#: booking/templates/booking/help.html:134
 msgid "営業時間は？"
 msgstr "Qual é o horário de funcionamento?"
 
-#: booking/templates/booking/help.html:138
 msgid ""
 "各店舗の営業時間は店舗情報ページに記載されています。基本的に9:00〜17:00が鑑定"
 "可能時間です。"
@@ -2419,15 +2356,12 @@ msgstr ""
 "O horário de cada loja está indicado na página de informações das lojas. "
 "Geralmente, o horário de sessões é das 9:00 às 17:00."
 
-#: booking/templates/booking/help.html:147
 msgid "スタッフの方へ"
 msgstr "Para a equipe"
 
-#: booking/templates/booking/help.html:152
 msgid "マイページにアクセスするには？"
 msgstr "Como acessar minha página?"
 
-#: booking/templates/booking/help.html:156
 msgid ""
 "管理者から発行されたアカウントでログインし、ナビゲーションの「スタッフペー"
 "ジ」からアクセスしてください。"
@@ -2435,11 +2369,9 @@ msgstr ""
 "Faça login com a conta fornecida pelo administrador e acesse a partir de "
 "\"Página da equipe\" na navegação."
 
-#: booking/templates/booking/help.html:162
 msgid "シフト（休暇）の設定方法は？"
 msgstr "Como configurar turnos (férias)?"
 
-#: booking/templates/booking/help.html:166
 msgid ""
 "マイページ → カレンダー → 日付の「詳細」から、時間単位で休暇を設定できます。"
 "「全日休暇にする」で一日全体をブロックすることも可能です。"
@@ -2448,11 +2380,9 @@ msgstr ""
 "férias por hora. Também é possível bloquear o dia inteiro com \"Definir "
 "férias para o dia todo\"."
 
-#: booking/templates/booking/help.html:172
 msgid "予約の確認方法は？"
 msgstr "Como verificar as reservas?"
 
-#: booking/templates/booking/help.html:176
 msgid ""
 "マイページのカレンダーで「○」が空き、「×」が予約済みです。詳細をクリックする"
 "と予約者情報を確認できます。"
@@ -2460,11 +2390,9 @@ msgstr ""
 "No calendário de Minha página, \"○\" indica disponível e \"×\" indica "
 "reservado. Clique nos detalhes para ver as informações do cliente."
 
-#: booking/templates/booking/help.html:185
 msgid "お問い合わせ"
 msgstr "Contato"
 
-#: booking/templates/booking/help.html:189
 msgid ""
 "上記で解決しない場合は、各店舗までお電話いただくか、LINEの公式アカウントより"
 "お問い合わせください。"
@@ -2472,23 +2400,18 @@ msgstr ""
 "Se as informações acima não resolverem sua dúvida, ligue para a loja "
 "correspondente ou entre em contato pela conta oficial do LINE."
 
-#: booking/templates/booking/iot_sensor_dashboard.html:179
 msgid "IoT Sensor Dashboard"
 msgstr "Painel de sensores IoT"
 
-#: booking/templates/booking/iot_sensor_dashboard.html:186
 msgid "Select Device"
 msgstr "Selecionar dispositivo"
 
-#: booking/templates/booking/iot_sensor_dashboard.html:187
 msgid "Loading devices..."
 msgstr "Carregando dispositivos..."
 
-#: booking/templates/booking/iot_sensor_dashboard.html:218
 msgid "MQ-9 Gas"
 msgstr "Gás MQ-9"
 
-#: booking/templates/booking/iot_sensor_dashboard.html:219
 msgid ""
 "一酸化炭素(CO)・可燃性ガスの検知。値が高いほどガス濃度が高く、閾値超過でア"
 "ラート通知。"
@@ -2496,11 +2419,9 @@ msgstr ""
 "Detecção de monóxido de carbono (CO) e gases combustíveis. Quanto maior o "
 "valor, maior a concentração. Alerta quando o limite é excedido."
 
-#: booking/templates/booking/iot_sensor_dashboard.html:234
 msgid "Light"
 msgstr "Luz"
 
-#: booking/templates/booking/iot_sensor_dashboard.html:235
 msgid ""
 "照度センサー。室内の明るさをリアルタイム計測。営業時間外の異常な明るさ変化を"
 "検知可能。"
@@ -2508,91 +2429,105 @@ msgstr ""
 "Sensor de iluminação. Mede a luminosidade do ambiente em tempo real. Pode "
 "detectar mudanças anormais de luminosidade fora do horário de funcionamento."
 
-#: booking/templates/booking/iot_sensor_dashboard.html:250
 msgid "Sound"
 msgstr "Som"
 
-#: booking/templates/booking/iot_sensor_dashboard.html:251
 msgid "音量レベルの計測。店舗内の環境音を監視し、異常な騒音や静寂を検知。"
 msgstr ""
 "Medição do nível de som. Monitora o som ambiente da loja e detecta ruídos ou "
 "silêncio anormais."
 
-#: booking/templates/booking/iot_sensor_dashboard.html:267
 msgid "PIR Motion"
 msgstr "Movimento PIR"
 
-#: booking/templates/booking/iot_sensor_dashboard.html:270
 msgid "静止中"
 msgstr "Parado"
 
-#: booking/templates/booking/iot_sensor_dashboard.html:273
 msgid ""
 "人感（赤外線動体検知）センサー。人の出入りや在室状況をイベント数で表示。"
 msgstr ""
 "Sensor de presença (detecção de movimento por infravermelho). Exibe entradas/"
 "saídas e presença pelo número de eventos."
 
-#: booking/templates/booking/line_login.html:4
-#: booking/templates/booking/line_login.html:20
 msgid "LINEログイン"
 msgstr "Login com LINE"
 
-#: booking/templates/booking/line_login.html:24
 msgid "予約を確定するにはLINEアカウントでの認証が必要です。"
 msgstr ""
 "É necessária a autenticação com uma conta do LINE para confirmar a reserva."
 
-#: booking/templates/booking/line_login.html:34
 msgid "LINEでログイン"
 msgstr "Entrar com LINE"
 
-#: booking/templates/booking/line_logout.html:20
 msgid "ログアウトしました"
 msgstr "Sessão encerrada"
 
-#: booking/templates/booking/line_logout.html:25
 msgid "ログインへ戻る"
 msgstr "Voltar ao login"
 
-#: booking/templates/booking/line_success.html:4
-#: booking/templates/booking/line_success.html:20
 msgid "ログイン成功"
 msgstr "Login realizado com sucesso"
 
-#: booking/templates/booking/line_success.html:24
 #, python-format
 msgid "%(name)sさん、ようこそ！"
 msgstr "Bem-vindo/a, %(name)s!"
 
-#: booking/templates/booking/line_success.html:38
 msgid "決済リンクをLINEでお送りしました。"
 msgstr "O link de pagamento foi enviado pelo LINE."
 
-#: booking/templates/booking/line_success.html:41
 msgid "自動でリダイレクトします..."
 msgstr "Redirecionando automaticamente..."
 
-#: booking/templates/booking/line_success.html:41
-#: booking/templates/booking/property_detail.html:241
 msgid "秒"
 msgstr "segundos"
 
-#: booking/templates/booking/line_success.html:48
 msgid "決済リンクをLINEでお送りしました。LINEアプリをご確認ください。"
 msgstr ""
 "O link de pagamento foi enviado pelo LINE. Por favor, verifique o aplicativo "
 "LINE."
 
-#: booking/templates/booking/line_success.html:58
 msgid "LINEを開く"
 msgstr "Abrir LINE"
 
-#: booking/templates/booking/privacy_policy.html:17
+msgid "カレンダー"
+msgstr "Calendário"
+
+msgid "直近の予約"
+msgstr "Reservas recentes"
+
+msgid "プロフィール編集"
+msgstr "Editar perfil"
+
+msgid "プロフィールを保存しました。"
+msgstr "Perfil salvo."
+
+msgid "店舗スタッフ"
+msgstr "Equipe da loja"
+
+msgid "保存"
+msgstr "Salvar"
+
+msgid "戻る"
+msgstr "Voltar"
+
+msgid "トップ"
+msgstr "Início"
+
+msgid "お知らせ一覧に戻る"
+msgstr "Voltar à lista de notícias"
+
+msgid "お知らせ一覧"
+msgstr "Lista de notícias"
+
+msgid "前へ"
+msgstr "Anterior"
+
+msgid "次へ"
+msgstr "Seguinte"
+
 msgid "1. 個人情報の収集について"
 msgstr "1. Sobre a coleta de informações pessoais"
 
-#: booking/templates/booking/privacy_policy.html:18
 msgid ""
 "当サロンでは、予約やお問い合わせの際に、お名前、メールアドレス、LINE ID等の個"
 "人情報を収集することがあります。収集にあたっては、利用目的を明示し、適切な範"
@@ -2602,31 +2537,24 @@ msgstr ""
 "e ID do LINE ao fazer reservas ou consultas. A coleta é realizada dentro de "
 "um escopo adequado, com a finalidade claramente indicada."
 
-#: booking/templates/booking/privacy_policy.html:22
 msgid "2. 個人情報の利用目的"
 msgstr "2. Finalidade de uso das informações pessoais"
 
-#: booking/templates/booking/privacy_policy.html:24
 msgid "予約の受付・管理・ご連絡"
 msgstr "Recepção, gestão e comunicação de reservas"
 
-#: booking/templates/booking/privacy_policy.html:25
 msgid "サービス向上のためのアンケート実施"
 msgstr "Realização de pesquisas para melhoria do serviço"
 
-#: booking/templates/booking/privacy_policy.html:26
 msgid "お知らせ・キャンペーン情報のご案内"
 msgstr "Envio de notícias e informações sobre campanhas"
 
-#: booking/templates/booking/privacy_policy.html:27
 msgid "お問い合わせへの対応"
 msgstr "Atendimento de consultas"
 
-#: booking/templates/booking/privacy_policy.html:32
 msgid "3. 個人情報の第三者提供"
 msgstr "3. Fornecimento de informações pessoais a terceiros"
 
-#: booking/templates/booking/privacy_policy.html:33
 msgid ""
 "当サロンでは、法令に基づく場合を除き、事前にご本人の同意を得ることなく個人情"
 "報を第三者に提供することはありません。"
@@ -2634,11 +2562,9 @@ msgstr ""
 "Nosso salão não fornece informações pessoais a terceiros sem o consentimento "
 "prévio do titular, exceto quando exigido por lei."
 
-#: booking/templates/booking/privacy_policy.html:37
 msgid "4. 個人情報の管理"
 msgstr "4. Gestão de informações pessoais"
 
-#: booking/templates/booking/privacy_policy.html:38
 msgid ""
 "当サロンでは、個人情報の正確性及び安全性を確保するため、セキュリティ対策を講"
 "じ、個人情報の漏洩、改ざん、不正アクセスなどの防止に努めます。"
@@ -2647,11 +2573,9 @@ msgstr ""
 "segurança das informações pessoais, esforçando-se para prevenir vazamentos, "
 "alterações e acessos não autorizados."
 
-#: booking/templates/booking/privacy_policy.html:42
 msgid "5. Cookieの使用について"
 msgstr "5. Sobre o uso de Cookies"
 
-#: booking/templates/booking/privacy_policy.html:43
 msgid ""
 "当サイトでは、サービスの利便性向上のためCookieを使用する場合があります。"
 "Cookieにより個人を特定する情報は収集しません。ブラウザの設定でCookieの受け入"
@@ -2661,11 +2585,9 @@ msgstr ""
 "coletamos informações que identifiquem pessoalmente através de Cookies. É "
 "possível recusar Cookies nas configurações do navegador."
 
-#: booking/templates/booking/privacy_policy.html:47
 msgid "6. プライバシーポリシーの変更"
 msgstr "6. Alterações na política de privacidade"
 
-#: booking/templates/booking/privacy_policy.html:48
 msgid ""
 "当サロンは、必要に応じて本ポリシーを変更することがあります。変更後のプライバ"
 "シーポリシーは、本ページにて公表した時点から効力を生じるものとします。"
@@ -2673,500 +2595,425 @@ msgstr ""
 "Nosso salão pode alterar esta política conforme necessário. A política de "
 "privacidade alterada entra em vigor no momento da publicação nesta página."
 
-#: booking/templates/booking/privacy_policy.html:52
 msgid "7. お問い合わせ窓口"
 msgstr "7. Canal de contato"
 
-#: booking/templates/booking/privacy_policy.html:53
 msgid "個人情報の取り扱いに関するお問い合わせは、下記までご連絡ください。"
 msgstr ""
 "Para consultas sobre o tratamento de informações pessoais, entre em contato "
 "pelo endereço abaixo."
 
-#: booking/templates/booking/property_detail.html:4
 msgid "IoTモニタリング"
 msgstr "Monitoramento IoT"
 
-#: booking/templates/booking/property_detail.html:13
 msgid "物件一覧に戻る"
 msgstr "Voltar à lista de propriedades"
 
-#: booking/templates/booking/property_detail.html:37
 msgid "在室中"
 msgstr "Presente"
 
-#: booking/templates/booking/property_detail.html:42
 msgid "不在"
 msgstr "Ausente"
 
-#: booking/templates/booking/property_detail.html:52
 msgid "デバイス状況"
 msgstr "Estado do dispositivo"
 
-#: booking/templates/booking/property_detail.html:64
-#: booking/templates/booking/property_list.html:38
 msgid "オンライン"
 msgstr "Online"
 
-#: booking/templates/booking/property_detail.html:69
-#: booking/templates/booking/property_list.html:42
 msgid "オフライン"
 msgstr "Offline"
 
-#: booking/templates/booking/property_detail.html:77
 msgid "ガス(MQ-9)"
 msgstr "Gás (MQ-9)"
 
-#: booking/templates/booking/property_detail.html:83
 msgid "照度"
 msgstr "Iluminação"
 
-#: booking/templates/booking/property_detail.html:89
 msgid "音量"
 msgstr "Volume"
 
-#: booking/templates/booking/property_detail.html:95
 msgid "人感(PIR)"
 msgstr "Presença (PIR)"
 
-#: booking/templates/booking/property_detail.html:98
 msgid "検知"
 msgstr "Detectado"
 
-#: booking/templates/booking/property_detail.html:100
 msgid "なし"
 msgstr "Nenhum"
 
-#: booking/templates/booking/property_detail.html:108
 msgid "登録デバイスはありません。"
 msgstr "Não há dispositivos registrados."
 
-#: booking/templates/booking/property_detail.html:117
-#: booking/templates/booking/property_list.html:50
 msgid "アクティブアラート"
 msgstr "Alertas ativos"
 
-#: booking/templates/booking/property_detail.html:129
-msgid "操作"
-msgstr "Operação"
-
-#: booking/templates/booking/property_detail.html:139
-#: booking/templates/booking/property_detail.html:209
-#: booking/templates/booking/property_list.html:58
 msgid "危険"
 msgstr "Perigo"
 
-#: booking/templates/booking/property_detail.html:144
-#: booking/templates/booking/property_detail.html:213
 msgid "警告"
 msgstr "Aviso"
 
-#: booking/templates/booking/property_detail.html:149
-#: booking/templates/booking/property_detail.html:217
 msgid "情報"
 msgstr "Informação"
 
-#: booking/templates/booking/property_detail.html:162
 msgid "解決"
 msgstr "Resolver"
 
-#: booking/templates/booking/property_detail.html:172
 msgid "アクティブなアラートはありません。"
 msgstr "Não há alertas ativos."
 
-#: booking/templates/booking/property_detail.html:188
 msgid "解決済みアラート"
 msgstr "Alertas resolvidos"
 
-#: booking/templates/booking/property_detail.html:228
 msgid "解決済みアラートはありません。"
 msgstr "Não há alertas resolvidos."
 
-#: booking/templates/booking/property_detail.html:241
 msgid "自動更新"
 msgstr "Atualização automática"
 
-#: booking/templates/booking/property_detail.html:243
 msgid "最終更新"
 msgstr "Última atualização"
 
-#: booking/templates/booking/property_list.html:4
-#: booking/templates/booking/property_list.html:8
 msgid "物件IoTモニタリング"
 msgstr "Monitoramento IoT de propriedades"
 
-#: booking/templates/booking/property_list.html:9
 msgid "登録物件のデバイス状況とアラートを一覧で確認できます。"
 msgstr ""
 "Você pode consultar o estado dos dispositivos e os alertas das propriedades "
 "registradas."
 
-#: booking/templates/booking/property_list.html:78
 msgid "アラートなし"
 msgstr "Sem alertas"
 
-#: booking/templates/booking/property_list.html:87
 msgid "詳細を見る"
 msgstr "Ver detalhes"
 
-#: booking/templates/booking/property_list.html:95
 msgid "登録されている物件はありません。"
 msgstr "Não há propriedades registradas."
 
-#: booking/templates/booking/reservation_qr.html:5
 msgid "予約確認"
 msgstr "Confirmação de reserva"
 
-#: booking/templates/booking/reservation_qr.html:10
 msgid "予約確認・チェックインQR"
 msgstr "Confirmação de reserva / QR de check-in"
 
-#: booking/templates/booking/reservation_qr.html:17
 msgid "チェックインQRコード"
 msgstr "Código QR de check-in"
 
-#: booking/templates/booking/reservation_qr.html:18
 msgid "来店時にこのQRコードをスタッフに提示してください"
 msgstr "Apresente este código QR à equipe ao chegar"
 
-#: booking/templates/booking/reservation_qr.html:29
 msgid "お客様名"
 msgstr "Nome do cliente"
 
-#: booking/templates/booking/reservation_qr.html:33
 msgid "占い師"
 msgstr "Adivinho/a"
 
-#: booking/templates/booking/reservation_qr.html:50
 msgid "未チェックイン"
 msgstr "Sem check-in"
 
-#: booking/templates/booking/shop.html:9
-msgid "オンラインショップ"
-msgstr "Loja online"
-
-#: booking/templates/booking/shop.html:18
 msgid "商品を検索..."
 msgstr "Pesquisar produtos..."
 
-#: booking/templates/booking/shop.html:21
 msgid "検索"
 msgstr "Pesquisar"
 
-#: booking/templates/booking/shop.html:28
-#: booking/templates/booking/shop_cart.html:5
-#: booking/templates/booking/table_base.html:64
-#: booking/templates/booking/table_cart.html:3
-#: booking/templates/booking/table_cart.html:6
 msgid "カート"
 msgstr "Carrinho"
 
-#: booking/templates/booking/shop.html:38
-#: booking/templates/booking/table_menu.html:11
 msgid "すべて"
 msgstr "Tudo"
 
-#: booking/templates/booking/shop.html:67
+msgid "売り切れ"
+msgstr "Esgotado"
+
 msgid "在庫あり"
 msgstr "Em estoque"
 
-#: booking/templates/booking/shop.html:73
 msgid "カートに追加"
 msgstr "Adicionar ao carrinho"
 
-#: booking/templates/booking/shop.html:85
 msgid "商品が見つかりません"
 msgstr "Nenhum produto encontrado"
 
-#: booking/templates/booking/shop_cart.html:9
 msgid "ショッピングカート"
 msgstr "Carrinho de compras"
 
-#: booking/templates/booking/shop_cart.html:20
-#: booking/templates/booking/shop_checkout.html:22
-#: booking/templates/booking/table_order_history.html:45
 msgid "小計"
 msgstr "Subtotal"
 
-#: booking/templates/booking/shop_cart.html:49
 msgid "買い物を続ける"
 msgstr "Continuar comprando"
 
-#: booking/templates/booking/shop_cart.html:51
-#: booking/templates/booking/shop_checkout.html:36
-#: booking/templates/booking/table_cart.html:38
-#: booking/templates/booking/table_checkout.html:23
+#, python-format
+msgid "あと&yen;%(remaining)s以上で送料無料"
+msgstr "Frete grátis a partir de mais &yen;%(remaining)s"
+
+msgid "無料"
+msgstr "Grátis"
+
 msgid "合計"
 msgstr "Total"
 
-#: booking/templates/booking/shop_cart.html:53
 msgid "レジに進む"
 msgstr "Ir para o pagamento"
 
-#: booking/templates/booking/shop_cart.html:63
-#: booking/templates/booking/table_cart.html:57
 msgid "カートは空です"
 msgstr "O carrinho está vazio"
 
-#: booking/templates/booking/shop_checkout.html:5
-#: booking/templates/booking/shop_checkout.html:9
 msgid "注文確認"
 msgstr "Confirmação do pedido"
 
-#: booking/templates/booking/shop_checkout.html:15
 msgid "注文内容"
 msgstr "Detalhes do pedido"
 
-#: booking/templates/booking/shop_checkout.html:42
 msgid "カートに戻る"
 msgstr "Voltar ao carrinho"
 
-#: booking/templates/booking/shop_checkout.html:47
 msgid "お届け先情報"
 msgstr "Informações de envio"
 
-#: booking/templates/booking/shop_checkout.html:71
-#: booking/templates/booking/table_cart.html:48
+msgid "確認画面へ進む"
+msgstr "Ir para a tela de confirmação"
+
+msgid "ご注文確認"
+msgstr "Confirmação do pedido"
+
 msgid "注文を確定する"
 msgstr "Confirmar pedido"
 
-#: booking/templates/booking/staff_shift_calendar.html:17
+msgid "入力内容を修正する"
+msgstr "Corrigir informações inseridas"
+
+msgid "注文完了"
+msgstr "Pedido concluído"
+
+msgid "ご注文ありがとうございます"
+msgstr "Obrigado pelo seu pedido"
+
+msgid "ご注文が正常に処理されました。"
+msgstr "Seu pedido foi processado com sucesso."
+
+msgid "注文番号"
+msgstr "Número do pedido"
+
+msgid "お届け先"
+msgstr "Endereço de entrega"
+
+msgid "配送ステータス"
+msgstr "Estado de envio"
+
+msgid "発送準備中"
+msgstr "Preparando envio"
+
+msgid "発送時にメールでお知らせいたします。"
+msgstr "Será notificado por e-mail quando o pedido for enviado."
+
+msgid "ショップに戻る"
+msgstr "Voltar à loja"
+
+msgid "お支払い"
+msgstr "Pagamento"
+
+msgid "カード情報"
+msgstr "Informações do cartão"
+
+msgid "カード番号"
+msgstr "Número do cartão"
+
+msgid "有効期限"
+msgstr "Data de validade"
+
+msgid "カード名義人"
+msgstr "Titular do cartão"
+
+msgid "お支払い金額"
+msgstr "Valor do pagamento"
+
+msgid "※ デモ環境のため実際の課金は発生しません"
+msgstr "* Ambiente de demonstração - nenhuma cobrança real será efetuada"
+
+msgid "アクセス"
+msgstr "Acesso"
+
+msgid "地図"
+msgstr "Mapa"
+
+msgid "Google Mapsで開く"
+msgstr "Abrir no Google Maps"
+
+msgid "在籍"
+msgstr "Em atividade"
+
+msgid "現在この店舗にキャストは在籍していません。"
+msgstr "Atualmente não há pessoal cadastrado nesta loja."
+
+msgid "シフト管理"
+msgstr "Gestão de Turnos"
+
 msgid "募集中のシフト期間"
 msgstr "Períodos de turnos em recrutamento"
 
-#: booking/templates/booking/staff_shift_calendar.html:27
 msgid "希望入力"
 msgstr "Inserir preferência"
 
-#: booking/templates/booking/staff_shift_calendar.html:35
 msgid "現在募集中のシフト期間はありません。"
 msgstr "Não há períodos de turnos em recrutamento no momento."
 
-#: booking/templates/booking/staff_shift_calendar.html:42
 msgid "提出済みのシフト希望"
 msgstr "Preferências de turno enviadas"
 
-#: booking/templates/booking/staff_shift_calendar.html:47
 msgid "対象月"
 msgstr "Mês alvo"
 
-#: booking/templates/booking/staff_shift_calendar.html:49
-#: booking/templates/booking/staff_shift_submit.html:82
 msgid "時間"
 msgstr "Horário"
 
-#: booking/templates/booking/staff_shift_submit.html:4
-#: booking/templates/booking/staff_shift_submit.html:9
 msgid "シフト希望入力"
 msgstr "Inserir preferência de turno"
 
-#: booking/templates/booking/staff_shift_submit.html:43
-msgid "希望"
-msgstr "Preferência"
-
-#: booking/templates/booking/staff_shift_submit.html:44
-msgid "出勤可能"
-msgstr "Disponível para trabalhar"
-
-#: booking/templates/booking/staff_shift_submit.html:45
-msgid "出勤不可"
-msgstr "Indisponível"
-
-#: booking/templates/booking/staff_shift_submit.html:65
-msgid "任意のメモ"
-msgstr "Nota opcional"
-
-#: booking/templates/booking/staff_shift_submit.html:69
-msgid "登録する"
-msgstr "Registrar"
-
-#: booking/templates/booking/staff_shift_submit.html:76
-msgid "登録済みの希望"
-msgstr "Preferências registradas"
-
-#: booking/templates/booking/staff_shift_submit.html:109
 msgid "シフト管理に戻る"
 msgstr "Voltar à gestão de turnos"
 
-#: booking/templates/booking/store_list.html:9
-msgid "占いサロン店舗一覧"
-msgstr "Lista de lojas do Salão de Adivinhação"
-
-#: booking/templates/booking/store_list.html:47
 msgid "店舗所在地"
 msgstr "Localização da loja"
 
-#: booking/templates/booking/store_list.html:61
 msgid "交通／最寄駅"
 msgstr "Acesso / Estação mais próxima"
 
-#: booking/templates/booking/store_list.html:91
+msgid "道順"
+msgstr "Direções"
+
+msgid "店舗一覧に戻る"
+msgstr "Voltar à lista de lojas"
+
+msgid "占いサロン店舗一覧"
+msgstr "Lista de lojas do Salão de Adivinhação"
+
 msgid "まだ予約可能な店舗がありません。"
 msgstr "Ainda não há lojas disponíveis para reserva."
 
-#: booking/templates/booking/table_base.html:71
-#: booking/templates/booking/table_order_history.html:3
-#: booking/templates/booking/table_order_history.html:6
-msgid "注文履歴"
-msgstr "Histórico de Pedidos"
-
-#: booking/templates/booking/table_base.html:78
-#: booking/templates/booking/table_checkout.html:3
-#: booking/templates/booking/table_checkout.html:6
-#: booking/templates/booking/table_checkout_complete.html:3
 msgid "お会計"
 msgstr "Conta"
 
-#: booking/templates/booking/table_cart.html:58
 msgid "メニューへ戻る"
 msgstr "Voltar ao menu"
 
-#: booking/templates/booking/table_checkout.html:11
 msgid "ご注文内容"
 msgstr "Seu pedido"
 
-#: booking/templates/booking/table_checkout.html:29
 msgid "お支払い方法を選択"
 msgstr "Selecionar método de pagamento"
 
-#: booking/templates/booking/table_checkout.html:56
 msgid "決済方法が設定されていません"
 msgstr "Nenhum método de pagamento configurado"
 
-#: booking/templates/booking/table_checkout.html:57
 msgid "スタッフにお声がけください"
 msgstr "Por favor, pergunte ao funcionário"
 
-#: booking/templates/booking/table_checkout.html:64
-#: booking/templates/booking/table_order_history.html:65
 msgid "まだ注文がありません"
 msgstr "Ainda não há pedidos"
 
-#: booking/templates/booking/table_checkout.html:65
-#: booking/templates/booking/table_order_history.html:66
 msgid "メニューを見る"
 msgstr "Ver menu"
 
-#: booking/templates/booking/table_checkout_complete.html:13
 msgid "お会計をお待ちください"
 msgstr "Aguarde o pagamento"
 
-#: booking/templates/booking/table_checkout_complete.html:14
 msgid "スタッフがお席までお伺いします"
 msgstr "O funcionário irá à sua mesa"
 
-#: booking/templates/booking/table_checkout_complete.html:16
-#: booking/templates/booking/table_checkout_complete.html:36
 msgid "お支払い方法:"
 msgstr "Método de pagamento:"
 
-#: booking/templates/booking/table_checkout_complete.html:24
 msgid "決済処理中"
 msgstr "Processando Pagamento"
 
-#: booking/templates/booking/table_checkout_complete.html:25
 msgid "お支払い画面に遷移します..."
 msgstr "Redirecionando para pagamento..."
 
-#: booking/templates/booking/table_checkout_complete.html:33
 msgid "レジでお支払いください"
 msgstr "Pague no caixa"
 
-#: booking/templates/booking/table_checkout_complete.html:34
 msgid "お会計はレジにてお願いいたします"
 msgstr "Por favor, pague no caixa"
 
-#: booking/templates/booking/table_checkout_complete.html:40
 msgid "メニューに戻る"
 msgstr "Voltar ao menu"
 
-#: booking/templates/booking/table_menu.html:48
-#: booking/templates/booking/table_menu.html:115
+msgid "番号で検索（例: SH-001）"
+msgstr "Pesquisar por número (ex: SH-001)"
+
 msgid "追加"
 msgstr "Adicionar"
 
-#: booking/templates/booking/table_menu.html:56
 msgid "メニューはまだ登録されていません"
 msgstr "Nenhum item de menu registrado"
 
-#: booking/templates/booking/table_menu.html:63
+msgid "該当するメニューが見つかりません"
+msgstr "Nenhum item de menu encontrado"
+
 msgid "カートに追加しました"
 msgstr "Adicionado ao carrinho"
 
-#: booking/templates/booking/table_order_history.html:34
+msgid "通信エラーが発生しました"
+msgstr "Ocorreu um erro de comunicação"
+
 msgid "注文済"
 msgstr "Pedido feito"
 
-#: booking/templates/booking/table_order_history.html:35
 msgid "調理中"
 msgstr "Preparando"
 
-#: booking/templates/booking/table_order_history.html:36
 msgid "提供済"
 msgstr "Servido"
 
-#: booking/templates/booking/timer.html:5
-#: booking/templates/booking/timer.html:10
 msgid "鑑定タイマー"
 msgstr "Temporizador de sessão"
 
-#: booking/templates/booking/tokushoho.html:21
 msgid "販売業者"
 msgstr "Vendedor"
 
-#: booking/templates/booking/tokushoho.html:22
 msgid "会社情報をご確認ください"
 msgstr "Consulte as informações da empresa"
 
-#: booking/templates/booking/tokushoho.html:25
 msgid "代表者"
 msgstr "Representante"
 
-#: booking/templates/booking/tokushoho.html:26
 msgid "お問い合わせください"
 msgstr "Entre em contato"
 
-#: booking/templates/booking/tokushoho.html:29
 msgid "所在地"
 msgstr "Localização"
 
-#: booking/templates/booking/tokushoho.html:37
 msgid "サービス内容"
 msgstr "Conteúdo do serviço"
 
-#: booking/templates/booking/tokushoho.html:38
 msgid "占い鑑定サービスの提供"
 msgstr "Prestação de serviços de adivinhação"
 
-#: booking/templates/booking/tokushoho.html:45
 msgid "支払方法"
 msgstr "Método de pagamento"
 
-#: booking/templates/booking/tokushoho.html:46
 msgid "クレジットカード決済"
 msgstr "Pagamento por cartão de crédito"
 
-#: booking/templates/booking/tokushoho.html:49
 msgid "支払時期"
 msgstr "Momento do pagamento"
 
-#: booking/templates/booking/tokushoho.html:50
 msgid "予約確定時にお支払いいただきます。"
 msgstr "O pagamento é efetuado no momento da confirmação da reserva."
 
-#: booking/templates/booking/tokushoho.html:53
 msgid "サービス提供時期"
 msgstr "Período de prestação do serviço"
 
-#: booking/templates/booking/tokushoho.html:54
 msgid "予約された日時にサービスを提供いたします。"
 msgstr "O serviço será prestado na data e hora reservadas."
 
-#: booking/templates/booking/tokushoho.html:57
 msgid "キャンセルポリシー"
 msgstr "Política de cancelamento"
 
-#: booking/templates/booking/tokushoho.html:59
 msgid ""
 "予約確定後のキャンセルについては、マイページまたはお電話にて承ります。仮予約"
 "から15分以内にお支払いがない場合は自動キャンセルとなります。"
@@ -3175,119 +3022,749 @@ msgstr ""
 "por telefone. Se o pagamento não for efetuado em 15 minutos após a reserva "
 "provisória, o cancelamento será automático."
 
-#: booking/templates/booking/tokushoho.html:63
 msgid "返金について"
 msgstr "Sobre reembolsos"
 
-#: booking/templates/booking/tokushoho.html:64
 msgid ""
 "キャンセル時の返金については、個別にご対応いたします。お問い合わせください。"
 msgstr ""
 "Os reembolsos em caso de cancelamento serão tratados individualmente. Entre "
 "em contato."
 
-#: project/settings.py:384 project/settings.py:385
-msgid "占いサロンチャンス 管理画面"
-msgstr "Salão de Adivinhação Chance - Administração"
-
-#: project/settings.py:387
-msgid "占いサロンチャンス 管理画面へようこそ"
-msgstr "Bem-vindo ao Salão de Adivinhação Chance - Administração"
-
-#: project/settings.py:408
-msgid "売上ダッシュボード"
-msgstr "Painel de vendas"
-
-#: project/settings.py:412
-msgid "シフトカレンダー"
-msgstr "Calendário de turnos"
-
-#: project/settings.py:416
 msgid "QR勤怠"
 msgstr "Frequência QR"
 
-#: project/settings.py:420 templates/admin/booking/attendance_board.html:19
-msgid "出退勤ボード"
-msgstr "Painel de frequência"
+msgid "未出勤"
+msgstr "Não compareceu"
 
-#: project/settings.py:424
+msgid "出勤中"
+msgstr "Em serviço"
+
+msgid "退勤済"
+msgstr "Saída registrada"
+
+msgid "休憩中"
+msgstr "Em intervalo"
+
+msgid "5分以内に同一打刻があります"
+msgstr "Registro duplicado nos últimos 5 minutos"
+
+msgid "店舗の範囲外です"
+msgstr "Fora da área da loja"
+
+msgid "TOTP未設定です"
+msgstr "TOTP não configurado"
+
+msgid "PINが未設定です"
+msgstr "PIN não configurado"
+
+msgid "PINが正しくありません"
+msgstr "PIN incorreto"
+
+msgid "QRコードの有効期限切れです。再スキャンしてください"
+msgstr "O código QR expirou. Escaneie novamente"
+
+msgid "ログインが必要です"
+msgstr "Login necessário"
+
+msgid "権限がありません"
+msgstr "Sem permissão"
+
+msgid "開発者権限が必要です"
+msgstr "Permissão de desenvolvedor necessária"
+
+msgid "(ログファイル読み取りエラー)"
+msgstr "(Erro ao ler o arquivo de log)"
+
+#, python-format
+msgid "デバイスデバッグ: %(name)s"
+msgstr "Depuração do dispositivo: %(name)s"
+
+msgid "管理サイト"
+msgstr "Site de administração"
+
+msgid "不正なアクセスです。"
+msgstr "Acesso inválido."
+
+msgid "有効なカード番号を入力してください。"
+msgstr "Insira um número de cartão válido."
+
+msgid "有効期限を入力してください。"
+msgstr "Insira a data de validade."
+
+msgid "CVVを入力してください。"
+msgstr "Insira o CVV."
+
+msgid "カード名義人を入力してください。"
+msgstr "Insira o nome do titular do cartão."
+
+msgid "在庫管理ダッシュボード"
+msgstr "Painel de gestão de estoque"
+
+msgid "入荷数量"
+msgstr "Quantidade de entrada"
+
+msgid "入荷メモ（任意）"
+msgstr "Nota de entrada (opcional)"
+
+msgid "管理画面から入荷登録"
+msgstr "Registro de entrada pela administração"
+
+#, python-format
+msgid "%(name)s に %(qty)d 個入荷しました。"
+msgstr "%(qty)d unidades recebidas para %(name)s."
+
+msgid "入力内容を確認してください。"
+msgstr "Verifique as informações inseridas."
+
+msgid "テーブルが登録されていません。先にテーブルを作成してください。"
+msgstr "Nenhuma mesa registrada. Crie uma mesa primeiro."
+
+msgid "勤務実績"
+msgstr "Desempenho de trabalho"
+
 msgid "POS"
 msgstr "POS"
 
-#: project/settings.py:428
-msgid "キッチン"
-msgstr "Cozinha"
+msgid "調理開始"
+msgstr "Iniciar preparo"
 
-#: project/settings.py:432
-msgid "来客分析"
-msgstr "Análise de visitantes"
+msgid "戻す"
+msgstr "Reverter"
 
-#: project/settings.py:436
-msgid "AI推薦"
-msgstr "Recomendação IA"
+msgid "配膳完了"
+msgstr "Servido na mesa"
 
-#: project/settings.py:440
-msgid "デバッグパネル"
-msgstr "Painel de depuração"
+msgid "提供完了"
+msgstr "Entrega concluída"
 
-#: project/settings.py:445
-msgid "センサーモニター"
-msgstr "Monitor de sensores"
+msgid "完了"
+msgstr "Concluído"
 
-#: project/settings.py:449
-msgid "センサーダッシュボード"
-msgstr "Painel de sensores"
+msgid "注文はありません"
+msgstr "Não há pedidos"
 
-#: project/settings.py:458
-msgid "本番サイト"
-msgstr "Site de produção"
+msgid "完了済み（本日）"
+msgstr "Concluídos (hoje)"
 
-#: templates/admin/booking/ai_recommendation.html:44
+msgid "取り消し"
+msgstr "Desfazer"
+
+msgid "本日の完了注文はありません"
+msgstr "Não há pedidos concluídos hoje"
+
 msgid "モデル情報"
 msgstr "Informações do modelo"
 
-#: templates/admin/booking/ai_recommendation.html:63
 msgid "今週の推薦結果"
 msgstr "Resultados de recomendação desta semana"
 
-#: templates/admin/booking/attendance_qr.html:18
+msgid "マニュアル打刻（端末忘れ時）"
+msgstr "Registro manual (quando esqueceu o terminal)"
+
+msgid "出勤"
+msgstr "Entrada"
+
+msgid "退勤"
+msgstr "Saída"
+
+msgid "休憩開始"
+msgstr "Início do intervalo"
+
+msgid "休憩終了"
+msgstr "Fim do intervalo"
+
+msgid "選択してください"
+msgstr "Selecione"
+
+msgid "4桁PIN"
+msgstr "PIN de 4 dígitos"
+
+msgid "本日の打刻ログ"
+msgstr "Registro de ponto de hoje"
+
+msgid "時刻"
+msgstr "Horário"
+
+msgid "読込中..."
+msgstr "Carregando..."
+
 msgid "QR勤怠打刻"
 msgstr "Registro de frequência QR"
 
-#: templates/admin/booking/attendance_qr.html:23
 msgid "QRコード読込中..."
 msgstr "Carregando código QR..."
 
-#: templates/admin/booking/attendance_qr.html:28
 msgid "30秒ごとにQRコードが更新されます"
 msgstr "O código QR é atualizado a cada 30 segundos"
 
-#: templates/admin/booking/debug_panel.html:23
-#: templates/admin/booking/iot_device_debug.html:23
 msgid "Django site admin"
 msgstr "Administração do site Django"
 
-#: templates/admin/booking/debug_panel.html:27
-#: templates/admin/booking/iot_device_debug.html:27
+msgid "デバイス総数"
+msgstr "Total de dispositivos"
+
+msgid "直近イベント数"
+msgstr "Nº de eventos recentes"
+
+msgid "ログレベル"
+msgstr "Nível de log"
+
+msgid "デバイス接続状況"
+msgstr "Estado de conexão dos dispositivos"
+
+msgid "外部ID"
+msgstr "ID externo"
+
+msgid "最終通信"
+msgstr "Última comunicação"
+
+msgid "未接続"
+msgstr "Não conectado"
+
+msgid "IoTデバイスが見つかりません。"
+msgstr "Nenhum dispositivo IoT encontrado."
+
+msgid "10秒ごとに自動更新"
+msgstr "Atualização automática a cada 10 segundos"
+
+msgid "ログレベル設定"
+msgstr "Configuração de nível de log"
+
+msgid "ログレベルを更新しました。"
+msgstr "Nível de log atualizado."
+
+msgid "最近のAPIリクエスト"
+msgstr "Solicitações de API recentes"
+
+msgid "タイムスタンプ"
+msgstr "Timestamp"
+
+msgid "最近のイベントはありません。"
+msgstr "Não há eventos recentes."
+
+msgid "エラーログ"
+msgstr "Log de erros"
+
+msgid "ログ出力はありません。"
+msgstr "Não há saída de log."
+
+msgid "最終更新:"
+msgstr "Última atualização:"
+
+msgid "ログレベルの更新に失敗しました:"
+msgstr "Falha ao atualizar o nível de log:"
+
+msgid "発送待ち"
+msgstr "Aguardando envio"
+
+msgid "発送済み"
+msgstr "Enviado"
+
+msgid "配達完了"
+msgstr "Entrega concluída"
+
+msgid "発送不要"
+msgstr "Envio desnecessário"
+
+msgid "開始日"
+msgstr "Data de início"
+
+msgid "終了日"
+msgstr "Data de término"
+
+msgid "リセット"
+msgstr "Reiniciar"
+
+msgid "支払"
+msgstr "Pagamento"
+
+msgid "発送"
+msgstr "Envio"
+
+msgid "発送済みにする"
+msgstr "Marcar como enviado"
+
+msgid "注文がありません"
+msgstr "Não há pedidos"
+
+msgid "注文詳細"
+msgstr "Detalhes do pedido"
+
+msgid "顧客情報"
+msgstr "Informações do cliente"
+
+msgid "電話"
+msgstr "Telefone"
+
+msgid "商品明細"
+msgstr "Detalhes do produto"
+
+msgid "発送情報"
+msgstr "Informações de envio"
+
+msgid "ステータス"
+msgstr "Estado"
+
+msgid "追跡番号を入力"
+msgstr "Inserir número de rastreio"
+
+msgid "発送に関するメモ"
+msgstr "Nota sobre o envio"
+
+msgid "メモ保存"
+msgstr "Salvar nota"
+
+msgid "商品数"
+msgstr "Nº de produtos"
+
+msgid "低在庫"
+msgstr "Estoque baixo"
+
+msgid "在庫切れ"
+msgstr "Sem estoque"
+
+msgid "飲食メニュー"
+msgstr "Menu de alimentos e bebidas"
+
+msgid "低在庫のみ"
+msgstr "Apenas estoque baixo"
+
+msgid "入荷登録"
+msgstr "Registro de entrada"
+
+msgid "SKU"
+msgstr "SKU"
+
+msgid "在庫"
+msgstr "Estoque"
+
+msgid "商品がありません"
+msgstr "Não há produtos"
+
+msgid "キャンセル"
+msgstr "Cancelar"
+
+msgid "入荷する"
+msgstr "Receber entrada"
+
 msgid "Home"
 msgstr "Início"
 
-#: templates/admin/booking/visitor_analytics.html:43
+msgid "自動更新: 5秒 | 🔴=注文済 🟡=調理中 🟢=配膳済"
+msgstr "Atualização automática: 5s | 🔴=Pedido feito 🟡=Preparando 🟢=Servido"
+
+msgid "前月"
+msgstr "Mês anterior"
+
+msgid "次月"
+msgstr "Mês seguinte"
+
+msgid "全員"
+msgstr "Todos"
+
+msgid "ヘルプを表示"
+msgstr "Exibir ajuda"
+
+msgid "名"
+msgstr "pessoas"
+
+msgid "送信対象スタッフ"
+msgstr "Equipe destinatária"
+
+msgid "メッセージ入力"
+msgstr "Inserir mensagem"
+
+msgid "業務連絡の内容を入力してください..."
+msgstr "Insira o conteúdo da comunicação interna..."
+
+msgid "送信する"
+msgstr "Enviar"
+
+msgid "希望"
+msgstr "Preferência"
+
+msgid "出勤可能"
+msgstr "Disponível para trabalhar"
+
+msgid "出勤不可"
+msgstr "Indisponível"
+
+msgid "募集中の期間"
+msgstr "Período em recrutamento"
+
+msgid "締切"
+msgstr "Prazo"
+
+msgid "現在、募集中のシフト期間はありません。"
+msgstr "Não há períodos de turnos em recrutamento no momento."
+
+msgid "日付を選択"
+msgstr "Selecionar data"
+
+msgid "火"
+msgstr "Ter"
+
+msgid "水"
+msgstr "Qua"
+
+msgid "木"
+msgstr "Qui"
+
+msgid "金"
+msgstr "Sex"
+
+msgid "土"
+msgstr "Sáb"
+
+msgid "のシフト希望"
+msgstr " - Preferência de turno"
+
+msgid "任意"
+msgstr "Opcional"
+
+msgid "送信"
+msgstr "Enviar"
+
+msgid "送信済みの希望"
+msgstr "Preferências enviadas"
+
+msgid "まだ希望を送信していません。"
+msgstr "Ainda não enviou preferências."
+
+msgid "削除"
+msgstr "Excluir"
+
+msgid "確定シフト一覧"
+msgstr "Lista de turnos confirmados"
+
+msgid "確定済みのシフトはありません。"
+msgstr "Não há turnos confirmados."
+
+msgid "管理メニュー"
+msgstr "Menu de administração"
+
+msgid "シフト希望一覧"
+msgstr "Lista de preferências de turno"
+
+msgid "公開履歴"
+msgstr "Histórico de publicações"
+
+msgid "休業日一覧"
+msgstr "Lista de dias de encerramento"
+
+msgid "シフトテンプレート管理"
+msgstr "Gestão de modelos de turno"
+
+msgid "色"
+msgstr "Cor"
+
+msgid "開始"
+msgstr "Início"
+
+msgid "終了"
+msgstr "Fim"
+
+msgid "編集"
+msgstr "Editar"
+
+msgid "テンプレートがありません。下のフォームから追加してください。"
+msgstr "Não há modelos. Adicione pelo formulário abaixo."
+
+msgid "早番"
+msgstr "Turno da manhã"
+
+msgid "更新"
+msgstr "Atualizar"
+
+msgid "シフト募集"
+msgstr "Recrutamento de turnos"
+
+msgid "希望受付"
+msgstr "Recepção de preferências"
+
+msgid "自動配置"
+msgstr "Alocação automática"
+
+msgid "公開・通知"
+msgstr "Publicar e notificar"
+
+msgid "新規募集"
+msgstr "Novo recrutamento"
+
+msgid "締切日"
+msgstr "Data limite"
+
+msgid "募集を開始する"
+msgstr "Iniciar recrutamento"
+
+msgid "シフト期間がありません。「新規募集」ボタンから作成してください。"
+msgstr "Não há período de turno. Crie um pelo botão \"Novo recrutamento\"."
+
+msgid "休業日設定"
+msgstr "Configuração de dias de encerramento"
+
+msgid "閉じる"
+msgstr "Fechar"
+
+msgid "開く"
+msgstr "Abrir"
+
+msgid "クリックで営業日に戻す"
+msgstr "Clique para voltar a dia útil"
+
+msgid "クリックで休業日に設定"
+msgstr "Clique para definir como dia de encerramento"
+
+msgid ""
+"日付をクリックして休業日をトグルします。休業日はシフト自動配置で除外されま"
+"す。"
+msgstr "Clique na data para alternar dia de encerramento. Dias de encerramento são excluídos da alocação automática de turnos."
+
+msgid "人が希望提出済み"
+msgstr "pessoas enviaram preferências"
+
+msgid "希望件数"
+msgstr "Nº de preferências"
+
+msgid "提出者を閉じる"
+msgstr "Fechar lista de quem enviou"
+
+msgid "提出者を表示"
+msgstr "Exibir quem enviou"
+
+msgid ""
+"希望データを元にシフトを自動作成しますか？（既存のシフトは上書きされます）"
+msgstr "Deseja criar turnos automaticamente com base nas preferências? (Os turnos existentes serão sobrescritos)"
+
+msgid "自動配置を実行"
+msgstr "Executar alocação automática"
+
+msgid "シフトを公開する"
+msgstr "Publicar turnos"
+
+msgid "再募集する"
+msgstr "Recrutar novamente"
+
+msgid "スケジュール取消"
+msgstr "Cancelar agendamento"
+
+msgid "本当に公開しますか？スタッフに通知されます。"
+msgstr "Tem certeza que deseja publicar? A equipe será notificada."
+
+msgid "はい、公開する"
+msgstr "Sim, publicar"
+
+msgid "このシフトは公開済みです。スタッフに通知されました。"
+msgstr "Este turno já foi publicado. A equipe foi notificada."
+
+msgid "シフトを撤回する"
+msgstr "Revogar turno"
+
+msgid "シフト希望 代理入力"
+msgstr "Inserir preferência de turno (delegação)"
+
+msgid "対象スタッフ"
+msgstr "Funcionário alvo"
+
+msgid "スタッフを選択..."
+msgstr "Selecionar funcionário..."
+
+msgid "撤回"
+msgstr "Revogar"
+
+msgid "再募集"
+msgstr "Recrutar novamente"
+
+msgid "シフト撤回確認"
+msgstr "Confirmação de revogação de turno"
+
+msgid ""
+"公開済みシフトを撤回します。スケジュールがキャンセルされ、スタッフに通知され"
+"ます。"
+msgstr "O turno publicado será revogado. O agendamento será cancelado e a equipe será notificada."
+
+msgid "撤回理由"
+msgstr "Motivo da revogação"
+
+msgid "撤回の理由を入力してください"
+msgstr "Insira o motivo da revogação"
+
+msgid "撤回する"
+msgstr "Revogar"
+
+msgid "シフト変更理由"
+msgstr "Motivo da alteração de turno"
+
+msgid ""
+"公開済みシフトを変更します。変更ログが記録され、対象スタッフに通知されます。"
+msgstr "Alterar turno publicado. O log de alteração será registrado e os funcionários envolvidos serão notificados."
+
+msgid "変更の理由を入力してください"
+msgstr "Insira o motivo da alteração"
+
+msgid "変更を保存"
+msgstr "Salvar alterações"
+
+msgid "再募集確認"
+msgstr "Confirmação de novo recrutamento"
+
+msgid ""
+"現在のシフトを保持したまま、再度スタッフからの希望を受け付けます。追加の希望"
+"が集まった後、再度自動配置を実行できます。"
+msgstr "Aceitar novas preferências da equipe mantendo os turnos atuais. Após coletar preferências adicionais, a alocação automática pode ser executada novamente."
+
+msgid "再募集を開始"
+msgstr "Iniciar novo recrutamento"
+
+msgid "スケジュール取消確認"
+msgstr "Confirmação de cancelamento do agendamento"
+
+msgid ""
+"配置済みのシフトをすべて削除し、募集中の状態に戻します。スタッフの希望データ"
+"は保持されます。"
+msgstr "Excluir todos os turnos alocados e voltar ao estado de recrutamento. As preferências da equipe serão mantidas."
+
+msgid "取消する"
+msgstr "Cancelar"
+
+msgid "新規シフト"
+msgstr "Novo turno"
+
+msgid "作成"
+msgstr "Criar"
+
+msgid "履歴"
+msgstr "Histórico"
+
+msgid "保存して編集を続ける"
+msgstr "Salvar e continuar editando"
+
+msgid "保存する"
+msgstr "Salvar"
+
+msgid "関連ページ設定"
+msgstr "Configurações de páginas relacionadas"
+
+msgid "件登録"
+msgstr "registros"
+
+msgid "管理"
+msgstr "Administração"
+
+msgid "勤務実績ダッシュボード"
+msgstr "Painel de desempenho de trabalho"
+
+msgid "全店舗"
+msgstr "Todas as lojas"
+
+msgid "表"
+msgstr "Tabela"
+
+msgid "グラフ"
+msgstr "Gráfico"
+
+msgid "データがありません"
+msgstr "Não há dados"
+
+msgid "総勤務(h)"
+msgstr "Total trabalhado (h)"
+
+msgid "通常(h)"
+msgstr "Normal (h)"
+
+msgid "残業(h)"
+msgstr "Horas extras (h)"
+
+msgid "深夜(h)"
+msgstr "Noturno (h)"
+
+msgid "休日(h)"
+msgstr "Feriado (h)"
+
+msgid "休憩(h)"
+msgstr "Intervalo (h)"
+
+msgid "充足"
+msgstr "Suficiente"
+
+msgid "不足"
+msgstr "Insuficiente"
+
+msgid "通常シフト"
+msgstr "Turno normal"
+
+msgid "現在時刻"
+msgstr "Hora atual"
+
+msgid "スタッフが登録されていません"
+msgstr "Nenhum funcionário registrado"
+
 msgid "今日の来客数"
 msgstr "Visitantes de hoje"
 
-#: templates/admin/booking/visitor_analytics.html:47
 msgid "今日の注文数"
 msgstr "Pedidos de hoje"
 
-#: templates/admin/booking/visitor_analytics.html:51
 msgid "来客推移"
 msgstr "Tendência de visitantes"
 
-#: templates/admin/booking/visitor_analytics.html:56
 msgid "曜日×時間ヒートマップ"
 msgstr "Mapa de calor dia x hora"
 
-#: templates/admin/booking/visitor_analytics.html:57
 msgid "データ読込中..."
 msgstr "Carregando dados..."
+
+#~ msgid "EC公開をONにする"
+#~ msgstr "Ativar publicação EC"
+
+#~ msgid "EC公開をOFFにする"
+#~ msgstr "Desativar publicação EC"
+
+#~ msgid "機能ON/OFF"
+#~ msgstr "Ativar/Desativar funcionalidades"
+
+#~ msgid "キャスト管理"
+#~ msgstr "Gestão de Cast"
+
+#~ msgid "テーブル注文"
+#~ msgstr "Pedidos de Mesa"
+
+#~ msgid "占いスタッフ"
+#~ msgstr "Adivinho/a"
+
+#~ msgid "IoTデバイス"
+#~ msgstr "Dispositivo IoT"
+
+#~ msgid "テーブル/席"
+#~ msgstr "Mesa/Assento"
+
+#~ msgid "鑑定料"
+#~ msgstr "Tarifa de sessão"
+
+#~ msgid "円（１時間）"
+#~ msgstr "ienes (1 hora)"
+
+#~ msgid "任意のメモ"
+#~ msgstr "Nota opcional"
+
+#~ msgid "登録する"
+#~ msgstr "Registrar"
+
+#~ msgid "占いサロンチャンス 管理画面"
+#~ msgstr "Salão de Adivinhação Chance - Administração"
+
+#~ msgid "占いサロンチャンス 管理画面へようこそ"
+#~ msgstr "Bem-vindo ao Salão de Adivinhação Chance - Administração"
+
+#~ msgid "キッチン"
+#~ msgstr "Cozinha"
+
+#~ msgid "来客分析"
+#~ msgstr "Análise de visitantes"
+
+#~ msgid "センサーダッシュボード"
+#~ msgstr "Painel de sensores"
+
+#~ msgid "本番サイト"
+#~ msgstr "Site de produção"
