@@ -37,6 +37,8 @@ from booking.models import (
     DashboardLayout, SystemConfig,
     POSTransaction, AttendanceStamp, AttendanceTOTPConfig,
     TaxServiceCharge,
+    EvaluationCriteria,
+    StaffEvaluation,
 )
 
 
@@ -111,6 +113,9 @@ class Command(BaseCommand):
         self._seed_dashboard_layouts()
         self._seed_system_configs()
 
+        # ── スタッフ評価 ──
+        self._seed_staff_evaluations()
+
         self.stdout.write(self.style.SUCCESS('\n=== モックデータ投入完了 ==='))
 
     # ═════════════════════════════════════════════
@@ -173,6 +178,8 @@ class Command(BaseCommand):
     # ═════════════════════════════════════════════
     def _reset(self):
         self.stdout.write('モックデータを削除中...')
+        StaffEvaluation.objects.all().delete()
+        EvaluationCriteria.objects.all().delete()
         PayrollDeduction.objects.all().delete()
         PayrollEntry.objects.all().delete()
         PayrollPeriod.objects.all().delete()
@@ -506,7 +513,7 @@ class Command(BaseCommand):
                     price=price, stock=stock,
                     low_stock_threshold=low_threshold,
                     is_active=True,
-                    is_ec_visible=(cat_name == 'グッズ' or cat_name not in non_restaurant_categories),
+                    is_ec_visible=False,
                     popularity=random.randint(10, 100),
                     margin_rate=round(random.uniform(0.2, 0.6), 2),
                 )
@@ -892,16 +899,18 @@ class Command(BaseCommand):
                 order_count += 1
 
         # 今日の完了注文（キッチンディスプレイ右パネル用）
+        # 最初の2件はunpaid（取消可能）、3件目のみpaid
         for i in range(3):
             table = tables[i % len(tables)] if tables else None
             hour = random.randint(12, 17)
             closed_time = now.replace(hour=hour, minute=random.randint(0, 59), second=0)
+            is_paid = (i == 2)
             order = Order.objects.create(
                 store=self.store,
                 table_seat=table,
                 table_label=table.label if table else f'席{i+1}',
                 status='CLOSED',
-                payment_status='paid',
+                payment_status='paid' if is_paid else 'pending',
                 channel='table',
             )
             Order.objects.filter(pk=order.pk).update(
@@ -919,7 +928,7 @@ class Command(BaseCommand):
                 total += prod.price * qty
             tax = int(total * 0.1)
             Order.objects.filter(pk=order.pk).update(tax_amount=tax)
-            if payment_methods:
+            if payment_methods and is_paid:
                 receipt_counter += 1
                 POSTransaction.objects.create(
                     order=order,
@@ -1384,6 +1393,70 @@ class Command(BaseCommand):
         for key, value in configs:
             SystemConfig.objects.create(key=key, value=value)
         self.stdout.write(self.style.SUCCESS(f'  SystemConfig: {len(configs)}件'))
+
+    # ═════════════════════════════════════════════
+    # スタッフ評価デモ
+    # ═════════════════════════════════════════════
+    def _seed_staff_evaluations(self):
+        if StaffEvaluation.objects.exists():
+            self.stdout.write('  StaffEvaluation: skip')
+            return
+
+        today = date.today()
+        last_month_start = (today.replace(day=1) - timedelta(days=1)).replace(day=1)
+        last_month_end = today.replace(day=1) - timedelta(days=1)
+
+        # 評価基準マスタ
+        criteria_data = [
+            ('出勤率', 'attendance', True, 1.0, 0),
+            ('定時出勤', 'attendance', True, 0.8, 1),
+            ('接客態度', 'customer', False, 1.0, 2),
+            ('業務遂行力', 'performance', False, 0.9, 3),
+            ('チームワーク', 'attitude', False, 0.7, 4),
+        ]
+        criteria_objs = []
+        for name, cat, is_auto, weight, sort in criteria_data:
+            c, _ = EvaluationCriteria.objects.get_or_create(
+                store=self.store, name=name,
+                defaults={
+                    'category': cat, 'is_auto': is_auto,
+                    'weight': weight, 'sort_order': sort, 'is_active': True,
+                },
+            )
+            criteria_objs.append(c)
+
+        staff_list = Staff.objects.filter(store=self.store)
+        created = 0
+        for staff in staff_list:
+            attendance_rate = round(random.uniform(75, 100), 1)
+            punctuality = round(random.uniform(3.0, 5.0), 1)
+            work_hours = round(random.uniform(120, 200), 1)
+
+            manual_scores = {
+                str(c.id): random.randint(3, 5) for c in criteria_objs if not c.is_auto
+            }
+            overall = round(
+                (min(attendance_rate / 100, 1.0) * 5 * 0.5 + punctuality * 0.5), 1)
+
+            ev = StaffEvaluation(
+                staff=staff,
+                period_start=last_month_start,
+                period_end=last_month_end,
+                attendance_rate=attendance_rate,
+                punctuality_score=punctuality,
+                total_work_hours=work_hours,
+                scores=manual_scores,
+                overall_score=overall,
+                source='mixed',
+                is_published=True,
+                comment=f'{staff.name}さんの先月評価（デモ）',
+            )
+            ev.grade = ev.calculate_grade()
+            ev.save()
+            created += 1
+
+        self.stdout.write(self.style.SUCCESS(
+            f'  EvaluationCriteria: {len(criteria_data)}件, StaffEvaluation: {created}件'))
 
 
 # F() import shortcut

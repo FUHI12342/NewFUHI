@@ -416,7 +416,7 @@ class TestSidebarFeatureToggles:
         """全トグルON（デフォルト）で manager は全グループ表示"""
         slugs = self._get_slugs(admin_site, manager_request)
         for expected in ['reservation', 'shift', 'staff_manage', 'menu_manage',
-                         'order', 'pos', 'order_history', 'table_order']:
+                         'order', 'pos', 'kitchen', 'table_order']:
             assert expected in slugs, f'{expected} should be visible when toggle is ON'
 
     def test_toggle_off_hides_group(self, site_settings, admin_site, manager_request):
@@ -428,7 +428,7 @@ class TestSidebarFeatureToggles:
             ('show_admin_menu_manage', 'menu_manage'),
             ('show_admin_order', 'order'),
             ('show_admin_pos', 'pos'),
-            ('show_admin_order_history', 'order_history'),
+            ('show_admin_kitchen', 'kitchen'),
             ('show_admin_table_order', 'table_order'),
             ('show_admin_iot', 'iot'),
         ]

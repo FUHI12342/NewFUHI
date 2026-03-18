@@ -31,14 +31,14 @@ GROUPS = [
     {'slug': 'pin_clock', 'name': _('タイムカード打刻'), 'models': []},
     {'slug': 'reservation', 'name': _('予約管理'), 'models': ['schedule']},
     {'slug': 'shift', 'name': _('シフト'), 'models': ['shiftperiod', 'shiftrequest', 'shiftassignment', 'shifttemplate', 'shiftpublishhistory', 'storecloseddate'], 'hidden_models': ['shiftperiod', 'shiftrequest', 'shiftassignment', 'shifttemplate', 'shiftpublishhistory', 'storecloseddate']},
-    {'slug': 'staff_manage', 'name': _('従業員管理'), 'models': ['staff', 'employmentcontract', 'storescheduleconfig'], 'hidden_models': ['staff', 'employmentcontract', 'storescheduleconfig']},
+    {'slug': 'staff_manage', 'name': _('従業員管理'), 'models': ['staff', 'employmentcontract', 'storescheduleconfig', 'staffevaluation', 'evaluationcriteria'], 'hidden_models': ['staff', 'employmentcontract', 'storescheduleconfig', 'evaluationcriteria']},
     {'slug': 'payroll', 'name': _('給与管理'), 'models': ['payrollperiod', 'payrollentry', 'employmentcontract', 'salarystructure'], 'hidden': True},
     {'slug': 'attendance', 'name': _('勤怠管理'), 'models': ['workattendance', 'attendancetotpconfig', 'attendancestamp'], 'hidden': True},
-    {'slug': 'menu_manage', 'name': _('メニュー管理'), 'models': ['category', 'product']},
+    {'slug': 'menu_manage', 'name': _('店内メニュー'), 'models': ['category', 'product']},
     {'slug': 'inventory', 'name': _('在庫管理'), 'models': ['stockmovement']},
     {'slug': 'order', 'name': _('注文管理'), 'models': ['order']},
     {'slug': 'pos', 'name': _('レジ（POS）'), 'models': ['postransaction', 'taxservicecharge']},
-    {'slug': 'order_history', 'name': _('店内オーダー履歴'), 'models': []},
+    {'slug': 'kitchen', 'name': _('キッチンディスプレイ'), 'models': []},
     {'slug': 'ec_shop', 'name': _('オンラインショップ'), 'models': []},
     {'slug': 'table_order', 'name': _('店舗管理'), 'models': ['store', 'tableseat']},
     {'slug': 'iot', 'name': _('IoT管理'), 'models': ['iotdevice', 'ventilationautocontrol'], 'hidden_models': ['iotdevice']},
@@ -57,13 +57,13 @@ ROLE_VISIBLE_GROUPS = {
     'superuser': None,  # 全表示
     'developer': [
         'pin_clock', 'reservation', 'staff_manage',
-        'menu_manage', 'inventory', 'order', 'pos', 'order_history',
+        'menu_manage', 'inventory', 'order', 'pos', 'kitchen',
         'ec_shop', 'iot', 'system',
     ],
     'owner': None,      # 全表示
     'manager': [
         'pin_clock', 'reservation', 'shift', 'staff_manage',
-        'menu_manage', 'inventory', 'order', 'pos', 'order_history',
+        'menu_manage', 'inventory', 'order', 'pos', 'kitchen',
         'ec_shop', 'table_order', 'page_settings',
         'user_account', 'security',
     ],
@@ -107,11 +107,14 @@ SIDEBAR_CUSTOM_LINKS = {
         {'name': _('スタッフ一覧'), 'admin_url': '/admin/booking/staff/?staff_type__exact=store_staff', 'icon': 'fas fa-user'},
         {'name': _('勤怠実績'), 'admin_url': '/admin/attendance/performance/', 'icon': 'fas fa-chart-bar'},
     ],
-    'order': [],
+    'order': [
+        {'name': _('店内注文一覧'), 'admin_url': '/admin/booking/order/?channel__in=pos,table,reservation', 'icon': 'fas fa-utensils'},
+        {'name': _('EC注文一覧'), 'admin_url': '/admin/booking/order/?channel=ec', 'icon': 'fas fa-shopping-cart'},
+    ],
     'pos': [
         {'name': _('レジ画面'), 'admin_url': '/admin/pos/', 'icon': 'fas fa-cash-register'},
     ],
-    'order_history': [
+    'kitchen': [
         {'name': _('キッチンディスプレイ'), 'admin_url': '/admin/pos/kitchen/', 'icon': 'fas fa-utensils'},
     ],
     'menu_manage': [
@@ -119,7 +122,7 @@ SIDEBAR_CUSTOM_LINKS = {
     ],
     'ec_shop': [
         {'name': _('EC注文管理'), 'admin_url': '/admin/ec/orders/', 'icon': 'fas fa-shipping-fast'},
-        {'name': _('EC注文一覧(raw)'), 'admin_url': '/admin/booking/order/?channel=ec', 'icon': 'fas fa-list'},
+        {'name': _('EC商品管理'), 'admin_url': '/admin/booking/product/?is_ec_visible__exact=1', 'icon': 'fas fa-boxes'},
     ],
     'inventory': [
         {'name': _('在庫ダッシュボード'), 'admin_url': '/admin/inventory/', 'icon': 'fas fa-boxes'},
@@ -186,6 +189,7 @@ DEFAULT_ALLOWED_MODELS = {
         'tableseat', 'paymentmethod', 'postransaction', 'producttranslation',
         'visitorcount', 'visitoranalyticsconfig',
         'staffrecommendationmodel', 'staffrecommendationresult',
+        'staffevaluation', 'evaluationcriteria',
     ],
     'staff': [
         'schedule', 'order', 'staff',
@@ -454,7 +458,7 @@ class RoleBasedAdminSite(AdminSite):
                 'inventory': site_cfg.show_admin_inventory,
                 'order': site_cfg.show_admin_order,
                 'pos': site_cfg.show_admin_pos,
-                'order_history': site_cfg.show_admin_order_history,
+                'kitchen': site_cfg.show_admin_kitchen,
                 'ec_shop': site_cfg.show_admin_ec_shop,
                 'table_order': site_cfg.show_admin_table_order,
                 'iot': site_cfg.show_admin_iot,

@@ -74,6 +74,8 @@ from .models import (
     VentilationAutoControl,
     BusinessInsight,
     CustomerFeedback,
+    EvaluationCriteria,
+    StaffEvaluation,
 )
 
 
@@ -138,6 +140,7 @@ class StaffAdmin(admin.ModelAdmin):
     list_filter = ('staff_type', 'is_store_manager', 'store')
     list_editable = ('is_recommended',)
     search_fields = ('name', 'store__name')
+    save_on_top = True
 
     # --- superuser用（LINE ID含む全フィールド）---
     _su_fieldsets_cast = (
@@ -1094,6 +1097,24 @@ class ShiftChangeLogAdmin(admin.ModelAdmin):
     def has_change_permission(self, request, obj=None):
         return False
 
+    def has_delete_permission(self, request, obj=None):
+        return False
+
+    def has_view_permission(self, request, obj=None):
+        if request.user.is_superuser:
+            return True
+        from .admin_site import get_user_role, _get_allowed_models_for_role
+        role = get_user_role(request)
+        if role == 'none':
+            return False
+        allowed = _get_allowed_models_for_role(role)
+        if allowed is None:
+            return True
+        return 'shiftchangelog' in allowed
+
+    def has_module_permission(self, request):
+        return self.has_view_permission(request)
+
 
 custom_site.register(ShiftPeriod, ShiftPeriodAdmin)
 custom_site.register(ShiftRequest, ShiftRequestAdmin)
@@ -1107,6 +1128,7 @@ custom_site.register(ShiftChangeLog, ShiftChangeLogAdmin)
 class SiteSettingsAdmin(admin.ModelAdmin):
     """シングルトン設定 — 一覧は常にpk=1へリダイレクト"""
     change_form_template = 'admin/booking/sitesettings/change_form.html'
+    save_on_top = True
 
     fieldsets = (
         (_('基本設定'), {'fields': ('site_name', 'staff_label', 'staff_label_i18n', 'price_label')}),
@@ -1187,7 +1209,7 @@ class AdminSidebarSettingsAdmin(admin.ModelAdmin):
             'fields': (
                 'show_admin_reservation', 'show_admin_shift', 'show_admin_staff_manage',
                 'show_admin_menu_manage', 'show_admin_inventory',
-                'show_admin_order', 'show_admin_pos', 'show_admin_order_history',
+                'show_admin_order', 'show_admin_pos', 'show_admin_kitchen',
                 'show_admin_ec_shop', 'show_admin_table_order', 'show_admin_iot',
             ),
             'description': _('管理画面サイドバーに表示する機能を選択します。業態に合わせて使わない機能はOFFにして非表示にできます。'),
@@ -1799,6 +1821,106 @@ class CustomerFeedbackAdmin(admin.ModelAdmin):
     list_per_page = 50
 
 custom_site.register(CustomerFeedback, CustomerFeedbackAdmin)
+
+
+# ==============================
+# スタッフ評価
+# ==============================
+class EvaluationCriteriaAdmin(admin.ModelAdmin):
+    list_display = ('store', 'name', 'category', 'weight', 'is_auto', 'is_active', 'sort_order')
+    list_editable = ('sort_order', 'is_active', 'weight')
+    list_filter = ('store', 'category', 'is_auto', 'is_active')
+    search_fields = ('name',)
+
+
+class StaffEvaluationAdmin(admin.ModelAdmin):
+    list_display = (
+        'staff', 'period_start', 'period_end',
+        'attendance_rate', 'punctuality_score', 'overall_score',
+        'grade', 'source', 'is_published',
+    )
+    list_filter = ('grade', 'source', 'is_published', 'staff__store')
+    search_fields = ('staff__name', 'comment')
+    readonly_fields = (
+        'attendance_rate', 'punctuality_score', 'total_work_hours',
+        'created_at', 'updated_at',
+    )
+    date_hierarchy = 'period_end'
+    save_on_top = True
+
+    fieldsets = (
+        (None, {'fields': ('staff', 'evaluator', 'period_start', 'period_end')}),
+        (_('自動評価（勤怠データより）'), {
+            'fields': ('attendance_rate', 'punctuality_score', 'total_work_hours'),
+        }),
+        (_('手動評価'), {
+            'fields': ('scores', 'comment'),
+        }),
+        (_('総合'), {
+            'fields': ('overall_score', 'grade', 'source'),
+        }),
+        (_('スタッフコメント'), {
+            'fields': ('staff_comment',),
+        }),
+        (_('公開設定'), {
+            'fields': ('is_published', 'created_at', 'updated_at'),
+        }),
+    )
+
+    actions = ['auto_evaluate', 'publish_evaluations']
+
+    def auto_evaluate(self, request, queryset):
+        """選択した評価の自動評価フィールドを更新"""
+        from .services.staff_evaluation import (
+            calculate_attendance_rate, calculate_punctuality_score,
+            calculate_total_work_hours,
+        )
+        updated = 0
+        for ev in queryset:
+            ev.attendance_rate = calculate_attendance_rate(
+                ev.staff, ev.period_start, ev.period_end)
+            ev.punctuality_score = calculate_punctuality_score(
+                ev.staff, ev.period_start, ev.period_end)
+            ev.total_work_hours = calculate_total_work_hours(
+                ev.staff, ev.period_start, ev.period_end)
+            # 総合スコア再計算
+            parts = []
+            if ev.attendance_rate is not None:
+                parts.append(min(ev.attendance_rate / 100.0, 1.0) * 5.0 * 0.5)
+            if ev.punctuality_score is not None:
+                parts.append(ev.punctuality_score * 0.5)
+            if parts:
+                ev.overall_score = round(sum(parts) / (len(parts) * 0.5), 1)
+                ev.grade = ev.calculate_grade()
+            ev.source = 'auto' if not ev.scores else 'mixed'
+            ev.save()
+            updated += 1
+        self.message_user(request, f'{updated}件の自動評価を更新しました。')
+
+    auto_evaluate.short_description = _('自動評価を実行')
+
+    def publish_evaluations(self, request, queryset):
+        """選択した評価を公開"""
+        count = queryset.update(is_published=True)
+        self.message_user(request, f'{count}件を公開しました。')
+
+    publish_evaluations.short_description = _('選択した評価を公開')
+
+    def get_queryset(self, request):
+        qs = super().get_queryset(request)
+        if request.user.is_superuser:
+            return qs
+        try:
+            staff = request.user.staff
+            if staff.is_store_manager or staff.is_owner or staff.is_developer:
+                return qs.filter(staff__store=staff.store)
+            return qs.filter(staff=staff, is_published=True)
+        except Staff.DoesNotExist:
+            return qs.none()
+
+
+custom_site.register(EvaluationCriteria, EvaluationCriteriaAdmin)
+custom_site.register(StaffEvaluation, StaffEvaluationAdmin)
 
 
 logger.debug("booking.admin loaded")

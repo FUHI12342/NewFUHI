@@ -1094,6 +1094,151 @@ class CustomerFeedback(models.Model):
 
 
 # ==============================
+# スタッフ評価システム
+# ==============================
+
+class EvaluationCriteria(models.Model):
+    """評価基準マスタ"""
+    store = models.ForeignKey(
+        'Store', verbose_name=_('店舗'), on_delete=models.CASCADE,
+        related_name='evaluation_criteria',
+    )
+    name = models.CharField(_('評価項目名'), max_length=100)
+    description = models.TextField(_('説明'), blank=True, default='')
+    CATEGORY_CHOICES = [
+        ('attendance', '出勤・勤怠'),
+        ('performance', 'パフォーマンス'),
+        ('skill', 'スキル'),
+        ('attitude', '勤務態度'),
+        ('customer', '顧客対応'),
+    ]
+    category = models.CharField(
+        _('カテゴリ'), max_length=20, choices=CATEGORY_CHOICES,
+        default='performance',
+    )
+    weight = models.FloatField(
+        _('重み (0.0-1.0)'), default=1.0,
+        help_text=_('総合スコア計算時の重み付け'),
+    )
+    is_auto = models.BooleanField(
+        _('自動評価'), default=False,
+        help_text=_('勤怠データから自動計算する項目'),
+    )
+    sort_order = models.IntegerField(_('表示順'), default=0)
+    is_active = models.BooleanField(_('有効'), default=True)
+
+    class Meta:
+        app_label = 'booking'
+        verbose_name = _('評価基準')
+        verbose_name_plural = _('評価基準')
+        ordering = ('store', 'sort_order', 'name')
+        unique_together = ('store', 'name')
+
+    def __str__(self):
+        return f'{self.store.name} / {self.name}'
+
+
+class StaffEvaluation(models.Model):
+    """スタッフ評価レコード"""
+    staff = models.ForeignKey(
+        'Staff', verbose_name=_('スタッフ'), on_delete=models.CASCADE,
+        related_name='evaluations',
+    )
+    evaluator = models.ForeignKey(
+        'Staff', verbose_name=_('評価者'), on_delete=models.SET_NULL,
+        null=True, blank=True, related_name='given_evaluations',
+    )
+    period_start = models.DateField(_('評価期間（開始）'))
+    period_end = models.DateField(_('評価期間（終了）'))
+
+    # Auto-calculated from attendance
+    attendance_rate = models.FloatField(
+        _('出勤率 (%)'), null=True, blank=True,
+        help_text=_('シフト割当に対する実際の出勤率'),
+    )
+    punctuality_score = models.FloatField(
+        _('定時出勤スコア (0-5)'), null=True, blank=True,
+        help_text=_('遅刻・早退の少なさ'),
+    )
+    total_work_hours = models.FloatField(
+        _('総勤務時間'), null=True, blank=True,
+    )
+
+    # Manual evaluation
+    scores = models.JSONField(
+        _('項目別スコア'), default=dict, blank=True,
+        help_text=_('{"criteria_id": score} 形式。各スコアは1-5'),
+    )
+    overall_score = models.FloatField(
+        _('総合評価 (1.0-5.0)'), null=True, blank=True,
+    )
+
+    GRADE_CHOICES = [
+        ('S', 'S (卓越)'),
+        ('A', 'A (優秀)'),
+        ('B', 'B (良好)'),
+        ('C', 'C (標準)'),
+        ('D', 'D (要改善)'),
+    ]
+    grade = models.CharField(
+        _('評価ランク'), max_length=2, choices=GRADE_CHOICES,
+        blank=True, default='',
+    )
+
+    comment = models.TextField(_('評価コメント'), blank=True, default='')
+    staff_comment = models.TextField(
+        _('スタッフ自己評価'), blank=True, default='',
+        help_text=_('スタッフ本人のコメント'),
+    )
+
+    SOURCE_CHOICES = [
+        ('auto', '自動評価'),
+        ('manual', '手動評価'),
+        ('mixed', '自動+手動'),
+    ]
+    source = models.CharField(
+        _('評価ソース'), max_length=10, choices=SOURCE_CHOICES,
+        default='manual',
+    )
+
+    is_published = models.BooleanField(
+        _('公開済み'), default=False,
+        help_text=_('チェックするとスタッフ本人に表示されます'),
+    )
+    created_at = models.DateTimeField(_('作成日時'), auto_now_add=True)
+    updated_at = models.DateTimeField(_('更新日時'), auto_now=True)
+
+    class Meta:
+        app_label = 'booking'
+        verbose_name = _('スタッフ評価')
+        verbose_name_plural = _('スタッフ評価')
+        ordering = ('-period_end', 'staff__name')
+        indexes = [
+            models.Index(fields=['staff', '-period_end']),
+        ]
+        unique_together = ('staff', 'period_start', 'period_end')
+
+    def __str__(self):
+        return (f'{self.staff.name} ({self.period_start} ~ {self.period_end}) '
+                f'[{self.grade or "未評価"}]')
+
+    def calculate_grade(self):
+        """overall_score から評価ランクを算出"""
+        if self.overall_score is None:
+            return ''
+        score = self.overall_score
+        if score >= 4.5:
+            return 'S'
+        elif score >= 3.5:
+            return 'A'
+        elif score >= 2.5:
+            return 'B'
+        elif score >= 1.5:
+            return 'C'
+        return 'D'
+
+
+# ==============================
 # Phase 2: デバッグ / ランタイム設定
 # ==============================
 
@@ -1574,8 +1719,8 @@ class SiteSettings(models.Model):
         help_text=_('管理サイドバーに「注文管理」を表示するかどうか'))
     show_admin_pos = models.BooleanField(_('レジ（POS）を表示'), default=True,
         help_text=_('管理サイドバーに「レジ（POS）」を表示するかどうか'))
-    show_admin_order_history = models.BooleanField(_('店内オーダー履歴を表示'), default=True,
-        help_text=_('管理サイドバーに「店内オーダー履歴」を表示するかどうか'))
+    show_admin_kitchen = models.BooleanField(_('キッチンディスプレイを表示'), default=True,
+        help_text=_('管理サイドバーに「キッチンディスプレイ」を表示するかどうか'))
     show_admin_ec_shop = models.BooleanField(_('オンラインショップを表示'), default=True,
         help_text=_('管理サイドバーに「オンラインショップ」を表示するかどうか'))
     show_admin_table_order = models.BooleanField(_('店舗管理を表示'), default=True,
