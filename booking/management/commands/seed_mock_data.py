@@ -671,18 +671,9 @@ class Command(BaseCommand):
         if ShiftTemplate.objects.filter(store=self.store).exists():
             self.stdout.write('  ShiftTemplate: skip')
             return
-        templates = [
-            ('昼シフト', time(13, 0), time(18, 0), '#3B82F6'),
-            ('夜シフト', time(18, 0), time(23, 0), '#8B5CF6'),
-            ('通しシフト', time(13, 0), time(23, 0), '#10B981'),
-        ]
-        for i, (name, start, end, color) in enumerate(templates):
-            ShiftTemplate.objects.create(
-                store=self.store, name=name,
-                start_time=start, end_time=end,
-                color=color, sort_order=i,
-            )
-        self.stdout.write(self.style.SUCCESS('  ShiftTemplate: 3件'))
+        # シフトテンプレートは店舗ごとにカスタム設定するため、シードでは作成しない
+        self.stdout.write('  ShiftTemplate: skip (店舗個別設定)')
+
 
     # ═════════════════════════════════════════════
     # ShiftPeriod + ShiftRequest + ShiftAssignment
