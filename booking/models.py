@@ -1652,6 +1652,47 @@ class StoreClosedDate(models.Model):
         return f"{self.store.name} {self.date} {self.reason}"
 
 
+class ShiftStaffRequirement(models.Model):
+    """曜日ごとのデフォルト必要人数"""
+    DAY_CHOICES = [
+        (0, '月曜'), (1, '火曜'), (2, '水曜'), (3, '木曜'),
+        (4, '金曜'), (5, '土曜'), (6, '日曜'),
+    ]
+    store = models.ForeignKey(Store, on_delete=models.CASCADE, related_name='staff_requirements')
+    day_of_week = models.IntegerField(_('曜日'), choices=DAY_CHOICES)
+    staff_type = models.CharField(_('従業員種別'), max_length=20, choices=STAFF_TYPE_CHOICES)
+    required_count = models.PositiveIntegerField(_('必要人数'), default=1)
+
+    class Meta:
+        app_label = 'booking'
+        unique_together = ('store', 'day_of_week', 'staff_type')
+        ordering = ['day_of_week', 'staff_type']
+        verbose_name = _('シフト必要人数（曜日別）')
+        verbose_name_plural = _('シフト必要人数（曜日別）')
+
+    def __str__(self):
+        return f"{self.store.name} {self.get_day_of_week_display()} {self.get_staff_type_display()} ×{self.required_count}"
+
+
+class ShiftStaffRequirementOverride(models.Model):
+    """特定日の必要人数オーバーライド（棚卸し日など）"""
+    store = models.ForeignKey(Store, on_delete=models.CASCADE, related_name='staff_requirement_overrides')
+    date = models.DateField(_('日付'))
+    staff_type = models.CharField(_('従業員種別'), max_length=20, choices=STAFF_TYPE_CHOICES)
+    required_count = models.PositiveIntegerField(_('必要人数'), default=1)
+    reason = models.CharField(_('理由'), max_length=100, blank=True, default='')
+
+    class Meta:
+        app_label = 'booking'
+        unique_together = ('store', 'date', 'staff_type')
+        ordering = ['date', 'staff_type']
+        verbose_name = _('シフト必要人数（日付指定）')
+        verbose_name_plural = _('シフト必要人数（日付指定）')
+
+    def __str__(self):
+        return f"{self.store.name} {self.date} {self.get_staff_type_display()} ×{self.required_count}"
+
+
 class AdminTheme(models.Model):
     """管理画面UIカスタムテーマ"""
     store = models.OneToOneField(Store, on_delete=models.CASCADE, related_name='admin_theme')

@@ -12,12 +12,33 @@ from booking.models import (
     ShiftAssignment,
     ShiftPublishHistory,
     ShiftChangeLog,
+    ShiftStaffRequirement,
+    ShiftStaffRequirementOverride,
     Schedule,
     StoreScheduleConfig,
     StoreClosedDate,
 )
 
 logger = logging.getLogger(__name__)
+
+
+def get_required_counts(store, target_date):
+    """指定日の必要人数を取得（オーバーライド優先）
+
+    Returns:
+        dict: {staff_type: required_count}
+    """
+    overrides = ShiftStaffRequirementOverride.objects.filter(
+        store=store, date=target_date,
+    )
+    if overrides.exists():
+        return {o.staff_type: o.required_count for o in overrides}
+
+    day_of_week = target_date.weekday()
+    defaults = ShiftStaffRequirement.objects.filter(
+        store=store, day_of_week=day_of_week,
+    )
+    return {d.staff_type: d.required_count for d in defaults}
 
 
 def _get_store_config(store):

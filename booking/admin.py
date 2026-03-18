@@ -78,6 +78,8 @@ from .models import (
     StaffEvaluation,
     ECCategory,
     ECProduct,
+    ShiftStaffRequirement,
+    ShiftStaffRequirementOverride,
 )
 
 
@@ -1905,6 +1907,55 @@ class StoreClosedDateAdmin(admin.ModelAdmin):
 
 
 custom_site.register(StoreClosedDate, StoreClosedDateAdmin)
+
+
+class ShiftStaffRequirementAdmin(admin.ModelAdmin):
+    list_display = ('store', 'get_day_display', 'get_staff_type_display', 'required_count')
+    list_filter = ('store', 'day_of_week', 'staff_type')
+    list_editable = ('required_count',)
+
+    @admin.display(description=_('曜日'), ordering='day_of_week')
+    def get_day_display(self, obj):
+        return obj.get_day_of_week_display()
+
+    @admin.display(description=_('種別'), ordering='staff_type')
+    def get_staff_type_display(self, obj):
+        return obj.get_staff_type_display()
+
+    actions = ['bulk_create_all_days']
+
+    @admin.action(description=_('全曜日×全種別のデフォルト設定を一括作成'))
+    def bulk_create_all_days(self, request, queryset):
+        from .models import STAFF_TYPE_CHOICES
+        stores = set(queryset.values_list('store_id', flat=True))
+        created = 0
+        for store_id in stores:
+            for day in range(7):
+                for st_code, _label in STAFF_TYPE_CHOICES:
+                    _, was_created = ShiftStaffRequirement.objects.get_or_create(
+                        store_id=store_id,
+                        day_of_week=day,
+                        staff_type=st_code,
+                        defaults={'required_count': 1},
+                    )
+                    if was_created:
+                        created += 1
+        self.message_user(request, f'{created}件の設定を作成しました', messages.SUCCESS)
+
+
+class ShiftStaffRequirementOverrideAdmin(admin.ModelAdmin):
+    list_display = ('store', 'date', 'get_staff_type_display', 'required_count', 'reason')
+    list_filter = ('store', 'staff_type')
+    list_editable = ('required_count',)
+    date_hierarchy = 'date'
+
+    @admin.display(description=_('種別'), ordering='staff_type')
+    def get_staff_type_display(self, obj):
+        return obj.get_staff_type_display()
+
+
+custom_site.register(ShiftStaffRequirement, ShiftStaffRequirementAdmin)
+custom_site.register(ShiftStaffRequirementOverride, ShiftStaffRequirementOverrideAdmin)
 
 
 # ==============================

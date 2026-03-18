@@ -51,6 +51,27 @@
 {% block content %}
 <h2 style="margin:0 0 4px;">{{ today|date:"Y年m月d日" }} {% trans "本日のシフト" %}</h2>
 
+{% if today_coverage %}
+<div style="display:flex;gap:16px;margin:8px 0 12px;font-size:14px;">
+  {% for stype, cv in today_coverage.items %}
+    {% if cv.required > 0 %}
+    <div style="display:flex;align-items:center;gap:6px;">
+      <span style="font-weight:600;">{% if stype == "fortune_teller" %}{% trans "キャスト" %}{% else %}{% trans "スタッフ" %}{% endif %}</span>
+      <span style="padding:2px 10px;border-radius:10px;color:#fff;font-weight:700;font-size:13px;
+        {% if cv.assigned >= cv.required %}background:#22c55e;{% else %}background:#ef4444;{% endif %}">
+        {{ cv.assigned }} / {{ cv.required }}
+      </span>
+      {% if cv.assigned >= cv.required %}
+        <span style="color:#22c55e;font-size:12px;">{% trans "充足" %}</span>
+      {% else %}
+        <span style="color:#ef4444;font-size:12px;">{% trans "不足" %}</span>
+      {% endif %}
+    </div>
+    {% endif %}
+  {% endfor %}
+</div>
+{% endif %}
+
 {% if staffs %}
 <div class="timeline-container">
   <div class="timeline-grid" id="timeline-grid">

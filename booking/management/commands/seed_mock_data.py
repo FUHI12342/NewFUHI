@@ -26,7 +26,7 @@ from booking.models import (
     Order, OrderItem, StockMovement,
     TableSeat, PaymentMethod, StoreScheduleConfig,
     ShiftPeriod, ShiftRequest, ShiftAssignment, ShiftTemplate,
-    ShiftPublishHistory,
+    ShiftPublishHistory, ShiftStaffRequirement, ShiftStaffRequirementOverride,
     AdminTheme, SiteSettings, HomepageCustomBlock, ExternalLink,
     HeroBanner, BannerAd,
     EmploymentContract, WorkAttendance, PayrollPeriod, PayrollEntry,
@@ -81,6 +81,7 @@ class Command(BaseCommand):
         # ── シフト ──
         self._seed_shift_templates()
         self._seed_shift_periods()
+        self._seed_shift_requirements()
         self._seed_employment_contracts()
 
         # ── 予約・注文（ダッシュボードKPI用）──
@@ -194,6 +195,8 @@ class Command(BaseCommand):
         ShiftRequest.objects.all().delete()
         ShiftPeriod.objects.all().delete()
         ShiftTemplate.objects.all().delete()
+        ShiftStaffRequirement.objects.all().delete()
+        ShiftStaffRequirementOverride.objects.all().delete()
         EmploymentContract.objects.all().delete()
         ProductTranslation.objects.all().delete()
         Product.objects.all().delete()
@@ -745,6 +748,46 @@ class Command(BaseCommand):
         synced = ShiftAssignment.objects.filter(period__store=self.store, is_synced=True).count()
         self.stdout.write(self.style.SUCCESS(
             f'  Shift: 2期間, 希望{req}件, 割当{assign}件(同期済{synced}件)'))
+
+    # ═════════════════════════════════════════════
+    # ShiftStaffRequirement（曜日別デフォルト必要人数）
+    # ═════════════════════════════════════════════
+    def _seed_shift_requirements(self):
+        if ShiftStaffRequirement.objects.filter(store=self.store).exists():
+            self.stdout.write('  ShiftStaffRequirement: skip')
+            return
+
+        created = 0
+        for day in range(7):
+            is_weekend = day >= 5
+            ShiftStaffRequirement.objects.update_or_create(
+                store=self.store, day_of_week=day, staff_type='fortune_teller',
+                defaults={'required_count': 3 if is_weekend else 2},
+            )
+            ShiftStaffRequirement.objects.update_or_create(
+                store=self.store, day_of_week=day, staff_type='store_staff',
+                defaults={'required_count': 2 if is_weekend else 1},
+            )
+            created += 2
+
+        # オーバーライドサンプル（来週の水曜を棚卸しで少人数に）
+        from datetime import date as date_cls
+        today = date_cls.today()
+        days_until_wed = (2 - today.weekday()) % 7
+        if days_until_wed == 0:
+            days_until_wed = 7
+        next_wed = today + timedelta(days=days_until_wed)
+        ShiftStaffRequirementOverride.objects.update_or_create(
+            store=self.store, date=next_wed, staff_type='fortune_teller',
+            defaults={'required_count': 1, 'reason': '棚卸し日'},
+        )
+        ShiftStaffRequirementOverride.objects.update_or_create(
+            store=self.store, date=next_wed, staff_type='store_staff',
+            defaults={'required_count': 1, 'reason': '棚卸し日'},
+        )
+
+        self.stdout.write(self.style.SUCCESS(
+            f'  ShiftStaffRequirement: {created}件 + オーバーライド2件'))
 
     # ═════════════════════════════════════════════
     # EmploymentContract

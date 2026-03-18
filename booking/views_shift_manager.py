@@ -13,6 +13,7 @@ from booking.models import (
     Store, Staff, ShiftPeriod, ShiftAssignment,
     ShiftTemplate, ShiftPublishHistory, ShiftRequest,
 )
+from booking.services.shift_scheduler import get_required_counts
 
 logger = logging.getLogger(__name__)
 
@@ -94,6 +95,24 @@ def _render_calendar_section(request, store, week_start_str=None, staff_type_fil
     if not active_period:
         active_period = ShiftPeriod.objects.filter(store=store).order_by('-year_month').first()
 
+    # 必要人数 vs 配置人数カバレッジ
+    coverage = {}
+    if store:
+        for d in week_dates:
+            required = get_required_counts(store, d)
+            assigned_cast = assign_qs.filter(date=d, staff__staff_type='fortune_teller').count()
+            assigned_staff = assign_qs.filter(date=d, staff__staff_type='store_staff').count()
+            coverage[d.isoformat()] = {
+                'fortune_teller': {
+                    'required': required.get('fortune_teller', 0),
+                    'assigned': assigned_cast,
+                },
+                'store_staff': {
+                    'required': required.get('store_staff', 0),
+                    'assigned': assigned_staff,
+                },
+            }
+
     return render_to_string('admin/booking/partials/shift_toolbar_grid.html', {
         'staffs': staffs,
         'cast_staffs': cast_staffs,
@@ -101,6 +120,7 @@ def _render_calendar_section(request, store, week_start_str=None, staff_type_fil
         'week_dates': week_dates,
         'grid': grid,
         'templates': templates,
+        'coverage': coverage,
         'week_start': week_dates[0].isoformat(),
         'prev_week': (week_dates[0] - timedelta(weeks=1)).isoformat(),
         'next_week': (week_dates[0] + timedelta(weeks=1)).isoformat(),
@@ -311,6 +331,23 @@ class TodayShiftTimelineView(AdminSidebarMixin, TemplateView):
             for k, v in staff_shifts.items()
         })
 
+        # 本日の必要人数サマリ
+        today_coverage = {}
+        if store:
+            required = get_required_counts(store, today)
+            assigned_cast = assignments.filter(staff__staff_type='fortune_teller').count()
+            assigned_staff = assignments.filter(staff__staff_type='store_staff').count()
+            today_coverage = {
+                'fortune_teller': {
+                    'required': required.get('fortune_teller', 0),
+                    'assigned': assigned_cast,
+                },
+                'store_staff': {
+                    'required': required.get('store_staff', 0),
+                    'assigned': assigned_staff,
+                },
+            }
+
         ctx.update({
             'title': _('本日のシフト'),
             'has_permission': True,
@@ -320,5 +357,6 @@ class TodayShiftTimelineView(AdminSidebarMixin, TemplateView):
             'hours': hours,
             'staff_shifts': staff_shifts,
             'staff_shifts_json': staff_shifts_json,
+            'today_coverage': today_coverage,
         })
         return ctx

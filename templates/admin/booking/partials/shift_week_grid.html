@@ -7,6 +7,21 @@
       <th class="{% if d == today %}today-col{% endif %}">
         {{ d|date:"m/d" }}<br>
         <small>{{ d|date:"D" }}</small>
+        {% with date_key=d|date:"Y-m-d" %}
+          {% for cdate, cdata in coverage.items %}
+            {% if cdate == date_key %}
+              {% for stype, cv in cdata.items %}
+                {% if cv.required > 0 %}
+                  <br><span style="font-size:10px;padding:1px 5px;border-radius:8px;color:#fff;
+                    {% if cv.assigned >= cv.required %}background:#22c55e;{% else %}background:#ef4444;{% endif %}"
+                    title="{{ cv.assigned }}/{{ cv.required }} {% if stype == 'fortune_teller' %}{% trans 'キャスト' %}{% else %}{% trans 'スタッフ' %}{% endif %}">
+                    {% if stype == "fortune_teller" %}C{% else %}S{% endif %}{{ cv.assigned }}/{{ cv.required }}
+                  </span>
+                {% endif %}
+              {% endfor %}
+            {% endif %}
+          {% endfor %}
+        {% endwith %}
       </th>
       {% endfor %}
     </tr>

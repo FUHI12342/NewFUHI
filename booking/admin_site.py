@@ -30,7 +30,7 @@ def get_user_role(request):
 GROUPS = [
     {'slug': 'pin_clock', 'name': _('タイムカード打刻'), 'models': []},
     {'slug': 'reservation', 'name': _('予約管理'), 'models': ['schedule']},
-    {'slug': 'shift', 'name': _('シフト'), 'models': ['shiftperiod', 'shiftrequest', 'shiftassignment', 'shifttemplate', 'shiftpublishhistory', 'storecloseddate'], 'hidden_models': ['shiftperiod', 'shiftrequest', 'shiftassignment', 'shifttemplate', 'shiftpublishhistory', 'storecloseddate']},
+    {'slug': 'shift', 'name': _('シフト'), 'models': ['shiftperiod', 'shiftrequest', 'shiftassignment', 'shifttemplate', 'shiftpublishhistory', 'storecloseddate', 'shiftstaffrequirement', 'shiftstaffrequirementoverride'], 'hidden_models': ['shiftperiod', 'shiftrequest', 'shiftassignment', 'shifttemplate', 'shiftpublishhistory', 'storecloseddate', 'shiftstaffrequirementoverride']},
     {'slug': 'staff_manage', 'name': _('従業員管理'), 'models': ['staff', 'employmentcontract', 'storescheduleconfig', 'staffevaluation', 'evaluationcriteria'], 'hidden_models': ['staff', 'employmentcontract', 'storescheduleconfig', 'evaluationcriteria']},
     {'slug': 'payroll', 'name': _('給与管理'), 'models': ['payrollperiod', 'payrollentry', 'employmentcontract', 'salarystructure'], 'hidden': True},
     {'slug': 'attendance', 'name': _('勤怠管理'), 'models': ['workattendance', 'attendancetotpconfig', 'attendancestamp'], 'hidden': True},
@@ -100,6 +100,7 @@ SIDEBAR_CUSTOM_LINKS = {
     'shift': [
         {'name': _('シフトカレンダー'), 'admin_url': '/admin/shift/calendar/', 'icon': 'fas fa-calendar-alt'},
         {'name': _('本日のシフト'), 'admin_url': '/admin/shift/today/', 'icon': 'fas fa-clock'},
+        {'name': _('必要人数設定'), 'admin_url': '/admin/booking/shiftstaffrequirement/', 'icon': 'fas fa-users-cog'},
     ],
     'staff_manage': [
         {'name': _('従業員一覧'), 'admin_url': '/admin/booking/staff/', 'icon': 'fas fa-users'},
@@ -140,6 +141,7 @@ SIDEBAR_CUSTOM_LINKS_BY_ROLE = {
         'manager': [
             {'name': _('シフトカレンダー'), 'admin_url': '/admin/shift/calendar/', 'icon': 'fas fa-calendar-alt'},
             {'name': _('本日のシフト'), 'admin_url': '/admin/shift/today/', 'icon': 'fas fa-clock'},
+            {'name': _('必要人数設定'), 'admin_url': '/admin/booking/shiftstaffrequirement/', 'icon': 'fas fa-users-cog'},
         ],
         'staff': [
             {'name': _('シフトカレンダー'), 'admin_url': '/admin/shift/calendar/', 'icon': 'fas fa-calendar-alt'},
@@ -179,6 +181,7 @@ DEFAULT_ALLOWED_MODELS = {
         'systemconfig',
         'shiftperiod', 'shiftrequest', 'shiftassignment',
         'shifttemplate', 'shiftpublishhistory', 'shiftchangelog', 'storecloseddate',
+        'shiftstaffrequirement', 'shiftstaffrequirementoverride',
         'storescheduleconfig', 'admintheme',
         'sitesettings', 'homepagecustomblock',
         'herobanner', 'bannerad', 'externallink',
