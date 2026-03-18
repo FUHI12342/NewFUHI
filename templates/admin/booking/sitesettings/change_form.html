@@ -90,23 +90,47 @@
   }
   .sub-model-card .btn-add:hover { background: #5a9ab5; color: #fff; }
 
-  /* ── 右カラム（保存/履歴）を見やすく ── */
-  #jazzy-actions {
-    position: sticky;
-    top: 80px;
+  /* ── 下部submit-row を完全非表示（sticky保存バーに統合） ── */
+  .submit-row, #jazzy-actions { display: none !important; }
+
+  /* ── 保存バー内ボタン共通 ── */
+  .site-save-bar .bar-btn {
+    border: none;
+    padding: 8px 20px;
+    font-size: 13px;
+    font-weight: 600;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.12);
+    text-decoration: none;
   }
-  /* 「保存して編集を続ける」「履歴」を非表示（sticky保存バーに統合） */
-  #jazzy-actions .submit-row input[name="_continue"],
-  #jazzy-actions .submit-row a.historylink,
-  #jazzy-actions .object-tools {
-    display: none;
+  .site-save-bar .bar-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.18);
   }
+  .site-save-bar .bar-btn-continue {
+    background: rgba(255,255,255,0.2);
+    color: #fff;
+    border: 1px solid rgba(255,255,255,0.4);
+  }
+  .site-save-bar .bar-btn-continue:hover { background: rgba(255,255,255,0.35); color: #fff; }
+  .site-save-bar .bar-btn-history {
+    background: transparent;
+    color: rgba(255,255,255,0.8);
+    border: 1px solid rgba(255,255,255,0.3);
+    font-size: 12px;
+    padding: 6px 14px;
+  }
+  .site-save-bar .bar-btn-history:hover { color: #fff; background: rgba(255,255,255,0.15); }
 </style>
 {% endblock %}
 
 {% block form_top %}
 <div class="site-save-bar">
   <span class="bar-title">{% trans "メインページ設定" %}</span>
+  <a href="history/" class="bar-btn bar-btn-history">{% trans "履歴" %}</a>
+  <button type="submit" class="bar-btn bar-btn-continue" name="_continue">{% trans "保存して編集を続ける" %}</button>
   <button type="submit" class="bar-save-btn" name="_save">{% trans "保存する" %}</button>
 </div>
 {% endblock %}
