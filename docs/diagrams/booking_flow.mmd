@@ -1,37 +1,46 @@
 flowchart TD
-    Start["Customer Access\nBooking Page"] --> SelectStore["Select Store\nStore List"]
-    SelectStore --> SelectFT["Select Fortune Teller\nAvailable Staff"]
-    SelectFT --> Calendar["Calendar View\nAvailable Dates"]
-    Calendar --> SlotSelect["Select Time Slot\nAvailable Slots"]
+    Start["顧客アクセス\n予約ページ"] --> SelectStore["店舗選択\n店舗一覧"]
+    SelectStore --> SelectFT["キャスト選択\n出勤スタッフ一覧"]
+    SelectFT --> Calendar["カレンダー表示\n空き日程"]
+    Calendar --> SlotSelect["時間枠選択\n空きスロット"]
 
-    SlotSelect --> AuthCheck{"Authentication\nRequired"}
+    SlotSelect --> AuthCheck{"認証\n方式選択"}
 
-    AuthCheck -- "LINE Login" --> LINEAuth["LINE OAuth\nAuthorize"]
-    AuthCheck -- "Email" --> EmailOTP["Email OTP\nVerification Code"]
+    AuthCheck -- "LINE Login" --> LINEAuth["LINE OAuth\n認可"]
+    AuthCheck -- "Email" --> EmailOTP["Email OTP\n認証コード送信"]
 
-    LINEAuth --> Authenticated["Authenticated\nUser Identified"]
-    EmailOTP --> Authenticated
+    LINEAuth --> Authenticated["認証完了\nユーザー特定"]
+    EmailOTP --> OTPVerify["OTP検証\nハッシュ照合 + 有効期限"]
+    OTPVerify --> Authenticated
 
-    Authenticated --> TempReserve["Temporary Reservation\nStatus: PENDING"]
+    Authenticated --> TempReserve["仮予約作成\nステータス: PENDING\nline_user_enc暗号化保存"]
 
-    TempReserve --> PayCheck{"Payment\nRequired?"}
+    TempReserve --> PayCheck{"決済\n要否判定"}
 
-    PayCheck -- "Free Booking" --> Confirm["Confirm Reservation\nStatus: CONFIRMED"]
-    PayCheck -- "Paid Booking" --> CoineyPay["Coiney Payment\nCard Payment"]
+    PayCheck -- "無料予約" --> Confirm["予約確定\nステータス: CONFIRMED"]
+    PayCheck -- "有料予約" --> CoineyPay["Coiney決済\nカード決済"]
 
-    CoineyPay --> PayResult{"Payment\nResult"}
-    PayResult -- "Success Webhook" --> Confirm
-    PayResult -- "Failed or Timeout" --> Cancel["Cancel Reservation\nStatus: CANCELLED"]
+    CoineyPay --> PayResult{"決済\n結果"}
+    PayResult -- "成功 Webhook" --> Confirm
+    PayResult -- "失敗 or タイムアウト" --> Cancel["予約キャンセル\nステータス: CANCELLED"]
 
-    Confirm --> QRGen["QR Code Generation\nUnique Check-in Code"]
-    Confirm --> NotifyStaff["LINE Notification\nTo Staff"]
-    Confirm --> NotifyCustomer["LINE or Email\nTo Customer"]
+    Confirm --> QRGen["QRコード生成\nチェックイン用コード"]
+    Confirm --> NotifyStaff["LINE通知\nスタッフへ"]
+    Confirm --> NotifyCustomer["LINE or Email\n顧客へ確認"]
 
-    QRGen --> Complete["Booking Complete\nConfirmation Page"]
+    QRGen --> Complete["予約完了\n確認ページ表示"]
     NotifyStaff --> Complete
     NotifyCustomer --> Complete
 
-    Cancel --> RetryOption["Show Retry Option\nReturn to Slots"]
+    Complete --> CheckIn["来店時チェックイン\nQRスキャン"]
+    CheckIn --> CheckInDone["チェックイン完了\nis_checked_in = True"]
+
+    Cancel --> RetryOption["リトライ表示\nスロット選択へ戻る"]
+
+    subgraph ExpiredCleanup["仮予約期限切れ処理"]
+        CeleryTask["Celery Beat\ncancel_expired_temp_bookings"]
+        CeleryTask --> AutoCancel["自動キャンセル\ntemporary_booked_at超過"]
+    end
 
     classDef startStyle fill:#3498DB,stroke:#2980B9,color:#fff
     classDef authStyle fill:#F39C12,stroke:#D68910,color:#fff
@@ -39,10 +48,12 @@ flowchart TD
     classDef confirmStyle fill:#27AE60,stroke:#1E8449,color:#fff
     classDef cancelStyle fill:#95A5A6,stroke:#7F8C8D,color:#fff
     classDef decisionStyle fill:#9B59B6,stroke:#7D3C98,color:#fff
+    classDef cleanupStyle fill:#2C3E50,stroke:#1A252F,color:#fff
 
     class Start,SelectStore,SelectFT,Calendar,SlotSelect startStyle
-    class LINEAuth,EmailOTP,Authenticated authStyle
+    class LINEAuth,EmailOTP,OTPVerify,Authenticated authStyle
     class CoineyPay payStyle
-    class TempReserve,Confirm,QRGen,NotifyStaff,NotifyCustomer,Complete confirmStyle
+    class TempReserve,Confirm,QRGen,NotifyStaff,NotifyCustomer,Complete,CheckIn,CheckInDone confirmStyle
     class Cancel,RetryOption cancelStyle
     class AuthCheck,PayCheck,PayResult decisionStyle
+    class CeleryTask,AutoCancel cleanupStyle

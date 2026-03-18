@@ -55,7 +55,7 @@ li { margin: 2px 0; }
 <div class="cover">
 <h1>NewFUHI<br>システム仕様書</h1>
 <p class="subtitle">占いサロン管理プラットフォーム — Django + IoT + AWS</p>
-<p class="date">Version 1.0 — 2026年03月08日</p>
+<p class="date">Version 1.0 — 2026年03月18日</p>
 <p style="margin-top:60px;color:#a0aec0;font-size:10pt;">Confidential — 社内技術資料</p>
 </div>
 
@@ -84,7 +84,7 @@ li { margin: 2px 0; }
 <tr><th>項目</th><th>内容</th></tr>
 <tr><td>文書名</td><td>NewFUHI システム仕様書</td></tr>
 <tr><td>バージョン</td><td>1.0</td></tr>
-<tr><td>最終更新日</td><td>2026年03月08日</td></tr>
+<tr><td>最終更新日</td><td>2026年03月18日</td></tr>
 <tr><td>作成者</td><td>開発チーム</td></tr>
 <tr><td>機密区分</td><td>社内限定</td></tr>
 </table>
@@ -92,7 +92,7 @@ li { margin: 2px 0; }
 <h2>改訂履歴</h2>
 <table>
 <tr><th>バージョン</th><th>日付</th><th>変更内容</th></tr>
-<tr><td>1.0</td><td>2026年03月08日</td><td>初版作成</td></tr>
+<tr><td>1.0</td><td>2026年03月18日</td><td>初版作成</td></tr>
 </table>
 
 <!-- 2. エグゼクティブサマリ -->
@@ -209,7 +209,7 @@ Customer ──▶ BookingTopPage ──▶ StaffCalendar ──▶ PreBooking
 
 <!-- 4. データベーススキーマ -->
 <h1>4. データベーススキーマ</h1>
-<p>booking アプリには <strong>43 モデル</strong>が定義されています。</p>
+<p>booking アプリには <strong>66 モデル</strong>が定義されています。</p>
 
 <h2>4.1 Timer</h2>
 <p><strong>テーブル名</strong>: <code>booking_timer</code> | <strong>表示名</strong>: タイマー</p>
@@ -234,11 +234,16 @@ Customer ──▶ BookingTopPage ──▶ StaffCalendar ──▶ PreBooking
 <tr><td><code>regular_holiday</code></td><td><span class="badge badge-char">CharField</span></td><td></td><td></td><td>定休日</td></tr>
 <tr><td><code>description</code></td><td><span class="badge badge-char">TextField</span></td><td></td><td></td><td>店舗情報</td></tr>
 <tr><td><code>is_recommended</code></td><td><span class="badge badge-bool">BooleanField</span></td><td></td><td></td><td>おすすめ</td></tr>
+<tr><td><code>map_url</code></td><td><span class="badge badge-char">CharField</span></td><td></td><td></td><td>地図URL</td></tr>
+<tr><td><code>google_maps_embed</code></td><td><span class="badge badge-char">TextField</span></td><td></td><td></td><td>Google Maps埋め込みコード</td></tr>
+<tr><td><code>access_info</code></td><td><span class="badge badge-char">TextField</span></td><td></td><td></td><td>アクセス情報</td></tr>
+<tr><td><code>photo_2</code></td><td><span class="badge badge-char">FileField</span></td><td></td><td></td><td>店舗写真2</td></tr>
+<tr><td><code>photo_3</code></td><td><span class="badge badge-char">FileField</span></td><td></td><td></td><td>店舗写真3</td></tr>
 <tr><td><code>default_language</code></td><td><span class="badge badge-char">CharField</span></td><td></td><td></td><td>既定言語</td></tr>
 </table>
 
 <h2>4.3 Staff</h2>
-<p><strong>テーブル名</strong>: <code>booking_staff</code> | <strong>表示名</strong>: キャスト</p>
+<p><strong>テーブル名</strong>: <code>booking_staff</code> | <strong>表示名</strong>: 従業員</p>
 <table>
 <tr><th>フィールド名</th><th>型</th><th>NULL</th><th>索引</th><th>説明</th></tr>
 <tr><td><code>id</code></td><td><span class="badge badge-pk">AutoField</span></td><td></td><td>UNIQUE</td><td>ID</td></tr>
@@ -254,6 +259,13 @@ Customer ──▶ BookingTopPage ──▶ StaffCalendar ──▶ PreBooking
 <tr><td><code>thumbnail</code></td><td><span class="badge badge-char">FileField</span></td><td>Yes</td><td></td><td>サムネイル画像</td></tr>
 <tr><td><code>introduction</code></td><td><span class="badge badge-char">TextField</span></td><td>Yes</td><td></td><td>自己紹介文</td></tr>
 <tr><td><code>price</code></td><td><span class="badge badge-int">IntegerField</span></td><td></td><td></td><td>価格</td></tr>
+<tr><td><code>slot_duration</code></td><td><span class="badge badge-int">IntegerField</span></td><td>Yes</td><td></td><td>1枠の時間(分)</td></tr>
+<tr><td><code>notify_booking</code></td><td><span class="badge badge-bool">BooleanField</span></td><td></td><td></td><td>予約通知</td></tr>
+<tr><td><code>notify_shift</code></td><td><span class="badge badge-bool">BooleanField</span></td><td></td><td></td><td>シフト通知</td></tr>
+<tr><td><code>notify_business</code></td><td><span class="badge badge-bool">BooleanField</span></td><td></td><td></td><td>業務連絡通知</td></tr>
+<tr><td><code>can_see_inventory</code></td><td><span class="badge badge-bool">BooleanField</span></td><td></td><td></td><td>在庫管理を表示</td></tr>
+<tr><td><code>can_see_orders</code></td><td><span class="badge badge-bool">BooleanField</span></td><td></td><td></td><td>注文管理を表示</td></tr>
+<tr><td><code>attendance_pin</code></td><td><span class="badge badge-char">CharField</span></td><td></td><td></td><td>勤怠PIN</td></tr>
 </table>
 
 <h2>4.4 Schedule</h2>
@@ -264,8 +276,8 @@ Customer ──▶ BookingTopPage ──▶ StaffCalendar ──▶ PreBooking
 <tr><td><code>reservation_number</code></td><td><span class="badge badge-char">CharField</span></td><td></td><td>INDEX</td><td>予約番号</td></tr>
 <tr><td><code>start</code></td><td><span class="badge badge-dt">DateTimeField</span></td><td></td><td>INDEX</td><td>開始時間</td></tr>
 <tr><td><code>end</code></td><td><span class="badge badge-dt">DateTimeField</span></td><td></td><td></td><td>終了時間</td></tr>
-<tr><td><code>staff</code></td><td><span class="badge badge-fk">ForeignKey</span> → Staff</td><td></td><td>INDEX</td><td>占いスタッフ</td></tr>
-<tr><td><code>customer_name</code></td><td><span class="badge badge-char">CharField</span></td><td>Yes</td><td></td><td>customer name</td></tr>
+<tr><td><code>staff</code></td><td><span class="badge badge-fk">ForeignKey</span> → Staff</td><td></td><td>INDEX</td><td>キャスト</td></tr>
+<tr><td><code>customer_name</code></td><td><span class="badge badge-char">CharField</span></td><td>Yes</td><td></td><td>予約者名</td></tr>
 <tr><td><code>hashed_id</code></td><td><span class="badge badge-char">CharField</span></td><td>Yes</td><td>INDEX</td><td>hashed id</td></tr>
 <tr><td><code>line_user_hash</code></td><td><span class="badge badge-char">CharField</span></td><td>Yes</td><td>INDEX</td><td>LINEユーザーIDハッシュ</td></tr>
 <tr><td><code>line_user_enc</code></td><td><span class="badge badge-char">TextField</span></td><td>Yes</td><td></td><td>LINEユーザーID(暗号化)</td></tr>
@@ -302,9 +314,13 @@ Customer ──▶ BookingTopPage ──▶ StaffCalendar ──▶ PreBooking
 <tr><th>フィールド名</th><th>型</th><th>NULL</th><th>索引</th><th>説明</th></tr>
 <tr><td><code>id</code></td><td><span class="badge badge-pk">AutoField</span></td><td></td><td>UNIQUE</td><td>ID</td></tr>
 <tr><td><code>updated_at</code></td><td><span class="badge badge-dt">DateTimeField</span></td><td></td><td></td><td>updated at</td></tr>
+<tr><td><code>created_at</code></td><td><span class="badge badge-dt">DateTimeField</span></td><td>Yes</td><td></td><td>created at</td></tr>
 <tr><td><code>title</code></td><td><span class="badge badge-char">CharField</span></td><td></td><td></td><td>title</td></tr>
+<tr><td><code>slug</code></td><td><span class="badge badge-char">SlugField</span></td><td></td><td>UNIQUE INDEX</td><td>slug</td></tr>
 <tr><td><code>link</code></td><td><span class="badge badge-char">CharField</span></td><td></td><td></td><td>link</td></tr>
 <tr><td><code>content</code></td><td><span class="badge badge-char">TextField</span></td><td></td><td></td><td>content</td></tr>
+<tr><td><code>is_published</code></td><td><span class="badge badge-bool">BooleanField</span></td><td></td><td></td><td>公開</td></tr>
+<tr><td><code>thumbnail</code></td><td><span class="badge badge-char">FileField</span></td><td>Yes</td><td></td><td>サムネイル</td></tr>
 </table>
 
 <h2>4.7 Media</h2>
@@ -320,7 +336,7 @@ Customer ──▶ BookingTopPage ──▶ StaffCalendar ──▶ PreBooking
 </table>
 
 <h2>4.8 IoTDevice</h2>
-<p><strong>テーブル名</strong>: <code>booking_iotdevice</code> | <strong>表示名</strong>: IoTデバイス</p>
+<p><strong>テーブル名</strong>: <code>booking_iotdevice</code> | <strong>表示名</strong>: 店舗センサー</p>
 <table>
 <tr><th>フィールド名</th><th>型</th><th>NULL</th><th>索引</th><th>説明</th></tr>
 <tr><td><code>id</code></td><td><span class="badge badge-pk">AutoField</span></td><td></td><td>UNIQUE</td><td>ID</td></tr>
@@ -357,7 +373,27 @@ Customer ──▶ BookingTopPage ──▶ StaffCalendar ──▶ PreBooking
 </table>
 <p><strong>複合インデックス</strong>: (device, created_at) | (device, mq9_value, created_at) | (device, created_at, light_value) | (device, created_at, sound_value)</p>
 
-<h2>4.10 IRCode</h2>
+<h2>4.10 VentilationAutoControl</h2>
+<p><strong>テーブル名</strong>: <code>booking_ventilationautocontrol</code> | <strong>表示名</strong>: 換気扇自動制御</p>
+<table>
+<tr><th>フィールド名</th><th>型</th><th>NULL</th><th>索引</th><th>説明</th></tr>
+<tr><td><code>id</code></td><td><span class="badge badge-pk">AutoField</span></td><td></td><td>UNIQUE</td><td>ID</td></tr>
+<tr><td><code>device</code></td><td><span class="badge badge-fk">ForeignKey</span> → IoTDevice</td><td></td><td>INDEX</td><td>対象デバイス</td></tr>
+<tr><td><code>name</code></td><td><span class="badge badge-char">CharField</span></td><td></td><td></td><td>ルール名</td></tr>
+<tr><td><code>is_active</code></td><td><span class="badge badge-bool">BooleanField</span></td><td></td><td></td><td>有効</td></tr>
+<tr><td><code>threshold_on</code></td><td><span class="badge badge-int">IntegerField</span></td><td></td><td></td><td>ON閾値（MQ-9 ADC値）</td></tr>
+<tr><td><code>threshold_off</code></td><td><span class="badge badge-int">IntegerField</span></td><td></td><td></td><td>OFF閾値（MQ-9 ADC値）</td></tr>
+<tr><td><code>consecutive_count</code></td><td><span class="badge badge-int">IntegerField</span></td><td></td><td></td><td>連続超過回数</td></tr>
+<tr><td><code>switchbot_token</code></td><td><span class="badge badge-char">CharField</span></td><td></td><td></td><td>SwitchBotトークン（暗号化）</td></tr>
+<tr><td><code>switchbot_secret</code></td><td><span class="badge badge-char">CharField</span></td><td></td><td></td><td>SwitchBotシークレット（暗号化）</td></tr>
+<tr><td><code>switchbot_device_id</code></td><td><span class="badge badge-char">CharField</span></td><td></td><td></td><td>SwitchBotデバイスID</td></tr>
+<tr><td><code>fan_state</code></td><td><span class="badge badge-char">CharField</span></td><td></td><td></td><td>現在の状態</td></tr>
+<tr><td><code>last_on_at</code></td><td><span class="badge badge-dt">DateTimeField</span></td><td>Yes</td><td></td><td>最後にONした日時</td></tr>
+<tr><td><code>last_off_at</code></td><td><span class="badge badge-dt">DateTimeField</span></td><td>Yes</td><td></td><td>最後にOFFした日時</td></tr>
+<tr><td><code>cooldown_seconds</code></td><td><span class="badge badge-int">IntegerField</span></td><td></td><td></td><td>クールダウン（秒）</td></tr>
+</table>
+
+<h2>4.11 IRCode</h2>
 <p><strong>テーブル名</strong>: <code>booking_ircode</code> | <strong>表示名</strong>: IRコード</p>
 <table>
 <tr><th>フィールド名</th><th>型</th><th>NULL</th><th>索引</th><th>説明</th></tr>
@@ -372,7 +408,7 @@ Customer ──▶ BookingTopPage ──▶ StaffCalendar ──▶ PreBooking
 <tr><td><code>created_at</code></td><td><span class="badge badge-dt">DateTimeField</span></td><td></td><td></td><td>created at</td></tr>
 </table>
 
-<h2>4.11 Category</h2>
+<h2>4.12 Category</h2>
 <p><strong>テーブル名</strong>: <code>booking_category</code> | <strong>表示名</strong>: 商品カテゴリ</p>
 <table>
 <tr><th>フィールド名</th><th>型</th><th>NULL</th><th>索引</th><th>説明</th></tr>
@@ -380,10 +416,11 @@ Customer ──▶ BookingTopPage ──▶ StaffCalendar ──▶ PreBooking
 <tr><td><code>store</code></td><td><span class="badge badge-fk">ForeignKey</span> → Store</td><td></td><td>INDEX</td><td>店舗</td></tr>
 <tr><td><code>name</code></td><td><span class="badge badge-char">CharField</span></td><td></td><td></td><td>カテゴリ名</td></tr>
 <tr><td><code>sort_order</code></td><td><span class="badge badge-int">IntegerField</span></td><td></td><td></td><td>並び順</td></tr>
+<tr><td><code>is_restaurant_menu</code></td><td><span class="badge badge-bool">BooleanField</span></td><td></td><td></td><td>飲食メニュー表示</td></tr>
 </table>
 <p><strong>ユニーク制約</strong>: (store, name)</p>
 
-<h2>4.12 Product</h2>
+<h2>4.13 Product</h2>
 <p><strong>テーブル名</strong>: <code>booking_product</code> | <strong>表示名</strong>: 商品</p>
 <table>
 <tr><th>フィールド名</th><th>型</th><th>NULL</th><th>索引</th><th>説明</th></tr>
@@ -408,7 +445,41 @@ Customer ──▶ BookingTopPage ──▶ StaffCalendar ──▶ PreBooking
 <p><strong>複合インデックス</strong>: (store, is_active) | (store, category, stock) | (store, sku)</p>
 <p><strong>ユニーク制約</strong>: (store, sku)</p>
 
-<h2>4.13 ProductTranslation</h2>
+<h2>4.14 ECCategory</h2>
+<p><strong>テーブル名</strong>: <code>booking_category</code> | <strong>表示名</strong>: EC商品カテゴリ</p>
+<table>
+<tr><th>フィールド名</th><th>型</th><th>NULL</th><th>索引</th><th>説明</th></tr>
+<tr><td><code>id</code></td><td><span class="badge badge-pk">AutoField</span></td><td></td><td>UNIQUE</td><td>ID</td></tr>
+<tr><td><code>store</code></td><td><span class="badge badge-fk">ForeignKey</span> → Store</td><td></td><td>INDEX</td><td>店舗</td></tr>
+<tr><td><code>name</code></td><td><span class="badge badge-char">CharField</span></td><td></td><td></td><td>カテゴリ名</td></tr>
+<tr><td><code>sort_order</code></td><td><span class="badge badge-int">IntegerField</span></td><td></td><td></td><td>並び順</td></tr>
+<tr><td><code>is_restaurant_menu</code></td><td><span class="badge badge-bool">BooleanField</span></td><td></td><td></td><td>飲食メニュー表示</td></tr>
+</table>
+
+<h2>4.15 ECProduct</h2>
+<p><strong>テーブル名</strong>: <code>booking_product</code> | <strong>表示名</strong>: EC商品</p>
+<table>
+<tr><th>フィールド名</th><th>型</th><th>NULL</th><th>索引</th><th>説明</th></tr>
+<tr><td><code>id</code></td><td><span class="badge badge-pk">AutoField</span></td><td></td><td>UNIQUE</td><td>ID</td></tr>
+<tr><td><code>store</code></td><td><span class="badge badge-fk">ForeignKey</span> → Store</td><td></td><td>INDEX</td><td>店舗</td></tr>
+<tr><td><code>category</code></td><td><span class="badge badge-fk">ForeignKey</span> → Category</td><td>Yes</td><td>INDEX</td><td>カテゴリ</td></tr>
+<tr><td><code>sku</code></td><td><span class="badge badge-char">CharField</span></td><td></td><td>INDEX</td><td>商品コード</td></tr>
+<tr><td><code>name</code></td><td><span class="badge badge-char">CharField</span></td><td></td><td></td><td>商品名(デフォルト)</td></tr>
+<tr><td><code>description</code></td><td><span class="badge badge-char">TextField</span></td><td></td><td></td><td>説明(デフォルト)</td></tr>
+<tr><td><code>price</code></td><td><span class="badge badge-int">IntegerField</span></td><td></td><td></td><td>価格</td></tr>
+<tr><td><code>stock</code></td><td><span class="badge badge-int">IntegerField</span></td><td></td><td></td><td>現在庫</td></tr>
+<tr><td><code>low_stock_threshold</code></td><td><span class="badge badge-int">IntegerField</span></td><td></td><td></td><td>閾値</td></tr>
+<tr><td><code>last_low_stock_notified_at</code></td><td><span class="badge badge-dt">DateTimeField</span></td><td>Yes</td><td></td><td>閾値通知済み(最後)</td></tr>
+<tr><td><code>is_active</code></td><td><span class="badge badge-bool">BooleanField</span></td><td></td><td></td><td>公開</td></tr>
+<tr><td><code>is_ec_visible</code></td><td><span class="badge badge-bool">BooleanField</span></td><td></td><td>INDEX</td><td>EC公開</td></tr>
+<tr><td><code>image</code></td><td><span class="badge badge-char">FileField</span></td><td>Yes</td><td></td><td>商品画像</td></tr>
+<tr><td><code>popularity</code></td><td><span class="badge badge-int">IntegerField</span></td><td></td><td></td><td>人気スコア</td></tr>
+<tr><td><code>margin_rate</code></td><td><span class="badge badge-int">FloatField</span></td><td></td><td></td><td>利益率(概算)</td></tr>
+<tr><td><code>created_at</code></td><td><span class="badge badge-dt">DateTimeField</span></td><td></td><td></td><td>created at</td></tr>
+<tr><td><code>updated_at</code></td><td><span class="badge badge-dt">DateTimeField</span></td><td></td><td></td><td>updated at</td></tr>
+</table>
+
+<h2>4.16 ProductTranslation</h2>
 <p><strong>テーブル名</strong>: <code>booking_producttranslation</code> | <strong>表示名</strong>: 商品翻訳</p>
 <table>
 <tr><th>フィールド名</th><th>型</th><th>NULL</th><th>索引</th><th>説明</th></tr>
@@ -421,23 +492,36 @@ Customer ──▶ BookingTopPage ──▶ StaffCalendar ──▶ PreBooking
 <p><strong>複合インデックス</strong>: (lang) | (product, lang)</p>
 <p><strong>ユニーク制約</strong>: (product, lang)</p>
 
-<h2>4.14 Order</h2>
-<p><strong>テーブル名</strong>: <code>booking_order</code> | <strong>表示名</strong>: 注文</p>
+<h2>4.17 Order</h2>
+<p><strong>テーブル名</strong>: <code>booking_order</code> | <strong>表示名</strong>: 注文履歴</p>
 <table>
 <tr><th>フィールド名</th><th>型</th><th>NULL</th><th>索引</th><th>説明</th></tr>
 <tr><td><code>id</code></td><td><span class="badge badge-pk">AutoField</span></td><td></td><td>UNIQUE</td><td>ID</td></tr>
 <tr><td><code>store</code></td><td><span class="badge badge-fk">ForeignKey</span> → Store</td><td></td><td>INDEX</td><td>店舗</td></tr>
 <tr><td><code>schedule</code></td><td><span class="badge badge-fk">ForeignKey</span> → Schedule</td><td>Yes</td><td>INDEX</td><td>予約</td></tr>
+<tr><td><code>channel</code></td><td><span class="badge badge-char">CharField</span></td><td></td><td>INDEX</td><td>注文チャネル</td></tr>
 <tr><td><code>customer_line_user_hash</code></td><td><span class="badge badge-char">CharField</span></td><td>Yes</td><td>INDEX</td><td>顧客LINEハッシュ</td></tr>
 <tr><td><code>table_label</code></td><td><span class="badge badge-char">CharField</span></td><td></td><td></td><td>席/テーブル</td></tr>
 <tr><td><code>table_seat</code></td><td><span class="badge badge-fk">ForeignKey</span> → TableSeat</td><td>Yes</td><td>INDEX</td><td>席</td></tr>
 <tr><td><code>status</code></td><td><span class="badge badge-char">CharField</span></td><td></td><td>INDEX</td><td>状態</td></tr>
+<tr><td><code>payment_status</code></td><td><span class="badge badge-char">CharField</span></td><td></td><td></td><td>支払状態</td></tr>
+<tr><td><code>discount_amount</code></td><td><span class="badge badge-int">IntegerField</span></td><td></td><td></td><td>割引額</td></tr>
+<tr><td><code>tax_amount</code></td><td><span class="badge badge-int">IntegerField</span></td><td></td><td></td><td>税額</td></tr>
+<tr><td><code>customer_name</code></td><td><span class="badge badge-char">CharField</span></td><td></td><td></td><td>顧客名</td></tr>
+<tr><td><code>customer_email</code></td><td><span class="badge badge-char">CharField</span></td><td></td><td></td><td>メールアドレス</td></tr>
+<tr><td><code>customer_phone</code></td><td><span class="badge badge-char">CharField</span></td><td></td><td></td><td>電話番号</td></tr>
+<tr><td><code>customer_address</code></td><td><span class="badge badge-char">TextField</span></td><td></td><td></td><td>配送先住所</td></tr>
+<tr><td><code>shipping_status</code></td><td><span class="badge badge-char">CharField</span></td><td></td><td></td><td>発送ステータス</td></tr>
+<tr><td><code>tracking_number</code></td><td><span class="badge badge-char">CharField</span></td><td></td><td></td><td>追跡番号</td></tr>
+<tr><td><code>shipped_at</code></td><td><span class="badge badge-dt">DateTimeField</span></td><td>Yes</td><td></td><td>発送日時</td></tr>
+<tr><td><code>shipping_note</code></td><td><span class="badge badge-char">TextField</span></td><td></td><td></td><td>発送メモ</td></tr>
+<tr><td><code>shipping_fee</code></td><td><span class="badge badge-char">PositiveIntegerField</span></td><td></td><td></td><td>送料</td></tr>
 <tr><td><code>created_at</code></td><td><span class="badge badge-dt">DateTimeField</span></td><td></td><td>INDEX</td><td>created at</td></tr>
 <tr><td><code>updated_at</code></td><td><span class="badge badge-dt">DateTimeField</span></td><td></td><td></td><td>updated at</td></tr>
 </table>
 <p><strong>複合インデックス</strong>: (store, status, created_at) | (customer_line_user_hash, created_at)</p>
 
-<h2>4.15 OrderItem</h2>
+<h2>4.18 OrderItem</h2>
 <p><strong>テーブル名</strong>: <code>booking_orderitem</code> | <strong>表示名</strong>: 注文明細</p>
 <table>
 <tr><th>フィールド名</th><th>型</th><th>NULL</th><th>索引</th><th>説明</th></tr>
@@ -453,7 +537,7 @@ Customer ──▶ BookingTopPage ──▶ StaffCalendar ──▶ PreBooking
 </table>
 <p><strong>複合インデックス</strong>: (order, status, created_at) | (product, created_at)</p>
 
-<h2>4.16 StockMovement</h2>
+<h2>4.19 StockMovement</h2>
 <p><strong>テーブル名</strong>: <code>booking_stockmovement</code> | <strong>表示名</strong>: 入出庫履歴</p>
 <table>
 <tr><th>フィールド名</th><th>型</th><th>NULL</th><th>索引</th><th>説明</th></tr>
@@ -468,7 +552,7 @@ Customer ──▶ BookingTopPage ──▶ StaffCalendar ──▶ PreBooking
 </table>
 <p><strong>複合インデックス</strong>: (store, created_at) | (product, created_at) | (movement_type, created_at)</p>
 
-<h2>4.17 DashboardLayout</h2>
+<h2>4.20 DashboardLayout</h2>
 <p><strong>テーブル名</strong>: <code>booking_dashboardlayout</code> | <strong>表示名</strong>: ダッシュボードレイアウト</p>
 <table>
 <tr><th>フィールド名</th><th>型</th><th>NULL</th><th>索引</th><th>説明</th></tr>
@@ -479,7 +563,81 @@ Customer ──▶ BookingTopPage ──▶ StaffCalendar ──▶ PreBooking
 <tr><td><code>updated_at</code></td><td><span class="badge badge-dt">DateTimeField</span></td><td></td><td></td><td>updated at</td></tr>
 </table>
 
-<h2>4.18 SystemConfig</h2>
+<h2>4.21 BusinessInsight</h2>
+<p><strong>テーブル名</strong>: <code>booking_businessinsight</code> | <strong>表示名</strong>: ビジネスインサイト</p>
+<table>
+<tr><th>フィールド名</th><th>型</th><th>NULL</th><th>索引</th><th>説明</th></tr>
+<tr><td><code>id</code></td><td><span class="badge badge-pk">AutoField</span></td><td></td><td>UNIQUE</td><td>ID</td></tr>
+<tr><td><code>store</code></td><td><span class="badge badge-fk">ForeignKey</span> → Store</td><td>Yes</td><td>INDEX</td><td>店舗</td></tr>
+<tr><td><code>category</code></td><td><span class="badge badge-char">CharField</span></td><td></td><td></td><td>カテゴリ</td></tr>
+<tr><td><code>severity</code></td><td><span class="badge badge-char">CharField</span></td><td></td><td></td><td>重要度</td></tr>
+<tr><td><code>title</code></td><td><span class="badge badge-char">CharField</span></td><td></td><td></td><td>タイトル</td></tr>
+<tr><td><code>message</code></td><td><span class="badge badge-char">TextField</span></td><td></td><td></td><td>メッセージ</td></tr>
+<tr><td><code>data</code></td><td><span class="badge badge-char">JSONField</span></td><td></td><td></td><td>関連データ</td></tr>
+<tr><td><code>is_read</code></td><td><span class="badge badge-bool">BooleanField</span></td><td></td><td></td><td>既読</td></tr>
+<tr><td><code>created_at</code></td><td><span class="badge badge-dt">DateTimeField</span></td><td></td><td>INDEX</td><td>作成日時</td></tr>
+</table>
+<p><strong>複合インデックス</strong>: (store, category, -created_at)</p>
+
+<h2>4.22 CustomerFeedback</h2>
+<p><strong>テーブル名</strong>: <code>booking_customerfeedback</code> | <strong>表示名</strong>: 顧客フィードバック</p>
+<table>
+<tr><th>フィールド名</th><th>型</th><th>NULL</th><th>索引</th><th>説明</th></tr>
+<tr><td><code>id</code></td><td><span class="badge badge-pk">AutoField</span></td><td></td><td>UNIQUE</td><td>ID</td></tr>
+<tr><td><code>store</code></td><td><span class="badge badge-fk">ForeignKey</span> → Store</td><td></td><td>INDEX</td><td>店舗</td></tr>
+<tr><td><code>order</code></td><td><span class="badge badge-fk">ForeignKey</span> → Order</td><td>Yes</td><td>INDEX</td><td>注文</td></tr>
+<tr><td><code>customer_hash</code></td><td><span class="badge badge-char">CharField</span></td><td></td><td></td><td>顧客ハッシュ</td></tr>
+<tr><td><code>nps_score</code></td><td><span class="badge badge-int">IntegerField</span></td><td></td><td></td><td>NPS (0-10)</td></tr>
+<tr><td><code>food_rating</code></td><td><span class="badge badge-int">IntegerField</span></td><td></td><td></td><td>料理評価 (1-5)</td></tr>
+<tr><td><code>service_rating</code></td><td><span class="badge badge-int">IntegerField</span></td><td></td><td></td><td>サービス評価 (1-5)</td></tr>
+<tr><td><code>ambiance_rating</code></td><td><span class="badge badge-int">IntegerField</span></td><td></td><td></td><td>雰囲気評価 (1-5)</td></tr>
+<tr><td><code>comment</code></td><td><span class="badge badge-char">TextField</span></td><td></td><td></td><td>コメント</td></tr>
+<tr><td><code>sentiment</code></td><td><span class="badge badge-char">CharField</span></td><td></td><td></td><td>感情分析</td></tr>
+<tr><td><code>created_at</code></td><td><span class="badge badge-dt">DateTimeField</span></td><td></td><td>INDEX</td><td>作成日時</td></tr>
+</table>
+
+<h2>4.23 EvaluationCriteria</h2>
+<p><strong>テーブル名</strong>: <code>booking_evaluationcriteria</code> | <strong>表示名</strong>: 評価基準</p>
+<table>
+<tr><th>フィールド名</th><th>型</th><th>NULL</th><th>索引</th><th>説明</th></tr>
+<tr><td><code>id</code></td><td><span class="badge badge-pk">AutoField</span></td><td></td><td>UNIQUE</td><td>ID</td></tr>
+<tr><td><code>store</code></td><td><span class="badge badge-fk">ForeignKey</span> → Store</td><td></td><td>INDEX</td><td>店舗</td></tr>
+<tr><td><code>name</code></td><td><span class="badge badge-char">CharField</span></td><td></td><td></td><td>評価項目名</td></tr>
+<tr><td><code>description</code></td><td><span class="badge badge-char">TextField</span></td><td></td><td></td><td>説明</td></tr>
+<tr><td><code>category</code></td><td><span class="badge badge-char">CharField</span></td><td></td><td></td><td>カテゴリ</td></tr>
+<tr><td><code>weight</code></td><td><span class="badge badge-int">FloatField</span></td><td></td><td></td><td>重み (0.0-1.0)</td></tr>
+<tr><td><code>is_auto</code></td><td><span class="badge badge-bool">BooleanField</span></td><td></td><td></td><td>自動評価</td></tr>
+<tr><td><code>sort_order</code></td><td><span class="badge badge-int">IntegerField</span></td><td></td><td></td><td>表示順</td></tr>
+<tr><td><code>is_active</code></td><td><span class="badge badge-bool">BooleanField</span></td><td></td><td></td><td>有効</td></tr>
+</table>
+<p><strong>ユニーク制約</strong>: (store, name)</p>
+
+<h2>4.24 StaffEvaluation</h2>
+<p><strong>テーブル名</strong>: <code>booking_staffevaluation</code> | <strong>表示名</strong>: スタッフ評価</p>
+<table>
+<tr><th>フィールド名</th><th>型</th><th>NULL</th><th>索引</th><th>説明</th></tr>
+<tr><td><code>id</code></td><td><span class="badge badge-pk">AutoField</span></td><td></td><td>UNIQUE</td><td>ID</td></tr>
+<tr><td><code>staff</code></td><td><span class="badge badge-fk">ForeignKey</span> → Staff</td><td></td><td>INDEX</td><td>スタッフ</td></tr>
+<tr><td><code>evaluator</code></td><td><span class="badge badge-fk">ForeignKey</span> → Staff</td><td>Yes</td><td>INDEX</td><td>評価者</td></tr>
+<tr><td><code>period_start</code></td><td><span class="badge badge-dt">DateField</span></td><td></td><td></td><td>評価期間（開始）</td></tr>
+<tr><td><code>period_end</code></td><td><span class="badge badge-dt">DateField</span></td><td></td><td></td><td>評価期間（終了）</td></tr>
+<tr><td><code>attendance_rate</code></td><td><span class="badge badge-int">FloatField</span></td><td>Yes</td><td></td><td>出勤率 (%)</td></tr>
+<tr><td><code>punctuality_score</code></td><td><span class="badge badge-int">FloatField</span></td><td>Yes</td><td></td><td>定時出勤スコア (0-5)</td></tr>
+<tr><td><code>total_work_hours</code></td><td><span class="badge badge-int">FloatField</span></td><td>Yes</td><td></td><td>総勤務時間</td></tr>
+<tr><td><code>scores</code></td><td><span class="badge badge-char">JSONField</span></td><td></td><td></td><td>項目別スコア</td></tr>
+<tr><td><code>overall_score</code></td><td><span class="badge badge-int">FloatField</span></td><td>Yes</td><td></td><td>総合評価 (1.0-5.0)</td></tr>
+<tr><td><code>grade</code></td><td><span class="badge badge-char">CharField</span></td><td></td><td></td><td>評価ランク</td></tr>
+<tr><td><code>comment</code></td><td><span class="badge badge-char">TextField</span></td><td></td><td></td><td>評価コメント</td></tr>
+<tr><td><code>staff_comment</code></td><td><span class="badge badge-char">TextField</span></td><td></td><td></td><td>スタッフ自己評価</td></tr>
+<tr><td><code>source</code></td><td><span class="badge badge-char">CharField</span></td><td></td><td></td><td>評価ソース</td></tr>
+<tr><td><code>is_published</code></td><td><span class="badge badge-bool">BooleanField</span></td><td></td><td></td><td>公開済み</td></tr>
+<tr><td><code>created_at</code></td><td><span class="badge badge-dt">DateTimeField</span></td><td></td><td></td><td>作成日時</td></tr>
+<tr><td><code>updated_at</code></td><td><span class="badge badge-dt">DateTimeField</span></td><td></td><td></td><td>更新日時</td></tr>
+</table>
+<p><strong>複合インデックス</strong>: (staff, -period_end)</p>
+<p><strong>ユニーク制約</strong>: (staff, period_start, period_end)</p>
+
+<h2>4.25 SystemConfig</h2>
 <p><strong>テーブル名</strong>: <code>booking_systemconfig</code> | <strong>表示名</strong>: システム設定</p>
 <table>
 <tr><th>フィールド名</th><th>型</th><th>NULL</th><th>索引</th><th>説明</th></tr>
@@ -489,7 +647,7 @@ Customer ──▶ BookingTopPage ──▶ StaffCalendar ──▶ PreBooking
 <tr><td><code>updated_at</code></td><td><span class="badge badge-dt">DateTimeField</span></td><td></td><td></td><td>更新日時</td></tr>
 </table>
 
-<h2>4.19 Property</h2>
+<h2>4.26 Property</h2>
 <p><strong>テーブル名</strong>: <code>booking_property</code> | <strong>表示名</strong>: 物件</p>
 <table>
 <tr><th>フィールド名</th><th>型</th><th>NULL</th><th>索引</th><th>説明</th></tr>
@@ -504,7 +662,7 @@ Customer ──▶ BookingTopPage ──▶ StaffCalendar ──▶ PreBooking
 <tr><td><code>created_at</code></td><td><span class="badge badge-dt">DateTimeField</span></td><td></td><td></td><td>created at</td></tr>
 </table>
 
-<h2>4.20 PropertyDevice</h2>
+<h2>4.27 PropertyDevice</h2>
 <p><strong>テーブル名</strong>: <code>booking_propertydevice</code> | <strong>表示名</strong>: 物件デバイス</p>
 <table>
 <tr><th>フィールド名</th><th>型</th><th>NULL</th><th>索引</th><th>説明</th></tr>
@@ -515,7 +673,7 @@ Customer ──▶ BookingTopPage ──▶ StaffCalendar ──▶ PreBooking
 </table>
 <p><strong>ユニーク制約</strong>: (property, device)</p>
 
-<h2>4.21 PropertyAlert</h2>
+<h2>4.28 PropertyAlert</h2>
 <p><strong>テーブル名</strong>: <code>booking_propertyalert</code> | <strong>表示名</strong>: 物件アラート</p>
 <table>
 <tr><th>フィールド名</th><th>型</th><th>NULL</th><th>索引</th><th>説明</th></tr>
@@ -531,7 +689,7 @@ Customer ──▶ BookingTopPage ──▶ StaffCalendar ──▶ PreBooking
 </table>
 <p><strong>複合インデックス</strong>: (property, is_resolved, created_at) | (alert_type, is_resolved)</p>
 
-<h2>4.22 StoreScheduleConfig</h2>
+<h2>4.29 StoreScheduleConfig</h2>
 <p><strong>テーブル名</strong>: <code>booking_storescheduleconfig</code> | <strong>表示名</strong>: 店舗スケジュール設定</p>
 <table>
 <tr><th>フィールド名</th><th>型</th><th>NULL</th><th>索引</th><th>説明</th></tr>
@@ -542,8 +700,8 @@ Customer ──▶ BookingTopPage ──▶ StaffCalendar ──▶ PreBooking
 <tr><td><code>slot_duration</code></td><td><span class="badge badge-int">IntegerField</span></td><td></td><td></td><td>予約コマ(分)</td></tr>
 </table>
 
-<h2>4.23 TableSeat</h2>
-<p><strong>テーブル名</strong>: <code>booking_tableseat</code> | <strong>表示名</strong>: テーブル/席</p>
+<h2>4.30 TableSeat</h2>
+<p><strong>テーブル名</strong>: <code>booking_tableseat</code> | <strong>表示名</strong>: テーブルQR登録・管理</p>
 <table>
 <tr><th>フィールド名</th><th>型</th><th>NULL</th><th>索引</th><th>説明</th></tr>
 <tr><td><code>id</code></td><td><span class="badge badge-char">UUIDField</span></td><td></td><td>UNIQUE</td><td>id</td></tr>
@@ -555,7 +713,20 @@ Customer ──▶ BookingTopPage ──▶ StaffCalendar ──▶ PreBooking
 </table>
 <p><strong>ユニーク制約</strong>: (store, label)</p>
 
-<h2>4.24 PaymentMethod</h2>
+<h2>4.31 TaxServiceCharge</h2>
+<p><strong>テーブル名</strong>: <code>booking_taxservicecharge</code> | <strong>表示名</strong>: 税・サービス料</p>
+<table>
+<tr><th>フィールド名</th><th>型</th><th>NULL</th><th>索引</th><th>説明</th></tr>
+<tr><td><code>id</code></td><td><span class="badge badge-pk">AutoField</span></td><td></td><td>UNIQUE</td><td>ID</td></tr>
+<tr><td><code>store</code></td><td><span class="badge badge-fk">ForeignKey</span> → Store</td><td></td><td>INDEX</td><td>店舗</td></tr>
+<tr><td><code>name</code></td><td><span class="badge badge-char">CharField</span></td><td></td><td></td><td>名称</td></tr>
+<tr><td><code>rate</code></td><td><span class="badge badge-int">DecimalField</span></td><td></td><td></td><td>税率(%)</td></tr>
+<tr><td><code>is_active</code></td><td><span class="badge badge-bool">BooleanField</span></td><td></td><td></td><td>有効</td></tr>
+<tr><td><code>applies_after_hour</code></td><td><span class="badge badge-int">IntegerField</span></td><td>Yes</td><td></td><td>適用開始時間</td></tr>
+<tr><td><code>sort_order</code></td><td><span class="badge badge-int">IntegerField</span></td><td></td><td></td><td>並び順</td></tr>
+</table>
+
+<h2>4.32 PaymentMethod</h2>
 <p><strong>テーブル名</strong>: <code>booking_paymentmethod</code> | <strong>表示名</strong>: 決済方法</p>
 <table>
 <tr><th>フィールド名</th><th>型</th><th>NULL</th><th>索引</th><th>説明</th></tr>
@@ -573,51 +744,138 @@ Customer ──▶ BookingTopPage ──▶ StaffCalendar ──▶ PreBooking
 </table>
 <p><strong>ユニーク制約</strong>: (store, method_type)</p>
 
-<h2>4.25 ShiftPeriod</h2>
+<h2>4.33 ShiftPeriod</h2>
 <p><strong>テーブル名</strong>: <code>booking_shiftperiod</code> | <strong>表示名</strong>: シフト募集期間</p>
 <table>
 <tr><th>フィールド名</th><th>型</th><th>NULL</th><th>索引</th><th>説明</th></tr>
 <tr><td><code>id</code></td><td><span class="badge badge-pk">AutoField</span></td><td></td><td>UNIQUE</td><td>ID</td></tr>
 <tr><td><code>store</code></td><td><span class="badge badge-fk">ForeignKey</span> → Store</td><td></td><td>INDEX</td><td>store</td></tr>
 <tr><td><code>year_month</code></td><td><span class="badge badge-dt">DateField</span></td><td></td><td></td><td>対象年月</td></tr>
-<tr><td><code>deadline</code></td><td><span class="badge badge-dt">DateTimeField</span></td><td></td><td></td><td>申請締切</td></tr>
+<tr><td><code>deadline</code></td><td><span class="badge badge-dt">DateTimeField</span></td><td>Yes</td><td></td><td>申請締切</td></tr>
 <tr><td><code>status</code></td><td><span class="badge badge-char">CharField</span></td><td></td><td></td><td>状態</td></tr>
 <tr><td><code>created_by</code></td><td><span class="badge badge-fk">ForeignKey</span> → Staff</td><td>Yes</td><td>INDEX</td><td>created by</td></tr>
 <tr><td><code>created_at</code></td><td><span class="badge badge-dt">DateTimeField</span></td><td></td><td></td><td>created at</td></tr>
 </table>
 
-<h2>4.26 ShiftRequest</h2>
+<h2>4.34 ShiftRequest</h2>
 <p><strong>テーブル名</strong>: <code>booking_shiftrequest</code> | <strong>表示名</strong>: シフト希望</p>
 <table>
 <tr><th>フィールド名</th><th>型</th><th>NULL</th><th>索引</th><th>説明</th></tr>
 <tr><td><code>id</code></td><td><span class="badge badge-pk">AutoField</span></td><td></td><td>UNIQUE</td><td>ID</td></tr>
 <tr><td><code>period</code></td><td><span class="badge badge-fk">ForeignKey</span> → ShiftPeriod</td><td></td><td>INDEX</td><td>period</td></tr>
 <tr><td><code>staff</code></td><td><span class="badge badge-fk">ForeignKey</span> → Staff</td><td></td><td>INDEX</td><td>staff</td></tr>
-<tr><td><code>date</code></td><td><span class="badge badge-dt">DateField</span></td><td></td><td></td><td>日付</td></tr>
+<tr><td><code>date</code></td><td><span class="badge badge-dt">DateField</span></td><td></td><td>INDEX</td><td>日付</td></tr>
 <tr><td><code>start_hour</code></td><td><span class="badge badge-int">IntegerField</span></td><td></td><td></td><td>開始時間</td></tr>
 <tr><td><code>end_hour</code></td><td><span class="badge badge-int">IntegerField</span></td><td></td><td></td><td>終了時間</td></tr>
+<tr><td><code>start_time</code></td><td><span class="badge badge-dt">TimeField</span></td><td>Yes</td><td></td><td>開始時刻</td></tr>
+<tr><td><code>end_time</code></td><td><span class="badge badge-dt">TimeField</span></td><td>Yes</td><td></td><td>終了時刻</td></tr>
 <tr><td><code>preference</code></td><td><span class="badge badge-char">CharField</span></td><td></td><td></td><td>希望区分</td></tr>
 <tr><td><code>note</code></td><td><span class="badge badge-char">TextField</span></td><td></td><td></td><td>備考</td></tr>
 <tr><td><code>created_at</code></td><td><span class="badge badge-dt">DateTimeField</span></td><td></td><td></td><td>created at</td></tr>
 </table>
+<p><strong>複合インデックス</strong>: (period, date) | (staff, date)</p>
 <p><strong>ユニーク制約</strong>: (period, staff, date, start_hour)</p>
 
-<h2>4.27 ShiftAssignment</h2>
+<h2>4.35 ShiftAssignment</h2>
 <p><strong>テーブル名</strong>: <code>booking_shiftassignment</code> | <strong>表示名</strong>: 確定シフト</p>
 <table>
 <tr><th>フィールド名</th><th>型</th><th>NULL</th><th>索引</th><th>説明</th></tr>
 <tr><td><code>id</code></td><td><span class="badge badge-pk">AutoField</span></td><td></td><td>UNIQUE</td><td>ID</td></tr>
 <tr><td><code>period</code></td><td><span class="badge badge-fk">ForeignKey</span> → ShiftPeriod</td><td></td><td>INDEX</td><td>period</td></tr>
 <tr><td><code>staff</code></td><td><span class="badge badge-fk">ForeignKey</span> → Staff</td><td></td><td>INDEX</td><td>staff</td></tr>
-<tr><td><code>date</code></td><td><span class="badge badge-dt">DateField</span></td><td></td><td></td><td>日付</td></tr>
+<tr><td><code>date</code></td><td><span class="badge badge-dt">DateField</span></td><td></td><td>INDEX</td><td>日付</td></tr>
 <tr><td><code>start_hour</code></td><td><span class="badge badge-int">IntegerField</span></td><td></td><td></td><td>開始時間</td></tr>
 <tr><td><code>end_hour</code></td><td><span class="badge badge-int">IntegerField</span></td><td></td><td></td><td>終了時間</td></tr>
+<tr><td><code>start_time</code></td><td><span class="badge badge-dt">TimeField</span></td><td>Yes</td><td></td><td>開始時刻</td></tr>
+<tr><td><code>end_time</code></td><td><span class="badge badge-dt">TimeField</span></td><td>Yes</td><td></td><td>終了時刻</td></tr>
+<tr><td><code>color</code></td><td><span class="badge badge-char">CharField</span></td><td></td><td></td><td>表示色</td></tr>
+<tr><td><code>note</code></td><td><span class="badge badge-char">TextField</span></td><td></td><td></td><td>備考</td></tr>
 <tr><td><code>is_synced</code></td><td><span class="badge badge-bool">BooleanField</span></td><td></td><td></td><td>Schedule同期済み</td></tr>
 <tr><td><code>created_at</code></td><td><span class="badge badge-dt">DateTimeField</span></td><td></td><td></td><td>created at</td></tr>
 </table>
+<p><strong>複合インデックス</strong>: (period, date) | (staff, date) | (is_synced)</p>
 <p><strong>ユニーク制約</strong>: (period, staff, date, start_hour)</p>
 
-<h2>4.28 AdminTheme</h2>
+<h2>4.36 ShiftTemplate</h2>
+<p><strong>テーブル名</strong>: <code>booking_shifttemplate</code> | <strong>表示名</strong>: シフトテンプレート</p>
+<table>
+<tr><th>フィールド名</th><th>型</th><th>NULL</th><th>索引</th><th>説明</th></tr>
+<tr><td><code>id</code></td><td><span class="badge badge-pk">AutoField</span></td><td></td><td>UNIQUE</td><td>ID</td></tr>
+<tr><td><code>store</code></td><td><span class="badge badge-fk">ForeignKey</span> → Store</td><td></td><td>INDEX</td><td>店舗</td></tr>
+<tr><td><code>name</code></td><td><span class="badge badge-char">CharField</span></td><td></td><td></td><td>テンプレート名</td></tr>
+<tr><td><code>start_time</code></td><td><span class="badge badge-dt">TimeField</span></td><td></td><td></td><td>開始時刻</td></tr>
+<tr><td><code>end_time</code></td><td><span class="badge badge-dt">TimeField</span></td><td></td><td></td><td>終了時刻</td></tr>
+<tr><td><code>color</code></td><td><span class="badge badge-char">CharField</span></td><td></td><td></td><td>表示色</td></tr>
+<tr><td><code>is_active</code></td><td><span class="badge badge-bool">BooleanField</span></td><td></td><td></td><td>有効</td></tr>
+<tr><td><code>sort_order</code></td><td><span class="badge badge-int">IntegerField</span></td><td></td><td></td><td>並び順</td></tr>
+</table>
+
+<h2>4.37 ShiftPublishHistory</h2>
+<p><strong>テーブル名</strong>: <code>booking_shiftpublishhistory</code> | <strong>表示名</strong>: シフト公開履歴</p>
+<table>
+<tr><th>フィールド名</th><th>型</th><th>NULL</th><th>索引</th><th>説明</th></tr>
+<tr><td><code>id</code></td><td><span class="badge badge-pk">AutoField</span></td><td></td><td>UNIQUE</td><td>ID</td></tr>
+<tr><td><code>period</code></td><td><span class="badge badge-fk">ForeignKey</span> → ShiftPeriod</td><td></td><td>INDEX</td><td>シフト期間</td></tr>
+<tr><td><code>published_by</code></td><td><span class="badge badge-fk">ForeignKey</span> → Staff</td><td>Yes</td><td>INDEX</td><td>公開者</td></tr>
+<tr><td><code>published_at</code></td><td><span class="badge badge-dt">DateTimeField</span></td><td></td><td></td><td>公開日時</td></tr>
+<tr><td><code>assignment_count</code></td><td><span class="badge badge-int">IntegerField</span></td><td></td><td></td><td>シフト数</td></tr>
+<tr><td><code>note</code></td><td><span class="badge badge-char">TextField</span></td><td></td><td></td><td>備考</td></tr>
+<tr><td><code>action</code></td><td><span class="badge badge-char">CharField</span></td><td></td><td></td><td>操作</td></tr>
+<tr><td><code>reason</code></td><td><span class="badge badge-char">TextField</span></td><td></td><td></td><td>理由</td></tr>
+</table>
+
+<h2>4.38 ShiftChangeLog</h2>
+<p><strong>テーブル名</strong>: <code>booking_shiftchangelog</code> | <strong>表示名</strong>: シフト変更ログ</p>
+<table>
+<tr><th>フィールド名</th><th>型</th><th>NULL</th><th>索引</th><th>説明</th></tr>
+<tr><td><code>id</code></td><td><span class="badge badge-pk">AutoField</span></td><td></td><td>UNIQUE</td><td>ID</td></tr>
+<tr><td><code>assignment</code></td><td><span class="badge badge-fk">ForeignKey</span> → ShiftAssignment</td><td></td><td>INDEX</td><td>assignment</td></tr>
+<tr><td><code>changed_by</code></td><td><span class="badge badge-fk">ForeignKey</span> → Staff</td><td>Yes</td><td>INDEX</td><td>changed by</td></tr>
+<tr><td><code>changed_at</code></td><td><span class="badge badge-dt">DateTimeField</span></td><td></td><td></td><td>changed at</td></tr>
+<tr><td><code>change_type</code></td><td><span class="badge badge-char">CharField</span></td><td></td><td></td><td>変更種別</td></tr>
+<tr><td><code>old_values</code></td><td><span class="badge badge-char">JSONField</span></td><td></td><td></td><td>変更前</td></tr>
+<tr><td><code>new_values</code></td><td><span class="badge badge-char">JSONField</span></td><td></td><td></td><td>変更後</td></tr>
+<tr><td><code>reason</code></td><td><span class="badge badge-char">TextField</span></td><td></td><td></td><td>変更理由</td></tr>
+</table>
+
+<h2>4.39 StoreClosedDate</h2>
+<p><strong>テーブル名</strong>: <code>booking_storecloseddate</code> | <strong>表示名</strong>: 休業日</p>
+<table>
+<tr><th>フィールド名</th><th>型</th><th>NULL</th><th>索引</th><th>説明</th></tr>
+<tr><td><code>id</code></td><td><span class="badge badge-pk">AutoField</span></td><td></td><td>UNIQUE</td><td>ID</td></tr>
+<tr><td><code>store</code></td><td><span class="badge badge-fk">ForeignKey</span> → Store</td><td></td><td>INDEX</td><td>store</td></tr>
+<tr><td><code>date</code></td><td><span class="badge badge-dt">DateField</span></td><td></td><td></td><td>休業日</td></tr>
+<tr><td><code>reason</code></td><td><span class="badge badge-char">CharField</span></td><td></td><td></td><td>理由</td></tr>
+<tr><td><code>created_at</code></td><td><span class="badge badge-dt">DateTimeField</span></td><td></td><td></td><td>created at</td></tr>
+</table>
+<p><strong>ユニーク制約</strong>: (store, date)</p>
+
+<h2>4.40 ShiftStaffRequirement</h2>
+<p><strong>テーブル名</strong>: <code>booking_shiftstaffrequirement</code> | <strong>表示名</strong>: シフト必要人数（曜日別）</p>
+<table>
+<tr><th>フィールド名</th><th>型</th><th>NULL</th><th>索引</th><th>説明</th></tr>
+<tr><td><code>id</code></td><td><span class="badge badge-pk">AutoField</span></td><td></td><td>UNIQUE</td><td>ID</td></tr>
+<tr><td><code>store</code></td><td><span class="badge badge-fk">ForeignKey</span> → Store</td><td></td><td>INDEX</td><td>store</td></tr>
+<tr><td><code>day_of_week</code></td><td><span class="badge badge-int">IntegerField</span></td><td></td><td></td><td>曜日</td></tr>
+<tr><td><code>staff_type</code></td><td><span class="badge badge-char">CharField</span></td><td></td><td></td><td>従業員種別</td></tr>
+<tr><td><code>required_count</code></td><td><span class="badge badge-char">PositiveIntegerField</span></td><td></td><td></td><td>必要人数</td></tr>
+</table>
+<p><strong>ユニーク制約</strong>: (store, day_of_week, staff_type)</p>
+
+<h2>4.41 ShiftStaffRequirementOverride</h2>
+<p><strong>テーブル名</strong>: <code>booking_shiftstaffrequirementoverride</code> | <strong>表示名</strong>: シフト必要人数（日付指定）</p>
+<table>
+<tr><th>フィールド名</th><th>型</th><th>NULL</th><th>索引</th><th>説明</th></tr>
+<tr><td><code>id</code></td><td><span class="badge badge-pk">AutoField</span></td><td></td><td>UNIQUE</td><td>ID</td></tr>
+<tr><td><code>store</code></td><td><span class="badge badge-fk">ForeignKey</span> → Store</td><td></td><td>INDEX</td><td>store</td></tr>
+<tr><td><code>date</code></td><td><span class="badge badge-dt">DateField</span></td><td></td><td></td><td>日付</td></tr>
+<tr><td><code>staff_type</code></td><td><span class="badge badge-char">CharField</span></td><td></td><td></td><td>従業員種別</td></tr>
+<tr><td><code>required_count</code></td><td><span class="badge badge-char">PositiveIntegerField</span></td><td></td><td></td><td>必要人数</td></tr>
+<tr><td><code>reason</code></td><td><span class="badge badge-char">CharField</span></td><td></td><td></td><td>理由</td></tr>
+</table>
+<p><strong>ユニーク制約</strong>: (store, date, staff_type)</p>
+
+<h2>4.42 AdminTheme</h2>
 <p><strong>テーブル名</strong>: <code>booking_admintheme</code> | <strong>表示名</strong>: 管理画面テーマ</p>
 <table>
 <tr><th>フィールド名</th><th>型</th><th>NULL</th><th>索引</th><th>説明</th></tr>
@@ -628,8 +886,8 @@ Customer ──▶ BookingTopPage ──▶ StaffCalendar ──▶ PreBooking
 <tr><td><code>header_image</code></td><td><span class="badge badge-char">FileField</span></td><td></td><td></td><td>ヘッダー画像</td></tr>
 </table>
 
-<h2>4.29 SiteSettings</h2>
-<p><strong>テーブル名</strong>: <code>booking_sitesettings</code> | <strong>表示名</strong>: サイト設定</p>
+<h2>4.43 SiteSettings</h2>
+<p><strong>テーブル名</strong>: <code>booking_sitesettings</code> | <strong>表示名</strong>: メインサイト設定</p>
 <table>
 <tr><th>フィールド名</th><th>型</th><th>NULL</th><th>索引</th><th>説明</th></tr>
 <tr><td><code>id</code></td><td><span class="badge badge-pk">AutoField</span></td><td></td><td>UNIQUE</td><td>ID</td></tr>
@@ -650,12 +908,65 @@ Customer ──▶ BookingTopPage ──▶ StaffCalendar ──▶ PreBooking
 <tr><td><code>show_sidebar_external_links</code></td><td><span class="badge badge-bool">BooleanField</span></td><td></td><td></td><td>外部リンク表示</td></tr>
 <tr><td><code>instagram_embed_html</code></td><td><span class="badge badge-char">TextField</span></td><td></td><td></td><td>Instagram埋め込みHTML</td></tr>
 <tr><td><code>staff_label</code></td><td><span class="badge badge-char">CharField</span></td><td></td><td></td><td>スタッフの呼称</td></tr>
+<tr><td><code>staff_label_i18n</code></td><td><span class="badge badge-char">JSONField</span></td><td></td><td></td><td>スタッフ呼称（多言語）</td></tr>
+<tr><td><code>price_label</code></td><td><span class="badge badge-char">CharField</span></td><td></td><td></td><td>料金ラベル</td></tr>
 <tr><td><code>show_ai_chat</code></td><td><span class="badge badge-bool">BooleanField</span></td><td></td><td></td><td>AIアシスタント表示</td></tr>
+<tr><td><code>show_admin_reservation</code></td><td><span class="badge badge-bool">BooleanField</span></td><td></td><td></td><td>予約管理を表示</td></tr>
+<tr><td><code>show_admin_shift</code></td><td><span class="badge badge-bool">BooleanField</span></td><td></td><td></td><td>シフト管理を表示</td></tr>
+<tr><td><code>show_admin_staff_manage</code></td><td><span class="badge badge-bool">BooleanField</span></td><td></td><td></td><td>従業員管理を表示</td></tr>
+<tr><td><code>show_admin_menu_manage</code></td><td><span class="badge badge-bool">BooleanField</span></td><td></td><td></td><td>メニュー管理を表示</td></tr>
+<tr><td><code>show_admin_inventory</code></td><td><span class="badge badge-bool">BooleanField</span></td><td></td><td></td><td>在庫管理を表示</td></tr>
+<tr><td><code>show_admin_order</code></td><td><span class="badge badge-bool">BooleanField</span></td><td></td><td></td><td>注文管理を表示</td></tr>
+<tr><td><code>show_admin_pos</code></td><td><span class="badge badge-bool">BooleanField</span></td><td></td><td></td><td>レジ（POS）を表示</td></tr>
+<tr><td><code>show_admin_kitchen</code></td><td><span class="badge badge-bool">BooleanField</span></td><td></td><td></td><td>キッチンディスプレイを表示</td></tr>
+<tr><td><code>show_admin_ec_shop</code></td><td><span class="badge badge-bool">BooleanField</span></td><td></td><td></td><td>オンラインショップを表示</td></tr>
+<tr><td><code>show_admin_table_order</code></td><td><span class="badge badge-bool">BooleanField</span></td><td></td><td></td><td>店舗管理を表示</td></tr>
+<tr><td><code>show_admin_iot</code></td><td><span class="badge badge-bool">BooleanField</span></td><td></td><td></td><td>IoT管理を表示</td></tr>
 <tr><td><code>privacy_policy_html</code></td><td><span class="badge badge-char">TextField</span></td><td></td><td></td><td>プライバシーポリシー</td></tr>
 <tr><td><code>tokushoho_html</code></td><td><span class="badge badge-char">TextField</span></td><td></td><td></td><td>特定商取引法に基づく表記</td></tr>
 </table>
 
-<h2>4.30 HomepageCustomBlock</h2>
+<h2>4.44 AdminSidebarSettings</h2>
+<p><strong>テーブル名</strong>: <code>booking_sitesettings</code> | <strong>表示名</strong>: 管理サイドバー設定</p>
+<table>
+<tr><th>フィールド名</th><th>型</th><th>NULL</th><th>索引</th><th>説明</th></tr>
+<tr><td><code>id</code></td><td><span class="badge badge-pk">AutoField</span></td><td></td><td>UNIQUE</td><td>ID</td></tr>
+<tr><td><code>site_name</code></td><td><span class="badge badge-char">CharField</span></td><td></td><td></td><td>サイト名</td></tr>
+<tr><td><code>show_card_store</code></td><td><span class="badge badge-bool">BooleanField</span></td><td></td><td></td><td>店舗カード表示</td></tr>
+<tr><td><code>show_card_fortune_teller</code></td><td><span class="badge badge-bool">BooleanField</span></td><td></td><td></td><td>占い師カード表示</td></tr>
+<tr><td><code>show_card_calendar</code></td><td><span class="badge badge-bool">BooleanField</span></td><td></td><td></td><td>カレンダーカード表示</td></tr>
+<tr><td><code>show_card_shop</code></td><td><span class="badge badge-bool">BooleanField</span></td><td></td><td></td><td>ショップカード表示</td></tr>
+<tr><td><code>show_sidebar_notice</code></td><td><span class="badge badge-bool">BooleanField</span></td><td></td><td></td><td>お知らせ表示</td></tr>
+<tr><td><code>show_sidebar_company</code></td><td><span class="badge badge-bool">BooleanField</span></td><td></td><td></td><td>運営会社表示</td></tr>
+<tr><td><code>show_sidebar_media</code></td><td><span class="badge badge-bool">BooleanField</span></td><td></td><td></td><td>メディア掲載表示</td></tr>
+<tr><td><code>show_sidebar_social</code></td><td><span class="badge badge-bool">BooleanField</span></td><td></td><td></td><td>SNSフィード表示</td></tr>
+<tr><td><code>twitter_url</code></td><td><span class="badge badge-char">CharField</span></td><td></td><td></td><td>X(Twitter) URL</td></tr>
+<tr><td><code>instagram_url</code></td><td><span class="badge badge-char">CharField</span></td><td></td><td></td><td>Instagram URL</td></tr>
+<tr><td><code>show_hero_banner</code></td><td><span class="badge badge-bool">BooleanField</span></td><td></td><td></td><td>ヒーローバナー表示</td></tr>
+<tr><td><code>show_ranking</code></td><td><span class="badge badge-bool">BooleanField</span></td><td></td><td></td><td>予約ランキング表示</td></tr>
+<tr><td><code>ranking_limit</code></td><td><span class="badge badge-int">IntegerField</span></td><td></td><td></td><td>ランキング表示件数</td></tr>
+<tr><td><code>show_sidebar_external_links</code></td><td><span class="badge badge-bool">BooleanField</span></td><td></td><td></td><td>外部リンク表示</td></tr>
+<tr><td><code>instagram_embed_html</code></td><td><span class="badge badge-char">TextField</span></td><td></td><td></td><td>Instagram埋め込みHTML</td></tr>
+<tr><td><code>staff_label</code></td><td><span class="badge badge-char">CharField</span></td><td></td><td></td><td>スタッフの呼称</td></tr>
+<tr><td><code>staff_label_i18n</code></td><td><span class="badge badge-char">JSONField</span></td><td></td><td></td><td>スタッフ呼称（多言語）</td></tr>
+<tr><td><code>price_label</code></td><td><span class="badge badge-char">CharField</span></td><td></td><td></td><td>料金ラベル</td></tr>
+<tr><td><code>show_ai_chat</code></td><td><span class="badge badge-bool">BooleanField</span></td><td></td><td></td><td>AIアシスタント表示</td></tr>
+<tr><td><code>show_admin_reservation</code></td><td><span class="badge badge-bool">BooleanField</span></td><td></td><td></td><td>予約管理を表示</td></tr>
+<tr><td><code>show_admin_shift</code></td><td><span class="badge badge-bool">BooleanField</span></td><td></td><td></td><td>シフト管理を表示</td></tr>
+<tr><td><code>show_admin_staff_manage</code></td><td><span class="badge badge-bool">BooleanField</span></td><td></td><td></td><td>従業員管理を表示</td></tr>
+<tr><td><code>show_admin_menu_manage</code></td><td><span class="badge badge-bool">BooleanField</span></td><td></td><td></td><td>メニュー管理を表示</td></tr>
+<tr><td><code>show_admin_inventory</code></td><td><span class="badge badge-bool">BooleanField</span></td><td></td><td></td><td>在庫管理を表示</td></tr>
+<tr><td><code>show_admin_order</code></td><td><span class="badge badge-bool">BooleanField</span></td><td></td><td></td><td>注文管理を表示</td></tr>
+<tr><td><code>show_admin_pos</code></td><td><span class="badge badge-bool">BooleanField</span></td><td></td><td></td><td>レジ（POS）を表示</td></tr>
+<tr><td><code>show_admin_kitchen</code></td><td><span class="badge badge-bool">BooleanField</span></td><td></td><td></td><td>キッチンディスプレイを表示</td></tr>
+<tr><td><code>show_admin_ec_shop</code></td><td><span class="badge badge-bool">BooleanField</span></td><td></td><td></td><td>オンラインショップを表示</td></tr>
+<tr><td><code>show_admin_table_order</code></td><td><span class="badge badge-bool">BooleanField</span></td><td></td><td></td><td>店舗管理を表示</td></tr>
+<tr><td><code>show_admin_iot</code></td><td><span class="badge badge-bool">BooleanField</span></td><td></td><td></td><td>IoT管理を表示</td></tr>
+<tr><td><code>privacy_policy_html</code></td><td><span class="badge badge-char">TextField</span></td><td></td><td></td><td>プライバシーポリシー</td></tr>
+<tr><td><code>tokushoho_html</code></td><td><span class="badge badge-char">TextField</span></td><td></td><td></td><td>特定商取引法に基づく表記</td></tr>
+</table>
+
+<h2>4.45 HomepageCustomBlock</h2>
 <p><strong>テーブル名</strong>: <code>booking_homepagecustomblock</code> | <strong>表示名</strong>: カスタムブロック</p>
 <table>
 <tr><th>フィールド名</th><th>型</th><th>NULL</th><th>索引</th><th>説明</th></tr>
@@ -669,7 +980,7 @@ Customer ──▶ BookingTopPage ──▶ StaffCalendar ──▶ PreBooking
 <tr><td><code>updated_at</code></td><td><span class="badge badge-dt">DateTimeField</span></td><td></td><td></td><td>更新日時</td></tr>
 </table>
 
-<h2>4.31 HeroBanner</h2>
+<h2>4.46 HeroBanner</h2>
 <p><strong>テーブル名</strong>: <code>booking_herobanner</code> | <strong>表示名</strong>: ヒーローバナー</p>
 <table>
 <tr><th>フィールド名</th><th>型</th><th>NULL</th><th>索引</th><th>説明</th></tr>
@@ -687,7 +998,7 @@ Customer ──▶ BookingTopPage ──▶ StaffCalendar ──▶ PreBooking
 <tr><td><code>updated_at</code></td><td><span class="badge badge-dt">DateTimeField</span></td><td></td><td></td><td>更新日時</td></tr>
 </table>
 
-<h2>4.32 BannerAd</h2>
+<h2>4.47 BannerAd</h2>
 <p><strong>テーブル名</strong>: <code>booking_bannerad</code> | <strong>表示名</strong>: バナー広告</p>
 <table>
 <tr><th>フィールド名</th><th>型</th><th>NULL</th><th>索引</th><th>説明</th></tr>
@@ -702,7 +1013,7 @@ Customer ──▶ BookingTopPage ──▶ StaffCalendar ──▶ PreBooking
 <tr><td><code>updated_at</code></td><td><span class="badge badge-dt">DateTimeField</span></td><td></td><td></td><td>更新日時</td></tr>
 </table>
 
-<h2>4.33 ExternalLink</h2>
+<h2>4.48 ExternalLink</h2>
 <p><strong>テーブル名</strong>: <code>booking_externallink</code> | <strong>表示名</strong>: 外部リンク</p>
 <table>
 <tr><th>フィールド名</th><th>型</th><th>NULL</th><th>索引</th><th>説明</th></tr>
@@ -715,7 +1026,7 @@ Customer ──▶ BookingTopPage ──▶ StaffCalendar ──▶ PreBooking
 <tr><td><code>open_in_new_tab</code></td><td><span class="badge badge-bool">BooleanField</span></td><td></td><td></td><td>新しいタブで開く</td></tr>
 </table>
 
-<h2>4.34 EmploymentContract</h2>
+<h2>4.49 EmploymentContract</h2>
 <p><strong>テーブル名</strong>: <code>booking_employmentcontract</code> | <strong>表示名</strong>: 雇用契約</p>
 <table>
 <tr><th>フィールド名</th><th>型</th><th>NULL</th><th>索引</th><th>説明</th></tr>
@@ -736,7 +1047,7 @@ Customer ──▶ BookingTopPage ──▶ StaffCalendar ──▶ PreBooking
 <tr><td><code>is_active</code></td><td><span class="badge badge-bool">BooleanField</span></td><td></td><td></td><td>有効</td></tr>
 </table>
 
-<h2>4.35 WorkAttendance</h2>
+<h2>4.50 WorkAttendance</h2>
 <p><strong>テーブル名</strong>: <code>booking_workattendance</code> | <strong>表示名</strong>: 勤怠記録</p>
 <table>
 <tr><th>フィールド名</th><th>型</th><th>NULL</th><th>索引</th><th>説明</th></tr>
@@ -750,13 +1061,15 @@ Customer ──▶ BookingTopPage ──▶ StaffCalendar ──▶ PreBooking
 <tr><td><code>late_night_minutes</code></td><td><span class="badge badge-int">IntegerField</span></td><td></td><td></td><td>深夜勤務（分）</td></tr>
 <tr><td><code>holiday_minutes</code></td><td><span class="badge badge-int">IntegerField</span></td><td></td><td></td><td>休日勤務（分）</td></tr>
 <tr><td><code>break_minutes</code></td><td><span class="badge badge-int">IntegerField</span></td><td></td><td></td><td>休憩（分）</td></tr>
+<tr><td><code>qr_clock_in</code></td><td><span class="badge badge-dt">DateTimeField</span></td><td>Yes</td><td></td><td>QR出勤日時</td></tr>
+<tr><td><code>qr_clock_out</code></td><td><span class="badge badge-dt">DateTimeField</span></td><td>Yes</td><td></td><td>QR退勤日時</td></tr>
 <tr><td><code>source</code></td><td><span class="badge badge-char">CharField</span></td><td></td><td></td><td>データソース</td></tr>
 <tr><td><code>source_assignment</code></td><td><span class="badge badge-fk">ForeignKey</span> → ShiftAssignment</td><td>Yes</td><td>INDEX</td><td>元シフト</td></tr>
 </table>
 <p><strong>複合インデックス</strong>: (staff, date) | (date)</p>
 <p><strong>ユニーク制約</strong>: (staff, date)</p>
 
-<h2>4.36 PayrollPeriod</h2>
+<h2>4.51 PayrollPeriod</h2>
 <p><strong>テーブル名</strong>: <code>booking_payrollperiod</code> | <strong>表示名</strong>: 給与計算期間</p>
 <table>
 <tr><th>フィールド名</th><th>型</th><th>NULL</th><th>索引</th><th>説明</th></tr>
@@ -772,7 +1085,7 @@ Customer ──▶ BookingTopPage ──▶ StaffCalendar ──▶ PreBooking
 </table>
 <p><strong>ユニーク制約</strong>: (store, year_month)</p>
 
-<h2>4.37 PayrollEntry</h2>
+<h2>4.52 PayrollEntry</h2>
 <p><strong>テーブル名</strong>: <code>booking_payrollentry</code> | <strong>表示名</strong>: 給与明細</p>
 <table>
 <tr><th>フィールド名</th><th>型</th><th>NULL</th><th>索引</th><th>説明</th></tr>
@@ -798,7 +1111,7 @@ Customer ──▶ BookingTopPage ──▶ StaffCalendar ──▶ PreBooking
 </table>
 <p><strong>ユニーク制約</strong>: (period, staff)</p>
 
-<h2>4.38 PayrollDeduction</h2>
+<h2>4.53 PayrollDeduction</h2>
 <p><strong>テーブル名</strong>: <code>booking_payrolldeduction</code> | <strong>表示名</strong>: 控除明細</p>
 <table>
 <tr><th>フィールド名</th><th>型</th><th>NULL</th><th>索引</th><th>説明</th></tr>
@@ -809,7 +1122,7 @@ Customer ──▶ BookingTopPage ──▶ StaffCalendar ──▶ PreBooking
 <tr><td><code>is_employer_only</code></td><td><span class="badge badge-bool">BooleanField</span></td><td></td><td></td><td>事業主負担のみ</td></tr>
 </table>
 
-<h2>4.39 SalaryStructure</h2>
+<h2>4.54 SalaryStructure</h2>
 <p><strong>テーブル名</strong>: <code>booking_salarystructure</code> | <strong>表示名</strong>: 給与体系</p>
 <table>
 <tr><th>フィールド名</th><th>型</th><th>NULL</th><th>索引</th><th>説明</th></tr>
@@ -825,7 +1138,7 @@ Customer ──▶ BookingTopPage ──▶ StaffCalendar ──▶ PreBooking
 <tr><td><code>holiday_multiplier</code></td><td><span class="badge badge-int">DecimalField</span></td><td></td><td></td><td>休日割増率</td></tr>
 </table>
 
-<h2>4.40 SecurityAudit</h2>
+<h2>4.55 SecurityAudit</h2>
 <p><strong>テーブル名</strong>: <code>booking_securityaudit</code> | <strong>表示名</strong>: セキュリティ監査</p>
 <table>
 <tr><th>フィールド名</th><th>型</th><th>NULL</th><th>索引</th><th>説明</th></tr>
@@ -840,7 +1153,7 @@ Customer ──▶ BookingTopPage ──▶ StaffCalendar ──▶ PreBooking
 <tr><td><code>created_at</code></td><td><span class="badge badge-dt">DateTimeField</span></td><td></td><td>INDEX</td><td>実行日時</td></tr>
 </table>
 
-<h2>4.41 SecurityLog</h2>
+<h2>4.56 SecurityLog</h2>
 <p><strong>テーブル名</strong>: <code>booking_securitylog</code> | <strong>表示名</strong>: セキュリティログ</p>
 <table>
 <tr><th>フィールド名</th><th>型</th><th>NULL</th><th>索引</th><th>説明</th></tr>
@@ -858,7 +1171,7 @@ Customer ──▶ BookingTopPage ──▶ StaffCalendar ──▶ PreBooking
 </table>
 <p><strong>複合インデックス</strong>: (event_type, created_at) | (ip_address, created_at)</p>
 
-<h2>4.42 CostReport</h2>
+<h2>4.57 CostReport</h2>
 <p><strong>テーブル名</strong>: <code>booking_costreport</code> | <strong>表示名</strong>: AWSコストレポート</p>
 <table>
 <tr><th>フィールド名</th><th>型</th><th>NULL</th><th>索引</th><th>説明</th></tr>
@@ -874,8 +1187,8 @@ Customer ──▶ BookingTopPage ──▶ StaffCalendar ──▶ PreBooking
 <tr><td><code>created_at</code></td><td><span class="badge badge-dt">DateTimeField</span></td><td></td><td>INDEX</td><td>実行日時</td></tr>
 </table>
 
-<h2>4.43 AdminMenuConfig</h2>
-<p><strong>テーブル名</strong>: <code>booking_adminmenuconfig</code> | <strong>表示名</strong>: メニュー権限設定</p>
+<h2>4.58 AdminMenuConfig</h2>
+<p><strong>テーブル名</strong>: <code>booking_adminmenuconfig</code> | <strong>表示名</strong>: 権限設定</p>
 <table>
 <tr><th>フィールド名</th><th>型</th><th>NULL</th><th>索引</th><th>説明</th></tr>
 <tr><td><code>id</code></td><td><span class="badge badge-pk">AutoField</span></td><td></td><td>UNIQUE</td><td>ID</td></tr>
@@ -883,6 +1196,126 @@ Customer ──▶ BookingTopPage ──▶ StaffCalendar ──▶ PreBooking
 <tr><td><code>allowed_models</code></td><td><span class="badge badge-char">JSONField</span></td><td></td><td></td><td>表示許可モデル</td></tr>
 <tr><td><code>updated_at</code></td><td><span class="badge badge-dt">DateTimeField</span></td><td></td><td></td><td>更新日時</td></tr>
 <tr><td><code>updated_by</code></td><td><span class="badge badge-fk">ForeignKey</span> → User</td><td>Yes</td><td>INDEX</td><td>更新者</td></tr>
+</table>
+
+<h2>4.59 AttendanceTOTPConfig</h2>
+<p><strong>テーブル名</strong>: <code>booking_attendancetotpconfig</code> | <strong>表示名</strong>: TOTP勤怠設定</p>
+<table>
+<tr><th>フィールド名</th><th>型</th><th>NULL</th><th>索引</th><th>説明</th></tr>
+<tr><td><code>id</code></td><td><span class="badge badge-pk">AutoField</span></td><td></td><td>UNIQUE</td><td>ID</td></tr>
+<tr><td><code>store</code></td><td><span class="badge badge-fk">OneToOneField</span> → Store</td><td></td><td>UNIQUE INDEX</td><td>店舗</td></tr>
+<tr><td><code>totp_secret</code></td><td><span class="badge badge-char">CharField</span></td><td></td><td></td><td>TOTPシークレット</td></tr>
+<tr><td><code>totp_interval</code></td><td><span class="badge badge-int">IntegerField</span></td><td></td><td></td><td>TOTP間隔(秒)</td></tr>
+<tr><td><code>location_lat</code></td><td><span class="badge badge-int">FloatField</span></td><td>Yes</td><td></td><td>緯度</td></tr>
+<tr><td><code>location_lng</code></td><td><span class="badge badge-int">FloatField</span></td><td>Yes</td><td></td><td>経度</td></tr>
+<tr><td><code>geo_fence_radius_m</code></td><td><span class="badge badge-int">IntegerField</span></td><td></td><td></td><td>ジオフェンス半径(m)</td></tr>
+<tr><td><code>require_geo_check</code></td><td><span class="badge badge-bool">BooleanField</span></td><td></td><td></td><td>位置確認必須</td></tr>
+<tr><td><code>is_active</code></td><td><span class="badge badge-bool">BooleanField</span></td><td></td><td></td><td>有効</td></tr>
+</table>
+
+<h2>4.60 AttendanceStamp</h2>
+<p><strong>テーブル名</strong>: <code>booking_attendancestamp</code> | <strong>表示名</strong>: 打刻ログ</p>
+<table>
+<tr><th>フィールド名</th><th>型</th><th>NULL</th><th>索引</th><th>説明</th></tr>
+<tr><td><code>id</code></td><td><span class="badge badge-pk">AutoField</span></td><td></td><td>UNIQUE</td><td>ID</td></tr>
+<tr><td><code>staff</code></td><td><span class="badge badge-fk">ForeignKey</span> → Staff</td><td></td><td>INDEX</td><td>スタッフ</td></tr>
+<tr><td><code>stamp_type</code></td><td><span class="badge badge-char">CharField</span></td><td></td><td></td><td>打刻種別</td></tr>
+<tr><td><code>stamped_at</code></td><td><span class="badge badge-dt">DateTimeField</span></td><td></td><td></td><td>打刻日時</td></tr>
+<tr><td><code>totp_used</code></td><td><span class="badge badge-char">CharField</span></td><td></td><td></td><td>使用TOTP</td></tr>
+<tr><td><code>ip_address</code></td><td><span class="badge badge-char">GenericIPAddressField</span></td><td>Yes</td><td></td><td>IPアドレス</td></tr>
+<tr><td><code>user_agent</code></td><td><span class="badge badge-char">TextField</span></td><td></td><td></td><td>User-Agent</td></tr>
+<tr><td><code>latitude</code></td><td><span class="badge badge-int">FloatField</span></td><td>Yes</td><td></td><td>緯度</td></tr>
+<tr><td><code>longitude</code></td><td><span class="badge badge-int">FloatField</span></td><td>Yes</td><td></td><td>経度</td></tr>
+<tr><td><code>is_valid</code></td><td><span class="badge badge-bool">BooleanField</span></td><td></td><td></td><td>有効</td></tr>
+<tr><td><code>invalidation_reason</code></td><td><span class="badge badge-char">CharField</span></td><td></td><td></td><td>無効理由</td></tr>
+</table>
+<p><strong>複合インデックス</strong>: (staff, stamped_at) | (stamp_type, stamped_at)</p>
+
+<h2>4.61 POSTransaction</h2>
+<p><strong>テーブル名</strong>: <code>booking_postransaction</code> | <strong>表示名</strong>: POS決済履歴</p>
+<table>
+<tr><th>フィールド名</th><th>型</th><th>NULL</th><th>索引</th><th>説明</th></tr>
+<tr><td><code>id</code></td><td><span class="badge badge-pk">AutoField</span></td><td></td><td>UNIQUE</td><td>ID</td></tr>
+<tr><td><code>order</code></td><td><span class="badge badge-fk">OneToOneField</span> → Order</td><td></td><td>UNIQUE INDEX</td><td>注文</td></tr>
+<tr><td><code>payment_method</code></td><td><span class="badge badge-fk">ForeignKey</span> → PaymentMethod</td><td>Yes</td><td>INDEX</td><td>決済方法</td></tr>
+<tr><td><code>total_amount</code></td><td><span class="badge badge-int">IntegerField</span></td><td></td><td></td><td>合計金額</td></tr>
+<tr><td><code>tax_amount</code></td><td><span class="badge badge-int">IntegerField</span></td><td></td><td></td><td>税額</td></tr>
+<tr><td><code>discount_amount</code></td><td><span class="badge badge-int">IntegerField</span></td><td></td><td></td><td>割引額</td></tr>
+<tr><td><code>cash_received</code></td><td><span class="badge badge-int">IntegerField</span></td><td>Yes</td><td></td><td>受取金額</td></tr>
+<tr><td><code>change_given</code></td><td><span class="badge badge-int">IntegerField</span></td><td>Yes</td><td></td><td>お釣り</td></tr>
+<tr><td><code>receipt_number</code></td><td><span class="badge badge-char">CharField</span></td><td></td><td>UNIQUE</td><td>レシート番号</td></tr>
+<tr><td><code>staff</code></td><td><span class="badge badge-fk">ForeignKey</span> → Staff</td><td>Yes</td><td>INDEX</td><td>担当</td></tr>
+<tr><td><code>completed_at</code></td><td><span class="badge badge-dt">DateTimeField</span></td><td>Yes</td><td></td><td>完了日時</td></tr>
+</table>
+<p><strong>複合インデックス</strong>: (receipt_number) | (completed_at)</p>
+
+<h2>4.62 VisitorCount</h2>
+<p><strong>テーブル名</strong>: <code>booking_visitorcount</code> | <strong>表示名</strong>: 来客数</p>
+<table>
+<tr><th>フィールド名</th><th>型</th><th>NULL</th><th>索引</th><th>説明</th></tr>
+<tr><td><code>id</code></td><td><span class="badge badge-pk">AutoField</span></td><td></td><td>UNIQUE</td><td>ID</td></tr>
+<tr><td><code>store</code></td><td><span class="badge badge-fk">ForeignKey</span> → Store</td><td></td><td>INDEX</td><td>店舗</td></tr>
+<tr><td><code>date</code></td><td><span class="badge badge-dt">DateField</span></td><td></td><td>INDEX</td><td>日付</td></tr>
+<tr><td><code>hour</code></td><td><span class="badge badge-int">IntegerField</span></td><td></td><td></td><td>時間帯</td></tr>
+<tr><td><code>pir_count</code></td><td><span class="badge badge-int">IntegerField</span></td><td></td><td></td><td>PIR検知数</td></tr>
+<tr><td><code>estimated_visitors</code></td><td><span class="badge badge-int">IntegerField</span></td><td></td><td></td><td>推定来客数</td></tr>
+<tr><td><code>order_count</code></td><td><span class="badge badge-int">IntegerField</span></td><td></td><td></td><td>注文数</td></tr>
+</table>
+<p><strong>複合インデックス</strong>: (store, date)</p>
+<p><strong>ユニーク制約</strong>: (store, date, hour)</p>
+
+<h2>4.63 VisitorAnalyticsConfig</h2>
+<p><strong>テーブル名</strong>: <code>booking_visitoranalyticsconfig</code> | <strong>表示名</strong>: 来客分析設定</p>
+<table>
+<tr><th>フィールド名</th><th>型</th><th>NULL</th><th>索引</th><th>説明</th></tr>
+<tr><td><code>id</code></td><td><span class="badge badge-pk">AutoField</span></td><td></td><td>UNIQUE</td><td>ID</td></tr>
+<tr><td><code>store</code></td><td><span class="badge badge-fk">OneToOneField</span> → Store</td><td></td><td>UNIQUE INDEX</td><td>店舗</td></tr>
+<tr><td><code>pir_device</code></td><td><span class="badge badge-fk">ForeignKey</span> → IoTDevice</td><td>Yes</td><td>INDEX</td><td>PIRデバイス</td></tr>
+<tr><td><code>session_gap_seconds</code></td><td><span class="badge badge-int">IntegerField</span></td><td></td><td></td><td>セッション間隔(秒)</td></tr>
+</table>
+
+<h2>4.64 StaffRecommendationModel</h2>
+<p><strong>テーブル名</strong>: <code>booking_staffrecommendationmodel</code> | <strong>表示名</strong>: AI推薦モデル</p>
+<table>
+<tr><th>フィールド名</th><th>型</th><th>NULL</th><th>索引</th><th>説明</th></tr>
+<tr><td><code>id</code></td><td><span class="badge badge-pk">AutoField</span></td><td></td><td>UNIQUE</td><td>ID</td></tr>
+<tr><td><code>store</code></td><td><span class="badge badge-fk">ForeignKey</span> → Store</td><td></td><td>INDEX</td><td>店舗</td></tr>
+<tr><td><code>model_file</code></td><td><span class="badge badge-char">FileField</span></td><td></td><td></td><td>モデルファイル</td></tr>
+<tr><td><code>model_type</code></td><td><span class="badge badge-char">CharField</span></td><td></td><td></td><td>モデル種別</td></tr>
+<tr><td><code>feature_names</code></td><td><span class="badge badge-char">JSONField</span></td><td></td><td></td><td>特徴量名</td></tr>
+<tr><td><code>accuracy_score</code></td><td><span class="badge badge-int">FloatField</span></td><td></td><td></td><td>精度スコア</td></tr>
+<tr><td><code>mae_score</code></td><td><span class="badge badge-int">FloatField</span></td><td></td><td></td><td>MAEスコア</td></tr>
+<tr><td><code>training_samples</code></td><td><span class="badge badge-int">IntegerField</span></td><td></td><td></td><td>学習サンプル数</td></tr>
+<tr><td><code>trained_at</code></td><td><span class="badge badge-dt">DateTimeField</span></td><td></td><td></td><td>学習日時</td></tr>
+<tr><td><code>is_active</code></td><td><span class="badge badge-bool">BooleanField</span></td><td></td><td></td><td>有効</td></tr>
+</table>
+
+<h2>4.65 StaffRecommendationResult</h2>
+<p><strong>テーブル名</strong>: <code>booking_staffrecommendationresult</code> | <strong>表示名</strong>: AI推薦結果</p>
+<table>
+<tr><th>フィールド名</th><th>型</th><th>NULL</th><th>索引</th><th>説明</th></tr>
+<tr><td><code>id</code></td><td><span class="badge badge-pk">AutoField</span></td><td></td><td>UNIQUE</td><td>ID</td></tr>
+<tr><td><code>store</code></td><td><span class="badge badge-fk">ForeignKey</span> → Store</td><td></td><td>INDEX</td><td>店舗</td></tr>
+<tr><td><code>date</code></td><td><span class="badge badge-dt">DateField</span></td><td></td><td></td><td>日付</td></tr>
+<tr><td><code>hour</code></td><td><span class="badge badge-int">IntegerField</span></td><td></td><td></td><td>時間帯</td></tr>
+<tr><td><code>recommended_staff_count</code></td><td><span class="badge badge-int">IntegerField</span></td><td></td><td></td><td>推薦スタッフ数</td></tr>
+<tr><td><code>confidence</code></td><td><span class="badge badge-int">FloatField</span></td><td></td><td></td><td>信頼度</td></tr>
+<tr><td><code>factors</code></td><td><span class="badge badge-char">JSONField</span></td><td></td><td></td><td>特徴量重要度</td></tr>
+<tr><td><code>created_at</code></td><td><span class="badge badge-dt">DateTimeField</span></td><td></td><td></td><td>作成日時</td></tr>
+</table>
+<p><strong>ユニーク制約</strong>: (store, date, hour)</p>
+
+<h2>4.66 ShippingConfig</h2>
+<p><strong>テーブル名</strong>: <code>booking_shippingconfig</code> | <strong>表示名</strong>: 送料設定</p>
+<table>
+<tr><th>フィールド名</th><th>型</th><th>NULL</th><th>索引</th><th>説明</th></tr>
+<tr><td><code>id</code></td><td><span class="badge badge-pk">AutoField</span></td><td></td><td>UNIQUE</td><td>ID</td></tr>
+<tr><td><code>store</code></td><td><span class="badge badge-fk">OneToOneField</span> → Store</td><td></td><td>UNIQUE INDEX</td><td>store</td></tr>
+<tr><td><code>is_enabled</code></td><td><span class="badge badge-bool">BooleanField</span></td><td></td><td></td><td>送料を有効にする</td></tr>
+<tr><td><code>shipping_fee</code></td><td><span class="badge badge-char">PositiveIntegerField</span></td><td></td><td></td><td>送料（税込）</td></tr>
+<tr><td><code>free_shipping_threshold</code></td><td><span class="badge badge-char">PositiveIntegerField</span></td><td></td><td></td><td>送料無料の注文金額</td></tr>
+<tr><td><code>delivery_area</code></td><td><span class="badge badge-char">TextField</span></td><td></td><td></td><td>配達対応範囲</td></tr>
+<tr><td><code>note</code></td><td><span class="badge badge-char">TextField</span></td><td></td><td></td><td>送料に関する備考</td></tr>
 </table>
 
 <!-- 5. API リファレンス -->
@@ -914,19 +1347,77 @@ Customer ──▶ BookingTopPage ──▶ StaffCalendar ──▶ PreBooking
 <tr><td><code>/api/dashboard/sales/</code></td><td>sales_stats_api</td><td>SalesStatsAPIView</td></tr>
 <tr><td><code>/api/dashboard/staff-performance/</code></td><td>staff_performance_api</td><td>StaffPerformanceAPIView</td></tr>
 <tr><td><code>/api/dashboard/shift-summary/</code></td><td>shift_summary_api</td><td>ShiftSummaryAPIView</td></tr>
+<tr><td><code>/api/dashboard/low-stock/</code></td><td>low_stock_api</td><td>LowStockAlertAPIView</td></tr>
+<tr><td><code>/api/dashboard/menu-engineering/</code></td><td>menu_engineering_api</td><td>MenuEngineeringAPIView</td></tr>
+<tr><td><code>/api/dashboard/abc-analysis/</code></td><td>abc_analysis_api</td><td>ABCAnalysisAPIView</td></tr>
+<tr><td><code>/api/dashboard/forecast/</code></td><td>sales_forecast_api</td><td>SalesForecastAPIView</td></tr>
+<tr><td><code>/api/dashboard/sales-heatmap/</code></td><td>sales_heatmap_api</td><td>SalesHeatmapAPIView</td></tr>
+<tr><td><code>/api/dashboard/aov-trend/</code></td><td>aov_trend_api</td><td>AOVTrendAPIView</td></tr>
+<tr><td><code>/api/dashboard/cohort/</code></td><td>cohort_analysis_api</td><td>CohortAnalysisAPIView</td></tr>
+<tr><td><code>/api/dashboard/rfm/</code></td><td>rfm_analysis_api</td><td>RFMAnalysisAPIView</td></tr>
+<tr><td><code>/api/dashboard/basket/</code></td><td>basket_analysis_api</td><td>BasketAnalysisAPIView</td></tr>
+<tr><td><code>/api/dashboard/insights/</code></td><td>insights_api</td><td>InsightsAPIView</td></tr>
+<tr><td><code>/api/dashboard/kpi-scorecard/</code></td><td>kpi_scorecard_api</td><td>KPIScoreCardAPIView</td></tr>
+<tr><td><code>/api/dashboard/feedback/</code></td><td>customer_feedback_api</td><td>CustomerFeedbackAPIView</td></tr>
+<tr><td><code>/api/dashboard/nps/</code></td><td>nps_stats_api</td><td>NPSStatsAPIView</td></tr>
+<tr><td><code>/api/dashboard/visitor-forecast/</code></td><td>visitor_forecast_api</td><td>VisitorForecastAPIView</td></tr>
+<tr><td><code>/api/dashboard/clv/</code></td><td>clv_analysis_api</td><td>CLVAnalysisAPIView</td></tr>
+<tr><td><code>/api/dashboard/auto-order/</code></td><td>auto_order_api</td><td>AutoOrderRecommendationAPIView</td></tr>
+<tr><td><code>/api/dashboard/external-data/</code></td><td>external_data_api</td><td>ExternalDataAPIView</td></tr>
 <tr><td><code>/api/properties/<int:pk>/status/</code></td><td>property_status_api</td><td>PropertyStatusAPIView</td></tr>
 <tr><td><code>/api/alerts/<int:pk>/resolve/</code></td><td>alert_resolve_api</td><td>PropertyAlertResolveAPIView</td></tr>
 <tr><td><code>/api/checkin/</code></td><td>checkin_api</td><td>CheckinAPIView</td></tr>
 <tr><td><code>/api/shop/cart/add/</code></td><td>cart_add_api</td><td>CartAddAPIView</td></tr>
 <tr><td><code>/api/shop/cart/update/</code></td><td>cart_update_api</td><td>CartUpdateAPIView</td></tr>
 <tr><td><code>/api/shop/cart/remove/</code></td><td>cart_remove_api</td><td>CartRemoveAPIView</td></tr>
-<tr><td><code>/api/chat/admin/</code></td><td>api_admin_chat</td><td>AdminChatAPIView</td></tr>
-<tr><td><code>/api/chat/guide/</code></td><td>api_guide_chat</td><td>GuideChatAPIView</td></tr>
 <tr><td><code>/api/table/<uuid:table_id>/cart/add/</code></td><td>table_cart_add</td><td>TableCartAddAPI</td></tr>
 <tr><td><code>/api/table/<uuid:table_id>/cart/update/</code></td><td>table_cart_update</td><td>TableCartUpdateAPI</td></tr>
 <tr><td><code>/api/table/<uuid:table_id>/cart/remove/</code></td><td>table_cart_remove</td><td>TableCartRemoveAPI</td></tr>
 <tr><td><code>/api/table/<uuid:table_id>/order/create/</code></td><td>table_order_create</td><td>TableOrderCreateAPI</td></tr>
 <tr><td><code>/api/table/<uuid:table_id>/orders/status/</code></td><td>table_order_status</td><td>TableOrderStatusAPI</td></tr>
+<tr><td><code>/api/shift/week-grid/</code></td><td>shift_week_grid</td><td>ShiftWeekGridView</td></tr>
+<tr><td><code>/api/shift/detail/<int:pk>/</code></td><td>shift_cell_detail</td><td>ShiftCellDetailView</td></tr>
+<tr><td><code>/api/shift/assignments/</code></td><td>shift_assignment_create</td><td>ShiftAssignmentAPIView</td></tr>
+<tr><td><code>/api/shift/assignments/<int:pk>/</code></td><td>shift_assignment_detail</td><td>ShiftAssignmentAPIView</td></tr>
+<tr><td><code>/api/shift/apply-template/</code></td><td>shift_apply_template</td><td>ShiftApplyTemplateAPIView</td></tr>
+<tr><td><code>/api/shift/templates/</code></td><td>shift_template_list</td><td>ShiftTemplateAPIView</td></tr>
+<tr><td><code>/api/shift/templates/<int:pk>/</code></td><td>shift_template_detail</td><td>ShiftTemplateAPIView</td></tr>
+<tr><td><code>/api/shift/bulk-assign/</code></td><td>shift_bulk_assign</td><td>ShiftBulkAssignAPIView</td></tr>
+<tr><td><code>/api/shift/auto-schedule/</code></td><td>shift_auto_schedule</td><td>ShiftAutoScheduleAPIView</td></tr>
+<tr><td><code>/api/shift/publish/</code></td><td>shift_publish</td><td>ShiftPublishAPIView</td></tr>
+<tr><td><code>/api/shift/revoke/</code></td><td>shift_revoke</td><td>ShiftRevokeAPIView</td></tr>
+<tr><td><code>/api/shift/reopen/</code></td><td>shift_reopen</td><td>ShiftReopenAPIView</td></tr>
+<tr><td><code>/api/shift/periods/</code></td><td>shift_period_create</td><td>ShiftPeriodAPIView</td></tr>
+<tr><td><code>/api/shift/periods/<int:pk>/</code></td><td>shift_period_detail</td><td>ShiftPeriodAPIView</td></tr>
+<tr><td><code>/api/shift/closed-dates/</code></td><td>closed_dates</td><td>StoreClosedDateAPIView</td></tr>
+<tr><td><code>/api/shift/my-requests/</code></td><td>my_shift_requests</td><td>StaffShiftRequestAPIView</td></tr>
+<tr><td><code>/api/shift/my-requests/<int:pk>/</code></td><td>my_shift_request_detail</td><td>StaffShiftRequestAPIView</td></tr>
+<tr><td><code>/api/shift/requests/<int:period_id>/bulk/</code></td><td>shift_requests_bulk</td><td>StaffShiftBulkRequestAPIView</td></tr>
+<tr><td><code>/api/shift/requests/<int:period_id>/copy-week/</code></td><td>shift_copy_week</td><td>StaffShiftCopyWeekAPIView</td></tr>
+<tr><td><code>/api/attendance/stamp/</code></td><td>attendance_stamp</td><td>AttendanceStampAPIView</td></tr>
+<tr><td><code>/api/attendance/totp/refresh/</code></td><td>attendance_totp_refresh</td><td>AttendanceTOTPRefreshAPI</td></tr>
+<tr><td><code>/api/attendance/day-status/</code></td><td>attendance_day_status</td><td>AttendanceDayStatusAPI</td></tr>
+<tr><td><code>/api/attendance/day-status-html/</code></td><td>attendance_day_status_html</td><td>AttendanceDayStatusHTMLView</td></tr>
+<tr><td><code>/api/attendance/pin-stamp/</code></td><td>attendance_pin_stamp</td><td>AttendancePINStampAPIView</td></tr>
+<tr><td><code>/api/attendance/qr-stamp/</code></td><td>attendance_qr_stamp</td><td>QRStampAPIView</td></tr>
+<tr><td><code>/api/attendance/manual-stamp/</code></td><td>attendance_manual_stamp</td><td>ManualStampAPIView</td></tr>
+<tr><td><code>/api/attendance/performance/</code></td><td>attendance_performance_api</td><td>AttendancePerformanceAPIView</td></tr>
+<tr><td><code>/api/pos/orders/</code></td><td>pos_orders</td><td>POSOrderAPIView</td></tr>
+<tr><td><code>/api/pos/order-items/</code></td><td>pos_order_items</td><td>POSOrderItemAPIView</td></tr>
+<tr><td><code>/api/pos/order-items/<int:pk>/</code></td><td>pos_order_item_detail</td><td>POSOrderItemAPIView</td></tr>
+<tr><td><code>/api/pos/checkout/</code></td><td>pos_checkout</td><td>POSCheckoutAPIView</td></tr>
+<tr><td><code>/api/pos/order-item/<int:pk>/status/</code></td><td>pos_order_item_status</td><td>KitchenOrderStatusAPI</td></tr>
+<tr><td><code>/api/pos/kitchen-orders/</code></td><td>pos_kitchen_orders_html</td><td>KitchenOrdersHTMLView</td></tr>
+<tr><td><code>/api/pos/order/<int:pk>/complete/</code></td><td>pos_order_complete</td><td>KitchenOrderCompleteAPI</td></tr>
+<tr><td><code>/api/pos/order/<int:pk>/uncomplete/</code></td><td>pos_order_uncomplete</td><td>KitchenOrderUncompleteAPI</td></tr>
+<tr><td><code>/api/analytics/visitors/</code></td><td>analytics_visitors</td><td>VisitorCountAPIView</td></tr>
+<tr><td><code>/api/analytics/heatmap/</code></td><td>analytics_heatmap</td><td>VisitorHeatmapAPIView</td></tr>
+<tr><td><code>/api/analytics/conversion/</code></td><td>analytics_conversion</td><td>ConversionAnalyticsAPIView</td></tr>
+<tr><td><code>/api/ec/orders/</code></td><td>ec_orders_api</td><td>ECOrderAPIView</td></tr>
+<tr><td><code>/api/ec/orders/<int:pk>/shipping/</code></td><td>ec_order_shipping_api</td><td>ECOrderShippingAPIView</td></tr>
+<tr><td><code>/api/ai/recommendations/</code></td><td>ai_recommendations</td><td>AIRecommendationAPIView</td></tr>
+<tr><td><code>/api/ai/train/</code></td><td>ai_train</td><td>AITrainModelAPIView</td></tr>
+<tr><td><code>/api/ai/model-status/</code></td><td>ai_model_status</td><td>AIModelStatusAPIView</td></tr>
 </table>
 
 <!-- 6. 画面マップ -->
@@ -958,19 +1449,77 @@ Customer ──▶ BookingTopPage ──▶ StaffCalendar ──▶ PreBooking
 <tr><td><code>/api/dashboard/sales/</code></td><td>sales_stats_api</td><td>SalesStatsAPIView</td></tr>
 <tr><td><code>/api/dashboard/staff-performance/</code></td><td>staff_performance_api</td><td>StaffPerformanceAPIView</td></tr>
 <tr><td><code>/api/dashboard/shift-summary/</code></td><td>shift_summary_api</td><td>ShiftSummaryAPIView</td></tr>
+<tr><td><code>/api/dashboard/low-stock/</code></td><td>low_stock_api</td><td>LowStockAlertAPIView</td></tr>
+<tr><td><code>/api/dashboard/menu-engineering/</code></td><td>menu_engineering_api</td><td>MenuEngineeringAPIView</td></tr>
+<tr><td><code>/api/dashboard/abc-analysis/</code></td><td>abc_analysis_api</td><td>ABCAnalysisAPIView</td></tr>
+<tr><td><code>/api/dashboard/forecast/</code></td><td>sales_forecast_api</td><td>SalesForecastAPIView</td></tr>
+<tr><td><code>/api/dashboard/sales-heatmap/</code></td><td>sales_heatmap_api</td><td>SalesHeatmapAPIView</td></tr>
+<tr><td><code>/api/dashboard/aov-trend/</code></td><td>aov_trend_api</td><td>AOVTrendAPIView</td></tr>
+<tr><td><code>/api/dashboard/cohort/</code></td><td>cohort_analysis_api</td><td>CohortAnalysisAPIView</td></tr>
+<tr><td><code>/api/dashboard/rfm/</code></td><td>rfm_analysis_api</td><td>RFMAnalysisAPIView</td></tr>
+<tr><td><code>/api/dashboard/basket/</code></td><td>basket_analysis_api</td><td>BasketAnalysisAPIView</td></tr>
+<tr><td><code>/api/dashboard/insights/</code></td><td>insights_api</td><td>InsightsAPIView</td></tr>
+<tr><td><code>/api/dashboard/kpi-scorecard/</code></td><td>kpi_scorecard_api</td><td>KPIScoreCardAPIView</td></tr>
+<tr><td><code>/api/dashboard/feedback/</code></td><td>customer_feedback_api</td><td>CustomerFeedbackAPIView</td></tr>
+<tr><td><code>/api/dashboard/nps/</code></td><td>nps_stats_api</td><td>NPSStatsAPIView</td></tr>
+<tr><td><code>/api/dashboard/visitor-forecast/</code></td><td>visitor_forecast_api</td><td>VisitorForecastAPIView</td></tr>
+<tr><td><code>/api/dashboard/clv/</code></td><td>clv_analysis_api</td><td>CLVAnalysisAPIView</td></tr>
+<tr><td><code>/api/dashboard/auto-order/</code></td><td>auto_order_api</td><td>AutoOrderRecommendationAPIView</td></tr>
+<tr><td><code>/api/dashboard/external-data/</code></td><td>external_data_api</td><td>ExternalDataAPIView</td></tr>
 <tr><td><code>/api/properties/<int:pk>/status/</code></td><td>property_status_api</td><td>PropertyStatusAPIView</td></tr>
 <tr><td><code>/api/alerts/<int:pk>/resolve/</code></td><td>alert_resolve_api</td><td>PropertyAlertResolveAPIView</td></tr>
 <tr><td><code>/api/checkin/</code></td><td>checkin_api</td><td>CheckinAPIView</td></tr>
 <tr><td><code>/api/shop/cart/add/</code></td><td>cart_add_api</td><td>CartAddAPIView</td></tr>
 <tr><td><code>/api/shop/cart/update/</code></td><td>cart_update_api</td><td>CartUpdateAPIView</td></tr>
 <tr><td><code>/api/shop/cart/remove/</code></td><td>cart_remove_api</td><td>CartRemoveAPIView</td></tr>
-<tr><td><code>/api/chat/admin/</code></td><td>api_admin_chat</td><td>AdminChatAPIView</td></tr>
-<tr><td><code>/api/chat/guide/</code></td><td>api_guide_chat</td><td>GuideChatAPIView</td></tr>
 <tr><td><code>/api/table/<uuid:table_id>/cart/add/</code></td><td>table_cart_add</td><td>TableCartAddAPI</td></tr>
 <tr><td><code>/api/table/<uuid:table_id>/cart/update/</code></td><td>table_cart_update</td><td>TableCartUpdateAPI</td></tr>
 <tr><td><code>/api/table/<uuid:table_id>/cart/remove/</code></td><td>table_cart_remove</td><td>TableCartRemoveAPI</td></tr>
 <tr><td><code>/api/table/<uuid:table_id>/order/create/</code></td><td>table_order_create</td><td>TableOrderCreateAPI</td></tr>
 <tr><td><code>/api/table/<uuid:table_id>/orders/status/</code></td><td>table_order_status</td><td>TableOrderStatusAPI</td></tr>
+<tr><td><code>/api/shift/week-grid/</code></td><td>shift_week_grid</td><td>ShiftWeekGridView</td></tr>
+<tr><td><code>/api/shift/detail/<int:pk>/</code></td><td>shift_cell_detail</td><td>ShiftCellDetailView</td></tr>
+<tr><td><code>/api/shift/assignments/</code></td><td>shift_assignment_create</td><td>ShiftAssignmentAPIView</td></tr>
+<tr><td><code>/api/shift/assignments/<int:pk>/</code></td><td>shift_assignment_detail</td><td>ShiftAssignmentAPIView</td></tr>
+<tr><td><code>/api/shift/apply-template/</code></td><td>shift_apply_template</td><td>ShiftApplyTemplateAPIView</td></tr>
+<tr><td><code>/api/shift/templates/</code></td><td>shift_template_list</td><td>ShiftTemplateAPIView</td></tr>
+<tr><td><code>/api/shift/templates/<int:pk>/</code></td><td>shift_template_detail</td><td>ShiftTemplateAPIView</td></tr>
+<tr><td><code>/api/shift/bulk-assign/</code></td><td>shift_bulk_assign</td><td>ShiftBulkAssignAPIView</td></tr>
+<tr><td><code>/api/shift/auto-schedule/</code></td><td>shift_auto_schedule</td><td>ShiftAutoScheduleAPIView</td></tr>
+<tr><td><code>/api/shift/publish/</code></td><td>shift_publish</td><td>ShiftPublishAPIView</td></tr>
+<tr><td><code>/api/shift/revoke/</code></td><td>shift_revoke</td><td>ShiftRevokeAPIView</td></tr>
+<tr><td><code>/api/shift/reopen/</code></td><td>shift_reopen</td><td>ShiftReopenAPIView</td></tr>
+<tr><td><code>/api/shift/periods/</code></td><td>shift_period_create</td><td>ShiftPeriodAPIView</td></tr>
+<tr><td><code>/api/shift/periods/<int:pk>/</code></td><td>shift_period_detail</td><td>ShiftPeriodAPIView</td></tr>
+<tr><td><code>/api/shift/closed-dates/</code></td><td>closed_dates</td><td>StoreClosedDateAPIView</td></tr>
+<tr><td><code>/api/shift/my-requests/</code></td><td>my_shift_requests</td><td>StaffShiftRequestAPIView</td></tr>
+<tr><td><code>/api/shift/my-requests/<int:pk>/</code></td><td>my_shift_request_detail</td><td>StaffShiftRequestAPIView</td></tr>
+<tr><td><code>/api/shift/requests/<int:period_id>/bulk/</code></td><td>shift_requests_bulk</td><td>StaffShiftBulkRequestAPIView</td></tr>
+<tr><td><code>/api/shift/requests/<int:period_id>/copy-week/</code></td><td>shift_copy_week</td><td>StaffShiftCopyWeekAPIView</td></tr>
+<tr><td><code>/api/attendance/stamp/</code></td><td>attendance_stamp</td><td>AttendanceStampAPIView</td></tr>
+<tr><td><code>/api/attendance/totp/refresh/</code></td><td>attendance_totp_refresh</td><td>AttendanceTOTPRefreshAPI</td></tr>
+<tr><td><code>/api/attendance/day-status/</code></td><td>attendance_day_status</td><td>AttendanceDayStatusAPI</td></tr>
+<tr><td><code>/api/attendance/day-status-html/</code></td><td>attendance_day_status_html</td><td>AttendanceDayStatusHTMLView</td></tr>
+<tr><td><code>/api/attendance/pin-stamp/</code></td><td>attendance_pin_stamp</td><td>AttendancePINStampAPIView</td></tr>
+<tr><td><code>/api/attendance/qr-stamp/</code></td><td>attendance_qr_stamp</td><td>QRStampAPIView</td></tr>
+<tr><td><code>/api/attendance/manual-stamp/</code></td><td>attendance_manual_stamp</td><td>ManualStampAPIView</td></tr>
+<tr><td><code>/api/attendance/performance/</code></td><td>attendance_performance_api</td><td>AttendancePerformanceAPIView</td></tr>
+<tr><td><code>/api/pos/orders/</code></td><td>pos_orders</td><td>POSOrderAPIView</td></tr>
+<tr><td><code>/api/pos/order-items/</code></td><td>pos_order_items</td><td>POSOrderItemAPIView</td></tr>
+<tr><td><code>/api/pos/order-items/<int:pk>/</code></td><td>pos_order_item_detail</td><td>POSOrderItemAPIView</td></tr>
+<tr><td><code>/api/pos/checkout/</code></td><td>pos_checkout</td><td>POSCheckoutAPIView</td></tr>
+<tr><td><code>/api/pos/order-item/<int:pk>/status/</code></td><td>pos_order_item_status</td><td>KitchenOrderStatusAPI</td></tr>
+<tr><td><code>/api/pos/kitchen-orders/</code></td><td>pos_kitchen_orders_html</td><td>KitchenOrdersHTMLView</td></tr>
+<tr><td><code>/api/pos/order/<int:pk>/complete/</code></td><td>pos_order_complete</td><td>KitchenOrderCompleteAPI</td></tr>
+<tr><td><code>/api/pos/order/<int:pk>/uncomplete/</code></td><td>pos_order_uncomplete</td><td>KitchenOrderUncompleteAPI</td></tr>
+<tr><td><code>/api/analytics/visitors/</code></td><td>analytics_visitors</td><td>VisitorCountAPIView</td></tr>
+<tr><td><code>/api/analytics/heatmap/</code></td><td>analytics_heatmap</td><td>VisitorHeatmapAPIView</td></tr>
+<tr><td><code>/api/analytics/conversion/</code></td><td>analytics_conversion</td><td>ConversionAnalyticsAPIView</td></tr>
+<tr><td><code>/api/ec/orders/</code></td><td>ec_orders_api</td><td>ECOrderAPIView</td></tr>
+<tr><td><code>/api/ec/orders/<int:pk>/shipping/</code></td><td>ec_order_shipping_api</td><td>ECOrderShippingAPIView</td></tr>
+<tr><td><code>/api/ai/recommendations/</code></td><td>ai_recommendations</td><td>AIRecommendationAPIView</td></tr>
+<tr><td><code>/api/ai/train/</code></td><td>ai_train</td><td>AITrainModelAPIView</td></tr>
+<tr><td><code>/api/ai/model-status/</code></td><td>ai_model_status</td><td>AIModelStatusAPIView</td></tr>
 <tr><td><code>/coiney_webhook/<str:orderId>/</code></td><td>coiney_webhook</td><td>coiney_webhook</td></tr>
 <tr><td><code>/i18n/setlang/</code></td><td>set_language</td><td>set_language</td></tr>
 <tr><td><code>/t/<uuid:table_id>/</code></td><td>table_menu</td><td>TableMenuView</td></tr>
@@ -978,11 +1527,27 @@ Customer ──▶ BookingTopPage ──▶ StaffCalendar ──▶ PreBooking
 <tr><td><code>/t/<uuid:table_id>/order/</code></td><td>table_order</td><td>TableOrderView</td></tr>
 <tr><td><code>/t/<uuid:table_id>/history/</code></td><td>table_history</td><td>TableOrderHistoryView</td></tr>
 <tr><td><code>/t/<uuid:table_id>/checkout/</code></td><td>table_checkout</td><td>TableCheckoutView</td></tr>
-<tr><td><code>/admin/iot/mq9/</code></td><td>admin_iot_mq9</td><td>IoTMQ9GraphView</td></tr>
+<tr><td><code>/admin/iot/sensors/</code></td><td>admin_iot_sensors</td><td>IoTMQ9GraphView</td></tr>
 <tr><td><code>/admin/debug/</code></td><td>admin_debug_panel</td><td>AdminDebugPanelView</td></tr>
 <tr><td><code>/admin/debug/device/<int:device_id>/</code></td><td>admin_iot_device_debug</td><td>IoTDeviceDebugView</td></tr>
 <tr><td><code>/admin/dashboard/sales/</code></td><td>admin_sales_dashboard</td><td>RestaurantDashboardView</td></tr>
 <tr><td><code>/admin/dashboard/restaurant/</code></td><td>admin_restaurant_dashboard</td><td>RestaurantDashboardView</td></tr>
+<tr><td><code>/admin/shift/calendar/</code></td><td>admin_shift_calendar</td><td>ManagerShiftCalendarView</td></tr>
+<tr><td><code>/admin/shift/today/</code></td><td>admin_today_shift</td><td>TodayShiftTimelineView</td></tr>
+<tr><td><code>/admin/shift/my/</code></td><td>staff_my_shift</td><td>RedirectView</td></tr>
+<tr><td><code>/admin/attendance/qr/</code></td><td>admin_attendance_qr</td><td>AttendanceQRDisplayView</td></tr>
+<tr><td><code>/admin/attendance/pin/</code></td><td>admin_attendance_pin</td><td>AttendancePINDisplayView</td></tr>
+<tr><td><code>/admin/attendance/board/</code></td><td>admin_attendance_board</td><td>AttendanceBoardView</td></tr>
+<tr><td><code>/admin/attendance/performance/</code></td><td>admin_staff_performance</td><td>StaffPerformanceDashboardView</td></tr>
+<tr><td><code>/admin/pos/</code></td><td>admin_pos</td><td>POSView</td></tr>
+<tr><td><code>/admin/pos/receipt/<str:receipt_number>/</code></td><td>admin_pos_receipt</td><td>POSReceiptView</td></tr>
+<tr><td><code>/admin/pos/kitchen/</code></td><td>admin_kitchen_display</td><td>KitchenDisplayView</td></tr>
+<tr><td><code>/admin/analytics/visitors/</code></td><td>admin_visitor_analytics</td><td>VisitorAnalyticsDashboardView</td></tr>
+<tr><td><code>/admin/menu/preview/</code></td><td>admin_menu_preview</td><td>MenuPreviewRedirectView</td></tr>
+<tr><td><code>/admin/ai/recommendation/</code></td><td>admin_ai_recommendation</td><td>AIRecommendationView</td></tr>
+<tr><td><code>/admin/ec/orders/</code></td><td>admin_ec_orders</td><td>ECOrderDashboardView</td></tr>
+<tr><td><code>/admin/inventory/</code></td><td>admin_inventory_dashboard</td><td>InventoryDashboardView</td></tr>
+<tr><td><code>/admin/inventory/stock-in/</code></td><td>admin_inventory_stock_in</td><td>StockInFormView</td></tr>
 <tr><td><code>/admin/</code></td><td>index</td><td>index</td></tr>
 <tr><td><code>/admin/login/</code></td><td>login</td><td>login</td></tr>
 <tr><td><code>/admin/logout/</code></td><td>logout</td><td>logout</td></tr>
@@ -1033,12 +1598,12 @@ Customer ──▶ BookingTopPage ──▶ StaffCalendar ──▶ PreBooking
 <tr><td><code>/admin/booking/iotdevice/<path:object_id>/delete/</code></td><td>booking_iotdevice_delete</td><td>delete_view</td></tr>
 <tr><td><code>/admin/booking/iotdevice/<path:object_id>/change/</code></td><td>booking_iotdevice_change</td><td>change_view</td></tr>
 <tr><td><code>/admin/booking/iotdevice/<path:object_id>/</code></td><td></td><td>RedirectView</td></tr>
-<tr><td><code>/admin/booking/ircode/</code></td><td>booking_ircode_changelist</td><td>changelist_view</td></tr>
-<tr><td><code>/admin/booking/ircode/add/</code></td><td>booking_ircode_add</td><td>add_view</td></tr>
-<tr><td><code>/admin/booking/ircode/<path:object_id>/history/</code></td><td>booking_ircode_history</td><td>history_view</td></tr>
-<tr><td><code>/admin/booking/ircode/<path:object_id>/delete/</code></td><td>booking_ircode_delete</td><td>delete_view</td></tr>
-<tr><td><code>/admin/booking/ircode/<path:object_id>/change/</code></td><td>booking_ircode_change</td><td>change_view</td></tr>
-<tr><td><code>/admin/booking/ircode/<path:object_id>/</code></td><td></td><td>RedirectView</td></tr>
+<tr><td><code>/admin/booking/ventilationautocontrol/</code></td><td>booking_ventilationautocontrol_changelist</td><td>changelist_view</td></tr>
+<tr><td><code>/admin/booking/ventilationautocontrol/add/</code></td><td>booking_ventilationautocontrol_add</td><td>add_view</td></tr>
+<tr><td><code>/admin/booking/ventilationautocontrol/<path:object_id>/history/</code></td><td>booking_ventilationautocontrol_history</td><td>history_view</td></tr>
+<tr><td><code>/admin/booking/ventilationautocontrol/<path:object_id>/delete/</code></td><td>booking_ventilationautocontrol_delete</td><td>delete_view</td></tr>
+<tr><td><code>/admin/booking/ventilationautocontrol/<path:object_id>/change/</code></td><td>booking_ventilationautocontrol_change</td><td>change_view</td></tr>
+<tr><td><code>/admin/booking/ventilationautocontrol/<path:object_id>/</code></td><td></td><td>RedirectView</td></tr>
 <tr><td><code>/admin/booking/category/</code></td><td>booking_category_changelist</td><td>changelist_view</td></tr>
 <tr><td><code>/admin/booking/category/add/</code></td><td>booking_category_add</td><td>add_view</td></tr>
 <tr><td><code>/admin/booking/category/<path:object_id>/history/</code></td><td>booking_category_history</td><td>history_view</td></tr>
@@ -1051,12 +1616,36 @@ Customer ──▶ BookingTopPage ──▶ StaffCalendar ──▶ PreBooking
 <tr><td><code>/admin/booking/product/<path:object_id>/delete/</code></td><td>booking_product_delete</td><td>delete_view</td></tr>
 <tr><td><code>/admin/booking/product/<path:object_id>/change/</code></td><td>booking_product_change</td><td>change_view</td></tr>
 <tr><td><code>/admin/booking/product/<path:object_id>/</code></td><td></td><td>RedirectView</td></tr>
+<tr><td><code>/admin/booking/eccategory/</code></td><td>booking_eccategory_changelist</td><td>changelist_view</td></tr>
+<tr><td><code>/admin/booking/eccategory/add/</code></td><td>booking_eccategory_add</td><td>add_view</td></tr>
+<tr><td><code>/admin/booking/eccategory/<path:object_id>/history/</code></td><td>booking_eccategory_history</td><td>history_view</td></tr>
+<tr><td><code>/admin/booking/eccategory/<path:object_id>/delete/</code></td><td>booking_eccategory_delete</td><td>delete_view</td></tr>
+<tr><td><code>/admin/booking/eccategory/<path:object_id>/change/</code></td><td>booking_eccategory_change</td><td>change_view</td></tr>
+<tr><td><code>/admin/booking/eccategory/<path:object_id>/</code></td><td></td><td>RedirectView</td></tr>
+<tr><td><code>/admin/booking/ecproduct/</code></td><td>booking_ecproduct_changelist</td><td>changelist_view</td></tr>
+<tr><td><code>/admin/booking/ecproduct/add/</code></td><td>booking_ecproduct_add</td><td>add_view</td></tr>
+<tr><td><code>/admin/booking/ecproduct/<path:object_id>/history/</code></td><td>booking_ecproduct_history</td><td>history_view</td></tr>
+<tr><td><code>/admin/booking/ecproduct/<path:object_id>/delete/</code></td><td>booking_ecproduct_delete</td><td>delete_view</td></tr>
+<tr><td><code>/admin/booking/ecproduct/<path:object_id>/change/</code></td><td>booking_ecproduct_change</td><td>change_view</td></tr>
+<tr><td><code>/admin/booking/ecproduct/<path:object_id>/</code></td><td></td><td>RedirectView</td></tr>
 <tr><td><code>/admin/booking/order/</code></td><td>booking_order_changelist</td><td>changelist_view</td></tr>
 <tr><td><code>/admin/booking/order/add/</code></td><td>booking_order_add</td><td>add_view</td></tr>
 <tr><td><code>/admin/booking/order/<path:object_id>/history/</code></td><td>booking_order_history</td><td>history_view</td></tr>
 <tr><td><code>/admin/booking/order/<path:object_id>/delete/</code></td><td>booking_order_delete</td><td>delete_view</td></tr>
 <tr><td><code>/admin/booking/order/<path:object_id>/change/</code></td><td>booking_order_change</td><td>change_view</td></tr>
 <tr><td><code>/admin/booking/order/<path:object_id>/</code></td><td></td><td>RedirectView</td></tr>
+<tr><td><code>/admin/booking/shippingconfig/</code></td><td>booking_shippingconfig_changelist</td><td>changelist_view</td></tr>
+<tr><td><code>/admin/booking/shippingconfig/add/</code></td><td>booking_shippingconfig_add</td><td>add_view</td></tr>
+<tr><td><code>/admin/booking/shippingconfig/<path:object_id>/history/</code></td><td>booking_shippingconfig_history</td><td>history_view</td></tr>
+<tr><td><code>/admin/booking/shippingconfig/<path:object_id>/delete/</code></td><td>booking_shippingconfig_delete</td><td>delete_view</td></tr>
+<tr><td><code>/admin/booking/shippingconfig/<path:object_id>/change/</code></td><td>booking_shippingconfig_change</td><td>change_view</td></tr>
+<tr><td><code>/admin/booking/shippingconfig/<path:object_id>/</code></td><td></td><td>RedirectView</td></tr>
+<tr><td><code>/admin/booking/taxservicecharge/</code></td><td>booking_taxservicecharge_changelist</td><td>changelist_view</td></tr>
+<tr><td><code>/admin/booking/taxservicecharge/add/</code></td><td>booking_taxservicecharge_add</td><td>add_view</td></tr>
+<tr><td><code>/admin/booking/taxservicecharge/<path:object_id>/history/</code></td><td>booking_taxservicecharge_history</td><td>history_view</td></tr>
+<tr><td><code>/admin/booking/taxservicecharge/<path:object_id>/delete/</code></td><td>booking_taxservicecharge_delete</td><td>delete_view</td></tr>
+<tr><td><code>/admin/booking/taxservicecharge/<path:object_id>/change/</code></td><td>booking_taxservicecharge_change</td><td>change_view</td></tr>
+<tr><td><code>/admin/booking/taxservicecharge/<path:object_id>/</code></td><td></td><td>RedirectView</td></tr>
 <tr><td><code>/admin/auth/user/<id>/password/</code></td><td>auth_user_password_change</td><td>user_change_password</td></tr>
 <tr><td><code>/admin/auth/user/</code></td><td>auth_user_changelist</td><td>changelist_view</td></tr>
 <tr><td><code>/admin/auth/user/add/</code></td><td>auth_user_add</td><td>add_view</td></tr>
@@ -1100,12 +1689,24 @@ Customer ──▶ BookingTopPage ──▶ StaffCalendar ──▶ PreBooking
 <tr><td><code>/admin/booking/shiftassignment/<path:object_id>/delete/</code></td><td>booking_shiftassignment_delete</td><td>delete_view</td></tr>
 <tr><td><code>/admin/booking/shiftassignment/<path:object_id>/change/</code></td><td>booking_shiftassignment_change</td><td>change_view</td></tr>
 <tr><td><code>/admin/booking/shiftassignment/<path:object_id>/</code></td><td></td><td>RedirectView</td></tr>
+<tr><td><code>/admin/booking/shiftchangelog/</code></td><td>booking_shiftchangelog_changelist</td><td>changelist_view</td></tr>
+<tr><td><code>/admin/booking/shiftchangelog/add/</code></td><td>booking_shiftchangelog_add</td><td>add_view</td></tr>
+<tr><td><code>/admin/booking/shiftchangelog/<path:object_id>/history/</code></td><td>booking_shiftchangelog_history</td><td>history_view</td></tr>
+<tr><td><code>/admin/booking/shiftchangelog/<path:object_id>/delete/</code></td><td>booking_shiftchangelog_delete</td><td>delete_view</td></tr>
+<tr><td><code>/admin/booking/shiftchangelog/<path:object_id>/change/</code></td><td>booking_shiftchangelog_change</td><td>change_view</td></tr>
+<tr><td><code>/admin/booking/shiftchangelog/<path:object_id>/</code></td><td></td><td>RedirectView</td></tr>
 <tr><td><code>/admin/booking/sitesettings/</code></td><td>booking_sitesettings_changelist</td><td>changelist_view</td></tr>
 <tr><td><code>/admin/booking/sitesettings/add/</code></td><td>booking_sitesettings_add</td><td>add_view</td></tr>
 <tr><td><code>/admin/booking/sitesettings/<path:object_id>/history/</code></td><td>booking_sitesettings_history</td><td>history_view</td></tr>
 <tr><td><code>/admin/booking/sitesettings/<path:object_id>/delete/</code></td><td>booking_sitesettings_delete</td><td>delete_view</td></tr>
 <tr><td><code>/admin/booking/sitesettings/<path:object_id>/change/</code></td><td>booking_sitesettings_change</td><td>change_view</td></tr>
 <tr><td><code>/admin/booking/sitesettings/<path:object_id>/</code></td><td></td><td>RedirectView</td></tr>
+<tr><td><code>/admin/booking/adminsidebarsettings/</code></td><td>booking_adminsidebarsettings_changelist</td><td>changelist_view</td></tr>
+<tr><td><code>/admin/booking/adminsidebarsettings/add/</code></td><td>booking_adminsidebarsettings_add</td><td>add_view</td></tr>
+<tr><td><code>/admin/booking/adminsidebarsettings/<path:object_id>/history/</code></td><td>booking_adminsidebarsettings_history</td><td>history_view</td></tr>
+<tr><td><code>/admin/booking/adminsidebarsettings/<path:object_id>/delete/</code></td><td>booking_adminsidebarsettings_delete</td><td>delete_view</td></tr>
+<tr><td><code>/admin/booking/adminsidebarsettings/<path:object_id>/change/</code></td><td>booking_adminsidebarsettings_change</td><td>change_view</td></tr>
+<tr><td><code>/admin/booking/adminsidebarsettings/<path:object_id>/</code></td><td></td><td>RedirectView</td></tr>
 <tr><td><code>/admin/booking/homepagecustomblock/</code></td><td>booking_homepagecustomblock_changelist</td><td>changelist_view</td></tr>
 <tr><td><code>/admin/booking/homepagecustomblock/add/</code></td><td>booking_homepagecustomblock_add</td><td>add_view</td></tr>
 <tr><td><code>/admin/booking/homepagecustomblock/<path:object_id>/history/</code></td><td>booking_homepagecustomblock_history</td><td>history_view</td></tr>
@@ -1196,6 +1797,102 @@ Customer ──▶ BookingTopPage ──▶ StaffCalendar ──▶ PreBooking
 <tr><td><code>/admin/booking/costreport/<path:object_id>/delete/</code></td><td>booking_costreport_delete</td><td>delete_view</td></tr>
 <tr><td><code>/admin/booking/costreport/<path:object_id>/change/</code></td><td>booking_costreport_change</td><td>change_view</td></tr>
 <tr><td><code>/admin/booking/costreport/<path:object_id>/</code></td><td></td><td>RedirectView</td></tr>
+<tr><td><code>/admin/booking/shifttemplate/</code></td><td>booking_shifttemplate_changelist</td><td>changelist_view</td></tr>
+<tr><td><code>/admin/booking/shifttemplate/add/</code></td><td>booking_shifttemplate_add</td><td>add_view</td></tr>
+<tr><td><code>/admin/booking/shifttemplate/<path:object_id>/history/</code></td><td>booking_shifttemplate_history</td><td>history_view</td></tr>
+<tr><td><code>/admin/booking/shifttemplate/<path:object_id>/delete/</code></td><td>booking_shifttemplate_delete</td><td>delete_view</td></tr>
+<tr><td><code>/admin/booking/shifttemplate/<path:object_id>/change/</code></td><td>booking_shifttemplate_change</td><td>change_view</td></tr>
+<tr><td><code>/admin/booking/shifttemplate/<path:object_id>/</code></td><td></td><td>RedirectView</td></tr>
+<tr><td><code>/admin/booking/shiftpublishhistory/</code></td><td>booking_shiftpublishhistory_changelist</td><td>changelist_view</td></tr>
+<tr><td><code>/admin/booking/shiftpublishhistory/add/</code></td><td>booking_shiftpublishhistory_add</td><td>add_view</td></tr>
+<tr><td><code>/admin/booking/shiftpublishhistory/<path:object_id>/history/</code></td><td>booking_shiftpublishhistory_history</td><td>history_view</td></tr>
+<tr><td><code>/admin/booking/shiftpublishhistory/<path:object_id>/delete/</code></td><td>booking_shiftpublishhistory_delete</td><td>delete_view</td></tr>
+<tr><td><code>/admin/booking/shiftpublishhistory/<path:object_id>/change/</code></td><td>booking_shiftpublishhistory_change</td><td>change_view</td></tr>
+<tr><td><code>/admin/booking/shiftpublishhistory/<path:object_id>/</code></td><td></td><td>RedirectView</td></tr>
+<tr><td><code>/admin/booking/storecloseddate/</code></td><td>booking_storecloseddate_changelist</td><td>changelist_view</td></tr>
+<tr><td><code>/admin/booking/storecloseddate/add/</code></td><td>booking_storecloseddate_add</td><td>add_view</td></tr>
+<tr><td><code>/admin/booking/storecloseddate/<path:object_id>/history/</code></td><td>booking_storecloseddate_history</td><td>history_view</td></tr>
+<tr><td><code>/admin/booking/storecloseddate/<path:object_id>/delete/</code></td><td>booking_storecloseddate_delete</td><td>delete_view</td></tr>
+<tr><td><code>/admin/booking/storecloseddate/<path:object_id>/change/</code></td><td>booking_storecloseddate_change</td><td>change_view</td></tr>
+<tr><td><code>/admin/booking/storecloseddate/<path:object_id>/</code></td><td></td><td>RedirectView</td></tr>
+<tr><td><code>/admin/booking/shiftstaffrequirement/</code></td><td>booking_shiftstaffrequirement_changelist</td><td>changelist_view</td></tr>
+<tr><td><code>/admin/booking/shiftstaffrequirement/add/</code></td><td>booking_shiftstaffrequirement_add</td><td>add_view</td></tr>
+<tr><td><code>/admin/booking/shiftstaffrequirement/<path:object_id>/history/</code></td><td>booking_shiftstaffrequirement_history</td><td>history_view</td></tr>
+<tr><td><code>/admin/booking/shiftstaffrequirement/<path:object_id>/delete/</code></td><td>booking_shiftstaffrequirement_delete</td><td>delete_view</td></tr>
+<tr><td><code>/admin/booking/shiftstaffrequirement/<path:object_id>/change/</code></td><td>booking_shiftstaffrequirement_change</td><td>change_view</td></tr>
+<tr><td><code>/admin/booking/shiftstaffrequirement/<path:object_id>/</code></td><td></td><td>RedirectView</td></tr>
+<tr><td><code>/admin/booking/shiftstaffrequirementoverride/</code></td><td>booking_shiftstaffrequirementoverride_changelist</td><td>changelist_view</td></tr>
+<tr><td><code>/admin/booking/shiftstaffrequirementoverride/add/</code></td><td>booking_shiftstaffrequirementoverride_add</td><td>add_view</td></tr>
+<tr><td><code>/admin/booking/shiftstaffrequirementoverride/<path:object_id>/history/</code></td><td>booking_shiftstaffrequirementoverride_history</td><td>history_view</td></tr>
+<tr><td><code>/admin/booking/shiftstaffrequirementoverride/<path:object_id>/delete/</code></td><td>booking_shiftstaffrequirementoverride_delete</td><td>delete_view</td></tr>
+<tr><td><code>/admin/booking/shiftstaffrequirementoverride/<path:object_id>/change/</code></td><td>booking_shiftstaffrequirementoverride_change</td><td>change_view</td></tr>
+<tr><td><code>/admin/booking/shiftstaffrequirementoverride/<path:object_id>/</code></td><td></td><td>RedirectView</td></tr>
+<tr><td><code>/admin/booking/attendancetotpconfig/</code></td><td>booking_attendancetotpconfig_changelist</td><td>changelist_view</td></tr>
+<tr><td><code>/admin/booking/attendancetotpconfig/add/</code></td><td>booking_attendancetotpconfig_add</td><td>add_view</td></tr>
+<tr><td><code>/admin/booking/attendancetotpconfig/<path:object_id>/history/</code></td><td>booking_attendancetotpconfig_history</td><td>history_view</td></tr>
+<tr><td><code>/admin/booking/attendancetotpconfig/<path:object_id>/delete/</code></td><td>booking_attendancetotpconfig_delete</td><td>delete_view</td></tr>
+<tr><td><code>/admin/booking/attendancetotpconfig/<path:object_id>/change/</code></td><td>booking_attendancetotpconfig_change</td><td>change_view</td></tr>
+<tr><td><code>/admin/booking/attendancetotpconfig/<path:object_id>/</code></td><td></td><td>RedirectView</td></tr>
+<tr><td><code>/admin/booking/attendancestamp/</code></td><td>booking_attendancestamp_changelist</td><td>changelist_view</td></tr>
+<tr><td><code>/admin/booking/attendancestamp/add/</code></td><td>booking_attendancestamp_add</td><td>add_view</td></tr>
+<tr><td><code>/admin/booking/attendancestamp/<path:object_id>/history/</code></td><td>booking_attendancestamp_history</td><td>history_view</td></tr>
+<tr><td><code>/admin/booking/attendancestamp/<path:object_id>/delete/</code></td><td>booking_attendancestamp_delete</td><td>delete_view</td></tr>
+<tr><td><code>/admin/booking/attendancestamp/<path:object_id>/change/</code></td><td>booking_attendancestamp_change</td><td>change_view</td></tr>
+<tr><td><code>/admin/booking/attendancestamp/<path:object_id>/</code></td><td></td><td>RedirectView</td></tr>
+<tr><td><code>/admin/booking/postransaction/</code></td><td>booking_postransaction_changelist</td><td>changelist_view</td></tr>
+<tr><td><code>/admin/booking/postransaction/add/</code></td><td>booking_postransaction_add</td><td>add_view</td></tr>
+<tr><td><code>/admin/booking/postransaction/<path:object_id>/history/</code></td><td>booking_postransaction_history</td><td>history_view</td></tr>
+<tr><td><code>/admin/booking/postransaction/<path:object_id>/delete/</code></td><td>booking_postransaction_delete</td><td>delete_view</td></tr>
+<tr><td><code>/admin/booking/postransaction/<path:object_id>/change/</code></td><td>booking_postransaction_change</td><td>change_view</td></tr>
+<tr><td><code>/admin/booking/postransaction/<path:object_id>/</code></td><td></td><td>RedirectView</td></tr>
+<tr><td><code>/admin/booking/visitorcount/</code></td><td>booking_visitorcount_changelist</td><td>changelist_view</td></tr>
+<tr><td><code>/admin/booking/visitorcount/add/</code></td><td>booking_visitorcount_add</td><td>add_view</td></tr>
+<tr><td><code>/admin/booking/visitorcount/<path:object_id>/history/</code></td><td>booking_visitorcount_history</td><td>history_view</td></tr>
+<tr><td><code>/admin/booking/visitorcount/<path:object_id>/delete/</code></td><td>booking_visitorcount_delete</td><td>delete_view</td></tr>
+<tr><td><code>/admin/booking/visitorcount/<path:object_id>/change/</code></td><td>booking_visitorcount_change</td><td>change_view</td></tr>
+<tr><td><code>/admin/booking/visitorcount/<path:object_id>/</code></td><td></td><td>RedirectView</td></tr>
+<tr><td><code>/admin/booking/visitoranalyticsconfig/</code></td><td>booking_visitoranalyticsconfig_changelist</td><td>changelist_view</td></tr>
+<tr><td><code>/admin/booking/visitoranalyticsconfig/add/</code></td><td>booking_visitoranalyticsconfig_add</td><td>add_view</td></tr>
+<tr><td><code>/admin/booking/visitoranalyticsconfig/<path:object_id>/history/</code></td><td>booking_visitoranalyticsconfig_history</td><td>history_view</td></tr>
+<tr><td><code>/admin/booking/visitoranalyticsconfig/<path:object_id>/delete/</code></td><td>booking_visitoranalyticsconfig_delete</td><td>delete_view</td></tr>
+<tr><td><code>/admin/booking/visitoranalyticsconfig/<path:object_id>/change/</code></td><td>booking_visitoranalyticsconfig_change</td><td>change_view</td></tr>
+<tr><td><code>/admin/booking/visitoranalyticsconfig/<path:object_id>/</code></td><td></td><td>RedirectView</td></tr>
+<tr><td><code>/admin/booking/staffrecommendationmodel/</code></td><td>booking_staffrecommendationmodel_changelist</td><td>changelist_view</td></tr>
+<tr><td><code>/admin/booking/staffrecommendationmodel/add/</code></td><td>booking_staffrecommendationmodel_add</td><td>add_view</td></tr>
+<tr><td><code>/admin/booking/staffrecommendationmodel/<path:object_id>/history/</code></td><td>booking_staffrecommendationmodel_history</td><td>history_view</td></tr>
+<tr><td><code>/admin/booking/staffrecommendationmodel/<path:object_id>/delete/</code></td><td>booking_staffrecommendationmodel_delete</td><td>delete_view</td></tr>
+<tr><td><code>/admin/booking/staffrecommendationmodel/<path:object_id>/change/</code></td><td>booking_staffrecommendationmodel_change</td><td>change_view</td></tr>
+<tr><td><code>/admin/booking/staffrecommendationmodel/<path:object_id>/</code></td><td></td><td>RedirectView</td></tr>
+<tr><td><code>/admin/booking/staffrecommendationresult/</code></td><td>booking_staffrecommendationresult_changelist</td><td>changelist_view</td></tr>
+<tr><td><code>/admin/booking/staffrecommendationresult/add/</code></td><td>booking_staffrecommendationresult_add</td><td>add_view</td></tr>
+<tr><td><code>/admin/booking/staffrecommendationresult/<path:object_id>/history/</code></td><td>booking_staffrecommendationresult_history</td><td>history_view</td></tr>
+<tr><td><code>/admin/booking/staffrecommendationresult/<path:object_id>/delete/</code></td><td>booking_staffrecommendationresult_delete</td><td>delete_view</td></tr>
+<tr><td><code>/admin/booking/staffrecommendationresult/<path:object_id>/change/</code></td><td>booking_staffrecommendationresult_change</td><td>change_view</td></tr>
+<tr><td><code>/admin/booking/staffrecommendationresult/<path:object_id>/</code></td><td></td><td>RedirectView</td></tr>
+<tr><td><code>/admin/booking/businessinsight/</code></td><td>booking_businessinsight_changelist</td><td>changelist_view</td></tr>
+<tr><td><code>/admin/booking/businessinsight/add/</code></td><td>booking_businessinsight_add</td><td>add_view</td></tr>
+<tr><td><code>/admin/booking/businessinsight/<path:object_id>/history/</code></td><td>booking_businessinsight_history</td><td>history_view</td></tr>
+<tr><td><code>/admin/booking/businessinsight/<path:object_id>/delete/</code></td><td>booking_businessinsight_delete</td><td>delete_view</td></tr>
+<tr><td><code>/admin/booking/businessinsight/<path:object_id>/change/</code></td><td>booking_businessinsight_change</td><td>change_view</td></tr>
+<tr><td><code>/admin/booking/businessinsight/<path:object_id>/</code></td><td></td><td>RedirectView</td></tr>
+<tr><td><code>/admin/booking/customerfeedback/</code></td><td>booking_customerfeedback_changelist</td><td>changelist_view</td></tr>
+<tr><td><code>/admin/booking/customerfeedback/add/</code></td><td>booking_customerfeedback_add</td><td>add_view</td></tr>
+<tr><td><code>/admin/booking/customerfeedback/<path:object_id>/history/</code></td><td>booking_customerfeedback_history</td><td>history_view</td></tr>
+<tr><td><code>/admin/booking/customerfeedback/<path:object_id>/delete/</code></td><td>booking_customerfeedback_delete</td><td>delete_view</td></tr>
+<tr><td><code>/admin/booking/customerfeedback/<path:object_id>/change/</code></td><td>booking_customerfeedback_change</td><td>change_view</td></tr>
+<tr><td><code>/admin/booking/customerfeedback/<path:object_id>/</code></td><td></td><td>RedirectView</td></tr>
+<tr><td><code>/admin/booking/evaluationcriteria/</code></td><td>booking_evaluationcriteria_changelist</td><td>changelist_view</td></tr>
+<tr><td><code>/admin/booking/evaluationcriteria/add/</code></td><td>booking_evaluationcriteria_add</td><td>add_view</td></tr>
+<tr><td><code>/admin/booking/evaluationcriteria/<path:object_id>/history/</code></td><td>booking_evaluationcriteria_history</td><td>history_view</td></tr>
+<tr><td><code>/admin/booking/evaluationcriteria/<path:object_id>/delete/</code></td><td>booking_evaluationcriteria_delete</td><td>delete_view</td></tr>
+<tr><td><code>/admin/booking/evaluationcriteria/<path:object_id>/change/</code></td><td>booking_evaluationcriteria_change</td><td>change_view</td></tr>
+<tr><td><code>/admin/booking/evaluationcriteria/<path:object_id>/</code></td><td></td><td>RedirectView</td></tr>
+<tr><td><code>/admin/booking/staffevaluation/</code></td><td>booking_staffevaluation_changelist</td><td>changelist_view</td></tr>
+<tr><td><code>/admin/booking/staffevaluation/add/</code></td><td>booking_staffevaluation_add</td><td>add_view</td></tr>
+<tr><td><code>/admin/booking/staffevaluation/<path:object_id>/history/</code></td><td>booking_staffevaluation_history</td><td>history_view</td></tr>
+<tr><td><code>/admin/booking/staffevaluation/<path:object_id>/delete/</code></td><td>booking_staffevaluation_delete</td><td>delete_view</td></tr>
+<tr><td><code>/admin/booking/staffevaluation/<path:object_id>/change/</code></td><td>booking_staffevaluation_change</td><td>change_view</td></tr>
+<tr><td><code>/admin/booking/staffevaluation/<path:object_id>/</code></td><td></td><td>RedirectView</td></tr>
 <tr><td><code>/admin/^(?P<app_label>booking|auth)/$</code></td><td>app_list</td><td>app_index</td></tr>
 <tr><td><code>/admin/(?P<url>.*)$</code></td><td></td><td>catch_all_view</td></tr>
 <tr><td><code>/</code></td><td>booking_top</td><td>BookingTopPage</td></tr>
@@ -1208,6 +1905,7 @@ Customer ──▶ BookingTopPage ──▶ StaffCalendar ──▶ PreBooking
 <tr><td><code>/login/</code></td><td>login</td><td>LoginView</td></tr>
 <tr><td><code>/login/redirect/</code></td><td>login_redirect</td><td>LoginRedirectView</td></tr>
 <tr><td><code>/logout/</code></td><td>logout</td><td>LogoutView</td></tr>
+<tr><td><code>/store/<int:pk>/access/</code></td><td>store_access</td><td>StoreAccessView</td></tr>
 <tr><td><code>/store/<int:pk>/staffs/</code></td><td>staff_list</td><td>StaffList</td></tr>
 <tr><td><code>/staff/<int:pk>/calendar/</code></td><td>staff_calendar</td><td>StaffCalendar</td></tr>
 <tr><td><code>/staff/<int:pk>/calendar/<int:year>/<int:month>/<int:day>/</code></td><td>calendar</td><td>StaffCalendar</td></tr>
@@ -1224,6 +1922,7 @@ Customer ──▶ BookingTopPage ──▶ StaffCalendar ──▶ PreBooking
 <tr><td><code>/upload/</code></td><td>upload_file</td><td>upload_file</td></tr>
 <tr><td><code>/mypage/</code></td><td>my_page</td><td>MyPage</td></tr>
 <tr><td><code>/mypage/<int:pk>/</code></td><td>my_page_with_pk</td><td>MyPageWithPk</td></tr>
+<tr><td><code>/mypage/<int:pk>/profile/</code></td><td>my_page_profile</td><td>MyPageProfile</td></tr>
 <tr><td><code>/mypage/<int:pk>/calendar/</code></td><td>my_page_calendar</td><td>MyPageCalendar</td></tr>
 <tr><td><code>/mypage/<int:pk>/calendar/<int:year>/<int:month>/<int:day>/</code></td><td>my_page_calendar</td><td>MyPageCalendar</td></tr>
 <tr><td><code>/mypage/<int:pk>/config/<int:year>/<int:month>/<int:day>/</code></td><td>my_page_day_detail</td><td>MyPageDayDetail</td></tr>
@@ -1246,6 +1945,13 @@ Customer ──▶ BookingTopPage ──▶ StaffCalendar ──▶ PreBooking
 <tr><td><code>/shop/</code></td><td>shop</td><td>ShopView</td></tr>
 <tr><td><code>/shop/cart/</code></td><td>shop_cart</td><td>CartView</td></tr>
 <tr><td><code>/shop/checkout/</code></td><td>shop_checkout</td><td>ShopCheckoutView</td></tr>
+<tr><td><code>/shop/confirm/</code></td><td>shop_confirm</td><td>ShopConfirmView</td></tr>
+<tr><td><code>/shop/order/<int:order_id>/payment/</code></td><td>shop_payment</td><td>ECPaymentView</td></tr>
+<tr><td><code>/shop/order/<int:order_id>/complete/</code></td><td>shop_order_complete</td><td>ECOrderConfirmationView</td></tr>
+<tr><td><code>/attendance/stamp/</code></td><td>attendance_stamp_page</td><td>AttendanceStampPageView</td></tr>
+<tr><td><code>/news/</code></td><td>notice_list</td><td>NoticeListView</td></tr>
+<tr><td><code>/^news/(?P<slug>[\w-]+)/$</code></td><td>notice_detail</td><td>NoticeDetailView</td></tr>
+<tr><td><code>/^media/(?P<path>.*)$</code></td><td></td><td>serve</td></tr>
 </table>
 
 <!-- 7. サービスレイヤ仕様 -->

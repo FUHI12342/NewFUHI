@@ -1,47 +1,78 @@
 flowchart TD
-    subgraph Clients["Client Layer"]
-        Browser["Browser\nCustomer / Staff / Admin"]
-        PicoW["Pico W\nIoT Device"]
+    subgraph Clients["クライアント層"]
+        Browser["ブラウザ\n顧客 / スタッフ / 管理者"]
+        PicoW["Pico W\nIoTデバイス"]
+        Mobile["モバイル\nLINE / QR打刻"]
     end
 
-    subgraph EC2["AWS EC2 Instance"]
-        subgraph WebServer["Web Server"]
-            Nginx["Nginx\nSSL Termination\nRate Limiting"]
+    subgraph EC2["AWS EC2 インスタンス"]
+        subgraph WebServer["Webサーバー"]
+            Nginx["Nginx\nSSL終端\nレートリミット"]
         end
 
-        subgraph AppServer["App Server"]
-            Django["Django / Gunicorn\nREST API\nAdmin Panel\nTemplates"]
+        subgraph AppServer["アプリケーションサーバー"]
+            Django["Django / Gunicorn\nREST API\n管理パネル\nテンプレート"]
         end
 
-        subgraph TaskQueue["Task Queue"]
+        subgraph i18n["多言語対応 (7ロケール)"]
+            JA["ja 日本語"]
+            EN["en English"]
+            ZH_HANT["zh-hant 繁體中文"]
+            ZH_HANS["zh-hans 简体中文"]
+            KO["ko 한국어"]
+            ES["es Español"]
+            PT["pt Português"]
+        end
+
+        subgraph Features["機能モジュール"]
+            Booking["予約管理\nLINE / Email認証"]
+            ShiftMgmt["シフト管理\n希望収集 → 自動配置"]
+            POS["POS / テーブル注文\nキッチンディスプレイ"]
+            EC["ECショップ\n商品管理 / 発送"]
+            Inventory["在庫管理\n入出庫 / 閾値通知"]
+            Payroll["給与管理\n勤怠 → 計算 → ZENGIN"]
+            StaffEval["スタッフ評価\n基準マスタ → 自動+手動"]
+            Attendance["勤怠打刻\nQR / TOTP / PIN"]
+            Analytics["分析ダッシュボード\nKPI / NPS / CLV"]
+            IoTMgmt["IoTモニタリング\nセンサー / 換気扇制御"]
+            CMS["ホームページCMS\nバナー / カスタムブロック"]
+            ECDash["EC管理ダッシュボード\n注文 / 発送管理"]
+        end
+
+        subgraph TaskQueue["タスクキュー"]
             CeleryWorker["Celery Worker"]
-            CeleryBeat["Celery Beat\nScheduler"]
-            Redis["Redis\nBroker"]
+            CeleryBeat["Celery Beat\nスケジューラ"]
+            Redis["Redis\nブローカー"]
         end
 
-        subgraph Database["Database"]
-            SQLite["SQLite\nPostgreSQL migration planned"]
+        subgraph Database["データベース"]
+            SQLite["SQLite\nPostgreSQL移行予定"]
         end
     end
 
-    subgraph External["External Services"]
+    subgraph External["外部サービス"]
         LINE["LINE Messaging API"]
         SwitchBot["SwitchBot API"]
-        Coiney["Coiney Payment"]
-        S3["AWS S3\nMedia Storage"]
+        Coiney["Coiney決済"]
+        S3["AWS S3\nメディアストレージ"]
     end
 
     Browser -- HTTPS --> Nginx
     PicoW -- HTTPS POST --> Nginx
+    Mobile -- HTTPS --> Nginx
     Nginx -- Proxy Pass --> Django
+
+    Django --> i18n
+    Django --> Features
+
     Django -- ORM --> SQLite
-    Django -- Task Dispatch --> Redis
-    Redis -- Task Execute --> CeleryWorker
-    CeleryBeat -- Periodic Tasks --> Redis
-    CeleryWorker -- API Call --> LINE
-    CeleryWorker -- Device Control --> SwitchBot
-    Django -- Payment API --> Coiney
-    Django -- File Upload --> S3
+    Django -- タスク投入 --> Redis
+    Redis -- タスク実行 --> CeleryWorker
+    CeleryBeat -- 定期タスク --> Redis
+    CeleryWorker -- API呼出 --> LINE
+    CeleryWorker -- デバイス制御 --> SwitchBot
+    Django -- 決済API --> Coiney
+    Django -- ファイルアップロード --> S3
     Coiney -- Webhook --> Nginx
 
     classDef clientStyle fill:#4A90D9,stroke:#2C5F8A,color:#fff
@@ -50,10 +81,14 @@ flowchart TD
     classDef taskStyle fill:#D9534F,stroke:#A9413E,color:#fff
     classDef dbStyle fill:#336791,stroke:#1E3D56,color:#fff
     classDef extStyle fill:#FF9900,stroke:#CC7A00,color:#fff
+    classDef i18nStyle fill:#8E44AD,stroke:#6C3483,color:#fff
+    classDef featureStyle fill:#2C3E50,stroke:#1A252F,color:#fff
 
-    class Browser,PicoW clientStyle
+    class Browser,PicoW,Mobile clientStyle
     class Nginx nginxStyle
     class Django djangoStyle
     class CeleryWorker,CeleryBeat,Redis taskStyle
     class SQLite dbStyle
     class LINE,SwitchBot,Coiney,S3 extStyle
+    class JA,EN,ZH_HANT,ZH_HANS,KO,ES,PT i18nStyle
+    class Booking,ShiftMgmt,POS,EC,Inventory,Payroll,StaffEval,Attendance,Analytics,IoTMgmt,CMS,ECDash featureStyle

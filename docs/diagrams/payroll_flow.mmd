@@ -1,0 +1,124 @@
+flowchart TD
+    subgraph Contract["雇用契約設定"]
+        EmpContract["EmploymentContract\n雇用形態 / 給与形態\n時給 or 月給"]
+        Allowances["手当設定\n通勤 / 住宅 / 家族"]
+        Insurance["社会保険基準\n標準報酬月額\n住民税月額"]
+        SalaryStruct["SalaryStructure\n社会保険料率 / 割増率\n厚生年金 / 健康保険 / 雇用保険"]
+    end
+
+    subgraph Attendance["勤怠データ収集"]
+        ShiftSource["ShiftAssignment\n確定シフト"]
+        QRSource["QR / TOTP打刻\nAttendanceStamp"]
+        PINSource["PIN打刻\nStaff.attendance_pin"]
+        ManualSource["手動入力\n修正入力"]
+    end
+
+    subgraph AttendanceCalc["勤怠集計"]
+        AttendService["attendance_service\nシフト → 勤怠変換"]
+        WorkAttend["WorkAttendance\n日別勤怠レコード"]
+        RegularMin["通常勤務（分）\n法定8h以内"]
+        OvertimeMin["残業（分）\n8h超過分 x 1.25"]
+        LateNightMin["深夜勤務（分）\n22:00-05:00 x 1.35"]
+        HolidayMin["休日勤務（分）\nx 1.50"]
+        BreakMin["休憩控除\n6h以上→60分 / 4.5h以上→45分"]
+    end
+
+    subgraph PayrollCalc["給与計算エンジン"]
+        CreatePeriod["PayrollPeriod作成\n対象年月 / 計算期間"]
+        CalcEngine["payroll_calculator\n集計 → 計算 → レコード生成"]
+
+        subgraph GrossPay["総支給額"]
+            BasePay["基本給\n時給×時間 or 月給"]
+            OTPay["残業手当\n残業時間 × 時給 × 1.25"]
+            LNPay["深夜手当\n深夜時間 × 時給 × 1.35"]
+            HolPay["休日手当\n休日時間 × 時給 × 1.50"]
+            AllowPay["各種手当合計\n通勤+住宅+家族"]
+        end
+
+        subgraph Deductions["控除計算"]
+            Pension["厚生年金\n標準報酬月額 × 9.15%"]
+            HealthIns["健康保険\n標準報酬月額 × 5.00%"]
+            EmpIns["雇用保険\n総支給額 × 0.60%"]
+            LTCare["介護保険\n40歳以上のみ × 0.82%"]
+            IncomeTax["源泉所得税\n課税対象額 → 月額表参照"]
+            ResidentTax["住民税\n特別徴収月額（固定）"]
+        end
+
+        NetPay["差引支給額\n= 総支給額 - 控除合計"]
+    end
+
+    subgraph Output["給与明細出力"]
+        PayrollEntry["PayrollEntry\n個人別給与明細レコード"]
+        PayrollDeduction["PayrollDeduction\n控除明細行"]
+        StatusDraft["ステータス: 下書き"]
+        StatusConfirm["ステータス: 確定"]
+        StatusPaid["ステータス: 支払済"]
+    end
+
+    subgraph Export["ZENGIN振込データ"]
+        ZenginCSV["zengin_export\n全銀フォーマットCSV生成"]
+        Header["ヘッダーレコード\n種別コード / 振込指定日"]
+        DataRec["データレコード\n従業員ごと1行"]
+        Trailer["トレーラーレコード\n合計件数 / 合計金額"]
+        EndRec["エンドレコード"]
+        Download["CSVダウンロード\n銀行アップロード用"]
+    end
+
+    EmpContract --> AttendService
+    Allowances --> CalcEngine
+    Insurance --> Deductions
+    SalaryStruct --> Deductions
+
+    ShiftSource --> AttendService
+    QRSource --> AttendService
+    PINSource --> AttendService
+    ManualSource --> AttendService
+
+    AttendService --> WorkAttend
+    WorkAttend --> RegularMin
+    WorkAttend --> OvertimeMin
+    WorkAttend --> LateNightMin
+    WorkAttend --> HolidayMin
+    WorkAttend --> BreakMin
+
+    CreatePeriod --> CalcEngine
+    RegularMin --> BasePay
+    OvertimeMin --> OTPay
+    LateNightMin --> LNPay
+    HolidayMin --> HolPay
+    Allowances --> AllowPay
+
+    GrossPay --> NetPay
+    Deductions --> NetPay
+
+    NetPay --> PayrollEntry
+    Deductions --> PayrollDeduction
+
+    PayrollEntry --> StatusDraft
+    StatusDraft -- "確認" --> StatusConfirm
+    StatusConfirm -- "支払実行" --> StatusPaid
+
+    StatusConfirm --> ZenginCSV
+    ZenginCSV --> Header
+    Header --> DataRec
+    DataRec --> Trailer
+    Trailer --> EndRec
+    EndRec --> Download
+
+    classDef contractStyle fill:#2C3E50,stroke:#1A252F,color:#fff
+    classDef attendStyle fill:#3498DB,stroke:#2980B9,color:#fff
+    classDef calcStyle fill:#F39C12,stroke:#D68910,color:#fff
+    classDef grossStyle fill:#27AE60,stroke:#1E8449,color:#fff
+    classDef deductStyle fill:#E74C3C,stroke:#C0392B,color:#fff
+    classDef outputStyle fill:#9B59B6,stroke:#7D3C98,color:#fff
+    classDef exportStyle fill:#1ABC9C,stroke:#16A085,color:#fff
+    classDef netStyle fill:#E67E22,stroke:#CA6F1E,color:#fff
+
+    class EmpContract,Allowances,Insurance,SalaryStruct contractStyle
+    class ShiftSource,QRSource,PINSource,ManualSource,AttendService,WorkAttend,RegularMin,OvertimeMin,LateNightMin,HolidayMin,BreakMin attendStyle
+    class CreatePeriod,CalcEngine calcStyle
+    class BasePay,OTPay,LNPay,HolPay,AllowPay grossStyle
+    class Pension,HealthIns,EmpIns,LTCare,IncomeTax,ResidentTax deductStyle
+    class PayrollEntry,PayrollDeduction,StatusDraft,StatusConfirm,StatusPaid outputStyle
+    class ZenginCSV,Header,DataRec,Trailer,EndRec,Download exportStyle
+    class NetPay netStyle

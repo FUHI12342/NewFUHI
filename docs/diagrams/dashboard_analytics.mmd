@@ -1,52 +1,63 @@
 flowchart TD
-    subgraph SalesDash["Sales Dashboard"]
-        KPI["KPI Overview\nRevenue / Orders / Avg"]
-        MenuEng["Menu Engineering\nStar / Plow / Puzzle / Dog"]
-        ABC["ABC Analysis\nA-B-C Item Ranking"]
-        Forecast["Sales Forecast\nTrend Prediction"]
-        Heatmap["Sales Heatmap\nHour x Day Matrix"]
-        AOV["AOV Tracker\nAverage Order Value"]
+    subgraph SalesDash["売上ダッシュボード"]
+        KPI["KPIスコアカード\n売上 / 注文数 / 客単価\n前期比 / 目標達成率"]
+        MenuEng["メニューエンジニアリング\nStar / Plow / Puzzle / Dog"]
+        ABC["ABC分析\nA-B-Cランク分類"]
+        Forecast["売上予測\nトレンド分析"]
+        Heatmap["売上ヒートマップ\n時間帯 x 曜日"]
+        AOV["AOVトラッカー\n平均注文単価"]
     end
 
-    subgraph CustomerAnalytics["Customer Analytics"]
-        Cohort["Cohort Analysis\nRetention by Month"]
-        RFM["RFM Segmentation\nRecency Frequency Monetary"]
-        Basket["Basket Analysis\nItem Pair Correlation"]
-        NPS["NPS and Feedback\nCustomer Satisfaction"]
-        CLV["Customer Lifetime Value\nRevenue Prediction"]
+    subgraph CustomerAnalytics["顧客分析"]
+        Cohort["コホート分析\n月別リテンション率"]
+        RFM["RFMセグメンテーション\n最終購入 / 頻度 / 金額"]
+        Basket["バスケット分析\n商品ペア相関"]
+        NPS["NPSフィードバック\n推奨度 / 料理 / サービス / 雰囲気\n感情分析（自動判定）"]
+        CLV["顧客生涯価値\n将来収益予測"]
     end
 
-    subgraph Operations["Operations"]
-        StaffPerf["Staff Performance\nSales per Staff"]
-        ShiftSum["Shift Summary\nDaily Report"]
-        LowStock["Low Stock Alert\nInventory Warning"]
-        AutoOrder["Auto Order Suggestion\nRestock Recommendation"]
+    subgraph Operations["オペレーション"]
+        StaffPerf["スタッフ業績\n売上 / 勤怠 / 評価連動"]
+        ShiftSum["シフトサマリー\n日次レポート"]
+        LowStock["在庫不足アラート\n閾値通知"]
+        AutoOrder["自動発注提案\n補充推奨量算出"]
     end
 
-    subgraph Visitor["Visitor Analytics"]
-        VForecast["Visitor Forecast\nExpected Traffic"]
-        VHeatmap["Visitor Heatmap\nPeak Hours"]
-        VTrends["Visitor Trends\nWeekly and Monthly"]
+    subgraph Visitor["来客分析"]
+        VForecast["来客予測\n予想トラフィック"]
+        VHeatmap["来客ヒートマップ\nピーク時間帯"]
+        VTrends["来客トレンド\n週次 / 月次推移"]
     end
 
-    subgraph AI["AI and ML"]
-        RecModel["Recommendation Model\nMenu Suggestions"]
-        Training["Model Training\nPeriodic Update"]
+    subgraph AI["AI / ML"]
+        RecModel["レコメンドモデル\nメニュー提案"]
+        InsightEngine["インサイトエンジン\nBusinessInsight自動生成"]
+        Training["モデル学習\n定期更新"]
     end
 
-    DataSource["Data Sources\nOrders / Customers / IoT / Staff"]
+    subgraph ECAnalytics["ECダッシュボード"]
+        ECOrders["EC注文管理\n注文一覧 / ステータス"]
+        ECShipping["発送管理\n追跡番号 / 配送状況"]
+        ECRevenue["EC売上集計\nチャネル別比較"]
+    end
+
+    DataSource["データソース\n注文 / 顧客 / IoT / スタッフ / 勤怠"]
 
     DataSource --> SalesDash
     DataSource --> CustomerAnalytics
     DataSource --> Operations
     DataSource --> Visitor
     DataSource --> AI
+    DataSource --> ECAnalytics
 
-    RecModel -- "Personalized Menu" --> MenuEng
-    Training -- "Updated Model" --> RecModel
-    RFM -- "Segment Data" --> CLV
-    Basket -- "Pair Insights" --> RecModel
-    LowStock -- "Trigger" --> AutoOrder
+    RecModel -- "パーソナライズ提案" --> MenuEng
+    Training -- "更新モデル" --> RecModel
+    RFM -- "セグメントデータ" --> CLV
+    Basket -- "ペアインサイト" --> RecModel
+    LowStock -- "トリガー" --> AutoOrder
+    NPS -- "顧客満足度" --> InsightEngine
+    VForecast -- "予測データ" --> AutoOrder
+    InsightEngine -- "アラート" --> StaffPerf
 
     classDef salesStyle fill:#3498DB,stroke:#2980B9,color:#fff
     classDef custStyle fill:#E74C3C,stroke:#C0392B,color:#fff
@@ -54,10 +65,12 @@ flowchart TD
     classDef visitorStyle fill:#1ABC9C,stroke:#16A085,color:#fff
     classDef aiStyle fill:#9B59B6,stroke:#7D3C98,color:#fff
     classDef sourceStyle fill:#2C3E50,stroke:#1A252F,color:#fff
+    classDef ecStyle fill:#E67E22,stroke:#CA6F1E,color:#fff
 
     class KPI,MenuEng,ABC,Forecast,Heatmap,AOV salesStyle
     class Cohort,RFM,Basket,NPS,CLV custStyle
     class StaffPerf,ShiftSum,LowStock,AutoOrder opsStyle
     class VForecast,VHeatmap,VTrends visitorStyle
-    class RecModel,Training aiStyle
+    class RecModel,InsightEngine,Training aiStyle
     class DataSource sourceStyle
+    class ECOrders,ECShipping,ECRevenue ecStyle

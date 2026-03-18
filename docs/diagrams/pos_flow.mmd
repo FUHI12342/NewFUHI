@@ -1,60 +1,84 @@
 flowchart LR
-    subgraph POSTerminal["POS Terminal - Staff"]
-        POSLogin["Staff Login\nPIN Authentication"]
-        POSMenu["Menu Selection\nCategory and Items"]
-        POSCart["Cart\nAdd Items and Qty"]
-        POSOrder["Create Order\nDine-in or Takeout"]
+    subgraph POSTerminal["POS端末 — スタッフ"]
+        POSLogin["スタッフログイン\nPIN認証"]
+        POSMenu["メニュー選択\nカテゴリ / 商品"]
+        POSCart["カート\n商品追加 / 数量"]
+        POSOrder["注文作成\nイートイン or テイクアウト"]
     end
 
-    subgraph TableOrder["Table Order - Customer"]
-        QRScan["QR Code Scan\nTable Identification"]
-        TMenu["Menu Browse\nWith Images"]
-        TCart["Cart\nCustomize Items"]
-        TOrder["Submit Order\nAuto Table Assign"]
+    subgraph TableOrder["テーブル注文 — 顧客"]
+        QRScan["QRコードスキャン\nテーブル識別 (TableSeat)"]
+        TMenu["メニュー閲覧\n画像 / 多言語表示"]
+        TCart["カート\nカスタマイズ"]
+        TOrder["注文送信\nテーブル自動紐付け"]
     end
 
-    subgraph Kitchen["Kitchen Display System"]
-        KOrdered["ORDERED\nNew Order Alert"]
-        KPreparing["PREPARING\nIn Progress"]
-        KServed["SERVED\nReady for Pickup"]
+    subgraph ECOrder["ECショップ — 顧客"]
+        ECBrowse["商品閲覧\nEC公開商品"]
+        ECCart["カート\n配送先入力"]
+        ECSubmit["注文確定\nメール通知"]
     end
 
-    subgraph Checkout["Checkout and Payment"]
-        BillCalc["Bill Calculation\nTax and Discount"]
-        PaySelect{"Payment\nMethod"}
-        CashPay["Cash Payment\nChange Calculation"]
-        CardPay["Coiney Payment\nCard Terminal"]
-        Receipt["Receipt\nPrint or Email"]
-        Closed["Order CLOSED\nSales Recorded"]
+    subgraph Kitchen["キッチンディスプレイ"]
+        KOrdered["ORDERED\n新規注文アラート"]
+        KPreparing["PREPARING\n調理中"]
+        KServed["SERVED\n提供準備完了"]
+    end
+
+    subgraph Checkout["会計・決済"]
+        BillCalc["会計計算\n税 / 割引 / サービス料"]
+        PaySelect{"決済方法\n選択"}
+        CashPay["現金決済\nお釣り計算"]
+        CardPay["Coiney決済\nカード端末"]
+        PayPay["PayPay\nQR決済"]
+        Receipt["レシート\n印刷 or メール"]
+        Closed["注文クローズ\n売上記録"]
+    end
+
+    subgraph StockUpdate["在庫更新"]
+        StockOut["出庫処理\nStockMovement(OUT)"]
+        LowAlert["在庫不足検知\n閾値通知 → LINE"]
     end
 
     POSLogin --> POSMenu --> POSCart --> POSOrder
     QRScan --> TMenu --> TCart --> TOrder
+    ECBrowse --> ECCart --> ECSubmit
 
-    POSOrder -- "Send to Kitchen" --> KOrdered
-    TOrder -- "Send to Kitchen" --> KOrdered
+    POSOrder -- "キッチンへ送信" --> KOrdered
+    TOrder -- "キッチンへ送信" --> KOrdered
 
-    KOrdered -- "Start Cooking" --> KPreparing
-    KPreparing -- "Complete" --> KServed
+    KOrdered -- "調理開始" --> KPreparing
+    KPreparing -- "完了" --> KServed
 
-    KServed -- "All Items Served" --> BillCalc
+    KServed -- "全品提供完了" --> BillCalc
+
+    ECSubmit -- "EC注文" --> Closed
 
     BillCalc --> PaySelect
-    PaySelect -- "Cash" --> CashPay
-    PaySelect -- "Card" --> CardPay
+    PaySelect -- "現金" --> CashPay
+    PaySelect -- "カード" --> CardPay
+    PaySelect -- "PayPay" --> PayPay
 
     CashPay --> Receipt
     CardPay --> Receipt
+    PayPay --> Receipt
     Receipt --> Closed
+
+    Closed --> StockOut
+    StockOut --> LowAlert
 
     classDef posStyle fill:#2C3E50,stroke:#1A252F,color:#fff
     classDef tableStyle fill:#16A085,stroke:#0E6655,color:#fff
+    classDef ecStyle fill:#E67E22,stroke:#CA6F1E,color:#fff
     classDef kitchenStyle fill:#E67E22,stroke:#CA6F1E,color:#fff
     classDef payStyle fill:#27AE60,stroke:#1E8449,color:#fff
     classDef decisionStyle fill:#9B59B6,stroke:#7D3C98,color:#fff
+    classDef stockStyle fill:#E74C3C,stroke:#C0392B,color:#fff
 
     class POSLogin,POSMenu,POSCart,POSOrder posStyle
     class QRScan,TMenu,TCart,TOrder tableStyle
+    class ECBrowse,ECCart,ECSubmit ecStyle
     class KOrdered,KPreparing,KServed kitchenStyle
-    class BillCalc,CashPay,CardPay,Receipt,Closed payStyle
+    class BillCalc,CashPay,CardPay,PayPay,Receipt,Closed payStyle
     class PaySelect decisionStyle
+    class StockOut,LowAlert stockStyle

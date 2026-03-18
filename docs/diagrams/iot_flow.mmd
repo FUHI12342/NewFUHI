@@ -1,52 +1,81 @@
 flowchart TD
-    subgraph PicoW["Pico W IoT Device"]
-        MQ9["MQ-9\nGas Sensor"]
-        PIR["PIR\nMotion Sensor"]
-        Light["Light Sensor\nPhotoresistor"]
-        DHT["DHT22\nTemp and Humidity"]
+    subgraph PicoW["Pico W IoTデバイス"]
+        MQ9["MQ-9\nガスセンサー"]
+        PIR["PIR\n人感センサー"]
+        Light["照度センサー\nフォトレジスタ"]
+        DHT["DHT22\n温度 / 湿度"]
+        Sound["音センサー"]
     end
 
-    subgraph DjangoAPI["Django API Server"]
-        Endpoint["POST /api/iot/events/\nIoTEvent Save"]
-        Rules["check_ventilation_rules\nThreshold Evaluation"]
-        ConfigEP["GET /api/iot/config/\nDevice Settings"]
+    subgraph DjangoAPI["Django APIサーバー"]
+        Endpoint["POST /api/iot/events/\nIoTEvent保存"]
+        Rules["check_ventilation_rules\n閾値判定"]
+        ConfigEP["GET /api/iot/config/\nデバイス設定取得"]
+        IRCmd["pending_ir_command\nIRコマンド配信"]
     end
 
-    subgraph Actions["Automated Actions"]
+    subgraph VentControl["換気扇自動制御"]
+        VentRule["VentilationAutoControl\nON閾値 / OFF閾値 / 連続回数"]
         SwitchBot["SwitchBot API\nturnOn / turnOff"]
-        LINEPush["LINE Push\nGas Alarm Notification"]
+        FanState["状態トラッキング\nfan_state / クールダウン"]
+        SBEncrypt["SwitchBot認証情報\nFernet暗号化"]
     end
 
-    subgraph Monitoring["Monitoring"]
-        Dashboard["IoT Dashboard\nReal-time Readings"]
-        History["Event History\nTrend Charts"]
+    subgraph Actions["自動アクション"]
+        LINEPush["LINE Push\nガスアラーム通知"]
+        IRTx["IR送信\nリモコンコード実行"]
+    end
+
+    subgraph Monitoring["モニタリング"]
+        Dashboard["IoTダッシュボード\nリアルタイム値表示"]
+        History["イベント履歴\nトレンドチャート"]
+    end
+
+    subgraph PropertyMonitor["不動産IoT監視"]
+        Property["物件情報\nProperty"]
+        PropDevice["物件デバイス\nPropertyDevice"]
+        PropAlert["物件アラート\nガス漏れ / 長期不在 / オフライン"]
     end
 
     MQ9 -- gas_ppm --> Endpoint
     PIR -- motion_detected --> Endpoint
     Light -- lux_value --> Endpoint
     DHT -- temp_humidity --> Endpoint
+    Sound -- sound_level --> Endpoint
 
-    Endpoint -- Evaluate --> Rules
+    Endpoint -- 閾値判定 --> Rules
 
-    Rules -- "Threshold Exceeded\nVentilation Control" --> SwitchBot
-    Rules -- "MQ-9 Alarm\nDangerous Level" --> LINEPush
+    Rules -- "MQ-9超過\n連続カウント" --> VentRule
+    VentRule -- "ON/OFF判定" --> SwitchBot
+    SBEncrypt -- "復号して認証" --> SwitchBot
+    SwitchBot -- "制御結果" --> FanState
 
-    ConfigEP -- "Polling Interval\nThresholds" --> PicoW
+    Rules -- "MQ-9危険値\nアラーム" --> LINEPush
 
-    Endpoint -- Record --> Dashboard
-    Endpoint -- Store --> History
+    ConfigEP -- "ポーリング間隔\n閾値設定" --> PicoW
+    IRCmd -- "IRコマンド" --> PicoW
 
-    SwitchBot -- "Fan ON/OFF\nAC Control" --> FanDevice["SwitchBot Device\nFan / AC"]
+    Endpoint -- 記録 --> Dashboard
+    Endpoint -- 保存 --> History
+
+    SwitchBot -- "Fan ON/OFF\nAC制御" --> FanDevice["SwitchBotデバイス\nファン / エアコン"]
+
+    Endpoint -- "物件紐付け" --> PropDevice
+    PropDevice --> PropAlert
+    PropAlert -- "通知" --> LINEPush
 
     classDef sensorStyle fill:#27AE60,stroke:#1E8449,color:#fff
     classDef apiStyle fill:#0C4B33,stroke:#092E20,color:#fff
     classDef actionStyle fill:#E74C3C,stroke:#C0392B,color:#fff
     classDef monitorStyle fill:#3498DB,stroke:#2980B9,color:#fff
     classDef deviceStyle fill:#8E44AD,stroke:#6C3483,color:#fff
+    classDef ventStyle fill:#E67E22,stroke:#CA6F1E,color:#fff
+    classDef propertyStyle fill:#2C3E50,stroke:#1A252F,color:#fff
 
-    class MQ9,PIR,Light,DHT sensorStyle
-    class Endpoint,Rules,ConfigEP apiStyle
-    class SwitchBot,LINEPush actionStyle
+    class MQ9,PIR,Light,DHT,Sound sensorStyle
+    class Endpoint,Rules,ConfigEP,IRCmd apiStyle
+    class LINEPush,IRTx actionStyle
     class Dashboard,History monitorStyle
     class FanDevice deviceStyle
+    class VentRule,SwitchBot,FanState,SBEncrypt ventStyle
+    class Property,PropDevice,PropAlert propertyStyle

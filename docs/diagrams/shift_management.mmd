@@ -1,0 +1,90 @@
+flowchart TD
+    subgraph Setup["事前設定"]
+        StoreConfig["店舗スケジュール設定\nStoreScheduleConfig\n営業時間 / コマ時間"]
+        Templates["シフトテンプレート\nShiftTemplate\n早番 / 遅番 / 通し"]
+        Requirements["必要人数設定\nShiftStaffRequirement\n曜日 x スタッフ種別"]
+        Overrides["日付指定オーバーライド\nShiftStaffRequirementOverride\n棚卸し日 / イベント日"]
+        ClosedDates["休業日\nStoreClosedDate\nシフト配置除外日"]
+    end
+
+    subgraph Period["シフト募集期間"]
+        CreatePeriod["ShiftPeriod作成\n対象年月 / 申請締切"]
+        PeriodOpen["ステータス: 募集中\nスタッフに通知"]
+    end
+
+    subgraph Request["シフト希望提出"]
+        StaffView["スタッフ画面\n希望カレンダー"]
+        SubmitReq["ShiftRequest登録\n日付 / 時間帯 / 希望区分"]
+        PrefTypes["希望区分\n出勤可能 / 希望 / 出勤不可"]
+    end
+
+    subgraph Scheduling["自動スケジューリング"]
+        Deadline["申請締切\nステータス: 締切"]
+        AutoSchedule["auto_schedule実行\nShiftRequest → ShiftAssignment"]
+        PriorityLogic["配置優先ロジック\n希望 > 出勤可能 > 不可除外"]
+        RequirementCheck["必要人数チェック\n曜日別 / オーバーライド"]
+        ClosedCheck["休業日チェック\nStoreClosedDate除外"]
+    end
+
+    subgraph Assignment["確定シフト"]
+        ShiftAssign["ShiftAssignment\n日付 / 時間帯 / 表示色"]
+        ManagerEdit["店長手動調整\nドラッグ&ドロップ"]
+        ChangeLog["ShiftChangeLog\n変更監査証跡\n変更前 / 変更後 / 理由"]
+    end
+
+    subgraph Publish["公開・通知"]
+        PublishAction["シフト公開\nステータス: スケジュール済"]
+        PublishHistory["ShiftPublishHistory\n公開 / 撤回 / 再募集"]
+        NotifyStaff["LINE通知\n公開されたシフト"]
+        SyncSchedule["Schedule同期\nShiftAssignment → Schedule"]
+    end
+
+    subgraph StaffConfirm["スタッフ確認"]
+        StaffCalendar["スタッフカレンダー\n確定シフト閲覧"]
+        StaffFilter["種別フィルター\nキャスト / スタッフ"]
+    end
+
+    Setup --> CreatePeriod
+    CreatePeriod --> PeriodOpen
+
+    PeriodOpen --> StaffView
+    StaffView --> SubmitReq
+    SubmitReq --> PrefTypes
+
+    PrefTypes --> Deadline
+    Deadline --> AutoSchedule
+    AutoSchedule --> PriorityLogic
+    PriorityLogic --> RequirementCheck
+    RequirementCheck --> ClosedCheck
+    ClosedCheck --> ShiftAssign
+
+    ShiftAssign --> ManagerEdit
+    ManagerEdit --> ChangeLog
+
+    ShiftAssign --> PublishAction
+    PublishAction --> PublishHistory
+    PublishAction --> NotifyStaff
+    PublishAction --> SyncSchedule
+
+    SyncSchedule --> StaffCalendar
+    NotifyStaff --> StaffCalendar
+    StaffCalendar --> StaffFilter
+
+    PublishHistory -- "撤回" --> PeriodOpen
+    PublishHistory -- "再募集" --> PeriodOpen
+
+    classDef setupStyle fill:#2C3E50,stroke:#1A252F,color:#fff
+    classDef periodStyle fill:#3498DB,stroke:#2980B9,color:#fff
+    classDef requestStyle fill:#F39C12,stroke:#D68910,color:#fff
+    classDef scheduleStyle fill:#9B59B6,stroke:#7D3C98,color:#fff
+    classDef assignStyle fill:#27AE60,stroke:#1E8449,color:#fff
+    classDef publishStyle fill:#E74C3C,stroke:#C0392B,color:#fff
+    classDef staffStyle fill:#1ABC9C,stroke:#16A085,color:#fff
+
+    class StoreConfig,Templates,Requirements,Overrides,ClosedDates setupStyle
+    class CreatePeriod,PeriodOpen periodStyle
+    class StaffView,SubmitReq,PrefTypes requestStyle
+    class Deadline,AutoSchedule,PriorityLogic,RequirementCheck,ClosedCheck scheduleStyle
+    class ShiftAssign,ManagerEdit,ChangeLog assignStyle
+    class PublishAction,PublishHistory,NotifyStaff,SyncSchedule publishStyle
+    class StaffCalendar,StaffFilter staffStyle

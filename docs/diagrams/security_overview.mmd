@@ -1,44 +1,55 @@
 flowchart TD
-    subgraph NginxSec["Nginx Security Layer"]
-        SSL["SSL/TLS\nHTTPS Encryption"]
-        RateLimit["Rate Limiting\n10 requests per second"]
-        Headers["Security Headers\nHSTS / X-Frame / CSP"]
+    subgraph NginxSec["Nginx セキュリティ層"]
+        SSL["SSL/TLS\nHTTPS暗号化"]
+        RateLimit["レートリミット\n10 req/sec"]
+        Headers["セキュリティヘッダー\nHSTS / X-Frame / CSP"]
     end
 
-    subgraph DjangoSec["Django Security Layer"]
-        CSRF["CSRF Protection\nToken Validation"]
-        SessionAuth["Session Authentication\nStaff and Admin"]
-        APIKeyAuth["API Key Authentication\nIoT Devices"]
-        Permissions["Permission System\nRole-based Access"]
+    subgraph DjangoSec["Django セキュリティ層"]
+        CSRF["CSRF保護\nトークン検証"]
+        SessionAuth["セッション認証\nスタッフ / 管理者"]
+        APIKeyAuth["APIキー認証\nIoTデバイス"]
+        Permissions["権限システム\nロールベースアクセス\nAdminMenuConfig"]
     end
 
-    subgraph IoTSec["IoT Device Security"]
-        IoTHTTPS["HTTPS Only\nEncrypted Transport"]
-        IoTAPIKey["API Key Validation\nDevice Identity"]
-        DeviceThrottle["Device Throttle\n10 requests per minute"]
+    subgraph AttendanceSec["勤怠認証"]
+        TOTP["TOTP打刻\nAttendanceTOTPConfig\n30秒間隔ワンタイムコード"]
+        PINAuth["PIN認証\npbkdf2_sha256ハッシュ化\nStaff.attendance_pin"]
+        GeoFence["ジオフェンス\n位置情報検証\n半径200m"]
+        QRStamp["QR打刻\nHMAC署名付きペイロード"]
     end
 
-    subgraph DataSec["Data Protection"]
-        PINHash["PIN Hashing\npbkdf2_sha256"]
-        LINEEncrypt["LINE User Encryption\nFernet Symmetric"]
-        SBEncrypt["SwitchBot Credentials\nFernet Encryption"]
-        SecretKey["Django SECRET_KEY\nEnvironment Variable"]
+    subgraph IoTSec["IoTデバイスセキュリティ"]
+        IoTHTTPS["HTTPS Only\n暗号化通信"]
+        IoTAPIKey["APIキー検証\nSHA-256ハッシュ照合"]
+        DeviceThrottle["デバイススロットル\n10 req/min"]
     end
 
-    subgraph Resilience["Resilience"]
-        LINERetry["LINE API Retry\nExponential Backoff"]
-        ErrorHandle["Error Handling\nGraceful Degradation"]
-        Timeout["Request Timeout\nConnection Limits"]
+    subgraph DataSec["データ保護"]
+        PINHash["PIN ハッシュ化\npbkdf2_sha256"]
+        LINEEncrypt["LINE User ID暗号化\nFernet対称暗号\nLINE_USER_ID_ENCRYPTION_KEY"]
+        LINEHash["LINE User IDハッシュ\nSHA-256 + pepper\n検索用不可逆ハッシュ"]
+        SBEncrypt["SwitchBot認証暗号化\nFernet暗号化\nIOT_ENCRYPTION_KEY"]
+        WiFiEncrypt["Wi-Fiパスワード暗号化\nFernet暗号化"]
+        OTPHash["Email OTPハッシュ\nSHA-256 + 有効期限"]
+        SecretKey["Django SECRET_KEY\n環境変数"]
     end
 
-    subgraph Monitoring["Security Monitoring"]
-        AuditLog["SecurityAudit Model\nAction Tracking"]
-        SecLog["SecurityLog Model\nEvent Recording"]
-        CostReport["CostReport Model\nResource Monitoring"]
-        AlertNotify["Alert Notifications\nLINE Push Alerts"]
+    subgraph Resilience["耐障害性"]
+        LINERetry["LINE API リトライ\n指数バックオフ"]
+        ErrorHandle["エラーハンドリング\nグレースフル分解"]
+        Timeout["リクエストタイムアウト\n接続制限"]
+        TempBookingCleanup["仮予約クリーンアップ\n期限切れ自動キャンセル"]
     end
 
-    Client["Client Request"] --> SSL
+    subgraph Monitoring["セキュリティ監視"]
+        AuditLog["SecurityAudit\n監査結果記録\nDjango設定 / 認証情報 / エンドポイント"]
+        SecLog["SecurityLog\nイベント記録\nログイン / API認証失敗 / 不審リクエスト"]
+        CostReport["CostReport\nAWSコスト監視"]
+        AlertNotify["アラート通知\nLINE Push"]
+    end
+
+    Client["クライアントリクエスト"] --> SSL
     SSL --> RateLimit
     RateLimit --> Headers
     Headers --> CSRF
@@ -49,15 +60,21 @@ flowchart TD
     SessionAuth --> Permissions
     APIKeyAuth --> DeviceThrottle
 
-    IoTDevice["IoT Device"] --> IoTHTTPS
+    IoTDevice["IoTデバイス"] --> IoTHTTPS
     IoTHTTPS --> IoTAPIKey
     IoTAPIKey --> DeviceThrottle
+
+    StaffAccess["スタッフ打刻"] --> TOTP
+    StaffAccess --> PINAuth
+    StaffAccess --> QRStamp
+    TOTP --> GeoFence
 
     Permissions --> DataSec
     DeviceThrottle --> DataSec
 
     DataSec --> AuditLog
     Resilience --> SecLog
+    SecLog --> AlertNotify
 
     classDef nginxStyle fill:#009639,stroke:#006B2B,color:#fff
     classDef djangoStyle fill:#0C4B33,stroke:#092E20,color:#fff
@@ -66,11 +83,13 @@ flowchart TD
     classDef resStyle fill:#F39C12,stroke:#D68910,color:#fff
     classDef monStyle fill:#3498DB,stroke:#2980B9,color:#fff
     classDef clientStyle fill:#2C3E50,stroke:#1A252F,color:#fff
+    classDef attendanceStyle fill:#8E44AD,stroke:#6C3483,color:#fff
 
     class SSL,RateLimit,Headers nginxStyle
     class CSRF,SessionAuth,APIKeyAuth,Permissions djangoStyle
     class IoTHTTPS,IoTAPIKey,DeviceThrottle iotStyle
-    class PINHash,LINEEncrypt,SBEncrypt,SecretKey dataStyle
-    class LINERetry,ErrorHandle,Timeout resStyle
+    class PINHash,LINEEncrypt,LINEHash,SBEncrypt,WiFiEncrypt,OTPHash,SecretKey dataStyle
+    class LINERetry,ErrorHandle,Timeout,TempBookingCleanup resStyle
     class AuditLog,SecLog,CostReport,AlertNotify monStyle
-    class Client,IoTDevice clientStyle
+    class Client,IoTDevice,StaffAccess clientStyle
+    class TOTP,PINAuth,GeoFence,QRStamp attendanceStyle
