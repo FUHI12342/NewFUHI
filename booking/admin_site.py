@@ -36,7 +36,7 @@ GROUPS = [
     {'slug': 'attendance', 'name': _('勤怠管理'), 'models': ['workattendance', 'attendancetotpconfig', 'attendancestamp'], 'hidden': True},
     {'slug': 'menu_manage', 'name': _('店内メニュー'), 'models': ['category', 'product']},
     {'slug': 'inventory', 'name': _('在庫管理'), 'models': ['stockmovement']},
-    {'slug': 'order', 'name': _('注文管理'), 'models': ['order'], 'hidden_models': ['order']},
+    {'slug': 'order', 'name': _('注文履歴管理'), 'models': ['order'], 'hidden_models': ['order']},
     {'slug': 'pos', 'name': _('レジ（POS）'), 'models': ['postransaction', 'taxservicecharge']},
     {'slug': 'kitchen', 'name': _('キッチンディスプレイ'), 'models': []},
     {'slug': 'ec_shop', 'name': _('オンラインショップ'), 'models': ['eccategory', 'ecproduct', 'shippingconfig'], 'hidden_models': ['shippingconfig']},
@@ -110,8 +110,8 @@ SIDEBAR_CUSTOM_LINKS = {
         {'name': _('勤怠実績'), 'admin_url': '/admin/attendance/performance/', 'icon': 'fas fa-chart-bar'},
     ],
     'order': [
-        {'name': _('店内注文一覧'), 'admin_url': '/admin/booking/order/?channel_group=instore', 'icon': 'fas fa-utensils'},
-        {'name': _('EC注文一覧'), 'admin_url': '/admin/booking/order/?channel_group=ec', 'icon': 'fas fa-shopping-cart'},
+        {'name': _('店内注文履歴一覧'), 'admin_url': '/admin/booking/order/?channel_group=instore', 'icon': 'fas fa-utensils'},
+        {'name': _('EC注文履歴一覧'), 'admin_url': '/admin/booking/order/?channel_group=ec', 'icon': 'fas fa-shopping-cart'},
     ],
     'pos': [
         {'name': _('レジ画面'), 'admin_url': '/admin/pos/', 'icon': 'fas fa-cash-register'},
