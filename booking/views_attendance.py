@@ -245,7 +245,7 @@ class AttendanceTOTPRefreshAPI(LoginRequiredMixin, View):
 
 
 class AttendancePINDisplayView(AdminSidebarMixin, TemplateView):
-    """PIN打刻キオスク画面"""
+    """タイムカード打刻キオスク画面"""
     template_name = 'admin/booking/attendance_pin.html'
 
     def get_context_data(self, **kwargs):
@@ -253,7 +253,7 @@ class AttendancePINDisplayView(AdminSidebarMixin, TemplateView):
         store = _get_user_store(self.request)
         staffs = Staff.objects.filter(store=store).order_by('name') if store else Staff.objects.none()
         ctx.update({
-            'title': _('PIN打刻'),
+            'title': _('タイムカード打刻'),
             'has_permission': True,
             'store': store,
             'staffs': staffs,

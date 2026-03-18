@@ -1567,6 +1567,15 @@ class SiteSettings(models.Model):
         return obj
 
 
+class AdminSidebarSettings(SiteSettings):
+    """管理画面サイドバー設定 — SiteSettings のプロキシモデル（システム管理用）"""
+    class Meta:
+        proxy = True
+        app_label = 'booking'
+        verbose_name = _('管理サイドバー設定')
+        verbose_name_plural = _('管理サイドバー設定')
+
+
 class HomepageCustomBlock(models.Model):
     """WordPress風カスタムHTMLブロック"""
     POSITION_CHOICES = [

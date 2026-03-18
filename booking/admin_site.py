@@ -28,7 +28,7 @@ def get_user_role(request):
 
 # 仮想アプリグループ定義
 GROUPS = [
-    {'slug': 'pin_clock', 'name': _('PIN打刻'), 'models': []},
+    {'slug': 'pin_clock', 'name': _('タイムカード打刻'), 'models': []},
     {'slug': 'reservation', 'name': _('予約管理'), 'models': ['schedule']},
     {'slug': 'shift', 'name': _('シフト'), 'models': ['shiftperiod', 'shiftrequest', 'shiftassignment', 'shifttemplate', 'shiftpublishhistory', 'storecloseddate'], 'hidden_models': ['shiftperiod', 'shiftrequest', 'shiftassignment', 'shifttemplate', 'shiftpublishhistory', 'storecloseddate']},
     {'slug': 'staff_manage', 'name': _('従業員管理'), 'models': ['staff', 'employmentcontract', 'storescheduleconfig'], 'hidden_models': ['staff', 'employmentcontract', 'storescheduleconfig']},
@@ -47,7 +47,7 @@ GROUPS = [
     {'slug': 'analytics', 'name': _('分析'), 'models': ['visitorcount', 'visitoranalyticsconfig', 'staffrecommendationmodel', 'staffrecommendationresult', 'businessinsight', 'customerfeedback'], 'hidden': True},
     {'slug': 'page_settings', 'name': _('メインページ設定'), 'models': ['sitesettings', 'notice']},
     {'slug': 'page_settings_sub', 'name': _('ページ設定(サブ)'), 'models': ['company', 'media', 'homepagecustomblock', 'herobanner', 'bannerad', 'externallink'], 'hidden': True},
-    {'slug': 'system', 'name': _('システム'), 'models': ['systemconfig', 'admintheme', 'dashboardlayout', 'adminmenuconfig']},
+    {'slug': 'system', 'name': _('システム'), 'models': ['systemconfig', 'admintheme', 'dashboardlayout', 'adminmenuconfig', 'adminsidebarsettings']},
     {'slug': 'security', 'name': _('セキュリティ'), 'models': ['securityaudit', 'securitylog', 'costreport']},
     {'slug': 'user_account', 'name': _('ユーザーアカウント管理'), 'models': ['user', 'group']},
 ]
@@ -89,7 +89,7 @@ GROUP_MAP = {g['slug']: g['models'] for g in GROUPS}
 # サイドバーに注入するカスタムリンク（slug → リンクリスト）
 SIDEBAR_CUSTOM_LINKS = {
     'pin_clock': [
-        {'name': _('PIN打刻'), 'admin_url': '/admin/attendance/pin/', 'icon': 'fas fa-key'},
+        {'name': _('タイムカード打刻'), 'admin_url': '/admin/attendance/pin/', 'icon': 'fas fa-key'},
         {'name': _('出退勤ボード'), 'admin_url': '/admin/attendance/board/', 'icon': 'fas fa-clipboard-check'},
     ],
     'reservation': [
