@@ -845,7 +845,8 @@ custom_site.register(VentilationAutoControl, VentilationAutoControlAdmin)
 custom_site.register(Category, CategoryAdmin)
 custom_site.register(Product, ProductAdmin)
 custom_site.register(Order, OrderAdmin)
-custom_site.register(StockMovement, StockMovementAdmin)
+# StockMovement: 管理画面から廃止（モデルは残す）
+# custom_site.register(StockMovement, StockMovementAdmin)
 
 
 # ==============================

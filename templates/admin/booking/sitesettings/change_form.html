@@ -13,7 +13,7 @@
     padding: 12px 20px;
     display: flex;
     align-items: center;
-    gap: 16px;
+    gap: 12px;
     box-shadow: 0 2px 12px rgba(0,0,0,0.18);
     border-radius: 8px;
     margin-bottom: 16px;
@@ -41,51 +41,6 @@
     background: #e8f4fd;
     transform: translateY(-1px);
     box-shadow: 0 2px 8px rgba(0,0,0,0.18);
-  }
-
-  /* ── セクションナビ ── */
-  .section-nav {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 6px;
-    padding: 12px 16px;
-    background: #f8f9fa;
-    border: 1px solid #dee2e6;
-    border-radius: 8px;
-    margin-bottom: 16px;
-  }
-  .section-nav a {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    padding: 6px 14px;
-    font-size: 13px;
-    font-weight: 600;
-    color: #495057;
-    text-decoration: none;
-    background: #fff;
-    border: 1px solid #dee2e6;
-    border-radius: 20px;
-    transition: all 0.15s;
-    white-space: nowrap;
-  }
-  .section-nav a:hover,
-  .section-nav a.active {
-    background: #417690;
-    color: #fff;
-    border-color: #417690;
-  }
-  .section-nav a .nav-icon { font-size: 12px; }
-
-  /* ── fieldset見出しの統一スタイル ── */
-  .change-form fieldset h2,
-  .module h2 {
-    font-size: 15px !important;
-    font-weight: 700 !important;
-    color: #2c5f78 !important;
-    border-bottom: 2px solid #417690 !important;
-    padding-bottom: 8px !important;
-    margin-top: 8px !important;
   }
 
   /* ── 関連ページカードの統一デザイン ── */
@@ -135,31 +90,25 @@
   }
   .sub-model-card .btn-add:hover { background: #5a9ab5; color: #fff; }
 
-  /* Jazzmin右カラムの保存ボタンもsticky化 */
+  /* ── 右カラム（保存/履歴）を見やすく ── */
   #jazzy-actions {
     position: sticky;
     top: 80px;
+  }
+  /* 「保存して編集を続ける」「履歴」を非表示（sticky保存バーに統合） */
+  #jazzy-actions .submit-row input[name="_continue"],
+  #jazzy-actions .submit-row a.historylink,
+  #jazzy-actions .object-tools {
+    display: none;
   }
 </style>
 {% endblock %}
 
 {% block form_top %}
-{# ── sticky保存バー ── #}
 <div class="site-save-bar">
   <span class="bar-title">{% trans "メインページ設定" %}</span>
   <button type="submit" class="bar-save-btn" name="_save">{% trans "保存する" %}</button>
 </div>
-
-{# ── セクションナビ ── #}
-<nav class="section-nav" id="section-nav">
-  <a href="#基本設定-tab" class="active"><span class="nav-icon">&#9881;</span> {% trans "基本設定" %}</a>
-  <a href="#ホームページカード表示-tab"><span class="nav-icon">&#9638;</span> {% trans "カード表示" %}</a>
-  <a href="#ヒーローバナー%20/%20ランキング-tab"><span class="nav-icon">&#9733;</span> {% trans "バナー" %}</a>
-  <a href="#サイドバー表示-tab"><span class="nav-icon">&#9776;</span> {% trans "サイドバー" %}</a>
-  <a href="#SNS連携-tab"><span class="nav-icon">&#128279;</span> {% trans "SNS" %}</a>
-  <a href="#法定ページ-tab"><span class="nav-icon">&#128196;</span> {% trans "法定ページ" %}</a>
-  <a href="#related-pages"><span class="nav-icon">&#128194;</span> {% trans "関連ページ" %}</a>
-</nav>
 {% endblock %}
 
 {% block after_related_objects %}
@@ -180,47 +129,4 @@
     {% endfor %}
   </div>
 </div>
-{% endblock %}
-
-{% block extrajs %}
-{{ block.super }}
-<script>
-(function() {
-  /* セクションナビ: クリック時にactiveクラスを切り替え */
-  var nav = document.getElementById('section-nav');
-  if (!nav) return;
-  var links = nav.querySelectorAll('a');
-  links.forEach(function(link) {
-    link.addEventListener('click', function() {
-      links.forEach(function(l) { l.classList.remove('active'); });
-      link.classList.add('active');
-    });
-  });
-
-  /* スクロール時にセクションナビのactiveを更新 */
-  var fieldsets = document.querySelectorAll('fieldset');
-  if (fieldsets.length === 0) return;
-  window.addEventListener('scroll', function() {
-    var scrollY = window.scrollY + 120;
-    var currentId = '';
-    fieldsets.forEach(function(fs) {
-      var h2 = fs.querySelector('h2');
-      if (h2 && fs.getBoundingClientRect().top + window.scrollY <= scrollY) {
-        currentId = h2.textContent.trim() + '-tab';
-      }
-    });
-    /* 関連ページセクション */
-    var related = document.getElementById('related-pages');
-    if (related && related.getBoundingClientRect().top + window.scrollY <= scrollY) {
-      currentId = 'related-pages';
-    }
-    if (currentId) {
-      links.forEach(function(l) {
-        var href = decodeURIComponent(l.getAttribute('href').replace('#', ''));
-        l.classList.toggle('active', href === currentId);
-      });
-    }
-  });
-})();
-</script>
 {% endblock %}
