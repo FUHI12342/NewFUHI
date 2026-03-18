@@ -940,8 +940,8 @@
     showProxy: false,
     proxyStaffId: '',
     proxyDate: null,
-    proxyCalMonth: new Date().getMonth(),
-    proxyCalYear: new Date().getFullYear(),
+    proxyCalMonth: {% if active_period %}new Date('{{ active_period.year_month|date:"Y-m-d" }}').getMonth(){% else %}new Date().getMonth(){% endif %},
+    proxyCalYear: {% if active_period %}new Date('{{ active_period.year_month|date:"Y-m-d" }}').getFullYear(){% else %}new Date().getFullYear(){% endif %},
     proxyCalDays: [],
     proxyRequests: [],
     proxyRequestDates: new Set(),
@@ -1007,6 +1007,8 @@
       if (res.ok) {
         await this.loadProxyRequests();
         this.proxyNote = '';
+        // 提出状況を更新するためページをリロード
+        location.reload();
       } else {
         const d = await res.json();
         alert(d.error || 'エラーが発生しました');
@@ -1137,54 +1139,9 @@
   </div>
   {% endif %}
 
-  {# ===== 週ナビゲーション + スタッフフィルタ + テンプレート ===== #}
-  <div class="toolbar">
-    <a href="?week_start={{ prev_month }}{% if active_period %}&period_id={{ active_period.id }}{% endif %}{% if staff_type_filter %}&staff_type={{ staff_type_filter }}{% endif %}"
-       class="btn btn-outline btn-sm" title="{% trans '前月' %}">◀◀</a>
-    <a href="?week_start={{ prev_week }}{% if active_period %}&period_id={{ active_period.id }}{% endif %}{% if staff_type_filter %}&staff_type={{ staff_type_filter }}{% endif %}"
-       class="btn btn-outline btn-sm">◀ {% trans "前週" %}</a>
-
-    <strong>
-      {{ week_dates.0|date:"Y年m月d日" }} 〜 {{ week_dates.6|date:"m月d日" }}
-    </strong>
-
-    <a href="?week_start={{ next_week }}{% if active_period %}&period_id={{ active_period.id }}{% endif %}{% if staff_type_filter %}&staff_type={{ staff_type_filter }}{% endif %}"
-       class="btn btn-outline btn-sm">{% trans "次週" %} ▶</a>
-    <a href="?week_start={{ next_month }}{% if active_period %}&period_id={{ active_period.id }}{% endif %}{% if staff_type_filter %}&staff_type={{ staff_type_filter }}{% endif %}"
-       class="btn btn-outline btn-sm" title="{% trans '次月' %}">▶▶</a>
-
-    {# スタッフ種別フィルタ #}
-    <div style="display:flex;gap:4px;margin-left:12px;">
-      <a href="?week_start={{ week_start }}{% if active_period %}&period_id={{ active_period.id }}{% endif %}"
-         class="btn btn-sm {% if not staff_type_filter %}btn-primary{% else %}btn-outline{% endif %}">
-        {% trans "全員" %} ({{ staff_count }})
-      </a>
-      <a href="?week_start={{ week_start }}{% if active_period %}&period_id={{ active_period.id }}{% endif %}&staff_type=fortune_teller"
-         class="btn btn-sm {% if staff_type_filter == 'fortune_teller' %}btn-primary{% else %}btn-outline{% endif %}">
-        {% trans "キャスト" %} ({{ cast_count }})
-      </a>
-      <a href="?week_start={{ week_start }}{% if active_period %}&period_id={{ active_period.id }}{% endif %}&staff_type=store_staff"
-         class="btn btn-sm {% if staff_type_filter == 'store_staff' %}btn-primary{% else %}btn-outline{% endif %}">
-        {% trans "スタッフ" %} ({{ store_staff_count }})
-      </a>
-    </div>
-
-    {% if templates %}
-    <div class="template-chips" style="margin-left:auto;">
-      {% for t in templates %}
-      <span class="template-chip" style="background:{{ t.color }}" title="{{ t.start_time|time:'H:i' }}-{{ t.end_time|time:'H:i' }}">
-        {{ t.name }}
-      </span>
-      {% endfor %}
-    </div>
-    {% endif %}
-
-    <button class="tour-help-btn" onclick="startTour();" title="{% trans 'ヘルプを表示' %}" style="margin-left:8px;">{% trans "ヘルプ" %}</button>
-  </div>
-
-  {# ===== 週グリッド ===== #}
-  <div id="week-grid" style="overflow-x:auto;">
-    {% include "admin/booking/partials/shift_week_grid.html" %}
+  {# ===== ツールバー + 週グリッド（HTMX partial 対応） ===== #}
+  <div id="calendar-section" hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'>
+    {% include "admin/booking/partials/shift_toolbar_grid.html" %}
   </div>
 
   {# ===== 公開履歴 ===== #}

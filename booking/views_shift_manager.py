@@ -49,20 +49,30 @@ def _get_week_dates(week_start_str=None):
 
 
 def _render_week_grid(request, store, week_start_str=None, staff_type_filter=None):
-    """週グリッドHTMLをレンダリングするヘルパー"""
+    """週グリッドHTMLをレンダリングするヘルパー（後方互換）"""
+    return _render_calendar_section(request, store, week_start_str, staff_type_filter)
+
+
+def _render_calendar_section(request, store, week_start_str=None, staff_type_filter=None):
+    """ツールバー + 週グリッドHTMLをレンダリング（HTMX partial 対応）"""
     week_dates = _get_week_dates(week_start_str)
-    staff_qs = Staff.objects.filter(store=store).order_by('name') if store else Staff.objects.none()
-    if staff_type_filter and staff_type_filter in ('fortune_teller', 'store_staff'):
-        staff_qs = staff_qs.filter(staff_type=staff_type_filter)
-    staffs = staff_qs
+
+    all_staffs = Staff.objects.filter(store=store).order_by('name') if store else Staff.objects.none()
+    cast_staffs = list(all_staffs.filter(staff_type='fortune_teller'))
+    store_staffs = list(all_staffs.filter(staff_type='store_staff'))
+
+    if staff_type_filter == 'fortune_teller':
+        staffs = cast_staffs
+    elif staff_type_filter == 'store_staff':
+        staffs = store_staffs
+    else:
+        staffs = list(all_staffs)
 
     assign_qs = ShiftAssignment.objects.filter(
         period__store=store,
         date__gte=week_dates[0],
         date__lte=week_dates[-1],
     ).select_related('staff') if store else ShiftAssignment.objects.none()
-    if staff_type_filter and staff_type_filter in ('fortune_teller', 'store_staff'):
-        assign_qs = assign_qs.filter(staff__staff_type=staff_type_filter)
 
     grid = {}
     for a in assign_qs:
@@ -72,14 +82,35 @@ def _render_week_grid(request, store, week_start_str=None, staff_type_filter=Non
 
     templates = ShiftTemplate.objects.filter(store=store, is_active=True) if store else []
 
-    return render_to_string('admin/booking/partials/shift_week_grid.html', {
+    # active_period を取得
+    period_id = request.GET.get('period_id')
+    active_period = None
+    if period_id:
+        active_period = ShiftPeriod.objects.filter(pk=period_id, store=store).first()
+    if not active_period:
+        active_period = ShiftPeriod.objects.filter(
+            store=store, status__in=['open', 'scheduled'],
+        ).order_by('-year_month').first()
+    if not active_period:
+        active_period = ShiftPeriod.objects.filter(store=store).order_by('-year_month').first()
+
+    return render_to_string('admin/booking/partials/shift_toolbar_grid.html', {
         'staffs': staffs,
+        'cast_staffs': cast_staffs,
+        'store_staffs': store_staffs,
         'week_dates': week_dates,
         'grid': grid,
         'templates': templates,
         'week_start': week_dates[0].isoformat(),
         'prev_week': (week_dates[0] - timedelta(weeks=1)).isoformat(),
         'next_week': (week_dates[0] + timedelta(weeks=1)).isoformat(),
+        'prev_month': (week_dates[0] - timedelta(days=28)).isoformat(),
+        'next_month': (week_dates[0] + timedelta(days=28)).isoformat(),
+        'active_period': active_period,
+        'staff_type_filter': staff_type_filter or '',
+        'staff_count': len(cast_staffs) + len(store_staffs),
+        'cast_count': len(cast_staffs),
+        'store_staff_count': len(store_staffs),
     }, request=request)
 
 
@@ -107,10 +138,16 @@ class ManagerShiftCalendarView(AdminSidebarMixin, TemplateView):
         ctx['is_staff_role'] = is_staff_role
 
         staff_type_filter = self.request.GET.get('staff_type', '')
-        staffs = Staff.objects.filter(store=store).order_by('name') if store else Staff.objects.none()
-        all_staff_count = staffs.count()
-        if staff_type_filter in ('fortune_teller', 'store_staff'):
-            staffs = staffs.filter(staff_type=staff_type_filter)
+        all_staffs = Staff.objects.filter(store=store).order_by('name') if store else Staff.objects.none()
+        cast_staffs = list(all_staffs.filter(staff_type='fortune_teller'))
+        store_staffs = list(all_staffs.filter(staff_type='store_staff'))
+        all_staff_count = len(cast_staffs) + len(store_staffs)
+        if staff_type_filter == 'fortune_teller':
+            staffs = cast_staffs
+        elif staff_type_filter == 'store_staff':
+            staffs = store_staffs
+        else:
+            staffs = list(all_staffs)
         staff_count = all_staff_count
 
         assign_qs = ShiftAssignment.objects.filter(
@@ -176,6 +213,8 @@ class ManagerShiftCalendarView(AdminSidebarMixin, TemplateView):
             'store': store,
             'stores': Store.objects.all(),
             'staffs': staffs,
+            'cast_staffs': cast_staffs,
+            'store_staffs': store_staffs,
             'staff_count': staff_count,
             'week_dates': week_dates,
             'grid': grid,

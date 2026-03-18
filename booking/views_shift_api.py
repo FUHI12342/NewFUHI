@@ -16,7 +16,7 @@ from booking.models import (
     Store, Staff, ShiftPeriod, ShiftRequest, ShiftAssignment,
     ShiftTemplate, ShiftPublishHistory, ShiftChangeLog, StoreClosedDate,
 )
-from booking.views_shift_manager import _get_user_store, _render_week_grid
+from booking.views_shift_manager import _get_user_store, _render_week_grid, _render_calendar_section
 
 logger = logging.getLogger(__name__)
 
@@ -51,13 +51,13 @@ def _verify_store_ownership(obj_store, user_store):
 
 @method_decorator(staff_member_required, name='dispatch')
 class ShiftWeekGridView(View):
-    """HTMX partial: 週グリッドHTML返却"""
+    """HTMX partial: ツールバー + 週グリッドHTML返却"""
 
     def get(self, request):
         store = _get_user_store(request)
         if not store:
             return HttpResponse('')
-        html = _render_week_grid(
+        html = _render_calendar_section(
             request, store,
             request.GET.get('week_start'),
             staff_type_filter=request.GET.get('staff_type'),

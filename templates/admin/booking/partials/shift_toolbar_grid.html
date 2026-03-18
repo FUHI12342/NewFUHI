@@ -1,0 +1,84 @@
+{% load i18n %}
+{# ===== 週ナビゲーション + スタッフフィルタ + テンプレート ===== #}
+<div class="toolbar">
+  <a hx-get="/api/shift/week-grid/?week_start={{ prev_month }}{% if active_period %}&period_id={{ active_period.id }}{% endif %}{% if staff_type_filter %}&staff_type={{ staff_type_filter }}{% endif %}"
+     hx-target="#calendar-section" hx-swap="innerHTML"
+     hx-push-url="?week_start={{ prev_month }}{% if active_period %}&period_id={{ active_period.id }}{% endif %}{% if staff_type_filter %}&staff_type={{ staff_type_filter }}{% endif %}"
+     class="btn btn-outline btn-sm" title="{% trans '前月' %}" style="cursor:pointer;">◀◀</a>
+  <a hx-get="/api/shift/week-grid/?week_start={{ prev_week }}{% if active_period %}&period_id={{ active_period.id }}{% endif %}{% if staff_type_filter %}&staff_type={{ staff_type_filter }}{% endif %}"
+     hx-target="#calendar-section" hx-swap="innerHTML"
+     hx-push-url="?week_start={{ prev_week }}{% if active_period %}&period_id={{ active_period.id }}{% endif %}{% if staff_type_filter %}&staff_type={{ staff_type_filter }}{% endif %}"
+     class="btn btn-outline btn-sm" style="cursor:pointer;">◀ {% trans "前週" %}</a>
+
+  <strong>
+    {{ week_dates.0|date:"Y年m月d日" }} 〜 {{ week_dates.6|date:"m月d日" }}
+  </strong>
+
+  <a hx-get="/api/shift/week-grid/?week_start={{ next_week }}{% if active_period %}&period_id={{ active_period.id }}{% endif %}{% if staff_type_filter %}&staff_type={{ staff_type_filter }}{% endif %}"
+     hx-target="#calendar-section" hx-swap="innerHTML"
+     hx-push-url="?week_start={{ next_week }}{% if active_period %}&period_id={{ active_period.id }}{% endif %}{% if staff_type_filter %}&staff_type={{ staff_type_filter }}{% endif %}"
+     class="btn btn-outline btn-sm" style="cursor:pointer;">{% trans "次週" %} ▶</a>
+  <a hx-get="/api/shift/week-grid/?week_start={{ next_month }}{% if active_period %}&period_id={{ active_period.id }}{% endif %}{% if staff_type_filter %}&staff_type={{ staff_type_filter }}{% endif %}"
+     hx-target="#calendar-section" hx-swap="innerHTML"
+     hx-push-url="?week_start={{ next_month }}{% if active_period %}&period_id={{ active_period.id }}{% endif %}{% if staff_type_filter %}&staff_type={{ staff_type_filter }}{% endif %}"
+     class="btn btn-outline btn-sm" title="{% trans '次月' %}" style="cursor:pointer;">▶▶</a>
+
+  {# スタッフ種別フィルタ #}
+  <div style="display:flex;gap:4px;margin-left:12px;">
+    <a hx-get="/api/shift/week-grid/?week_start={{ week_start }}{% if active_period %}&period_id={{ active_period.id }}{% endif %}"
+       hx-target="#calendar-section" hx-swap="innerHTML"
+       hx-push-url="?week_start={{ week_start }}{% if active_period %}&period_id={{ active_period.id }}{% endif %}"
+       class="btn btn-sm {% if not staff_type_filter %}btn-primary{% else %}btn-outline{% endif %}" style="cursor:pointer;">
+      {% trans "全員" %} ({{ staff_count }})
+    </a>
+    <a hx-get="/api/shift/week-grid/?week_start={{ week_start }}{% if active_period %}&period_id={{ active_period.id }}{% endif %}&staff_type=fortune_teller"
+       hx-target="#calendar-section" hx-swap="innerHTML"
+       hx-push-url="?week_start={{ week_start }}{% if active_period %}&period_id={{ active_period.id }}{% endif %}&staff_type=fortune_teller"
+       class="btn btn-sm {% if staff_type_filter == 'fortune_teller' %}btn-primary{% else %}btn-outline{% endif %}" style="cursor:pointer;">
+      {% trans "キャスト" %} ({{ cast_count }})
+    </a>
+    <a hx-get="/api/shift/week-grid/?week_start={{ week_start }}{% if active_period %}&period_id={{ active_period.id }}{% endif %}&staff_type=store_staff"
+       hx-target="#calendar-section" hx-swap="innerHTML"
+       hx-push-url="?week_start={{ week_start }}{% if active_period %}&period_id={{ active_period.id }}{% endif %}&staff_type=store_staff"
+       class="btn btn-sm {% if staff_type_filter == 'store_staff' %}btn-primary{% else %}btn-outline{% endif %}" style="cursor:pointer;">
+      {% trans "スタッフ" %} ({{ store_staff_count }})
+    </a>
+  </div>
+
+  {% if templates %}
+  <div class="template-chips" style="margin-left:auto;">
+    {% for t in templates %}
+    <span class="template-chip" style="background:{{ t.color }}" title="{{ t.start_time|time:'H:i' }}-{{ t.end_time|time:'H:i' }}">
+      {{ t.name }}
+    </span>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  <button class="tour-help-btn" onclick="startTour();" title="{% trans 'ヘルプを表示' %}" style="margin-left:8px;">{% trans "ヘルプ" %}</button>
+</div>
+
+{# ===== 週グリッド（スタッフ/キャスト分離表示） ===== #}
+{% if not staff_type_filter and cast_staffs and store_staffs %}
+  {# フィルタなし: キャストとスタッフを分けて表示 #}
+  <h4 style="margin:16px 0 8px;font-size:14px;color:#7C3AED;font-weight:700;">
+    <i class="fas fa-star" style="margin-right:4px;"></i>{% trans "キャスト" %}
+    <span style="font-weight:400;color:#6b7280;font-size:12px;margin-left:4px;">({{ cast_count }}{% trans "名" %})</span>
+  </h4>
+  <div style="overflow-x:auto;">
+    {% include "admin/booking/partials/shift_week_grid.html" with staffs=cast_staffs %}
+  </div>
+
+  <h4 style="margin:24px 0 8px;font-size:14px;color:#3B82F6;font-weight:700;">
+    <i class="fas fa-user" style="margin-right:4px;"></i>{% trans "スタッフ" %}
+    <span style="font-weight:400;color:#6b7280;font-size:12px;margin-left:4px;">({{ store_staff_count }}{% trans "名" %})</span>
+  </h4>
+  <div style="overflow-x:auto;">
+    {% include "admin/booking/partials/shift_week_grid.html" with staffs=store_staffs %}
+  </div>
+{% else %}
+  {# フィルタ適用時: 1つのグリッド #}
+  <div style="overflow-x:auto;">
+    {% include "admin/booking/partials/shift_week_grid.html" %}
+  </div>
+{% endif %}
