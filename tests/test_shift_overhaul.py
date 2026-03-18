@@ -949,8 +949,8 @@ class TestStaffManageMenu:
         assert 'staff_manage' in SIDEBAR_CUSTOM_LINKS_BY_ROLE
         assert 'manager' in SIDEBAR_CUSTOM_LINKS_BY_ROLE['staff_manage']
         assert 'staff' in SIDEBAR_CUSTOM_LINKS_BY_ROLE['staff_manage']
-        # manager は4件（従業員一覧、キャスト一覧、スタッフ一覧、勤怠実績）
-        assert len(SIDEBAR_CUSTOM_LINKS_BY_ROLE['staff_manage']['manager']) == 4
+        # manager は2件（従業員一覧、勤怠実績）
+        assert len(SIDEBAR_CUSTOM_LINKS_BY_ROLE['staff_manage']['manager']) == 2
         # staff は1件（マイページ）
         assert len(SIDEBAR_CUSTOM_LINKS_BY_ROLE['staff_manage']['staff']) == 1
 

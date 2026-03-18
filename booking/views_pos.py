@@ -397,3 +397,25 @@ class KitchenOrderCompleteAPI(LoginRequiredMixin, View):
             'id': order.id,
             'status': order.status,
         })
+
+
+class KitchenOrderUncompleteAPI(LoginRequiredMixin, View):
+    """完了済み注文をアクティブに戻す（完了取り消し）"""
+
+    def post(self, request, pk=None):
+        order = get_object_or_404(Order, pk=pk)
+        if order.status != Order.STATUS_CLOSED:
+            return JsonResponse(
+                {'error': 'Order is not closed'}, status=400,
+            )
+        # 決済済みの注文は取り消し不可
+        if order.payment_status == 'paid':
+            return JsonResponse(
+                {'error': 'Paid order cannot be uncompleted'}, status=400,
+            )
+        order.status = Order.STATUS_OPEN
+        order.save(update_fields=['status'])
+        return JsonResponse({
+            'id': order.id,
+            'status': order.status,
+        })

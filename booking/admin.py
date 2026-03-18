@@ -1129,6 +1129,17 @@ class SiteSettingsAdmin(admin.ModelAdmin):
         }),
     )
 
+    def has_view_permission(self, request, obj=None):
+        if _is_owner_or_super(request):
+            return True
+        try:
+            return request.user.staff.is_store_manager or request.user.staff.is_developer
+        except Staff.DoesNotExist:
+            return False
+
+    def has_change_permission(self, request, obj=None):
+        return self.has_view_permission(request, obj)
+
     def has_add_permission(self, request):
         return not SiteSettings.objects.exists()
 

@@ -153,8 +153,6 @@ for _role in ('owner', 'developer', 'superuser'):
 SIDEBAR_CUSTOM_LINKS_BY_ROLE['staff_manage'] = {
     'manager': [
         {'name': _('従業員一覧'), 'admin_url': '/admin/booking/staff/', 'icon': 'fas fa-users'},
-        {'name': _('キャスト一覧'), 'admin_url': '/admin/booking/staff/?staff_type__exact=fortune_teller', 'icon': 'fas fa-star'},
-        {'name': _('スタッフ一覧'), 'admin_url': '/admin/booking/staff/?staff_type__exact=store_staff', 'icon': 'fas fa-user'},
         {'name': _('勤怠実績'), 'admin_url': '/admin/attendance/performance/', 'icon': 'fas fa-chart-bar'},
     ],
     'staff': [

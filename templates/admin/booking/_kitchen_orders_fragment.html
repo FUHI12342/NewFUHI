@@ -68,6 +68,12 @@
           {{ item.product.name }} x{{ item.qty }}{% if not forloop.last %}, {% endif %}
           {% endfor %}
         </div>
+        {% if order.payment_status != "paid" %}
+        <div style="margin-top:8px;text-align:right;">
+          <button class="action-btn btn-undo" onclick="uncompleteOrder({{ order.id }}, this)"
+                  style="font-size:12px;padding:4px 12px;">{% trans "取り消し" %}</button>
+        </div>
+        {% endif %}
       </div>
       {% empty %}
       <div class="closed-empty">{% trans "本日の完了注文はありません" %}</div>

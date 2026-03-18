@@ -172,8 +172,8 @@ class Staff(models.Model):
 
     class Meta:
         app_label = 'booking'
-        verbose_name = _('キャスト')
-        verbose_name_plural = _('キャスト一覧')
+        verbose_name = _('従業員')
+        verbose_name_plural = _('従業員一覧')
 
     def __str__(self):
         return f'{self.store.name} - {self.name}'

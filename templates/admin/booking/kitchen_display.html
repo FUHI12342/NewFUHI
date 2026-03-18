@@ -79,6 +79,7 @@
 var CSRF = '{{ csrf_token }}';
 var REFRESH_URL = '/api/pos/kitchen-orders/{% if store %}?store_id={{ store.id }}{% endif %}';
 var MSG_COMPLETE = '{% trans "完了" %}';
+var MSG_UNCOMPLETE = '{% trans "取り消し" %}';
 
 function refreshKitchen() {
   fetch(REFRESH_URL, {
@@ -126,6 +127,29 @@ function completeOrder(orderId, btn) {
     console.error('Complete order error:', e);
     btn.disabled = false;
     btn.textContent = MSG_COMPLETE;
+  });
+}
+
+function uncompleteOrder(orderId, btn) {
+  btn.disabled = true;
+  btn.textContent = '...';
+  fetch('/api/pos/order/' + orderId + '/uncomplete/', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-CSRFToken': CSRF
+    },
+    body: '{}'
+  })
+  .then(function(r) {
+    if (!r.ok) { throw new Error('Uncomplete failed'); }
+    return r.json();
+  })
+  .then(function() { refreshKitchen(); })
+  .catch(function(e) {
+    console.error('Uncomplete order error:', e);
+    btn.disabled = false;
+    btn.textContent = MSG_UNCOMPLETE;
   });
 }
 

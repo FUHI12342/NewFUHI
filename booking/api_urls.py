@@ -39,7 +39,7 @@ from .views_attendance import (
     AttendanceDayStatusHTMLView,
     AttendancePINStampAPIView, QRStampAPIView, ManualStampAPIView,
 )
-from .views_pos import POSOrderAPIView, POSOrderItemAPIView, POSCheckoutAPIView, KitchenOrderStatusAPI, KitchenOrdersHTMLView, KitchenOrderCompleteAPI
+from .views_pos import POSOrderAPIView, POSOrderItemAPIView, POSCheckoutAPIView, KitchenOrderStatusAPI, KitchenOrdersHTMLView, KitchenOrderCompleteAPI, KitchenOrderUncompleteAPI
 from .views_performance_dashboard import AttendancePerformanceAPIView
 from .views_analytics import VisitorCountAPIView, VisitorHeatmapAPIView, ConversionAnalyticsAPIView
 from .views_ai_recommend import AIRecommendationAPIView, AITrainModelAPIView, AIModelStatusAPIView
@@ -159,6 +159,7 @@ urlpatterns = [
     path('pos/order-item/<int:pk>/status/', KitchenOrderStatusAPI.as_view(), name='pos_order_item_status'),
     path('pos/kitchen-orders/', KitchenOrdersHTMLView.as_view(), name='pos_kitchen_orders_html'),
     path('pos/order/<int:pk>/complete/', KitchenOrderCompleteAPI.as_view(), name='pos_order_complete'),
+    path('pos/order/<int:pk>/uncomplete/', KitchenOrderUncompleteAPI.as_view(), name='pos_order_uncomplete'),
 
     # Air統合: 分析API
     path('analytics/visitors/', VisitorCountAPIView.as_view(), name='analytics_visitors'),
