@@ -30,6 +30,19 @@
     flex: 1;
     position: relative;
     min-height: 220px;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  .chart-scroll-inner {
+    position: relative;
+    min-height: 220px;
+  }
+  .chart-date-label {
+    color: #6b7280;
+    font-size: 0.8rem;
+    margin-bottom: 0.25rem;
+    text-align: right;
+    padding: 0 1rem;
   }
   .sensor-name {
     font-size: 0.875rem;
@@ -187,9 +200,10 @@
       <option value="">{% trans "Loading devices..." %}</option>
     </select>
     <div class="flex gap-1">
-      <button class="range-btn active" data-range="1h">1h</button>
+      <button class="range-btn" data-range="1h">1h</button>
       <button class="range-btn" data-range="6h">6h</button>
       <button class="range-btn" data-range="24h">24h</button>
+      <button class="range-btn active" data-range="36h">1.5日</button>
       <button class="range-btn" data-range="7d">7d</button>
     </div>
   </div>
@@ -220,8 +234,9 @@
         </div>
         <span class="sensor-value mq9" id="val-mq9">--</span>
       </div>
-      <div class="sensor-card-body" style="min-height:calc(100vh - 340px);">
-        <canvas id="chart-mq9"></canvas>
+      <div class="chart-date-label" id="date-mq9"></div>
+      <div class="sensor-card-body" id="scroll-mq9" style="min-height:calc(100vh - 340px);">
+        <div class="chart-scroll-inner" id="inner-mq9"><canvas id="chart-mq9"></canvas></div>
       </div>
     </div>
   </div>
@@ -236,8 +251,9 @@
         </div>
         <span class="sensor-value light" id="val-light">--</span>
       </div>
-      <div class="sensor-card-body" style="min-height:calc(100vh - 340px);">
-        <canvas id="chart-light"></canvas>
+      <div class="chart-date-label" id="date-light"></div>
+      <div class="sensor-card-body" id="scroll-light" style="min-height:calc(100vh - 340px);">
+        <div class="chart-scroll-inner" id="inner-light"><canvas id="chart-light"></canvas></div>
       </div>
     </div>
   </div>
@@ -252,8 +268,9 @@
         </div>
         <span class="sensor-value sound" id="val-sound">--</span>
       </div>
-      <div class="sensor-card-body" style="min-height:calc(100vh - 340px);">
-        <canvas id="chart-sound"></canvas>
+      <div class="chart-date-label" id="date-sound"></div>
+      <div class="sensor-card-body" id="scroll-sound" style="min-height:calc(100vh - 340px);">
+        <div class="chart-scroll-inner" id="inner-sound"><canvas id="chart-sound"></canvas></div>
       </div>
     </div>
   </div>
@@ -274,8 +291,9 @@
         </div>
         <span class="sensor-value pir" id="val-pir">--</span>
       </div>
-      <div class="sensor-card-body" style="min-height:calc(100vh - 340px);">
-        <canvas id="chart-pir"></canvas>
+      <div class="chart-date-label" id="date-pir"></div>
+      <div class="sensor-card-body" id="scroll-pir" style="min-height:calc(100vh - 340px);">
+        <div class="chart-scroll-inner" id="inner-pir"><canvas id="chart-pir"></canvas></div>
       </div>
     </div>
   </div>
@@ -302,7 +320,7 @@
   };
 
   // ── State ──────────────────────────────────────────────
-  let currentRange  = '1h';
+  let currentRange  = '36h';
   let currentDevice = '';
   let pollTimer     = null;
 
@@ -327,13 +345,66 @@
     return g;
   }
 
+  // ── Tooltip title (full date + AM/PM time) ─────────────
+  function tooltipTitle(items) {
+    if (!items.length) return '';
+    var d = new Date(items[0].parsed.x);
+    if (isNaN(d.getTime())) return items[0].label || '';
+    return d.toLocaleDateString('ja-JP', {year:'numeric',month:'2-digit',day:'2-digit',weekday:'short'})
+      + ' ' + d.toLocaleTimeString('en-US', {hour:'numeric',minute:'2-digit',second:'2-digit',hour12:true});
+  }
+
+  // ── Date label + scroll helpers ─────────────────────────
+  function updateDateLabel(key, labels) {
+    var el = document.getElementById('date-' + key);
+    if (!el || labels.length === 0) return;
+    var first = new Date(labels[0]);
+    var last = new Date(labels[labels.length - 1]);
+    var opts = { year: 'numeric', month: '2-digit', day: '2-digit', weekday: 'short' };
+    if (first.toDateString() === last.toDateString()) {
+      el.textContent = first.toLocaleDateString('ja-JP', opts);
+    } else {
+      el.textContent = first.toLocaleDateString('ja-JP', opts) + ' 〜 ' + last.toLocaleDateString('ja-JP', opts);
+    }
+  }
+
+  function setupScroll(key, labels) {
+    var wrapper = document.getElementById('scroll-' + key);
+    var inner = document.getElementById('inner-' + key);
+    if (!wrapper || !inner || labels.length < 2) return;
+    var first = new Date(labels[0]);
+    var last = new Date(labels[labels.length - 1]);
+    var totalHours = (last - first) / 3600000;
+    if (totalHours > 24) {
+      inner.style.minWidth = Math.round((totalHours / 24) * 100) + '%';
+    } else {
+      inner.style.minWidth = '100%';
+    }
+    requestAnimationFrame(function() {
+      wrapper.scrollLeft = wrapper.scrollWidth;
+    });
+  }
+
+  // ── Time scale options (shared) ─────────────────────────
+  const timeScaleOpts = {
+    type: 'time',
+    time: {
+      displayFormats: {
+        second: 'h:mm:ss a',
+        minute: 'h:mm a',
+        hour: 'h a',
+      },
+    },
+    ticks: { color: '#6b7280', maxTicksLimit: 12, autoSkip: true, maxRotation: 0 },
+    grid: { color: 'rgba(75,85,99,0.3)' }
+  };
+
   // ── Chart factory (line) ───────────────────────────────
   function createLineChart(canvasId, colorKey) {
     const ctx = document.getElementById(canvasId).getContext('2d');
     return new Chart(ctx, {
       type: 'line',
       data: {
-        labels: [],
         datasets: [{
           data: [],
           borderColor: palette[colorKey].border,
@@ -348,23 +419,14 @@
       options: {
         responsive: true,
         maintainAspectRatio: false,
-        animation: {
-          duration: 600,
-          easing: 'easeInOutQuart'
-        },
-        interaction: {
-          intersect: false,
-          mode: 'index'
-        },
+        animation: { duration: 600, easing: 'easeInOutQuart' },
+        interaction: { intersect: false, mode: 'index' },
         scales: {
-          x: {
-            ticks: { color: '#6b7280', maxTicksLimit: 8, autoSkip: true, maxRotation: 0 },
-            grid:  { color: 'rgba(75,85,99,0.3)' }
-          },
+          x: timeScaleOpts,
           y: {
             beginAtZero: true,
             ticks: { color: '#6b7280' },
-            grid:  { color: 'rgba(75,85,99,0.3)' }
+            grid: { color: 'rgba(75,85,99,0.3)' }
           }
         },
         plugins: {
@@ -374,7 +436,8 @@
             titleColor: '#d1d5db',
             bodyColor: '#f9fafb',
             borderColor: '#374151',
-            borderWidth: 1
+            borderWidth: 1,
+            callbacks: { title: tooltipTitle }
           }
         }
       }
@@ -387,7 +450,6 @@
     return new Chart(ctx, {
       type: 'bar',
       data: {
-        labels: [],
         datasets: [{
           data: [],
           backgroundColor: palette.pir.bg,
@@ -399,19 +461,13 @@
       options: {
         responsive: true,
         maintainAspectRatio: false,
-        animation: {
-          duration: 600,
-          easing: 'easeInOutQuart'
-        },
+        animation: { duration: 600, easing: 'easeInOutQuart' },
         scales: {
-          x: {
-            ticks: { color: '#6b7280', maxTicksLimit: 12, autoSkip: true, maxRotation: 0 },
-            grid:  { color: 'rgba(75,85,99,0.3)' }
-          },
+          x: timeScaleOpts,
           y: {
             beginAtZero: true,
             ticks: { color: '#6b7280', stepSize: 1 },
-            grid:  { color: 'rgba(75,85,99,0.3)' }
+            grid: { color: 'rgba(75,85,99,0.3)' }
           }
         },
         plugins: {
@@ -423,6 +479,7 @@
             borderColor: '#374151',
             borderWidth: 1,
             callbacks: {
+              title: tooltipTitle,
               label: function(ctx) { return ctx.parsed.y + ' events'; }
             }
           }
@@ -441,19 +498,22 @@
 
   // ── Update a line chart with new data ──────────────────
   function updateLineChart(chart, labels, values, colorKey) {
-    chart.data.labels = labels;
-    chart.data.datasets[0].data = values;
-    // Refresh gradient in case canvas resized
+    var dataPoints = labels.map(function(l, i) { return { x: l, y: values[i] }; });
+    chart.data.datasets[0].data = dataPoints;
     const ctx = chart.ctx;
     chart.data.datasets[0].backgroundColor = makeGradient(ctx, palette[colorKey].bg);
-    chart.update('none');  // skip full animation for smooth polling
+    chart.update('none');
+    updateDateLabel(colorKey, labels);
+    setupScroll(colorKey, labels);
   }
 
   // ── Update bar chart (PIR) ─────────────────────────────
   function updateBarChart(chart, labels, counts) {
-    chart.data.labels = labels;
-    chart.data.datasets[0].data = counts;
+    var dataPoints = labels.map(function(l, i) { return { x: l, y: counts[i] }; });
+    chart.data.datasets[0].data = dataPoints;
     chart.update('none');
+    updateDateLabel('pir', labels);
+    setupScroll('pir', labels);
   }
 
   // ── Fetch helpers ──────────────────────────────────────

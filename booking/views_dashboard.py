@@ -34,6 +34,7 @@ class SensorDataAPIView(APIView):
         '1h': timedelta(hours=1),
         '6h': timedelta(hours=6),
         '24h': timedelta(hours=24),
+        '36h': timedelta(hours=36),
         '7d': timedelta(days=7),
     }
     MAX_POINTS = 500
@@ -120,6 +121,7 @@ class PIREventsAPIView(APIView):
         '1h': timedelta(hours=1),
         '6h': timedelta(hours=6),
         '24h': timedelta(hours=24),
+        '36h': timedelta(hours=36),
         '7d': timedelta(days=7),
     }
 

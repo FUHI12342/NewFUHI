@@ -98,7 +98,10 @@
     .chart-card {
       background: #1f2937; border-radius: 12px; padding: 1rem 1.25rem;
     }
-    .chart-card canvas { width: 100% !important; max-height: 360px; }
+    .chart-card canvas { width: 100% !important; min-height: 320px; max-height: 400px; }
+    .chart-scroll-wrapper { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+    .chart-scroll-inner { position: relative; min-height: 320px; }
+    .chart-date-label { color: #6b7280; font-size: 0.8rem; margin-bottom: 0.5rem; text-align: right; }
 
     /* ── Loading indicator ───────────────────────────────── */
     .sm-loading {
@@ -115,9 +118,10 @@
     <h1>センサーモニター</h1>
     <div class="sm-controls">
       <select id="device-select"><option value="">読み込み中…</option></select>
-      <button class="range-btn active" data-range="1h">1h</button>
+      <button class="range-btn" data-range="1h">1h</button>
       <button class="range-btn" data-range="6h">6h</button>
       <button class="range-btn" data-range="24h">24h</button>
+      <button class="range-btn active" data-range="36h">1.5日</button>
       <button class="range-btn" data-range="7d">7d</button>
     </div>
   </div>
@@ -147,7 +151,12 @@
         <p class="status-text" id="text-gas">データを取得中…</p>
       </div>
     </div>
-    <div class="chart-card"><canvas id="chart-gas"></canvas></div>
+    <div class="chart-card">
+      <div class="chart-date-label" id="date-gas"></div>
+      <div class="chart-scroll-wrapper" id="scroll-gas">
+        <div class="chart-scroll-inner" id="inner-gas"><canvas id="chart-gas"></canvas></div>
+      </div>
+    </div>
   </div>
 
   <!-- Light Panel -->
@@ -159,7 +168,12 @@
         <p class="status-text" id="text-light">データを取得中…</p>
       </div>
     </div>
-    <div class="chart-card"><canvas id="chart-light"></canvas></div>
+    <div class="chart-card">
+      <div class="chart-date-label" id="date-light"></div>
+      <div class="chart-scroll-wrapper" id="scroll-light">
+        <div class="chart-scroll-inner" id="inner-light"><canvas id="chart-light"></canvas></div>
+      </div>
+    </div>
   </div>
 
   <!-- Sound Panel -->
@@ -171,7 +185,12 @@
         <p class="status-text" id="text-sound">データを取得中…</p>
       </div>
     </div>
-    <div class="chart-card"><canvas id="chart-sound"></canvas></div>
+    <div class="chart-card">
+      <div class="chart-date-label" id="date-sound"></div>
+      <div class="chart-scroll-wrapper" id="scroll-sound">
+        <div class="chart-scroll-inner" id="inner-sound"><canvas id="chart-sound"></canvas></div>
+      </div>
+    </div>
   </div>
 
   <!-- PIR Panel -->
@@ -183,7 +202,12 @@
         <p class="status-text" id="text-pir">データを取得中…</p>
       </div>
     </div>
-    <div class="chart-card"><canvas id="chart-pir"></canvas></div>
+    <div class="chart-card">
+      <div class="chart-date-label" id="date-pir"></div>
+      <div class="chart-scroll-wrapper" id="scroll-pir">
+        <div class="chart-scroll-inner" id="inner-pir"><canvas id="chart-pir"></canvas></div>
+      </div>
+    </div>
   </div>
 
 </div>
@@ -194,7 +218,7 @@
 
   // ── State ──────────────────────────────────────────────
   var currentTab = 'gas';
-  var currentRange = '1h';
+  var currentRange = '36h';
   var currentDevice = '';
   var pollTimer = null;
   var charts = {};
@@ -294,12 +318,29 @@
           borderColor: '#374151',
           borderWidth: 1,
           cornerRadius: 8,
-          padding: 10
+          padding: 10,
+          callbacks: {
+            title: function(items) {
+              if (!items.length) return '';
+              var d = new Date(items[0].parsed.x);
+              if (isNaN(d.getTime())) return items[0].label || '';
+              return d.toLocaleDateString('ja-JP', {year:'numeric',month:'2-digit',day:'2-digit',weekday:'short'})
+                + ' ' + d.toLocaleTimeString('en-US', {hour:'numeric',minute:'2-digit',second:'2-digit',hour12:true});
+            }
+          }
         }
       },
       scales: {
         x: {
-          ticks: { maxTicksLimit: 10, font: { size: 11 } },
+          type: 'time',
+          time: {
+            displayFormats: {
+              second: 'h:mm:ss a',
+              minute: 'h:mm a',
+              hour: 'h a',
+            },
+          },
+          ticks: { maxTicksLimit: 12, font: { size: 11 }, maxRotation: 0 },
           grid: { color: '#374151' }
         },
         y: {
@@ -400,37 +441,72 @@
     return opts;
   }
 
+  // ── Date label + scroll helpers ─────────────────────────
+  function updateDateLabel(key, labels) {
+    var el = document.getElementById('date-' + key);
+    if (!el || labels.length === 0) return;
+    var first = new Date(labels[0]);
+    var last = new Date(labels[labels.length - 1]);
+    var opts = { year: 'numeric', month: '2-digit', day: '2-digit', weekday: 'short' };
+    if (first.toDateString() === last.toDateString()) {
+      el.textContent = first.toLocaleDateString('ja-JP', opts);
+    } else {
+      el.textContent = first.toLocaleDateString('ja-JP', opts) + ' 〜 ' + last.toLocaleDateString('ja-JP', opts);
+    }
+  }
+
+  function setupScroll(key, labels) {
+    var wrapper = document.getElementById('scroll-' + key);
+    var inner = document.getElementById('inner-' + key);
+    if (!wrapper || !inner || labels.length < 2) return;
+    var first = new Date(labels[0]);
+    var last = new Date(labels[labels.length - 1]);
+    var totalHours = (last - first) / 3600000;
+    if (totalHours > 24) {
+      inner.style.minWidth = Math.round((totalHours / 24) * 100) + '%';
+    } else {
+      inner.style.minWidth = '100%';
+    }
+    requestAnimationFrame(function() {
+      wrapper.scrollLeft = wrapper.scrollWidth;
+    });
+  }
+
+  function toXY(labels, values) {
+    return labels.map(function(l, i) { return { x: l, y: values[i] }; });
+  }
+
   // ── Render/update line chart ───────────────────────────
   function renderLineChart(key, labels, values, color) {
     var canvasId = 'chart-' + key;
     var canvas = document.getElementById(canvasId);
     if (!canvas) return;
     var ctx = canvas.getContext('2d');
+    var dataPoints = toXY(labels, values);
 
     if (charts[key]) {
-      charts[key].data.labels = labels;
-      charts[key].data.datasets[0].data = values;
+      charts[key].data.datasets[0].data = dataPoints;
       charts[key].update('none');
-      return;
+    } else {
+      charts[key] = new Chart(ctx, {
+        type: 'line',
+        data: {
+          datasets: [{
+            data: dataPoints,
+            borderColor: color,
+            borderWidth: 2,
+            backgroundColor: makeGradient(ctx, color),
+            fill: true,
+            pointRadius: 0,
+            pointHitRadius: 8,
+            tension: 0.4
+          }]
+        },
+        options: chartOpts(key)
+      });
     }
-
-    charts[key] = new Chart(ctx, {
-      type: 'line',
-      data: {
-        labels: labels,
-        datasets: [{
-          data: values,
-          borderColor: color,
-          borderWidth: 2,
-          backgroundColor: makeGradient(ctx, color),
-          fill: true,
-          pointRadius: 0,
-          pointHitRadius: 8,
-          tension: 0.4
-        }]
-      },
-      options: chartOpts(key)
-    });
+    updateDateLabel(key, labels);
+    setupScroll(key, labels);
   }
 
   // ── Render/update PIR bar chart ────────────────────────
@@ -438,44 +514,33 @@
     var canvas = document.getElementById('chart-pir');
     if (!canvas) return;
     var ctx = canvas.getContext('2d');
+    var dataPoints = toXY(labels, values);
 
     if (charts.pir) {
-      charts.pir.data.labels = labels;
-      charts.pir.data.datasets[0].data = values;
+      charts.pir.data.datasets[0].data = dataPoints;
       charts.pir.update('none');
-      return;
-    }
-
-    charts.pir = new Chart(ctx, {
-      type: 'bar',
-      data: {
-        labels: labels,
-        datasets: [{
-          data: values,
-          backgroundColor: '#ef444480',
-          borderColor: '#ef4444',
-          borderWidth: 1,
-          borderRadius: 4
-        }]
-      },
-      options: Object.assign({}, lineOpts(), {
-        plugins: {
-          legend: { display: false },
-          tooltip: {
-            backgroundColor: '#1f2937',
-            titleColor: '#f9fafb',
-            bodyColor: '#d1d5db',
-            borderColor: '#374151',
+    } else {
+      var opts = lineOpts();
+      opts.plugins.tooltip.callbacks = {
+        title: opts.plugins.tooltip.callbacks.title,
+        label: function(ctx) { return ctx.parsed.y + ' 件'; }
+      };
+      charts.pir = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          datasets: [{
+            data: dataPoints,
+            backgroundColor: '#ef444480',
+            borderColor: '#ef4444',
             borderWidth: 1,
-            cornerRadius: 8,
-            padding: 10,
-            callbacks: {
-              label: function(ctx) { return ctx.parsed.y + ' 件'; }
-            }
-          }
-        }
-      })
-    });
+            borderRadius: 4
+          }]
+        },
+        options: opts
+      });
+    }
+    updateDateLabel('pir', labels);
+    setupScroll('pir', labels);
   }
 
   // ── Stale data warning ──────────────────────────────────
