@@ -27,6 +27,7 @@ from .views import (
     ShopView,
     CartView,
     ShopCheckoutView,
+    ShopConfirmView,
     # Round5: お知らせ
     NoticeListView,
     NoticeDetailView,
@@ -155,6 +156,7 @@ urlpatterns = [
     path('shop/', ShopView.as_view(), name='shop'),
     path('shop/cart/', CartView.as_view(), name='shop_cart'),
     path('shop/checkout/', ShopCheckoutView.as_view(), name='shop_checkout'),
+    path('shop/confirm/', ShopConfirmView.as_view(), name='shop_confirm'),
     path('shop/order/<int:order_id>/payment/', ECPaymentView.as_view(), name='shop_payment'),
     path('shop/order/<int:order_id>/complete/', ECOrderConfirmationView.as_view(), name='shop_order_complete'),
 

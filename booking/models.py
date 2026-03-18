@@ -842,6 +842,7 @@ class Order(models.Model):
     tracking_number = models.CharField(_('追跡番号'), max_length=100, blank=True, default='')
     shipped_at = models.DateTimeField(_('発送日時'), null=True, blank=True)
     shipping_note = models.TextField(_('発送メモ'), blank=True, default='')
+    shipping_fee = models.PositiveIntegerField(_('送料'), default=0)
 
     created_at = models.DateTimeField(auto_now_add=True, db_index=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -2503,3 +2504,24 @@ class StaffRecommendationResult(models.Model):
 
     def __str__(self):
         return f'{self.store.name} {self.date} {self.hour}時 推薦:{self.recommended_staff_count}人'
+
+
+class ShippingConfig(models.Model):
+    """送料設定"""
+    store = models.OneToOneField(Store, on_delete=models.CASCADE, related_name='shipping_config')
+    is_enabled = models.BooleanField(_('送料を有効にする'), default=False)
+    shipping_fee = models.PositiveIntegerField(_('送料（税込）'), default=0)
+    free_shipping_threshold = models.PositiveIntegerField(
+        _('送料無料の注文金額'), default=0,
+        help_text=_('0の場合は常に送料がかかります'),
+    )
+    delivery_area = models.TextField(_('配達対応範囲'), blank=True, default='')
+    note = models.TextField(_('送料に関する備考'), blank=True, default='')
+
+    class Meta:
+        app_label = 'booking'
+        verbose_name = _('送料設定')
+        verbose_name_plural = _('送料設定')
+
+    def __str__(self):
+        return f'{self.store.name} 送料設定'

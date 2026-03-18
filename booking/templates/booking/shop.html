@@ -68,8 +68,14 @@
                 {% endif %}
             </div>
             {% if not product.is_sold_out %}
+            <div class="flex items-center justify-center gap-2 mt-3">
+                <button onclick="changeQty(this, -1)" class="w-7 h-7 bg-gray-200 rounded text-sm hover:bg-gray-300 transition">-</button>
+                <input type="number" min="1" max="99" value="1" data-product-id="{{ product.id }}"
+                       class="w-12 text-center border rounded text-sm qty-input">
+                <button onclick="changeQty(this, 1)" class="w-7 h-7 bg-gray-200 rounded text-sm hover:bg-gray-300 transition">+</button>
+            </div>
             <button onclick="addToCart({{ product.id }})" data-product-id="{{ product.id }}"
-                    class="w-full mt-3 bg-salon-brown text-white text-sm py-2 rounded-lg hover:opacity-80 transition">
+                    class="w-full mt-2 bg-salon-brown text-white text-sm py-2 rounded-lg hover:opacity-80 transition">
                 {% trans "カートに追加" %}
             </button>
             {% endif %}
@@ -87,6 +93,9 @@
 {% endif %}
 {% endblock %}
 
+<!-- Toast container -->
+<div id="toast-container" class="fixed bottom-4 right-4 z-50"></div>
+
 {% block extra_js %}
 <script>
 function getCookie(name) {
@@ -96,14 +105,24 @@ function getCookie(name) {
 var csrfToken = getCookie('csrftoken');
 var cartAddUrl = '{% url "booking_api:cart_add_api" %}';
 
+function changeQty(btn, delta) {
+    var container = btn.parentElement;
+    var input = container.querySelector('.qty-input');
+    var val = parseInt(input.value) || 1;
+    val = Math.max(1, Math.min(99, val + delta));
+    input.value = val;
+}
+
 function addToCart(productId) {
+    var input = document.querySelector('.qty-input[data-product-id="'+productId+'"]');
+    var qty = input ? Math.max(1, parseInt(input.value) || 1) : 1;
     fetch(cartAddUrl, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
             'X-CSRFToken': csrfToken,
         },
-        body: JSON.stringify({ product_id: productId, qty: 1 }),
+        body: JSON.stringify({ product_id: productId, qty: qty }),
     })
     .then(function(resp) { return resp.json(); })
     .then(function(data) {
@@ -111,6 +130,8 @@ function addToCart(productId) {
             var badge = document.getElementById('cart-badge');
             badge.textContent = data.cart_count;
             badge.classList.remove('hidden');
+            showToast('カートに追加しました');
+            if (input) input.value = 1;
         } else {
             alert(data.message || 'エラーが発生しました');
         }
@@ -118,6 +139,16 @@ function addToCart(productId) {
     .catch(function(err) {
         alert('ネットワークエラー: ' + err.message);
     });
+}
+
+function showToast(msg) {
+    var container = document.getElementById('toast-container');
+    var el = document.createElement('div');
+    el.className = 'bg-green-500 text-white px-4 py-2 rounded-lg shadow-lg text-sm mb-2 transition-opacity duration-500';
+    el.textContent = msg;
+    container.appendChild(el);
+    setTimeout(function() { el.style.opacity = '0'; }, 2500);
+    setTimeout(function() { el.remove(); }, 3000);
 }
 </script>
 {% endblock %}

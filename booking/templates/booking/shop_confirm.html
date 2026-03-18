@@ -2,15 +2,15 @@
 {% load i18n %}
 {% load static %}
 
-{% block title %}{% trans "注文確認" %} | {{ block.super }}{% endblock %}
+{% block title %}{% trans "ご注文確認" %} | {{ block.super }}{% endblock %}
 
 {% block content %}
 <h2 class="text-2xl font-bold text-salon-dark mb-6 border-b-2 border-salon-brown pb-3">
-    {% trans "注文確認" %}
+    {% trans "ご注文確認" %}
 </h2>
 
 <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-    <!-- Order Summary -->
+    <!-- 注文内容 -->
     <div>
         <h3 class="text-lg font-bold mb-3">{% trans "注文内容" %}</h3>
         <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden mb-4">
@@ -41,7 +41,7 @@
                         <td colspan="2" class="px-4 py-2 text-sm text-right">{% trans "送料" %}</td>
                         <td class="px-4 py-2 text-sm text-right font-bold">&yen;{{ shipping_fee }}</td>
                     </tr>
-                    {% elif shipping_note %}
+                    {% elif shipping_fee == 0 and shipping_note %}
                     <tr>
                         <td colspan="2" class="px-4 py-2 text-sm text-right">{% trans "送料" %}</td>
                         <td class="px-4 py-2 text-sm text-right font-bold text-green-600">{% trans "無料" %}</td>
@@ -54,46 +54,55 @@
                 </tfoot>
             </table>
         </div>
+
         {% if free_shipping_remaining %}
-        <p class="text-sm text-orange-600 mb-2">
+        <p class="text-sm text-orange-600 mb-4">
             {% blocktrans with remaining=free_shipping_remaining %}あと&yen;{{ remaining }}以上で送料無料{% endblocktrans %}
         </p>
         {% endif %}
+
         {% if shipping_note %}
-        <p class="text-xs text-gray-500 mb-2">{{ shipping_note }}</p>
+        <p class="text-xs text-gray-500 mb-4">{{ shipping_note }}</p>
         {% endif %}
-        <a href="{% url 'booking:shop_cart' %}" class="text-sm text-salon-brown hover:underline">&larr; {% trans "カートに戻る" %}</a>
     </div>
 
-    <!-- Shipping Form -->
+    <!-- お届け先情報 -->
     <div>
         <h3 class="text-lg font-bold mb-3">{% trans "お届け先情報" %}</h3>
-        <form method="post" action="{% url 'booking:shop_checkout' %}" class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 space-y-4">
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-4">
+            <dl class="space-y-3">
+                <div>
+                    <dt class="text-xs font-medium text-gray-500">{% trans "お名前" %}</dt>
+                    <dd class="text-sm font-medium mt-1">{{ customer_name }}</dd>
+                </div>
+                <div>
+                    <dt class="text-xs font-medium text-gray-500">{% trans "メールアドレス" %}</dt>
+                    <dd class="text-sm mt-1">{{ customer_email }}</dd>
+                </div>
+                {% if customer_phone %}
+                <div>
+                    <dt class="text-xs font-medium text-gray-500">{% trans "電話番号" %}</dt>
+                    <dd class="text-sm mt-1">{{ customer_phone }}</dd>
+                </div>
+                {% endif %}
+                {% if customer_address %}
+                <div>
+                    <dt class="text-xs font-medium text-gray-500">{% trans "住所" %}</dt>
+                    <dd class="text-sm mt-1 whitespace-pre-line">{{ customer_address }}</dd>
+                </div>
+                {% endif %}
+            </dl>
+        </div>
+
+        <form method="post" action="{% url 'booking:shop_confirm' %}" class="space-y-3">
             {% csrf_token %}
-            <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">{% trans "お名前" %} <span class="text-red-500">*</span></label>
-                <input type="text" name="customer_name" required value="{{ customer_name|default:'' }}"
-                       class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:border-salon-brown focus:outline-none">
-            </div>
-            <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">{% trans "メールアドレス" %} <span class="text-red-500">*</span></label>
-                <input type="email" name="customer_email" required value="{{ customer_email|default:'' }}"
-                       class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:border-salon-brown focus:outline-none">
-            </div>
-            <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">{% trans "電話番号" %}</label>
-                <input type="tel" name="customer_phone" value="{{ customer_phone|default:'' }}"
-                       class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:border-salon-brown focus:outline-none">
-            </div>
-            <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">{% trans "住所" %}</label>
-                <textarea name="customer_address" rows="3"
-                          class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:border-salon-brown focus:outline-none">{{ customer_address|default:'' }}</textarea>
-            </div>
             <button type="submit" class="w-full bg-rose-500 text-white py-3 rounded-lg font-bold hover:bg-rose-600 transition">
-                {% trans "確認画面へ進む" %}
+                {% trans "注文を確定する" %}
             </button>
         </form>
+        <a href="{% url 'booking:shop_checkout' %}" class="block text-center text-sm text-salon-brown hover:underline mt-3">
+            &larr; {% trans "入力内容を修正する" %}
+        </a>
     </div>
 </div>
 {% endblock %}

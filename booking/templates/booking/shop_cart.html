@@ -46,12 +46,27 @@
 </div>
 
 <div class="flex flex-col sm:flex-row items-center justify-between gap-4">
-    <a href="{% url 'booking:shop' %}" class="text-sm text-salon-brown hover:underline">&larr; {% trans "買い物を続ける" %}</a>
-    <div class="flex items-center gap-4">
+    <div>
+        <a href="{% url 'booking:shop' %}" class="text-sm text-salon-brown hover:underline">&larr; {% trans "買い物を続ける" %}</a>
+        {% if free_shipping_remaining %}
+        <p class="text-sm text-orange-600 mt-2">
+            {% blocktrans with remaining=free_shipping_remaining %}あと&yen;{{ remaining }}以上で送料無料{% endblocktrans %}
+        </p>
+        {% endif %}
+    </div>
+    <div class="text-right">
+        <div class="text-sm text-gray-500">{% trans "小計" %}: &yen;{{ subtotal }}</div>
+        {% if shipping_fee > 0 %}
+        <div class="text-sm text-gray-500">{% trans "送料" %}: &yen;{{ shipping_fee }}</div>
+        {% elif shipping_note %}
+        <div class="text-sm text-green-600">{% trans "送料" %}: {% trans "無料" %}</div>
+        {% endif %}
         <span class="text-lg font-bold">{% trans "合計" %}: <span class="text-salon-brown">&yen;{{ total }}</span></span>
-        <a href="{% url 'booking:shop_checkout' %}" class="bg-rose-500 text-white px-6 py-3 rounded-lg text-sm font-bold hover:bg-rose-600 transition">
-            {% trans "レジに進む" %}
-        </a>
+        <div class="mt-2">
+            <a href="{% url 'booking:shop_checkout' %}" class="bg-rose-500 text-white px-6 py-3 rounded-lg text-sm font-bold hover:bg-rose-600 transition">
+                {% trans "レジに進む" %}
+            </a>
+        </div>
     </div>
 </div>
 

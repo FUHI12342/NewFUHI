@@ -175,7 +175,7 @@ class TestShopCheckoutDataSaving:
     """ShopCheckoutView が顧客データを正しく保存するか検証"""
 
     def test_checkout_saves_customer_fields(self, db, store, product):
-        """チェックアウト時にcustomer_email, customer_addressが保存される"""
+        """チェックアウト→確認画面→注文確定で顧客データが正しく保存される"""
         product.is_ec_visible = True
         product.save(update_fields=['is_ec_visible'])
 
@@ -190,13 +190,19 @@ class TestShopCheckoutDataSaving:
         }
         session.save()
 
+        # Step 1: checkout POST → 確認画面へリダイレクト
         resp = client.post('/shop/checkout/', {
             'customer_name': '山田花子',
             'customer_email': 'hanako@example.com',
             'customer_phone': '080-9999-0000',
             'customer_address': '大阪府大阪市1-2-3',
         })
-        assert resp.status_code == 302  # redirect on success
+        assert resp.status_code == 302
+        assert 'confirm' in resp.url
+
+        # Step 2: confirm POST → 注文作成 → 決済ページへリダイレクト
+        resp = client.post('/shop/confirm/')
+        assert resp.status_code == 302
 
         order = Order.objects.filter(channel='ec').order_by('-id').first()
         assert order is not None

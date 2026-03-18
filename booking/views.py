@@ -74,6 +74,8 @@ from booking.models import (
     # ===== テーブル注文 =====
     TableSeat,
     PaymentMethod,
+    # ===== 送料 =====
+    ShippingConfig,
 )
 from .forms import StaffForm
 from linebot import LineBotApi
@@ -2468,23 +2470,21 @@ class CartView(View):
     """カートページ"""
     def get(self, request):
         cart = request.session.get('ec_cart', {})
-        cart_items = []
-        total = 0
-        for product_id, item in cart.items():
-            subtotal = item['price'] * item['qty']
-            cart_items.append({
-                'product_id': product_id,
-                'name': item['name'],
-                'price': item['price'],
-                'qty': item['qty'],
-                'subtotal': subtotal,
-            })
-            total += subtotal
+        store = _get_store_from_cart(cart)
+        ctx = _build_cart_context(cart, store)
 
-        return render(request, 'booking/shop_cart.html', {
-            'cart_items': cart_items,
-            'total': total,
-        })
+        # 送料無料まであとX円メッセージ
+        if store:
+            try:
+                config = store.shipping_config
+                if config.is_enabled and config.free_shipping_threshold > 0 and ctx['subtotal'] < config.free_shipping_threshold:
+                    ctx['free_shipping_remaining'] = config.free_shipping_threshold - ctx['subtotal']
+                if config.is_enabled and config.note:
+                    ctx['shipping_note'] = config.note
+            except Exception:
+                pass
+
+        return render(request, 'booking/shop_cart.html', ctx)
 
 
 class CartAddAPIView(APIView):
@@ -2572,25 +2572,28 @@ class ShopCheckoutView(View):
         if not cart:
             return redirect('booking:shop')
 
-        cart_items = []
-        total = 0
-        for product_id, item in cart.items():
-            subtotal = item['price'] * item['qty']
-            cart_items.append({
-                'product_id': product_id,
-                'name': item['name'],
-                'price': item['price'],
-                'qty': item['qty'],
-                'subtotal': subtotal,
-            })
-            total += subtotal
+        store = _get_store_from_cart(cart)
+        ctx = _build_cart_context(cart, store)
 
-        return render(request, 'booking/shop_checkout.html', {
-            'cart_items': cart_items,
-            'total': total,
-        })
+        # 以前入力した顧客情報があればフォームに復元
+        customer = request.session.get('ec_customer', {})
+        ctx.update(customer)
+
+        # 送料情報
+        if store:
+            try:
+                config = store.shipping_config
+                if config.is_enabled and config.free_shipping_threshold > 0 and ctx['subtotal'] < config.free_shipping_threshold:
+                    ctx['free_shipping_remaining'] = config.free_shipping_threshold - ctx['subtotal']
+                if config.is_enabled and config.note:
+                    ctx['shipping_note'] = config.note
+            except Exception:
+                pass
+
+        return render(request, 'booking/shop_checkout.html', ctx)
 
     def post(self, request):
+        """フォーム入力 → セッションに保存 → 確認画面へ"""
         cart = request.session.get('ec_cart', {})
         if not cart:
             return redirect('booking:shop')
@@ -2604,8 +2607,106 @@ class ShopCheckoutView(View):
             messages.error(request, 'お名前とメールアドレスは必須です。')
             return redirect('booking:shop_checkout')
 
+        # セッションに顧客情報を保存して確認画面へ
+        request.session['ec_customer'] = {
+            'customer_name': customer_name,
+            'customer_email': customer_email,
+            'customer_phone': customer_phone,
+            'customer_address': customer_address,
+        }
+        return redirect('booking:shop_confirm')
+
+
+def get_shipping_fee(store, subtotal):
+    """送料計算"""
+    try:
+        config = store.shipping_config
+    except Exception:
+        return 0
+    if not config.is_enabled:
+        return 0
+    if config.free_shipping_threshold > 0 and subtotal >= config.free_shipping_threshold:
+        return 0
+    return config.shipping_fee
+
+
+def _build_cart_context(cart, store=None):
+    """カートからcart_items, subtotal, shipping_fee, totalを構築"""
+    cart_items = []
+    subtotal = 0
+    for product_id, item in cart.items():
+        item_subtotal = item['price'] * item['qty']
+        cart_items.append({
+            'product_id': product_id,
+            'name': item['name'],
+            'price': item['price'],
+            'qty': item['qty'],
+            'subtotal': item_subtotal,
+        })
+        subtotal += item_subtotal
+
+    shipping_fee = 0
+    if store:
+        shipping_fee = get_shipping_fee(store, subtotal)
+
+    return {
+        'cart_items': cart_items,
+        'subtotal': subtotal,
+        'shipping_fee': shipping_fee,
+        'total': subtotal + shipping_fee,
+        'store': store,
+    }
+
+
+def _get_store_from_cart(cart):
+    """カートの最初の商品からstoreを取得"""
+    if not cart:
+        return None
+    first_pid = list(cart.keys())[0]
+    try:
+        return Product.objects.get(pk=first_pid).store
+    except Product.DoesNotExist:
+        return None
+
+
+class ShopConfirmView(View):
+    """注文確認画面"""
+    def get(self, request):
+        cart = request.session.get('ec_cart', {})
+        customer = request.session.get('ec_customer', {})
+        if not cart or not customer:
+            return redirect('booking:shop_checkout')
+
+        store = _get_store_from_cart(cart)
+        ctx = _build_cart_context(cart, store)
+        ctx.update(customer)
+
+        # 送料無料まであとX円
+        if store:
+            try:
+                config = store.shipping_config
+                if config.is_enabled and config.free_shipping_threshold > 0 and ctx['subtotal'] < config.free_shipping_threshold:
+                    ctx['free_shipping_remaining'] = config.free_shipping_threshold - ctx['subtotal']
+                if config.is_enabled and config.note:
+                    ctx['shipping_note'] = config.note
+            except Exception:
+                pass
+
+        return render(request, 'booking/shop_confirm.html', ctx)
+
+    def post(self, request):
+        """注文確定"""
+        cart = request.session.get('ec_cart', {})
+        customer = request.session.get('ec_customer', {})
+        if not cart or not customer:
+            return redirect('booking:shop_checkout')
+
+        customer_name = customer.get('customer_name', '')
+        customer_email = customer.get('customer_email', '')
+        customer_phone = customer.get('customer_phone', '')
+        customer_address = customer.get('customer_address', '')
+
         with transaction.atomic():
-            # Determine store from first product
             first_pid = list(cart.keys())[0]
             try:
                 first_product = Product.objects.get(pk=first_pid)
@@ -2613,8 +2714,14 @@ class ShopCheckoutView(View):
                 messages.error(request, '商品が見つかりません。')
                 return redirect('booking:shop_cart')
 
+            store = first_product.store
+
+            # 送料計算
+            subtotal = sum(item['price'] * item['qty'] for item in cart.values())
+            shipping_fee = get_shipping_fee(store, subtotal)
+
             order = Order.objects.create(
-                store=first_product.store,
+                store=store,
                 status=Order.STATUS_OPEN,
                 table_label=f'EC: {customer_name}',
                 channel='ec',
@@ -2623,6 +2730,7 @@ class ShopCheckoutView(View):
                 customer_phone=customer_phone,
                 customer_address=customer_address,
                 shipping_status='pending',
+                shipping_fee=shipping_fee,
             )
 
             for product_id, item in cart.items():
@@ -2640,7 +2748,6 @@ class ShopCheckoutView(View):
                     unit_price=product.price,
                 )
 
-                # Deduct stock (product is already select_for_update locked)
                 Product.objects.filter(pk=product.pk).update(stock=F('stock') - abs(int(qty)))
                 product.refresh_from_db(fields=['stock'])
 
@@ -2652,8 +2759,9 @@ class ShopCheckoutView(View):
                     note=f'EC order #{order.id}',
                 )
 
-        # Clear cart & redirect to payment
+        # Clear cart & customer info, redirect to payment
         request.session['ec_cart'] = {}
+        request.session.pop('ec_customer', None)
         request.session['ec_pending_order_id'] = order.id
         return redirect('booking:shop_payment', order_id=order.id)
 

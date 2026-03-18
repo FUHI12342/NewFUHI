@@ -39,6 +39,7 @@ from booking.models import (
     TaxServiceCharge,
     EvaluationCriteria,
     StaffEvaluation,
+    ShippingConfig,
 )
 
 
@@ -116,6 +117,9 @@ class Command(BaseCommand):
 
         # ── スタッフ評価 ──
         self._seed_staff_evaluations()
+
+        # ── 送料設定 ──
+        self._seed_shipping_config()
 
         self.stdout.write(self.style.SUCCESS('\n=== モックデータ投入完了 ==='))
 
@@ -1488,6 +1492,21 @@ class Command(BaseCommand):
 
         self.stdout.write(self.style.SUCCESS(
             f'  EvaluationCriteria: {len(criteria_data)}件, StaffEvaluation: {created}件'))
+
+    def _seed_shipping_config(self):
+        """送料設定デモデータ"""
+        self.stdout.write('送料設定...')
+        ShippingConfig.objects.update_or_create(
+            store=self.store,
+            defaults={
+                'is_enabled': True,
+                'shipping_fee': 500,
+                'free_shipping_threshold': 5000,
+                'delivery_area': '日本国内全域',
+                'note': '5,000円以上のお買い上げで送料無料',
+            },
+        )
+        self.stdout.write(self.style.SUCCESS('  ShippingConfig: 1件'))
 
 
 # F() import shortcut

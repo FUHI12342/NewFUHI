@@ -180,8 +180,8 @@ class TestECOrderConfirmationView:
 
 @pytest.mark.django_db
 class TestShopCheckoutRedirect:
-    def test_post_redirects_to_payment(self, api_client, ec_product):
-        # Put product in cart via session
+    def test_post_redirects_to_confirm(self, api_client, ec_product):
+        """checkout POST → 確認画面へリダイレクト"""
         session = api_client.session
         session['ec_cart'] = {
             str(ec_product.id): {
@@ -198,9 +198,31 @@ class TestShopCheckoutRedirect:
             'customer_email': 'test@example.com',
         })
         assert resp.status_code == 302
+        assert 'confirm' in resp.url
+
+    def test_confirm_post_creates_order(self, api_client, ec_product):
+        """確認画面 POST → 注文作成 → 決済ページへリダイレクト"""
+        session = api_client.session
+        session['ec_cart'] = {
+            str(ec_product.id): {
+                'name': ec_product.name,
+                'price': ec_product.price,
+                'qty': 1,
+            }
+        }
+        session['ec_customer'] = {
+            'customer_name': 'テスト太郎',
+            'customer_email': 'test@example.com',
+            'customer_phone': '',
+            'customer_address': '',
+        }
+        session.save()
+
+        url = reverse('booking:shop_confirm')
+        resp = api_client.post(url)
+        assert resp.status_code == 302
         assert 'payment' in resp.url
 
-        # Verify order was created
         order = Order.objects.filter(channel='ec').last()
         assert order is not None
         assert order.customer_name == 'テスト太郎'

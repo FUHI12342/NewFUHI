@@ -74,7 +74,7 @@
     <table>
       <thead><tr><th>{% trans "スタッフ" %}</th><th>{% trans "種別" %}</th><th>{% trans "時刻" %}</th></tr></thead>
       <tbody id="stamp-log-body">
-        <tr><td colspan="3" style="text-align:center;color:#999;">{% trans "読込中..." %}</td></tr>
+        <tr><td colspan="3" style="text-align:center;color:#6b7280;">{% trans "読込中..." %}</td></tr>
       </tbody>
     </table>
   </div>
@@ -144,7 +144,7 @@ function refreshLog() {
   .then(data => {
     const tbody = document.getElementById('stamp-log-body');
     if (!data.length) {
-      tbody.innerHTML = '<tr><td colspan="3" style="text-align:center;color:#999;">打刻なし</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="3" style="text-align:center;color:#6b7280;">打刻なし</td></tr>';
       return;
     }
     // Flatten grouped data into chronological list (newest first)

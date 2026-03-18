@@ -425,6 +425,7 @@ JAZZMIN_SETTINGS = {
     "changeform_format": "horizontal_tabs",
     "language_chooser": True,
     "custom_css": "css/jazzmin_overrides.css",
+    "custom_js": "js/admin_darkmode.js",
 }
 
 JAZZMIN_UI_TWEAKS = {

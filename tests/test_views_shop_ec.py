@@ -238,6 +238,7 @@ class TestShopCheckoutView:
         }
         session.save()
 
+        # Step 1: checkout POST → 確認画面へリダイレクト
         url = reverse('booking:shop_checkout')
         resp = api_client.post(url, {
             'customer_name': 'テスト太郎',
@@ -245,7 +246,13 @@ class TestShopCheckoutView:
             'customer_phone': '090-1234-5678',
             'customer_address': '東京都新宿区',
         })
-        assert resp.status_code == 302  # redirect to shop
+        assert resp.status_code == 302
+        assert 'confirm' in resp.url
+
+        # Step 2: confirm POST → 注文作成
+        confirm_url = reverse('booking:shop_confirm')
+        resp = api_client.post(confirm_url)
+        assert resp.status_code == 302
 
         order = Order.objects.first()
         assert order is not None

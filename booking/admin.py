@@ -80,6 +80,7 @@ from .models import (
     ECProduct,
     ShiftStaffRequirement,
     ShiftStaffRequirementOverride,
+    ShippingConfig,
 )
 
 
@@ -1152,6 +1153,45 @@ custom_site.register(Product, ProductAdmin)
 custom_site.register(ECCategory, ECCategoryAdmin)
 custom_site.register(ECProduct, ECProductAdmin)
 custom_site.register(Order, OrderAdmin)
+
+
+class ShippingConfigAdmin(admin.ModelAdmin):
+    """送料設定"""
+    list_display = ('store', 'is_enabled', 'shipping_fee', 'free_shipping_threshold')
+    fieldsets = (
+        (None, {'fields': ('store', 'is_enabled', 'shipping_fee', 'free_shipping_threshold')}),
+        (_('配達情報'), {'fields': ('delivery_area', 'note')}),
+    )
+
+    def has_change_permission(self, request, obj=None):
+        if _is_owner_or_super(request):
+            return True
+        try:
+            return request.user.staff.is_store_manager
+        except Staff.DoesNotExist:
+            return False
+
+    def has_add_permission(self, request):
+        return self.has_change_permission(request)
+
+    def has_delete_permission(self, request, obj=None):
+        return self.has_change_permission(request)
+
+    def has_view_permission(self, request, obj=None):
+        if request.user.is_superuser:
+            return True
+        from .admin_site import get_user_role, _get_allowed_models_for_role
+        role = get_user_role(request)
+        if role == 'none':
+            return False
+        allowed = _get_allowed_models_for_role(role)
+        return allowed is None or 'shippingconfig' in allowed
+
+    def has_module_permission(self, request):
+        return self.has_view_permission(request)
+
+
+custom_site.register(ShippingConfig, ShippingConfigAdmin)
 # StockMovement: 管理画面から廃止（モデルは残す）
 # custom_site.register(StockMovement, StockMovementAdmin)
 

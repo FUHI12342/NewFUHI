@@ -39,7 +39,7 @@ GROUPS = [
     {'slug': 'order', 'name': _('注文管理'), 'models': ['order'], 'hidden_models': ['order']},
     {'slug': 'pos', 'name': _('レジ（POS）'), 'models': ['postransaction', 'taxservicecharge']},
     {'slug': 'kitchen', 'name': _('キッチンディスプレイ'), 'models': []},
-    {'slug': 'ec_shop', 'name': _('オンラインショップ'), 'models': ['eccategory', 'ecproduct']},
+    {'slug': 'ec_shop', 'name': _('オンラインショップ'), 'models': ['eccategory', 'ecproduct', 'shippingconfig']},
     {'slug': 'table_order', 'name': _('店舗管理'), 'models': ['store', 'tableseat']},
     {'slug': 'iot', 'name': _('IoT管理'), 'models': ['iotdevice', 'ventilationautocontrol'], 'hidden_models': ['iotdevice']},
     {'slug': 'payment', 'name': _('決済'), 'models': ['paymentmethod'], 'hidden': True},
@@ -65,10 +65,10 @@ ROLE_VISIBLE_GROUPS = {
         'pin_clock', 'reservation', 'shift', 'staff_manage',
         'menu_manage', 'inventory', 'order', 'pos', 'kitchen',
         'ec_shop', 'table_order', 'page_settings',
-        'user_account', 'security',
+        'user_account', 'security', 'iot',
     ],
     'staff': [
-        'pin_clock', 'shift', 'staff_manage',
+        'pin_clock', 'shift', 'staff_manage', 'iot',
     ],
 }
 
@@ -124,6 +124,7 @@ SIDEBAR_CUSTOM_LINKS = {
     ],
     'ec_shop': [
         {'name': _('EC注文管理'), 'admin_url': '/admin/ec/orders/', 'icon': 'fas fa-shipping-fast'},
+        {'name': _('送料設定'), 'admin_url': '/admin/booking/shippingconfig/', 'icon': 'fas fa-truck'},
     ],
     'inventory': [
         {'name': _('在庫ダッシュボード'), 'admin_url': '/admin/inventory/', 'icon': 'fas fa-boxes'},
@@ -194,7 +195,7 @@ DEFAULT_ALLOWED_MODELS = {
         'visitorcount', 'visitoranalyticsconfig',
         'staffrecommendationmodel', 'staffrecommendationresult',
         'staffevaluation', 'evaluationcriteria',
-        'eccategory', 'ecproduct',
+        'eccategory', 'ecproduct', 'shippingconfig',
     ],
     'staff': [
         'schedule', 'order', 'staff',

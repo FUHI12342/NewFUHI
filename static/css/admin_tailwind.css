@@ -321,13 +321,13 @@ body.login #header {
 
 /* ==============================
    Force Light Theme — Django nav-sidebar override
+   (only when NOT in dark mode)
    ============================== */
-/* Django 4.x default dark nav-sidebar — force hidden and override dark vars */
 #nav-sidebar {
     display: none !important;
 }
-/* Override Django's dark CSS custom properties with light values */
-:root {
+/* Light mode CSS custom properties */
+:root:not([data-bs-theme="dark"]) {
     --body-bg: var(--gray-50, #f9fafb) !important;
     --darkened-bg: var(--gray-100, #f3f4f6) !important;
     --selected-bg: var(--gray-200, #e5e7eb) !important;
@@ -362,92 +362,258 @@ body.login #header {
     --message-warning-bg: rgba(247, 144, 9, 0.08) !important;
     --message-error-bg: rgba(240, 68, 56, 0.08) !important;
 }
-/* Prevent dark mode media query from overriding */
-@media (prefers-color-scheme: dark) {
-    :root {
-        --body-bg: var(--gray-50, #f9fafb) !important;
-        --darkened-bg: var(--gray-100, #f3f4f6) !important;
-        --selected-bg: var(--gray-200, #e5e7eb) !important;
-        --selected-row: var(--gray-50, #f9fafb) !important;
-        --body-fg: var(--gray-900, #111827) !important;
-        --body-quiet-color: var(--gray-500, #6b7280) !important;
-        --body-loud-color: var(--gray-900, #111827) !important;
-        --header-bg: var(--brand-primary, #465fff) !important;
-        --header-color: #fff !important;
-        --header-branding-color: #fff !important;
-        --header-link-color: #fff !important;
-        --breadcrumbs-fg: var(--gray-600, #4b5563) !important;
-        --breadcrumbs-link-fg: var(--brand-primary, #465fff) !important;
-        --breadcrumbs-bg: var(--gray-50, #f9fafb) !important;
-        --link-fg: var(--brand-primary, #465fff) !important;
-        --link-hover-color: var(--brand-primary, #465fff) !important;
-        --link-selected-fg: var(--brand-primary, #465fff) !important;
-        --hairline-color: var(--gray-200, #e5e7eb) !important;
-        --border-color: var(--gray-200, #e5e7eb) !important;
-        --object-tools-fg: #fff !important;
-        --object-tools-bg: var(--brand-primary, #465fff) !important;
-        --object-tools-hover-bg: var(--brand-primary, #465fff) !important;
-        --button-bg: var(--brand-primary, #465fff) !important;
-        --button-hover-bg: var(--brand-primary, #465fff) !important;
-        --default-button-bg: var(--brand-primary, #465fff) !important;
-        --default-button-hover-bg: var(--brand-primary, #465fff) !important;
-        --message-success-bg: rgba(18, 183, 106, 0.08) !important;
-        --message-warning-bg: rgba(247, 144, 9, 0.08) !important;
-        --message-error-bg: rgba(240, 68, 56, 0.08) !important;
-    }
+/* Dark mode CSS custom properties */
+:root[data-bs-theme="dark"] {
+    --body-bg: #1a1a2e !important;
+    --darkened-bg: #16213e !important;
+    --selected-bg: #253352 !important;
+    --selected-row: #1e2a45 !important;
+    --body-fg: #e0e0e0 !important;
+    --body-quiet-color: #9ca3af !important;
+    --body-loud-color: #e0e0e0 !important;
+    --header-color: #fff !important;
+    --header-branding-color: #fff !important;
+    --header-bg: #1e2a45 !important;
+    --header-link-color: #93c5fd !important;
+    --breadcrumbs-fg: #9ca3af !important;
+    --breadcrumbs-link-fg: #93c5fd !important;
+    --breadcrumbs-bg: #1a1a2e !important;
+    --link-fg: #93c5fd !important;
+    --link-hover-color: #bfdbfe !important;
+    --link-selected-fg: #93c5fd !important;
+    --hairline-color: #2d3a5c !important;
+    --border-color: #2d3a5c !important;
+    --object-tools-fg: #fff !important;
+    --object-tools-bg: #253352 !important;
+    --object-tools-hover-bg: #2d3a5c !important;
+    --button-bg: #3b82f6 !important;
+    --button-hover-bg: #2563eb !important;
+    --default-button-bg: #3b82f6 !important;
+    --default-button-hover-bg: #2563eb !important;
+    --close-button-bg: #4b5563 !important;
+    --close-button-hover-bg: #374151 !important;
+    --delete-button-bg: #dc2626 !important;
+    --delete-button-hover-bg: #b91c1c !important;
+    --message-success-bg: rgba(18, 183, 106, 0.15) !important;
+    --message-warning-bg: rgba(247, 144, 9, 0.15) !important;
+    --message-error-bg: rgba(240, 68, 56, 0.15) !important;
 }
-/* Force white/light backgrounds on all admin containers */
-body, #container, #content, #content-main,
-.dashboard #content, .dashboard #content-main {
+/* Light mode: force light backgrounds */
+:root:not([data-bs-theme="dark"]) body,
+:root:not([data-bs-theme="dark"]) #container,
+:root:not([data-bs-theme="dark"]) #content,
+:root:not([data-bs-theme="dark"]) #content-main,
+:root:not([data-bs-theme="dark"]) .dashboard #content,
+:root:not([data-bs-theme="dark"]) .dashboard #content-main {
     background: var(--gray-50, #f9fafb) !important;
     color: var(--gray-900, #111827) !important;
 }
-/* Ensure module cards stay white, not dark */
-.module, .app-module, #changelist, .change-list,
-#changelist-form, .results, .paginator,
-form, fieldset, .form-row {
+:root:not([data-bs-theme="dark"]) .module,
+:root:not([data-bs-theme="dark"]) .app-module,
+:root:not([data-bs-theme="dark"]) #changelist,
+:root:not([data-bs-theme="dark"]) .change-list,
+:root:not([data-bs-theme="dark"]) #changelist-form,
+:root:not([data-bs-theme="dark"]) .results,
+:root:not([data-bs-theme="dark"]) .paginator,
+:root:not([data-bs-theme="dark"]) form,
+:root:not([data-bs-theme="dark"]) fieldset,
+:root:not([data-bs-theme="dark"]) .form-row {
     background: #fff !important;
     color: var(--gray-900, #111827) !important;
 }
-/* Module header — brand color, not dark */
-.module h2, .module caption, .inline-group h2 {
+:root:not([data-bs-theme="dark"]) .module h2,
+:root:not([data-bs-theme="dark"]) .module caption,
+:root:not([data-bs-theme="dark"]) .inline-group h2 {
     background: var(--brand-primary, #465fff) !important;
     color: #fff !important;
 }
-/* Table rows — light */
-#result_list tbody tr, #changelist table tbody tr {
+:root:not([data-bs-theme="dark"]) #result_list tbody tr,
+:root:not([data-bs-theme="dark"]) #changelist table tbody tr {
     background: #fff !important;
 }
-#result_list tbody tr:nth-child(odd), #changelist table tbody tr:nth-child(odd) {
+:root:not([data-bs-theme="dark"]) #result_list tbody tr:nth-child(odd),
+:root:not([data-bs-theme="dark"]) #changelist table tbody tr:nth-child(odd) {
     background: var(--gray-50, #f9fafb) !important;
 }
-#result_list tbody tr:hover, #changelist table tbody tr:hover {
+:root:not([data-bs-theme="dark"]) #result_list tbody tr:hover,
+:root:not([data-bs-theme="dark"]) #changelist table tbody tr:hover {
     background: var(--gray-100, #f3f4f6) !important;
 }
-/* Table header */
-#result_list thead th, #changelist table thead th {
+:root:not([data-bs-theme="dark"]) #result_list thead th,
+:root:not([data-bs-theme="dark"]) #changelist table thead th {
     background: var(--gray-50, #f9fafb) !important;
     color: var(--gray-700, #374151) !important;
     border-bottom: 2px solid var(--gray-200, #e5e7eb) !important;
 }
-/* Sidebar filter — white background */
-#changelist-filter {
+:root:not([data-bs-theme="dark"]) #changelist-filter {
     background: #fff !important;
     border: 1px solid var(--gray-200, #e5e7eb) !important;
     border-radius: 12px !important;
 }
-#changelist-filter h2 {
+:root:not([data-bs-theme="dark"]) #changelist-filter h2 {
     background: var(--brand-primary, #465fff) !important;
     color: #fff !important;
     border-radius: 12px 12px 0 0 !important;
 }
-#changelist-filter h3 {
+:root:not([data-bs-theme="dark"]) #changelist-filter h3 {
     color: var(--gray-700, #374151) !important;
 }
-/* Footer */
-#footer {
+:root:not([data-bs-theme="dark"]) #footer {
     background: var(--gray-50, #f9fafb) !important;
     color: var(--gray-500, #6b7280) !important;
+}
+/* Dark mode: dark backgrounds for admin containers */
+[data-bs-theme="dark"] body,
+[data-bs-theme="dark"] #container,
+[data-bs-theme="dark"] #content,
+[data-bs-theme="dark"] #content-main,
+[data-bs-theme="dark"] .dashboard #content,
+[data-bs-theme="dark"] .dashboard #content-main {
+    background: #1a1a2e !important;
+    color: #e0e0e0 !important;
+}
+[data-bs-theme="dark"] .module,
+[data-bs-theme="dark"] .app-module,
+[data-bs-theme="dark"] #changelist,
+[data-bs-theme="dark"] .change-list,
+[data-bs-theme="dark"] #changelist-form,
+[data-bs-theme="dark"] .results,
+[data-bs-theme="dark"] .paginator,
+[data-bs-theme="dark"] form,
+[data-bs-theme="dark"] fieldset,
+[data-bs-theme="dark"] .form-row {
+    background: #16213e !important;
+    color: #e0e0e0 !important;
+}
+[data-bs-theme="dark"] .module h2,
+[data-bs-theme="dark"] .module caption,
+[data-bs-theme="dark"] .inline-group h2 {
+    background: #1e2a45 !important;
+    color: #e0e0e0 !important;
+}
+[data-bs-theme="dark"] #result_list tbody tr,
+[data-bs-theme="dark"] #changelist table tbody tr {
+    background: #16213e !important;
+}
+[data-bs-theme="dark"] #result_list tbody tr:nth-child(odd),
+[data-bs-theme="dark"] #changelist table tbody tr:nth-child(odd) {
+    background: #1a1a2e !important;
+}
+[data-bs-theme="dark"] #result_list tbody tr:hover,
+[data-bs-theme="dark"] #changelist table tbody tr:hover {
+    background: #253352 !important;
+}
+[data-bs-theme="dark"] #result_list thead th,
+[data-bs-theme="dark"] #changelist table thead th {
+    background: #1e2a45 !important;
+    color: #9ca3af !important;
+    border-bottom: 2px solid #2d3a5c !important;
+}
+[data-bs-theme="dark"] #result_list td,
+[data-bs-theme="dark"] #changelist table td {
+    color: #e0e0e0 !important;
+    border-color: #2d3a5c !important;
+}
+[data-bs-theme="dark"] #result_list a,
+[data-bs-theme="dark"] #changelist table a {
+    color: #93c5fd !important;
+}
+[data-bs-theme="dark"] #changelist-filter {
+    background: #16213e !important;
+    border: 1px solid #2d3a5c !important;
+    border-radius: 12px !important;
+}
+[data-bs-theme="dark"] #changelist-filter h2 {
+    background: #1e2a45 !important;
+    color: #e0e0e0 !important;
+    border-radius: 12px 12px 0 0 !important;
+}
+[data-bs-theme="dark"] #changelist-filter h3 {
+    color: #9ca3af !important;
+}
+[data-bs-theme="dark"] #changelist-filter li a {
+    color: #93c5fd !important;
+}
+[data-bs-theme="dark"] #changelist-filter li.selected a {
+    color: #e0e0e0 !important;
+}
+[data-bs-theme="dark"] #footer {
+    background: #1a1a2e !important;
+    color: #9ca3af !important;
+}
+/* Dark mode: form inputs */
+[data-bs-theme="dark"] .form-row input,
+[data-bs-theme="dark"] .form-row select,
+[data-bs-theme="dark"] .form-row textarea,
+[data-bs-theme="dark"] .form-control {
+    background: #1e2a45 !important;
+    color: #e0e0e0 !important;
+    border-color: #2d3a5c !important;
+}
+/* Dark mode: breadcrumbs */
+[data-bs-theme="dark"] .breadcrumb {
+    background: transparent !important;
+}
+[data-bs-theme="dark"] .breadcrumb a {
+    color: #93c5fd !important;
+}
+[data-bs-theme="dark"] .breadcrumb-item.active {
+    color: #9ca3af !important;
+}
+/* Dark mode: alert messages */
+[data-bs-theme="dark"] .messagelist li.success {
+    background: rgba(18, 183, 106, 0.15) !important;
+    color: #6ee7b7 !important;
+}
+[data-bs-theme="dark"] .messagelist li.error {
+    background: rgba(240, 68, 56, 0.15) !important;
+    color: #fca5a5 !important;
+}
+[data-bs-theme="dark"] .messagelist li.warning {
+    background: rgba(247, 144, 9, 0.15) !important;
+    color: #fcd34d !important;
+}
+[data-bs-theme="dark"] .messagelist li.info {
+    background: rgba(70, 95, 255, 0.15) !important;
+    color: #93c5fd !important;
+}
+/* Dark mode: sidebar edit bar + account bar */
+[data-bs-theme="dark"] .sidebar-edit-bar {
+    background: #16213e !important;
+    border-color: #2d3a5c !important;
+}
+[data-bs-theme="dark"] .sidebar-edit-bar button {
+    background: #1e2a45 !important;
+    border-color: #2d3a5c !important;
+    color: #e0e0e0 !important;
+}
+[data-bs-theme="dark"] .admin-account-bar__item {
+    background: #16213e !important;
+    border-color: #2d3a5c !important;
+    color: #93c5fd !important;
+}
+/* Dark mode: app list cards */
+[data-bs-theme="dark"] .app-module {
+    border-color: #2d3a5c !important;
+}
+[data-bs-theme="dark"] .app-module table a {
+    color: #93c5fd !important;
+}
+/* Dark mode: help text + labels */
+[data-bs-theme="dark"] .help,
+[data-bs-theme="dark"] .helptext {
+    color: #9ca3af !important;
+}
+[data-bs-theme="dark"] label {
+    color: #e0e0e0 !important;
+}
+/* Dark mode: pagination */
+[data-bs-theme="dark"] .paginator {
+    border-top-color: #2d3a5c !important;
+    color: #9ca3af !important;
+}
+[data-bs-theme="dark"] .paginator a {
+    color: #93c5fd !important;
 }
 
 /* ==============================
