@@ -135,8 +135,9 @@ class TestSidebarRoleLinks:
         assert len(shift_links['staff']) == 2
         assert 'シフトカレンダー' in str(shift_links['staff'][0]['name'])
         assert '本日のシフト' in str(shift_links['staff'][1]['name'])
-        assert len(shift_links['manager']) == 3
-        assert '必要人数設定' in str(shift_links['manager'][2]['name'])
+        assert len(shift_links['manager']) == 4
+        assert '曜日別' in str(shift_links['manager'][2]['name'])
+        assert '日付指定' in str(shift_links['manager'][3]['name'])
 
 
 # ==============================
