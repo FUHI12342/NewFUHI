@@ -574,6 +574,7 @@ class ProductTranslationInline(admin.TabularInline):
 class CategoryAdmin(admin.ModelAdmin):
     """店内メニュー用カテゴリ（is_restaurant_menu=True のみ）"""
     list_display = ('store', 'name', 'sort_order')
+    list_display_links = ('name',)
     search_fields = ('name', 'store__name')
     list_editable = ('sort_order',)
 
@@ -648,6 +649,7 @@ class ProductAdmin(admin.ModelAdmin):
         'is_sold_out',
         'display_image',
     )
+    list_display_links = ('sku', 'short_name')
 
     search_fields = ('sku', 'name', 'store__name')
     list_editable = ('price', 'stock', 'low_stock_threshold', 'is_active')
@@ -777,6 +779,7 @@ class ProductAdmin(admin.ModelAdmin):
 class ECCategoryAdmin(admin.ModelAdmin):
     """EC商品カテゴリ（is_restaurant_menu=False のみ）"""
     list_display = ('store', 'name', 'sort_order')
+    list_display_links = ('name',)
     search_fields = ('name', 'store__name')
     list_editable = ('sort_order',)
 
@@ -829,6 +832,7 @@ class ECProductAdmin(admin.ModelAdmin):
         'price', 'stock', 'low_stock_threshold',
         'is_active', 'is_sold_out', 'display_image',
     )
+    list_display_links = ('sku', 'short_name')
     search_fields = ('sku', 'name', 'store__name')
     list_editable = ('price', 'stock', 'low_stock_threshold', 'is_active')
     inlines = [ProductTranslationInline]
