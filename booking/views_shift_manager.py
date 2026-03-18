@@ -264,14 +264,29 @@ class TodayShiftTimelineView(AdminSidebarMixin, TemplateView):
         store = _get_user_store(self.request)
         today = date.today()
 
-        staffs = list(
-            Staff.objects.filter(store=store).order_by('name')
-        ) if store else []
+        # ロール別フィルタ: 一般スタッフは自分のシフトのみ表示
+        user = self.request.user
+        staff_obj = getattr(user, 'staff', None)
+        is_regular_staff = (
+            staff_obj and not user.is_superuser
+            and not staff_obj.is_store_manager
+            and not staff_obj.is_owner
+            and not staff_obj.is_developer
+        )
 
-        assignments = ShiftAssignment.objects.filter(
-            period__store=store,
-            date=today,
-        ).select_related('staff', 'period') if store else ShiftAssignment.objects.none()
+        if is_regular_staff:
+            staffs = [staff_obj]
+            assignments = ShiftAssignment.objects.filter(
+                staff=staff_obj, date=today,
+            ).select_related('staff', 'period')
+        elif store:
+            staffs = list(Staff.objects.filter(store=store).order_by('name'))
+            assignments = ShiftAssignment.objects.filter(
+                period__store=store, date=today,
+            ).select_related('staff', 'period')
+        else:
+            staffs = []
+            assignments = ShiftAssignment.objects.none()
 
         hours = list(range(9, 24))
 

@@ -162,17 +162,17 @@ class TestAdminTopAccess:
 # ==============================
 
 class TestStaffChangelistAccess:
-    """スタッフ一覧は manager 以上のみアクセス可能."""
+    """スタッフ一覧: 一般スタッフは自分のchange formにリダイレクト."""
 
     STAFF_CHANGELIST = '/admin/booking/staff/'
 
-    def test_fortune_teller_forbidden(self, fortune_teller_client):
+    def test_fortune_teller_redirects_to_own_change(self, fortune_teller_client):
         resp = fortune_teller_client.get(self.STAFF_CHANGELIST)
-        assert resp.status_code == 403
+        assert resp.status_code == 302
 
-    def test_store_staff_forbidden(self, store_staff_client):
+    def test_store_staff_redirects_to_own_change(self, store_staff_client):
         resp = store_staff_client.get(self.STAFF_CHANGELIST)
-        assert resp.status_code == 403
+        assert resp.status_code == 302
 
     def test_manager_can_access(self, manager_role_client):
         resp = manager_role_client.get(self.STAFF_CHANGELIST)
@@ -268,11 +268,15 @@ class TestFortuneTellerVsStoreStaff:
         '/admin/',
     ]
 
+    # /admin/booking/staff/ は changelist_view でリダイレクトするため除外
+    REDIRECT_ENDPOINTS = [
+        '/admin/booking/staff/',
+    ]
+
     FORBIDDEN_ENDPOINTS = [
         '/admin/booking/store/',
         '/admin/booking/payrollperiod/',
         '/admin/booking/employmentcontract/',
-        '/admin/booking/staff/',       # Django permission なし → 403
         '/admin/booking/schedule/',    # Django permission なし → 403
     ]
 
@@ -281,6 +285,12 @@ class TestFortuneTellerVsStoreStaff:
         ft_resp = fortune_teller_client.get(url)
         ss_resp = store_staff_client.get(url)
         assert ft_resp.status_code == ss_resp.status_code == 200
+
+    @pytest.mark.parametrize("url", REDIRECT_ENDPOINTS)
+    def test_both_redirect(self, fortune_teller_client, store_staff_client, url):
+        ft_resp = fortune_teller_client.get(url)
+        ss_resp = store_staff_client.get(url)
+        assert ft_resp.status_code == ss_resp.status_code == 302
 
     @pytest.mark.parametrize("url", FORBIDDEN_ENDPOINTS)
     def test_both_forbidden(self, fortune_teller_client, store_staff_client, url):

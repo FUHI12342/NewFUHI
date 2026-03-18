@@ -3,6 +3,8 @@ from django.contrib import admin, messages
 from django.contrib.admin.sites import AdminSite
 from django.db import models
 from django.db.models import F
+from django.shortcuts import redirect
+from django.urls import reverse
 from django.utils.html import format_html
 from django.utils.translation import gettext_lazy as _
 import json
@@ -140,17 +142,31 @@ class StaffAdmin(admin.ModelAdmin):
     # 全フィールド表示（オーナー/開発者/superuser）
     _full_fieldsets = (
         (None, {'fields': ('user', 'store', 'name', 'staff_type')}),
-        (_('プロフィール'), {'fields': ('thumbnail', 'introduction', 'price', 'line_id')}),
+        (_('プロフィール'), {'fields': ('thumbnail', 'introduction', 'price', 'slot_duration', 'line_id')}),
         (_('通知設定'), {'fields': ('notify_booking', 'notify_shift', 'notify_business')}),
+        (_('メニュー表示設定'), {'fields': ('can_see_inventory', 'can_see_orders')}),
         (_('権限'), {'fields': ('is_owner', 'is_store_manager', 'is_developer', 'is_recommended')}),
         (_('勤怠'), {'fields': ('attendance_pin',)}),
     )
 
     # スタッフ/キャスト本人が編集できるフィールド
     _profile_fieldsets = (
-        (_('マイプロフィール'), {'fields': ('name', 'thumbnail', 'introduction', 'price', 'line_id')}),
+        (_('マイプロフィール'), {'fields': ('name', 'thumbnail', 'introduction', 'price', 'slot_duration', 'line_id')}),
         (_('通知設定'), {'fields': ('notify_booking', 'notify_shift', 'notify_business')}),
     )
+
+    def changelist_view(self, request, extra_context=None):
+        """一般スタッフは自分のchange formにリダイレクト"""
+        if not _is_owner_or_super(request):
+            try:
+                staff = request.user.staff
+                if not staff.is_store_manager and not staff.is_developer:
+                    return redirect(
+                        reverse('admin:booking_staff_change', args=[staff.pk])
+                    )
+            except Staff.DoesNotExist:
+                pass
+        return super().changelist_view(request, extra_context=extra_context)
 
     def get_fieldsets(self, request, obj=None):
         if _is_owner_or_super(request):
@@ -201,8 +217,10 @@ class StaffAdmin(admin.ModelAdmin):
             staff = request.user.staff
             if staff.is_store_manager:
                 return True
-            else:
-                return obj is not None and obj.id == staff.id
+            # changelist アクセスを許可（リダイレクトで処理）+ 自分のレコード
+            if obj is None:
+                return True
+            return obj.id == staff.id
         except Staff.DoesNotExist:
             return False
 

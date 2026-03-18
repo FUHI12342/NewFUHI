@@ -132,8 +132,9 @@ class TestSidebarRoleLinks:
         shift_links = SIDEBAR_CUSTOM_LINKS_BY_ROLE['shift']
         assert 'manager' in shift_links
         assert 'staff' in shift_links
-        assert len(shift_links['staff']) == 1
+        assert len(shift_links['staff']) == 2
         assert 'シフトカレンダー' in str(shift_links['staff'][0]['name'])
+        assert '本日のシフト' in str(shift_links['staff'][1]['name'])
         assert len(shift_links['manager']) == 2
 
 

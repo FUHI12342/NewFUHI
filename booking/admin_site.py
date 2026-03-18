@@ -141,6 +141,7 @@ SIDEBAR_CUSTOM_LINKS_BY_ROLE = {
         ],
         'staff': [
             {'name': _('シフトカレンダー'), 'admin_url': '/admin/shift/calendar/', 'icon': 'fas fa-calendar-alt'},
+            {'name': _('本日のシフト'), 'admin_url': '/admin/shift/today/', 'icon': 'fas fa-clock'},
         ],
     },
 }
@@ -157,7 +158,7 @@ SIDEBAR_CUSTOM_LINKS_BY_ROLE['staff_manage'] = {
         {'name': _('勤怠実績'), 'admin_url': '/admin/attendance/performance/', 'icon': 'fas fa-chart-bar'},
     ],
     'staff': [
-        {'name': _('マイページ'), 'admin_url': '/mypage/', 'icon': 'fas fa-id-card'},
+        {'name': _('マイページ'), 'admin_url': '/admin/booking/staff/', 'icon': 'fas fa-id-card'},
     ],
 }
 for _role in ('owner', 'developer', 'superuser'):
@@ -192,6 +193,7 @@ DEFAULT_ALLOWED_MODELS = {
         'schedule', 'order', 'staff',
         'iotdevice', 'product',
         'shiftrequest',
+        'stockmovement',
     ],
 }
 
@@ -271,7 +273,7 @@ class RoleBasedAdminSite(AdminSite):
         # superuser は Django 標準の権限システムで全モデル表示
         if role == 'superuser':
             raw = super().get_app_list(request, app_label)
-            return self._regroup_apps(raw, role=role)
+            return self._regroup_apps(raw, role=role, request=request)
 
         # 未認証 / Staff なしユーザー
         if role == 'none':
@@ -286,7 +288,7 @@ class RoleBasedAdminSite(AdminSite):
 
         # None = 全モデル表示（developer / owner のデフォルト）
         if allowed is None:
-            return self._regroup_apps(raw, role=role)
+            return self._regroup_apps(raw, role=role, request=request)
 
         # リストでフィルタ
         filtered = []
@@ -297,7 +299,7 @@ class RoleBasedAdminSite(AdminSite):
                 app_copy['models'] = models
                 filtered.append(app_copy)
 
-        return self._regroup_apps(filtered, role=role)
+        return self._regroup_apps(filtered, role=role, request=request)
 
     # Role-based permission mapping for admin sidebar display.
     # staff: view only. manager: add/change/view. owner/developer: all.
@@ -341,7 +343,7 @@ class RoleBasedAdminSite(AdminSite):
             app['models'].sort(key=lambda x: x['name'])
         return app_list
 
-    def _regroup_apps(self, raw_app_list, role=None):
+    def _regroup_apps(self, raw_app_list, role=None, request=None):
         """フラットなモデルリストを仮想アプリグループに再構成（slug ベース）"""
         # 全モデルをフラットに収集
         all_models = {}
@@ -379,6 +381,20 @@ class RoleBasedAdminSite(AdminSite):
 
         # ロール別グループフィルタ
         visible_groups = ROLE_VISIBLE_GROUPS.get(role)
+
+        # Per-staff 動的グループ拡張（在庫/注文表示制御）
+        if role == 'staff' and visible_groups is not None and request is not None:
+            try:
+                staff = request.user.staff
+                extra = []
+                if staff.can_see_inventory:
+                    extra.append('inventory')
+                if staff.can_see_orders:
+                    extra.append('order')
+                if extra:
+                    visible_groups = list(visible_groups) + extra
+            except (Staff.DoesNotExist, AttributeError):
+                pass
 
         # GROUPS の定義順に slug ベースで再グループ化
         result = []

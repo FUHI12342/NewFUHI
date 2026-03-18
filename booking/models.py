@@ -134,6 +134,13 @@ class Staff(models.Model):
     introduction = models.TextField(_('自己紹介文'), null=True, blank=True)
     price = models.IntegerField(_('価格'), default=0)
 
+    SLOT_DURATION_CHOICES = [(15, '15分'), (30, '30分'), (45, '45分'), (60, '60分')]
+    slot_duration = models.IntegerField(
+        _('1枠の時間(分)'), choices=SLOT_DURATION_CHOICES,
+        null=True, blank=True, default=None,
+        help_text=_('未設定の場合は店舗設定を使用'),
+    )
+
     # 通知設定（アカウントごとにON/OFF）
     notify_booking = models.BooleanField(
         _('予約通知'), default=True,
@@ -148,6 +155,16 @@ class Staff(models.Model):
         help_text=_('管理者からの業務連絡をLINEで受け取る'),
     )
 
+    # メニュー表示制御（店長が各スタッフに設定）
+    can_see_inventory = models.BooleanField(
+        _('在庫管理を表示'), default=False,
+        help_text=_('ONにすると在庫管理メニューがサイドバーに表示されます'),
+    )
+    can_see_orders = models.BooleanField(
+        _('注文管理を表示'), default=False,
+        help_text=_('ONにすると注文管理メニューがサイドバーに表示されます'),
+    )
+
     attendance_pin = models.CharField(
         _('勤怠PIN'), max_length=128, blank=True, default='',
         help_text=_('4桁の打刻用PINコード（ハッシュ化して保存）'),
@@ -160,6 +177,15 @@ class Staff(models.Model):
 
     def __str__(self):
         return f'{self.store.name} - {self.name}'
+
+    def get_effective_slot_duration(self):
+        """個別設定があればそれを、なければ店舗設定にフォールバック"""
+        if self.slot_duration is not None:
+            return self.slot_duration
+        try:
+            return self.store.schedule_config.slot_duration
+        except Exception:
+            return 60
 
     # --------------------------------------------------
     # 勤怠PIN: ハッシュ化ヘルパー
