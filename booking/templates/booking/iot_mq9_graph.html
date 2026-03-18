@@ -478,6 +478,25 @@
     });
   }
 
+  // ── Stale data warning ──────────────────────────────────
+  var lastSuccess = Date.now();
+  function checkStale(ok) {
+    if (ok) {
+      lastSuccess = Date.now();
+      var el = document.getElementById('stale-warning');
+      if (el) el.remove();
+    } else if (Date.now() - lastSuccess > 60000) {
+      if (!document.getElementById('stale-warning')) {
+        var el = document.createElement('div');
+        el.id = 'stale-warning';
+        el.className = 'bg-yellow-50 border border-yellow-200 text-yellow-700 text-sm px-4 py-2 rounded mb-4';
+        el.textContent = 'データの取得に失敗しています。接続を確認してください。';
+        var container = document.querySelector('.container, main, [role="main"]');
+        if (container) container.prepend(el);
+      }
+    }
+  }
+
   // ── Fetch & render active tab ──────────────────────────
   function refresh() {
     if (currentTab === 'pir') {
@@ -486,7 +505,8 @@
         var labels = (d.labels || []);
         var values = (d.counts || d.values || []);
         renderPIRChart(labels, values);
-      }).catch(function() {});
+        checkStale(true);
+      }).catch(function() { checkStale(false); });
 
       // PIR status
       var pUrl = pirStatusUrl();
@@ -508,8 +528,10 @@
         var last = values.length > 0 ? values[values.length - 1] : null;
         updateStatus(currentTab, last);
         renderLineChart(currentTab, labels, values, cfg.color);
+        checkStale(true);
       }).catch(function() {
         updateStatus(currentTab, null);
+        checkStale(false);
       });
     }
   }

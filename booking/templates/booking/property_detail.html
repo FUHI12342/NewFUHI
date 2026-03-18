@@ -423,8 +423,66 @@
     // Initial timestamp
     updateTimestamp();
 
-    // Start polling
-    setInterval(refreshStatus, REFRESH_INTERVAL);
+    // ── Polling control (prevent memory leak on long-running sessions) ──
+    var pollTimer = null;
+    var lastSuccess = Date.now();
+
+    function startPolling() {
+        stopPolling();
+        refreshStatusWithHealth();
+        pollTimer = setInterval(refreshStatusWithHealth, REFRESH_INTERVAL);
+    }
+
+    function stopPolling() {
+        if (pollTimer) { clearInterval(pollTimer); pollTimer = null; }
+    }
+
+    function refreshStatusWithHealth() {
+        fetch(API_URL)
+            .then(function (resp) { return resp.json(); })
+            .then(function (data) {
+                lastSuccess = Date.now();
+                updateDevices(data.devices || []);
+                updateAlerts(data.alerts || []);
+                updateOccupancy(data.occupied);
+                updateTimestamp();
+                hideStaleWarning();
+            })
+            .catch(function (err) {
+                console.error('IoT refresh failed:', err);
+                if (Date.now() - lastSuccess > 60000) {
+                    showStaleWarning();
+                }
+            });
+    }
+
+    function showStaleWarning() {
+        var el = document.getElementById('stale-warning');
+        if (!el) {
+            el = document.createElement('div');
+            el.id = 'stale-warning';
+            el.className = 'bg-yellow-50 border border-yellow-200 text-yellow-700 text-sm px-4 py-2 rounded mb-4';
+            el.textContent = 'データの取得に失敗しています。接続を確認してください。';
+            var container = document.querySelector('.container, main, [role="main"]');
+            if (container) container.prepend(el);
+        }
+    }
+
+    function hideStaleWarning() {
+        var el = document.getElementById('stale-warning');
+        if (el) el.remove();
+    }
+
+    // Pause polling when tab is hidden to save resources
+    document.addEventListener('visibilitychange', function() {
+        if (document.hidden) {
+            stopPolling();
+        } else {
+            startPolling();
+        }
+    });
+
+    startPolling();
 })();
 </script>
 {% endblock %}

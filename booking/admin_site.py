@@ -38,14 +38,14 @@ GROUPS = [
     {'slug': 'inventory', 'name': _('在庫管理'), 'models': ['stockmovement']},
     {'slug': 'order', 'name': _('注文管理'), 'models': ['order']},
     {'slug': 'pos', 'name': _('レジ（POS）'), 'models': ['postransaction', 'taxservicecharge']},
-    {'slug': 'order_history', 'name': _('オーダー履歴'), 'models': []},
+    {'slug': 'order_history', 'name': _('店内オーダー履歴'), 'models': []},
     {'slug': 'ec_shop', 'name': _('オンラインショップ'), 'models': []},
     {'slug': 'table_order', 'name': _('店舗管理'), 'models': ['store', 'tableseat']},
     {'slug': 'iot', 'name': _('IoT管理'), 'models': ['iotdevice', 'ventilationautocontrol'], 'hidden_models': ['iotdevice']},
     {'slug': 'payment', 'name': _('決済'), 'models': ['paymentmethod'], 'hidden': True},
     {'slug': 'property', 'name': _('物件管理'), 'models': ['property'], 'hidden': True},
     {'slug': 'analytics', 'name': _('分析'), 'models': ['visitorcount', 'visitoranalyticsconfig', 'staffrecommendationmodel', 'staffrecommendationresult', 'businessinsight', 'customerfeedback'], 'hidden': True},
-    {'slug': 'page_settings', 'name': _('ページ設定'), 'models': ['sitesettings', 'notice']},
+    {'slug': 'page_settings', 'name': _('メインページ設定'), 'models': ['sitesettings', 'notice']},
     {'slug': 'page_settings_sub', 'name': _('ページ設定(サブ)'), 'models': ['company', 'media', 'homepagecustomblock', 'herobanner', 'bannerad', 'externallink'], 'hidden': True},
     {'slug': 'system', 'name': _('システム'), 'models': ['systemconfig', 'admintheme', 'dashboardlayout', 'adminmenuconfig']},
     {'slug': 'security', 'name': _('セキュリティ'), 'models': ['securityaudit', 'securitylog', 'costreport']},
@@ -55,12 +55,17 @@ GROUPS = [
 # ロール別に表示するサイドバーグループ（None = 全グループ表示）
 ROLE_VISIBLE_GROUPS = {
     'superuser': None,  # 全表示
-    'developer': None,  # 全表示
+    'developer': [
+        'pin_clock', 'reservation', 'staff_manage',
+        'menu_manage', 'inventory', 'order', 'pos', 'order_history',
+        'ec_shop', 'iot', 'system',
+    ],
     'owner': None,      # 全表示
     'manager': [
         'pin_clock', 'reservation', 'shift', 'staff_manage',
-        'menu_manage', 'order', 'pos', 'order_history',
+        'menu_manage', 'inventory', 'order', 'pos', 'order_history',
         'ec_shop', 'table_order', 'page_settings',
+        'user_account', 'security',
     ],
     'staff': [
         'pin_clock', 'shift', 'staff_manage',

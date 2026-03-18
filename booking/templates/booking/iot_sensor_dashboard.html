@@ -480,15 +480,44 @@
     });
   }
 
+  // ── Stale data warning ──────────────────────────────────
+  var lastSuccess = Date.now();
+  function checkStale(ok) {
+    if (ok) {
+      lastSuccess = Date.now();
+      var el = document.getElementById('stale-warning');
+      if (el) el.remove();
+    } else if (Date.now() - lastSuccess > 60000) {
+      if (!document.getElementById('stale-warning')) {
+        var el = document.createElement('div');
+        el.id = 'stale-warning';
+        el.className = 'bg-yellow-50 border border-yellow-200 text-yellow-700 text-sm px-4 py-2 rounded mb-4';
+        el.textContent = 'データの取得に失敗しています。接続を確認してください。';
+        var container = document.querySelector('.container, main, [role="main"]');
+        if (container) container.prepend(el);
+      }
+    }
+  }
+
   // ── Fetch & render all sensors ─────────────────────────
   function refreshAll() {
+    var anyOk = false;
+    var pending = 4;
+    function done(ok) {
+      if (ok) anyOk = true;
+      pending--;
+      if (pending <= 0) checkStale(anyOk);
+    }
+
     // MQ-9
     fetchJSON(sensorUrl('mq9')).then(function(d) {
       updateLineChart(charts.mq9, d.labels, d.values, 'mq9');
       var latest = d.values.length ? d.values[d.values.length - 1] : '--';
       document.getElementById('val-mq9').textContent = latest;
+      done(true);
     }).catch(function() {
       document.getElementById('val-mq9').textContent = '--';
+      done(false);
     });
 
     // Light
@@ -496,8 +525,10 @@
       updateLineChart(charts.light, d.labels, d.values, 'light');
       var latest = d.values.length ? d.values[d.values.length - 1] : '--';
       document.getElementById('val-light').textContent = latest;
+      done(true);
     }).catch(function() {
       document.getElementById('val-light').textContent = '--';
+      done(false);
     });
 
     // Sound
@@ -505,8 +536,10 @@
       updateLineChart(charts.sound, d.labels, d.values, 'sound');
       var latest = d.values.length ? d.values[d.values.length - 1] : '--';
       document.getElementById('val-sound').textContent = latest;
+      done(true);
     }).catch(function() {
       document.getElementById('val-sound').textContent = '--';
+      done(false);
     });
 
     // PIR Motion
