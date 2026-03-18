@@ -36,6 +36,7 @@ from .views import TableCartAddAPI, TableCartUpdateAPI, TableCartRemoveAPI, Tabl
 # from .views_chat import AdminChatAPIView  # AI Chat一時無効化
 from .views_attendance import (
     AttendanceStampAPIView, AttendanceTOTPRefreshAPI, AttendanceDayStatusAPI,
+    AttendanceDayStatusHTMLView,
     AttendancePINStampAPIView, QRStampAPIView, ManualStampAPIView,
 )
 from .views_pos import POSOrderAPIView, POSOrderItemAPIView, POSCheckoutAPIView, KitchenOrderStatusAPI, KitchenOrdersHTMLView, KitchenOrderCompleteAPI
@@ -136,6 +137,7 @@ urlpatterns = [
     path('attendance/stamp/', AttendanceStampAPIView.as_view(), name='attendance_stamp'),
     path('attendance/totp/refresh/', AttendanceTOTPRefreshAPI.as_view(), name='attendance_totp_refresh'),
     path('attendance/day-status/', AttendanceDayStatusAPI.as_view(), name='attendance_day_status'),
+    path('attendance/day-status-html/', AttendanceDayStatusHTMLView.as_view(), name='attendance_day_status_html'),
 
     # PIN打刻API
     path('attendance/pin-stamp/', AttendancePINStampAPIView.as_view(), name='attendance_pin_stamp'),

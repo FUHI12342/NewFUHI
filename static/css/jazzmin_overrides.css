@@ -34,6 +34,17 @@
     }
 }
 
+/* ===== サイドバー: ユーザーパネル（アカウント名）の視認性 ===== */
+#jazzy-sidebar .user-panel .info a,
+#jazzy-sidebar .user-panel .info {
+    color: #fff !important;
+    font-weight: 600;
+}
+.main-sidebar .user-panel .info a,
+.main-sidebar .user-panel .info {
+    color: #fff !important;
+}
+
 /* ===== サイドバー: グループヘッダー vs サブアイテムの区別 ===== */
 
 /* グループヘッダー（大メニュー） */

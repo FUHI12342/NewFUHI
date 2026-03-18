@@ -1,0 +1,89 @@
+{% load i18n %}
+<!-- 出勤中ゾーン -->
+<div class="zone">
+  <div class="zone-header zone-header-working">
+    <i class="fas fa-user-check"></i> {% trans "出勤中" %} ({{ zone_working|length }})
+  </div>
+  <div class="zone-body">
+    {% for info in zone_working %}
+    <div class="staff-card">
+      <div class="name">{{ info.staff.name }}</div>
+      <div class="status-badge status-出勤中">{% trans "出勤中" %}</div>
+      {% if info.stamps %}
+      <div class="stamp-list">
+        {% for s in info.stamps %}
+        <div>{{ s.get_stamp_type_display }}: {{ s.stamped_at|time:"H:i" }}</div>
+        {% endfor %}
+      </div>
+      {% endif %}
+    </div>
+    {% empty %}
+    <div class="zone-empty">{% trans "なし" %}</div>
+    {% endfor %}
+  </div>
+</div>
+
+<!-- 休憩中ゾーン -->
+<div class="zone">
+  <div class="zone-header zone-header-break">
+    <i class="fas fa-coffee"></i> {% trans "休憩中" %} ({{ zone_break|length }})
+  </div>
+  <div class="zone-body">
+    {% for info in zone_break %}
+    <div class="staff-card">
+      <div class="name">{{ info.staff.name }}</div>
+      <div class="status-badge status-休憩中">{% trans "休憩中" %}</div>
+      {% if info.stamps %}
+      <div class="stamp-list">
+        {% for s in info.stamps %}
+        <div>{{ s.get_stamp_type_display }}: {{ s.stamped_at|time:"H:i" }}</div>
+        {% endfor %}
+      </div>
+      {% endif %}
+    </div>
+    {% empty %}
+    <div class="zone-empty">{% trans "なし" %}</div>
+    {% endfor %}
+  </div>
+</div>
+
+<!-- 未出勤ゾーン -->
+<div class="zone">
+  <div class="zone-header zone-header-absent">
+    <i class="fas fa-user-times"></i> {% trans "未出勤" %} ({{ zone_absent|length }})
+  </div>
+  <div class="zone-body">
+    {% for info in zone_absent %}
+    <div class="staff-card">
+      <div class="name">{{ info.staff.name }}</div>
+      <div class="status-badge status-未出勤">{% trans "未出勤" %}</div>
+    </div>
+    {% empty %}
+    <div class="zone-empty">{% trans "なし" %}</div>
+    {% endfor %}
+  </div>
+</div>
+
+<!-- 退勤済ゾーン -->
+<div class="zone">
+  <div class="zone-header zone-header-left">
+    <i class="fas fa-sign-out-alt"></i> {% trans "退勤済" %} ({{ zone_left|length }})
+  </div>
+  <div class="zone-body">
+    {% for info in zone_left %}
+    <div class="staff-card">
+      <div class="name">{{ info.staff.name }}</div>
+      <div class="status-badge status-退勤済">{% trans "退勤済" %}</div>
+      {% if info.stamps %}
+      <div class="stamp-list">
+        {% for s in info.stamps %}
+        <div>{{ s.get_stamp_type_display }}: {{ s.stamped_at|time:"H:i" }}</div>
+        {% endfor %}
+      </div>
+      {% endif %}
+    </div>
+    {% empty %}
+    <div class="zone-empty">{% trans "なし" %}</div>
+    {% endfor %}
+  </div>
+</div>

@@ -11,7 +11,7 @@ from django.utils.decorators import method_decorator
 from django.views import View
 from django.views.decorators.csrf import csrf_exempt
 from django.views.generic import TemplateView
-from django.shortcuts import get_object_or_404
+from django.shortcuts import get_object_or_404, render
 from django.utils import timezone
 from django.utils.translation import gettext as _
 
@@ -388,6 +388,54 @@ class AttendanceDayStatusAPI(LoginRequiredMixin, View):
                 result[sid]['status'] = _('退勤済')
 
         return JsonResponse(list(result.values()), safe=False)
+
+
+class AttendanceDayStatusHTMLView(LoginRequiredMixin, View):
+    """HTMX用: 出退勤ボードのゾーンHTMLフラグメントを返す"""
+
+    def get(self, request):
+        store = _get_user_store(request)
+        today = date.today()
+
+        staffs = Staff.objects.filter(store=store) if store else Staff.objects.none()
+        stamps_today = AttendanceStamp.objects.filter(
+            staff__store=store,
+            stamped_at__date=today,
+            is_valid=True,
+        ).select_related('staff').order_by('stamped_at') if store else []
+
+        staff_status = {}
+        for s in staffs:
+            staff_status[s.id] = {'staff': s, 'status': _('未出勤'), 'stamps': []}
+        for stamp in stamps_today:
+            if stamp.staff_id in staff_status:
+                staff_status[stamp.staff_id]['stamps'].append(stamp)
+                if stamp.stamp_type == 'clock_in':
+                    staff_status[stamp.staff_id]['status'] = _('出勤中')
+                elif stamp.stamp_type == 'clock_out':
+                    staff_status[stamp.staff_id]['status'] = _('退勤済')
+                elif stamp.stamp_type == 'break_start':
+                    staff_status[stamp.staff_id]['status'] = _('休憩中')
+                elif stamp.stamp_type == 'break_end':
+                    staff_status[stamp.staff_id]['status'] = _('出勤中')
+
+        zone_working, zone_break, zone_absent, zone_left = [], [], [], []
+        for info in staff_status.values():
+            if info['status'] == _('出勤中'):
+                zone_working.append(info)
+            elif info['status'] == _('休憩中'):
+                zone_break.append(info)
+            elif info['status'] == _('退勤済'):
+                zone_left.append(info)
+            else:
+                zone_absent.append(info)
+
+        return render(request, 'admin/booking/_attendance_board_zones.html', {
+            'zone_working': zone_working,
+            'zone_break': zone_break,
+            'zone_absent': zone_absent,
+            'zone_left': zone_left,
+        })
 
 
 class AttendanceStampPageView(View):

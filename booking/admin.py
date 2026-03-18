@@ -139,8 +139,8 @@ class StaffAdmin(admin.ModelAdmin):
     list_editable = ('is_recommended',)
     search_fields = ('name', 'store__name')
 
-    # 全フィールド表示（オーナー/開発者/superuser）
-    _full_fieldsets = (
+    # --- superuser用（LINE ID含む全フィールド）---
+    _su_fieldsets_cast = (
         (None, {'fields': ('user', 'store', 'name', 'staff_type')}),
         (_('プロフィール'), {'fields': ('thumbnail', 'introduction', 'price', 'slot_duration', 'line_id')}),
         (_('通知設定'), {'fields': ('notify_booking', 'notify_shift', 'notify_business')}),
@@ -148,10 +148,40 @@ class StaffAdmin(admin.ModelAdmin):
         (_('権限'), {'fields': ('is_owner', 'is_store_manager', 'is_developer', 'is_recommended')}),
         (_('勤怠'), {'fields': ('attendance_pin',)}),
     )
+    _su_fieldsets_staff = (
+        (None, {'fields': ('user', 'store', 'name', 'staff_type')}),
+        (_('プロフィール'), {'fields': ('thumbnail', 'introduction', 'price', 'line_id')}),
+        (_('通知設定'), {'fields': ('notify_booking', 'notify_shift', 'notify_business')}),
+        (_('メニュー表示設定'), {'fields': ('can_see_inventory', 'can_see_orders')}),
+        (_('権限'), {'fields': ('is_owner', 'is_store_manager', 'is_developer', 'is_recommended')}),
+        (_('勤怠'), {'fields': ('attendance_pin',)}),
+    )
 
-    # スタッフ/キャスト本人が編集できるフィールド
-    _profile_fieldsets = (
+    # --- 管理者用（LINE ID非表示）---
+    _full_fieldsets_cast = (
+        (None, {'fields': ('user', 'store', 'name', 'staff_type')}),
+        (_('プロフィール'), {'fields': ('thumbnail', 'introduction', 'price', 'slot_duration')}),
+        (_('通知設定'), {'fields': ('notify_booking', 'notify_shift', 'notify_business')}),
+        (_('メニュー表示設定'), {'fields': ('can_see_inventory', 'can_see_orders')}),
+        (_('権限'), {'fields': ('is_owner', 'is_store_manager', 'is_developer', 'is_recommended')}),
+        (_('勤怠'), {'fields': ('attendance_pin',)}),
+    )
+    _full_fieldsets_staff = (
+        (None, {'fields': ('user', 'store', 'name', 'staff_type')}),
+        (_('プロフィール'), {'fields': ('thumbnail', 'introduction', 'price')}),
+        (_('通知設定'), {'fields': ('notify_booking', 'notify_shift', 'notify_business')}),
+        (_('メニュー表示設定'), {'fields': ('can_see_inventory', 'can_see_orders')}),
+        (_('権限'), {'fields': ('is_owner', 'is_store_manager', 'is_developer', 'is_recommended')}),
+        (_('勤怠'), {'fields': ('attendance_pin',)}),
+    )
+
+    # --- 本人用（LINE ID表示, デフォルト****マスク）---
+    _profile_fieldsets_cast = (
         (_('マイプロフィール'), {'fields': ('name', 'thumbnail', 'introduction', 'price', 'slot_duration', 'line_id')}),
+        (_('通知設定'), {'fields': ('notify_booking', 'notify_shift', 'notify_business')}),
+    )
+    _profile_fieldsets_staff = (
+        (_('マイプロフィール'), {'fields': ('name', 'thumbnail', 'introduction', 'price', 'line_id')}),
         (_('通知設定'), {'fields': ('notify_booking', 'notify_shift', 'notify_business')}),
     )
 
@@ -168,19 +198,45 @@ class StaffAdmin(admin.ModelAdmin):
                 pass
         return super().changelist_view(request, extra_context=extra_context)
 
+    def _is_cast(self, obj):
+        """対象objがキャスト（fortune_teller）かどうか"""
+        return obj is not None and obj.staff_type == 'fortune_teller'
+
     def get_fieldsets(self, request, obj=None):
+        is_cast = self._is_cast(obj)
+        # superuser: LINE ID含む全フィールド
+        if request.user.is_superuser:
+            return self._su_fieldsets_cast if is_cast else self._su_fieldsets_staff
         if _is_owner_or_super(request):
-            return self._full_fieldsets
+            return self._full_fieldsets_cast if is_cast else self._full_fieldsets_staff
         try:
             staff = request.user.staff
             if staff.is_store_manager or staff.is_developer:
-                return self._full_fieldsets
+                return self._full_fieldsets_cast if is_cast else self._full_fieldsets_staff
         except Staff.DoesNotExist:
             pass
-        # 一般スタッフ/キャスト: プロフィールのみ
-        return self._profile_fieldsets
+        # 一般スタッフ/キャスト: プロフィールのみ（本人のLINE ID表示）
+        return self._profile_fieldsets_cast if is_cast else self._profile_fieldsets_staff
+
+    def get_form(self, request, obj=None, **kwargs):
+        form = super().get_form(request, obj, **kwargs)
+        if 'line_id' in form.base_fields and obj and obj.line_id:
+            # 本人のプロフィール: デフォルトはマスク表示、フォーカスで実値表示
+            field = form.base_fields['line_id']
+            field.widget = forms.TextInput(attrs={
+                'data-real-value': obj.line_id,
+                'value': '****',
+                'onfocus': "if(this.value==='****'){this.value=this.dataset.realValue;}",
+                'onblur': "if(this.value===this.dataset.realValue){this.value='****';}",
+            })
+        return form
 
     def save_model(self, request, obj, form, change):
+        # line_id: マスク値 '****' のままの場合は変更しない
+        if 'line_id' in form.changed_data:
+            new_val = form.cleaned_data.get('line_id', '')
+            if new_val == '****':
+                obj.line_id = Staff.objects.filter(pk=obj.pk).values_list('line_id', flat=True).first()
         # attendance_pin が変更された場合はハッシュ化して保存
         if 'attendance_pin' in form.changed_data:
             raw_pin = form.cleaned_data['attendance_pin']

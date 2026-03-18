@@ -262,6 +262,91 @@ def _get_allowed_models_for_role(role):
 class RoleBasedAdminSite(AdminSite):
     enable_nav_sidebar = False  # Django 4.x のダークサイドバーを無効化
 
+    def has_permission(self, request):
+        """role-basedユーザーにも管理画面アクセスを許可"""
+        if super().has_permission(request):
+            return True
+        if not request.user.is_authenticated:
+            return False
+        role = get_user_role(request)
+        return role not in ('none',)
+
+    def register(self, model_or_iterable, admin_class=None, **options):
+        """登録時にrole-basedのpermissionを自動適用"""
+        super().register(model_or_iterable, admin_class, **options)
+        models = model_or_iterable if hasattr(model_or_iterable, '__iter__') else [model_or_iterable]
+        for model in models:
+            model_admin = self._registry.get(model)
+            if model_admin and not getattr(model_admin, '_role_perms_patched', False):
+                self._patch_role_perms(model_admin)
+
+    def _patch_role_perms(self, model_admin):
+        """ModelAdminにrole-basedのpermissionチェックを注入（既存の独自permissionは優先）"""
+        # 既に独自のpermissionメソッドを持つ場合はスキップ
+        cls = type(model_admin)
+        has_custom_perms = any(
+            name in cls.__dict__
+            for name in ('has_view_permission', 'has_change_permission',
+                         'has_add_permission', 'has_delete_permission',
+                         'has_module_permission')
+        )
+        if has_custom_perms:
+            model_admin._role_perms_patched = True
+            return
+
+        role_perms = self._ROLE_PERMS
+        model_name = model_admin.model._meta.object_name.lower()
+
+        def _is_allowed_model(role):
+            """DEFAULT_ALLOWED_MODELSでそのロールにモデルが許可されているか"""
+            allowed = _get_allowed_models_for_role(role)
+            if allowed is None:
+                return True  # None = 全モデル許可
+            return model_name in allowed
+
+        def patched_has_module_permission(self_ma, request):
+            if request.user.is_superuser:
+                return True
+            role = get_user_role(request)
+            perms = role_perms.get(role)
+            return perms is not None and _is_allowed_model(role)
+
+        def patched_has_view_permission(self_ma, request, obj=None):
+            if request.user.is_superuser:
+                return True
+            role = get_user_role(request)
+            perms = role_perms.get(role)
+            return perms is not None and perms.get('view', False) and _is_allowed_model(role)
+
+        def patched_has_add_permission(self_ma, request):
+            if request.user.is_superuser:
+                return True
+            role = get_user_role(request)
+            perms = role_perms.get(role)
+            return perms is not None and perms.get('add', False) and _is_allowed_model(role)
+
+        def patched_has_change_permission(self_ma, request, obj=None):
+            if request.user.is_superuser:
+                return True
+            role = get_user_role(request)
+            perms = role_perms.get(role)
+            return perms is not None and perms.get('change', False) and _is_allowed_model(role)
+
+        def patched_has_delete_permission(self_ma, request, obj=None):
+            if request.user.is_superuser:
+                return True
+            role = get_user_role(request)
+            perms = role_perms.get(role)
+            return perms is not None and perms.get('delete', False) and _is_allowed_model(role)
+
+        import types
+        model_admin.has_module_permission = types.MethodType(patched_has_module_permission, model_admin)
+        model_admin.has_view_permission = types.MethodType(patched_has_view_permission, model_admin)
+        model_admin.has_add_permission = types.MethodType(patched_has_add_permission, model_admin)
+        model_admin.has_change_permission = types.MethodType(patched_has_change_permission, model_admin)
+        model_admin.has_delete_permission = types.MethodType(patched_has_delete_permission, model_admin)
+        model_admin._role_perms_patched = True
+
     def get_app_list(self, request, app_label=None):
         role = get_user_role(request)
         logger.info(

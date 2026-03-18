@@ -273,15 +273,25 @@ class TestFortuneTellerVsStoreStaff:
         '/admin/booking/staff/',
     ]
 
+    # schedule はstaffの allowed models に含まれるため accessible に移動
+    ACCESSIBLE_ENDPOINTS_ROLE = [
+        '/admin/booking/schedule/',
+    ]
+
     FORBIDDEN_ENDPOINTS = [
         '/admin/booking/store/',
         '/admin/booking/payrollperiod/',
         '/admin/booking/employmentcontract/',
-        '/admin/booking/schedule/',    # Django permission なし → 403
     ]
 
     @pytest.mark.parametrize("url", ACCESSIBLE_ENDPOINTS)
     def test_both_can_access(self, fortune_teller_client, store_staff_client, url):
+        ft_resp = fortune_teller_client.get(url)
+        ss_resp = store_staff_client.get(url)
+        assert ft_resp.status_code == ss_resp.status_code == 200
+
+    @pytest.mark.parametrize("url", ACCESSIBLE_ENDPOINTS_ROLE)
+    def test_both_can_access_role(self, fortune_teller_client, store_staff_client, url):
         ft_resp = fortune_teller_client.get(url)
         ss_resp = store_staff_client.get(url)
         assert ft_resp.status_code == ss_resp.status_code == 200
