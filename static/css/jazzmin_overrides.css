@@ -520,6 +520,41 @@
     filter: brightness(0.95);
 }
 
+/* ---- 管理画面共通: changelist テーブル横スクロール + テキスト省略 ---- */
+#changelist .table-responsive,
+#changelist-form {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+#result_list {
+    min-width: 100%;
+    table-layout: auto;
+    white-space: nowrap;
+}
+#result_list th {
+    white-space: nowrap;
+    max-width: 160px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+#result_list td {
+    max-width: 200px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+/* 長いテキストセルにホバーでフル表示 */
+#result_list td:hover {
+    overflow: visible;
+    white-space: normal;
+    word-break: break-all;
+}
+/* 編集可能フィールド（input/checkbox）は省略しない */
+#result_list td input,
+#result_list td select {
+    white-space: normal;
+}
+
 /* ---- 管理画面共通: 右カラム保存ボタンをsticky化 ---- */
 #jazzy-actions {
     position: sticky;

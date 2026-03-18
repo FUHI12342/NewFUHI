@@ -624,10 +624,10 @@ class CategoryAdmin(admin.ModelAdmin):
 
 class ProductAdmin(admin.ModelAdmin):
     list_display = (
-        'store',
+        'short_store',
         'sku',
-        'name',
-        'category',
+        'short_name',
+        'short_category',
         'price',
         'stock',
         'low_stock_threshold',
@@ -635,7 +635,6 @@ class ProductAdmin(admin.ModelAdmin):
         'is_ec_visible',
         'is_sold_out',
         'display_image',
-        'last_low_stock_notified_at',
     )
 
     search_fields = ('sku', 'name', 'store__name')
@@ -644,9 +643,32 @@ class ProductAdmin(admin.ModelAdmin):
     autocomplete_fields = ('category',)
     ordering = ('store', 'category', 'name')
 
+    def short_store(self, obj):
+        name = obj.store.name if obj.store else ''
+        if len(name) > 8:
+            return format_html('<span title="{}">{}&hellip;</span>', name, name[:8])
+        return name
+    short_store.short_description = _('店舗')
+    short_store.admin_order_field = 'store__name'
+
+    def short_name(self, obj):
+        if len(obj.name) > 12:
+            return format_html('<span title="{}">{}&hellip;</span>', obj.name, obj.name[:12])
+        return obj.name
+    short_name.short_description = _('商品名')
+    short_name.admin_order_field = 'name'
+
+    def short_category(self, obj):
+        name = obj.category.name if obj.category else '-'
+        if len(name) > 8:
+            return format_html('<span title="{}">{}&hellip;</span>', name, name[:8])
+        return name
+    short_category.short_description = _('カテゴリ')
+    short_category.admin_order_field = 'category__name'
+
     def is_sold_out(self, obj):
         return obj.stock <= 0
-    is_sold_out.short_description = _('売り切れ')
+    is_sold_out.short_description = _('売切')
     is_sold_out.boolean = True
 
     def display_image(self, obj):
