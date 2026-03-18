@@ -958,12 +958,31 @@ class OrderItemInline(admin.TabularInline):
     autocomplete_fields = ('product',)
 
 
+class ChannelGroupFilter(admin.SimpleListFilter):
+    """注文チャネルを「店内」「EC」にグループ化するフィルタ"""
+    title = _('注文種別')
+    parameter_name = 'channel_group'
+
+    def lookups(self, request, model_admin):
+        return [
+            ('instore', _('店内注文')),
+            ('ec', _('EC注文')),
+        ]
+
+    def queryset(self, request, queryset):
+        if self.value() == 'instore':
+            return queryset.filter(channel__in=['pos', 'table', 'reservation'])
+        if self.value() == 'ec':
+            return queryset.filter(channel='ec')
+        return queryset
+
+
 class OrderAdmin(admin.ModelAdmin):
     list_display = (
         'id', 'store', 'channel', 'status', 'customer_name',
         'shipping_status', 'table_label', 'schedule', 'created_at',
     )
-    list_filter = ('channel', 'status', 'payment_status', 'shipping_status')
+    list_filter = (ChannelGroupFilter, 'status', 'payment_status', 'shipping_status')
     search_fields = ('id', 'store__name', 'table_label', 'customer_line_user_hash', 'customer_name', 'customer_email')
     inlines = [OrderItemInline]
     readonly_fields = ('created_at', 'updated_at')

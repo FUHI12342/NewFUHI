@@ -110,7 +110,8 @@ SIDEBAR_CUSTOM_LINKS = {
         {'name': _('勤怠実績'), 'admin_url': '/admin/attendance/performance/', 'icon': 'fas fa-chart-bar'},
     ],
     'order': [
-        {'name': _('店内注文一覧'), 'admin_url': '/admin/booking/order/?channel__in=pos,table,reservation', 'icon': 'fas fa-utensils'},
+        {'name': _('店内注文一覧'), 'admin_url': '/admin/booking/order/?channel_group=instore', 'icon': 'fas fa-utensils'},
+        {'name': _('EC注文一覧'), 'admin_url': '/admin/booking/order/?channel_group=ec', 'icon': 'fas fa-shopping-cart'},
     ],
     'pos': [
         {'name': _('レジ画面'), 'admin_url': '/admin/pos/', 'icon': 'fas fa-cash-register'},
