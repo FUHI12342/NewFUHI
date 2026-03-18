@@ -1373,6 +1373,7 @@ class Command(BaseCommand):
             return
         configs = [
             ('maintenance_mode', 'false'),
+            ('ec_enabled', 'true'),
             ('max_reservations_per_day', '20'),
             ('auto_cancel_minutes', '15'),
             ('line_notify_enabled', 'true'),
