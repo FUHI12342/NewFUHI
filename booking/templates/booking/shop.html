@@ -93,11 +93,16 @@
 {% endif %}
 {% endblock %}
 
+{% block extra_js %}
 <!-- Toast container -->
 <div id="toast-container" class="fixed bottom-4 right-4 z-50"></div>
-
-{% block extra_js %}
+<div id="js-translations" class="hidden"
+     data-cart-added="{% trans 'カートに追加しました' %}"
+     data-error-occurred="{% trans 'エラーが発生しました' %}"
+     data-network-error="{% trans 'ネットワークエラー: ' %}"></div>
 <script>
+var i18n = document.getElementById('js-translations').dataset;
+
 function getCookie(name) {
     var v = document.cookie.match('(^|;) ?' + name + '=([^;]*)(;|$)');
     return v ? v[2] : null;
@@ -130,14 +135,14 @@ function addToCart(productId) {
             var badge = document.getElementById('cart-badge');
             badge.textContent = data.cart_count;
             badge.classList.remove('hidden');
-            showToast('カートに追加しました');
+            showToast(i18n.cartAdded);
             if (input) input.value = 1;
         } else {
-            alert(data.message || 'エラーが発生しました');
+            alert(data.message || i18n.errorOccurred);
         }
     })
     .catch(function(err) {
-        alert('ネットワークエラー: ' + err.message);
+        alert(i18n.networkError + err.message);
     });
 }
 

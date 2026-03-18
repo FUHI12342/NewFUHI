@@ -546,13 +546,13 @@ class VentilationAutoControlAdmin(admin.ModelAdmin):
     list_filter = ('is_active', 'fan_state')
     readonly_fields = ('fan_state', 'last_on_at', 'last_off_at')
     fieldsets = (
-        ('基本設定', {'fields': ('device', 'name', 'is_active')}),
-        ('閾値設定', {
+        (_('基本設定'), {'fields': ('device', 'name', 'is_active')}),
+        (_('閾値設定'), {
             'fields': ('threshold_on', 'threshold_off', 'consecutive_count', 'cooldown_seconds'),
-            'description': 'MQ-9の生ADC値で設定。平常時≒200-250、CO検出時は上昇。',
+            'description': _('MQ-9の生ADC値で設定。平常時≒200-250、CO検出時は上昇。'),
         }),
-        ('SwitchBot設定', {'fields': ('switchbot_token', 'switchbot_secret', 'switchbot_device_id')}),
-        ('状態（自動更新）', {'fields': ('fan_state', 'last_on_at', 'last_off_at')}),
+        (_('SwitchBot設定'), {'fields': ('switchbot_token', 'switchbot_secret', 'switchbot_device_id')}),
+        (_('状態（自動更新）'), {'fields': ('fan_state', 'last_on_at', 'last_off_at')}),
     )
 
     def save_model(self, request, obj, form, change):
@@ -992,21 +992,21 @@ class OrderAdmin(admin.ModelAdmin):
         (None, {
             'fields': ('store', 'schedule', 'channel', 'table_label', 'table_seat', 'status', 'payment_status', 'discount_amount', 'tax_amount'),
         }),
-        ('EC顧客情報', {
+        (_('EC顧客情報'), {
             'classes': ('collapse',),
             'fields': ('customer_name', 'customer_email', 'customer_phone', 'customer_address'),
         }),
-        ('発送情報', {
+        (_('発送情報'), {
             'classes': ('collapse',),
             'fields': ('shipping_status', 'tracking_number', 'shipped_at', 'shipping_note'),
         }),
-        ('タイムスタンプ', {
+        (_('タイムスタンプ'), {
             'fields': ('created_at', 'updated_at'),
         }),
     )
     actions = ['mark_shipped', 'delete_selected_orders']
 
-    @admin.action(description='発送済みにする')
+    @admin.action(description=_('発送済みにする'))
     def mark_shipped(self, request, queryset):
         from django.utils import timezone
         count = queryset.filter(shipping_status='pending').update(
@@ -1014,7 +1014,7 @@ class OrderAdmin(admin.ModelAdmin):
         )
         self.message_user(request, f'{count} 件の注文を発送済みにしました。')
 
-    @admin.action(description='選択した注文を削除')
+    @admin.action(description=_('選択した注文を削除'))
     def delete_selected_orders(self, request, queryset):
         count = queryset.count()
         queryset.delete()

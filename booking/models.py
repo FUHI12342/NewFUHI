@@ -28,13 +28,13 @@ except Exception:  # pragma: no cover
 # 共通定数
 # ==============================
 LANG_CHOICES = (
-    ('ja', '日本語'),
-    ('en', 'English'),
-    ('zh-hant', '繁體中文'),
-    ('zh-hans', '简体中文'),
-    ('ko', '한국어'),
-    ('es', 'Español'),
-    ('pt', 'Português'),
+    ('ja', _('日本語')),
+    ('en', _('English')),
+    ('zh-hant', _('繁體中文')),
+    ('zh-hans', _('简体中文')),
+    ('ko', _('한국어')),
+    ('es', _('Español')),
+    ('pt', _('Português')),
 )
 
 # ==============================
@@ -99,8 +99,8 @@ class Store(models.Model):
 
 
 STAFF_TYPE_CHOICES = [
-    ('fortune_teller', 'キャスト'),
-    ('store_staff', 'スタッフ'),
+    ('fortune_teller', _('キャスト')),
+    ('store_staff', _('スタッフ')),
 ]
 
 
@@ -134,7 +134,7 @@ class Staff(models.Model):
     introduction = models.TextField(_('自己紹介文'), null=True, blank=True)
     price = models.IntegerField(_('価格'), default=0)
 
-    SLOT_DURATION_CHOICES = [(15, '15分'), (30, '30分'), (45, '45分'), (60, '60分')]
+    SLOT_DURATION_CHOICES = [(15, _('15分')), (30, _('30分')), (45, _('45分')), (60, _('60分'))]
     slot_duration = models.IntegerField(
         _('1枠の時間(分)'), choices=SLOT_DURATION_CHOICES,
         null=True, blank=True, default=None,
@@ -445,9 +445,9 @@ class Media(models.Model):
 class IoTDevice(models.Model):
     """Pico + センサーを含む IoT デバイス情報"""
     DEVICE_TYPE_CHOICES = [
-        ('multi', 'マルチセンサーノード'),
-        ('door', 'スマートロック'),
-        ('other', 'その他'),
+        ('multi', _('マルチセンサーノード')),
+        ('door', _('スマートロック')),
+        ('other', _('その他')),
     ]
 
     name = models.CharField(_('デバイス名'), max_length=100)
@@ -577,7 +577,7 @@ class VentilationAutoControl(models.Model):
 
     # 状態トラッキング
     fan_state = models.CharField(_('現在の状態'), max_length=10,
-        choices=[('off', 'OFF'), ('on', 'ON'), ('unknown', '不明')], default='unknown')
+        choices=[('off', _('OFF')), ('on', _('ON')), ('unknown', _('不明'))], default='unknown')
     last_on_at = models.DateTimeField(_('最後にONした日時'), null=True, blank=True)
     last_off_at = models.DateTimeField(_('最後にOFFした日時'), null=True, blank=True)
     cooldown_seconds = models.IntegerField(_('クールダウン（秒）'), default=60,
@@ -787,16 +787,16 @@ class Order(models.Model):
         (STATUS_CLOSED, 'Closed'),
     )
     PAYMENT_STATUS_CHOICES = [
-        ('pending', '未払い'),
-        ('partial', '一部支払'),
-        ('paid', '支払済'),
-        ('refunded', '返金済'),
+        ('pending', _('未払い')),
+        ('partial', _('一部支払')),
+        ('paid', _('支払済')),
+        ('refunded', _('返金済')),
     ]
     CHANNEL_CHOICES = [
-        ('ec', 'ECショップ'),
-        ('pos', 'POS'),
-        ('table', 'テーブル注文'),
-        ('reservation', '予約'),
+        ('ec', _('ECショップ')),
+        ('pos', _('POS')),
+        ('table', _('テーブル注文')),
+        ('reservation', _('予約')),
     ]
 
     store = models.ForeignKey(Store, verbose_name=_('店舗'), on_delete=models.CASCADE, related_name='orders')
@@ -830,10 +830,10 @@ class Order(models.Model):
 
     # 発送管理
     SHIPPING_STATUS_CHOICES = [
-        ('none', '発送不要'),
-        ('pending', '発送待ち'),
-        ('shipped', '発送済み'),
-        ('delivered', '配達完了'),
+        ('none', _('発送不要')),
+        ('pending', _('発送待ち')),
+        ('shipped', _('発送済み')),
+        ('delivered', _('配達完了')),
     ]
     shipping_status = models.CharField(
         _('発送ステータス'), max_length=20,
@@ -912,9 +912,9 @@ class StockMovement(models.Model):
     TYPE_OUT = 'OUT'
     TYPE_ADJUST = 'ADJUST'
     TYPE_CHOICES = (
-        (TYPE_IN, '入庫'),
-        (TYPE_OUT, '出庫'),
-        (TYPE_ADJUST, '棚卸調整'),
+        (TYPE_IN, _('入庫')),
+        (TYPE_OUT, _('出庫')),
+        (TYPE_ADJUST, _('棚卸調整')),
     )
 
     store = models.ForeignKey(Store, verbose_name=_('店舗'), on_delete=models.CASCADE, related_name='stock_movements')
@@ -1027,16 +1027,16 @@ class DashboardLayout(models.Model):
 class BusinessInsight(models.Model):
     """自動生成されるビジネスインサイト"""
     SEVERITY_CHOICES = [
-        ('info', '情報'),
-        ('warning', '注意'),
-        ('critical', '重要'),
+        ('info', _('情報')),
+        ('warning', _('注意')),
+        ('critical', _('重要')),
     ]
     CATEGORY_CHOICES = [
-        ('sales', '売上'),
-        ('inventory', '在庫'),
-        ('staffing', 'スタッフ'),
-        ('menu', 'メニュー'),
-        ('customer', '顧客'),
+        ('sales', _('売上')),
+        ('inventory', _('在庫')),
+        ('staffing', _('スタッフ')),
+        ('menu', _('メニュー')),
+        ('customer', _('顧客')),
     ]
 
     store = models.ForeignKey(
@@ -1083,9 +1083,9 @@ class CustomerFeedback(models.Model):
     ambiance_rating = models.IntegerField(_('雰囲気評価 (1-5)'), default=3)
     comment = models.TextField(_('コメント'), blank=True, default='')
     SENTIMENT_CHOICES = [
-        ('positive', 'ポジティブ'),
-        ('neutral', 'ニュートラル'),
-        ('negative', 'ネガティブ'),
+        ('positive', _('ポジティブ')),
+        ('neutral', _('ニュートラル')),
+        ('negative', _('ネガティブ')),
     ]
     sentiment = models.CharField(
         _('感情分析'), max_length=10, choices=SENTIMENT_CHOICES,
@@ -1125,11 +1125,11 @@ class EvaluationCriteria(models.Model):
     name = models.CharField(_('評価項目名'), max_length=100)
     description = models.TextField(_('説明'), blank=True, default='')
     CATEGORY_CHOICES = [
-        ('attendance', '出勤・勤怠'),
-        ('performance', 'パフォーマンス'),
-        ('skill', 'スキル'),
-        ('attitude', '勤務態度'),
-        ('customer', '顧客対応'),
+        ('attendance', _('出勤・勤怠')),
+        ('performance', _('パフォーマンス')),
+        ('skill', _('スキル')),
+        ('attitude', _('勤務態度')),
+        ('customer', _('顧客対応')),
     ]
     category = models.CharField(
         _('カテゴリ'), max_length=20, choices=CATEGORY_CHOICES,
@@ -1193,11 +1193,11 @@ class StaffEvaluation(models.Model):
     )
 
     GRADE_CHOICES = [
-        ('S', 'S (卓越)'),
-        ('A', 'A (優秀)'),
-        ('B', 'B (良好)'),
-        ('C', 'C (標準)'),
-        ('D', 'D (要改善)'),
+        ('S', _('S (卓越)')),
+        ('A', _('A (優秀)')),
+        ('B', _('B (良好)')),
+        ('C', _('C (標準)')),
+        ('D', _('D (要改善)')),
     ]
     grade = models.CharField(
         _('評価ランク'), max_length=2, choices=GRADE_CHOICES,
@@ -1211,9 +1211,9 @@ class StaffEvaluation(models.Model):
     )
 
     SOURCE_CHOICES = [
-        ('auto', '自動評価'),
-        ('manual', '手動評価'),
-        ('mixed', '自動+手動'),
+        ('auto', _('自動評価')),
+        ('manual', _('手動評価')),
+        ('mixed', _('自動+手動')),
     ]
     source = models.CharField(
         _('評価ソース'), max_length=10, choices=SOURCE_CHOICES,
@@ -1295,10 +1295,10 @@ class SystemConfig(models.Model):
 class Property(models.Model):
     """物件情報"""
     PROPERTY_TYPE_CHOICES = [
-        ('apartment', 'アパート/マンション'),
-        ('house', '一戸建て'),
-        ('office', 'オフィス'),
-        ('store', '店舗'),
+        ('apartment', _('アパート/マンション')),
+        ('house', _('一戸建て')),
+        ('office', _('オフィス')),
+        ('store', _('店舗')),
     ]
 
     name = models.CharField(_('物件名'), max_length=200)
@@ -1345,15 +1345,15 @@ class PropertyDevice(models.Model):
 class PropertyAlert(models.Model):
     """物件アラート"""
     ALERT_TYPE_CHOICES = [
-        ('gas_leak', 'ガス漏れ'),
-        ('no_motion', '長期不在'),
-        ('device_offline', 'デバイスオフライン'),
-        ('custom', 'カスタム'),
+        ('gas_leak', _('ガス漏れ')),
+        ('no_motion', _('長期不在')),
+        ('device_offline', _('デバイスオフライン')),
+        ('custom', _('カスタム')),
     ]
     SEVERITY_CHOICES = [
-        ('critical', '緊急'),
-        ('warning', '警告'),
-        ('info', '情報'),
+        ('critical', _('緊急')),
+        ('warning', _('警告')),
+        ('info', _('情報')),
     ]
 
     property = models.ForeignKey(
@@ -1454,11 +1454,11 @@ class TaxServiceCharge(models.Model):
 class PaymentMethod(models.Model):
     """店舗別決済方法設定"""
     METHOD_TYPE_CHOICES = [
-        ('cash', '現金'),
-        ('coiney', 'Coiney (クレジットカード)'),
-        ('paypay', 'PayPay'),
-        ('ic', 'IC決済 (交通系/電子マネー)'),
-        ('other', 'その他'),
+        ('cash', _('現金')),
+        ('coiney', _('Coiney (クレジットカード)')),
+        ('paypay', _('PayPay')),
+        ('ic', _('IC決済 (交通系/電子マネー)')),
+        ('other', _('その他')),
     ]
     store = models.ForeignKey(Store, verbose_name=_('店舗'), on_delete=models.CASCADE, related_name='payment_methods')
     method_type = models.CharField(_('決済種別'), max_length=20, choices=METHOD_TYPE_CHOICES)
@@ -1485,10 +1485,10 @@ class PaymentMethod(models.Model):
 class ShiftPeriod(models.Model):
     """マネージャーが作成するシフト募集期間（3ヶ月分など）"""
     STATUS_CHOICES = [
-        ('open', '募集中'),
-        ('closed', '締切'),
-        ('scheduled', 'スケジュール済'),
-        ('approved', '承認済'),
+        ('open', _('募集中')),
+        ('closed', _('締切')),
+        ('scheduled', _('スケジュール済')),
+        ('approved', _('承認済')),
     ]
     store = models.ForeignKey(Store, on_delete=models.CASCADE, related_name='shift_periods')
     year_month = models.DateField(_('対象年月'))  # 月初の日付
@@ -1509,9 +1509,9 @@ class ShiftPeriod(models.Model):
 class ShiftRequest(models.Model):
     """スタッフのシフト希望"""
     PREF_CHOICES = [
-        ('available', '出勤可能'),
-        ('preferred', '希望'),
-        ('unavailable', '出勤不可'),
+        ('available', _('出勤可能')),
+        ('preferred', _('希望')),
+        ('unavailable', _('出勤不可')),
     ]
     period = models.ForeignKey(ShiftPeriod, on_delete=models.CASCADE, related_name='requests')
     staff = models.ForeignKey(Staff, on_delete=models.CASCADE, related_name='shift_requests')
@@ -1590,9 +1590,9 @@ class ShiftTemplate(models.Model):
 class ShiftPublishHistory(models.Model):
     """シフト公開履歴"""
     ACTION_CHOICES = [
-        ('publish', '公開'),
-        ('revoke', '撤回'),
-        ('reopen', '再募集'),
+        ('publish', _('公開')),
+        ('revoke', _('撤回')),
+        ('reopen', _('再募集')),
     ]
     period = models.ForeignKey(ShiftPeriod, verbose_name=_('シフト期間'), on_delete=models.CASCADE, related_name='publish_history')
     published_by = models.ForeignKey(Staff, verbose_name=_('公開者'), on_delete=models.SET_NULL, null=True, blank=True)
@@ -1615,8 +1615,8 @@ class ShiftPublishHistory(models.Model):
 class ShiftChangeLog(models.Model):
     """個別シフト変更の監査証跡"""
     CHANGE_TYPE_CHOICES = [
-        ('revised', '修正'),
-        ('deleted', '削除'),
+        ('revised', _('修正')),
+        ('deleted', _('削除')),
     ]
     assignment = models.ForeignKey(ShiftAssignment, on_delete=models.CASCADE, related_name='change_logs')
     changed_by = models.ForeignKey(Staff, on_delete=models.SET_NULL, null=True)
@@ -1656,8 +1656,8 @@ class StoreClosedDate(models.Model):
 class ShiftStaffRequirement(models.Model):
     """曜日ごとのデフォルト必要人数"""
     DAY_CHOICES = [
-        (0, '月曜'), (1, '火曜'), (2, '水曜'), (3, '木曜'),
-        (4, '金曜'), (5, '土曜'), (6, '日曜'),
+        (0, _('月曜')), (1, _('火曜')), (2, _('水曜')), (3, _('木曜')),
+        (4, _('金曜')), (5, _('土曜')), (6, _('日曜')),
     ]
     store = models.ForeignKey(Store, on_delete=models.CASCADE, related_name='staff_requirements')
     day_of_week = models.IntegerField(_('曜日'), choices=DAY_CHOICES)
@@ -1824,9 +1824,9 @@ class AdminSidebarSettings(SiteSettings):
 class HomepageCustomBlock(models.Model):
     """WordPress風カスタムHTMLブロック"""
     POSITION_CHOICES = [
-        ('above_cards', 'カードの上'),
-        ('below_cards', 'カードの下'),
-        ('sidebar', 'サイドバー'),
+        ('above_cards', _('カードの上')),
+        ('below_cards', _('カードの下')),
+        ('sidebar', _('サイドバー')),
     ]
     title = models.CharField(_('タイトル'), max_length=200)
     content = models.TextField(_('HTML内容'), help_text=_('HTMLを直接記述できます'))
@@ -1849,21 +1849,21 @@ class HomepageCustomBlock(models.Model):
 class HeroBanner(models.Model):
     """ヒーローバナースライダー"""
     IMAGE_POSITION_CHOICES = [
-        ('center', '中央'),
-        ('top', '上'),
-        ('bottom', '下'),
-        ('left', '左'),
-        ('right', '右'),
-        ('top left', '左上'),
-        ('top right', '右上'),
-        ('bottom left', '左下'),
-        ('bottom right', '右下'),
+        ('center', _('中央')),
+        ('top', _('上')),
+        ('bottom', _('下')),
+        ('left', _('左')),
+        ('right', _('右')),
+        ('top left', _('左上')),
+        ('top right', _('右上')),
+        ('bottom left', _('左下')),
+        ('bottom right', _('右下')),
     ]
     LINK_TYPE_CHOICES = [
-        ('none', 'リンクなし'),
-        ('store', '店舗'),
-        ('staff', '占い師'),
-        ('url', 'カスタムURL'),
+        ('none', _('リンクなし')),
+        ('store', _('店舗')),
+        ('staff', _('占い師')),
+        ('url', _('カスタムURL')),
     ]
     title = models.CharField(_('タイトル'), max_length=200)
     image = models.ImageField(_('バナー画像'), upload_to='hero_banners/')
@@ -1914,11 +1914,11 @@ class HeroBanner(models.Model):
 class BannerAd(models.Model):
     """バナー広告"""
     POSITION_CHOICES = [
-        ('after_hero', 'ヒーローバナーの後'),
-        ('after_cards', 'カードの後'),
-        ('after_ranking', 'ランキングの後'),
-        ('after_campaign', 'キャンペーンの後'),
-        ('sidebar', 'サイドバー'),
+        ('after_hero', _('ヒーローバナーの後')),
+        ('after_cards', _('カードの後')),
+        ('after_ranking', _('ランキングの後')),
+        ('after_campaign', _('キャンペーンの後')),
+        ('sidebar', _('サイドバー')),
     ]
     title = models.CharField(_('タイトル'), max_length=200)
     image = models.ImageField(_('バナー画像'), upload_to='banner_ads/')
@@ -1969,13 +1969,13 @@ class ExternalLink(models.Model):
 class EmploymentContract(models.Model):
     """雇用契約（Staff 1:1）"""
     EMPLOYMENT_TYPE_CHOICES = [
-        ('full_time', '正社員'),
-        ('part_time', 'パート・アルバイト'),
-        ('contract', '契約社員'),
+        ('full_time', _('正社員')),
+        ('part_time', _('パート・アルバイト')),
+        ('contract', _('契約社員')),
     ]
     PAY_TYPE_CHOICES = [
-        ('hourly', '時給'),
-        ('monthly', '月給'),
+        ('hourly', _('時給')),
+        ('monthly', _('月給')),
     ]
 
     staff = models.OneToOneField(
@@ -2013,10 +2013,10 @@ class EmploymentContract(models.Model):
 class WorkAttendance(models.Model):
     """勤怠記録"""
     SOURCE_CHOICES = [
-        ('shift', 'シフトから自動生成'),
-        ('manual', '手動入力'),
-        ('corrected', '修正済み'),
-        ('qr', 'QR打刻'),
+        ('shift', _('シフトから自動生成')),
+        ('manual', _('手動入力')),
+        ('corrected', _('修正済み')),
+        ('qr', _('QR打刻')),
     ]
 
     staff = models.ForeignKey(Staff, verbose_name=_('スタッフ'), on_delete=models.CASCADE, related_name='attendances')
@@ -2060,10 +2060,10 @@ class WorkAttendance(models.Model):
 class PayrollPeriod(models.Model):
     """給与計算期間"""
     STATUS_CHOICES = [
-        ('draft', '下書き'),
-        ('calculating', '計算中'),
-        ('confirmed', '確定'),
-        ('paid', '支払済'),
+        ('draft', _('下書き')),
+        ('calculating', _('計算中')),
+        ('confirmed', _('確定')),
+        ('paid', _('支払済')),
     ]
 
     store = models.ForeignKey(Store, verbose_name=_('店舗'), on_delete=models.CASCADE, related_name='payroll_periods')
@@ -2126,14 +2126,14 @@ class PayrollEntry(models.Model):
 class PayrollDeduction(models.Model):
     """控除明細行"""
     DEDUCTION_TYPE_CHOICES = [
-        ('income_tax', '所得税（源泉徴収）'),
-        ('resident_tax', '住民税'),
-        ('pension', '厚生年金'),
-        ('health_insurance', '健康保険'),
-        ('employment_insurance', '雇用保険'),
-        ('long_term_care', '介護保険'),
-        ('workers_comp', '労災保険'),
-        ('other', 'その他'),
+        ('income_tax', _('所得税（源泉徴収）')),
+        ('resident_tax', _('住民税')),
+        ('pension', _('厚生年金')),
+        ('health_insurance', _('健康保険')),
+        ('employment_insurance', _('雇用保険')),
+        ('long_term_care', _('介護保険')),
+        ('workers_comp', _('労災保険')),
+        ('other', _('その他')),
     ]
 
     entry = models.ForeignKey(PayrollEntry, verbose_name=_('給与明細'), on_delete=models.CASCADE, related_name='deductions')
@@ -2188,24 +2188,24 @@ class SalaryStructure(models.Model):
 class SecurityAudit(models.Model):
     """セキュリティ監査結果"""
     SEVERITY_CHOICES = [
-        ('critical', '重大'),
-        ('high', '高'),
-        ('medium', '中'),
-        ('low', '低'),
-        ('info', '情報'),
-        ('pass', '合格'),
+        ('critical', _('重大')),
+        ('high', _('高')),
+        ('medium', _('中')),
+        ('low', _('低')),
+        ('info', _('情報')),
+        ('pass', _('合格')),
     ]
     STATUS_CHOICES = [
-        ('fail', '不合格'),
-        ('warn', '警告'),
-        ('pass', '合格'),
+        ('fail', _('不合格')),
+        ('warn', _('警告')),
+        ('pass', _('合格')),
     ]
     CATEGORY_CHOICES = [
-        ('django_settings', 'Django設定'),
-        ('credentials', '認証情報'),
-        ('endpoints', 'エンドポイント'),
-        ('infrastructure', 'インフラ'),
-        ('dependencies', '依存関係'),
+        ('django_settings', _('Django設定')),
+        ('credentials', _('認証情報')),
+        ('endpoints', _('エンドポイント')),
+        ('infrastructure', _('インフラ')),
+        ('dependencies', _('依存関係')),
     ]
 
     run_id = models.UUIDField(_('実行ID'), default=uuid.uuid4, db_index=True)
@@ -2230,17 +2230,17 @@ class SecurityAudit(models.Model):
 class SecurityLog(models.Model):
     """セキュリティイベントログ"""
     EVENT_TYPE_CHOICES = [
-        ('login_success', 'ログイン成功'),
-        ('login_fail', 'ログイン失敗'),
-        ('api_auth_fail', 'API認証失敗'),
-        ('permission_denied', '権限拒否'),
-        ('suspicious_request', '不審なリクエスト'),
-        ('admin_action', '管理操作'),
+        ('login_success', _('ログイン成功')),
+        ('login_fail', _('ログイン失敗')),
+        ('api_auth_fail', _('API認証失敗')),
+        ('permission_denied', _('権限拒否')),
+        ('suspicious_request', _('不審なリクエスト')),
+        ('admin_action', _('管理操作')),
     ]
     SEVERITY_CHOICES = [
-        ('critical', '緊急'),
-        ('warning', '警告'),
-        ('info', '情報'),
+        ('critical', _('緊急')),
+        ('warning', _('警告')),
+        ('info', _('情報')),
     ]
 
     event_type = models.CharField(_('イベント種別'), max_length=30, choices=EVENT_TYPE_CHOICES, db_index=True)
@@ -2274,9 +2274,9 @@ class SecurityLog(models.Model):
 class CostReport(models.Model):
     """AWSコストレポート"""
     STATUS_CHOICES = [
-        ('ok', 'OK'),
-        ('warn', '警告'),
-        ('alert', 'アラート'),
+        ('ok', _('OK')),
+        ('warn', _('警告')),
+        ('alert', _('アラート')),
     ]
     RESOURCE_TYPE_CHOICES = [
         ('ec2', 'EC2'),
@@ -2310,10 +2310,10 @@ class CostReport(models.Model):
 class AdminMenuConfig(models.Model):
     """ロールごとの管理画面サイドバー表示メニュー設定"""
     ROLE_CHOICES = [
-        ('developer', '開発者'),
-        ('owner', 'オーナー'),
-        ('manager', '店長'),
-        ('staff', 'スタッフ'),
+        ('developer', _('開発者')),
+        ('owner', _('オーナー')),
+        ('manager', _('店長')),
+        ('staff', _('スタッフ')),
     ]
     role = models.CharField(_('ロール'), max_length=20, choices=ROLE_CHOICES, unique=True,
         help_text=_('superuserは常に全モデルを表示するため設定不要'))
@@ -2358,10 +2358,10 @@ class AttendanceTOTPConfig(models.Model):
 class AttendanceStamp(models.Model):
     """打刻ログ"""
     STAMP_TYPE_CHOICES = [
-        ('clock_in', '出勤'),
-        ('clock_out', '退勤'),
-        ('break_start', '休憩開始'),
-        ('break_end', '休憩終了'),
+        ('clock_in', _('出勤')),
+        ('clock_out', _('退勤')),
+        ('break_start', _('休憩開始')),
+        ('break_end', _('休憩終了')),
     ]
     staff = models.ForeignKey(Staff, verbose_name=_('スタッフ'), on_delete=models.CASCADE, related_name='attendance_stamps')
     stamp_type = models.CharField(_('打刻種別'), max_length=20, choices=STAMP_TYPE_CHOICES)

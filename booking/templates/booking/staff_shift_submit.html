@@ -15,7 +15,7 @@
     <p class="text-sm text-gray-500 mb-4">
         {{ staff.store.name }} &mdash; {{ staff.name }}
         &mdash; {{ period.year_month|date:"Y年n月" }}
-        &mdash; 締切: {{ period.deadline|date:"m/d H:i" }}
+        &mdash; {% trans "締切:" %} {{ period.deadline|date:"m/d H:i" }}
     </p>
 
     <!-- 通知エリア -->
@@ -37,7 +37,7 @@
     <!-- テンプレートチップ + アクション -->
     <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4 mb-4">
         <div class="flex flex-wrap items-center gap-2 mb-3">
-            <span class="text-sm font-semibold text-salon-dark mr-2">テンプレート:</span>
+            <span class="text-sm font-semibold text-salon-dark mr-2">{% trans "テンプレート:" %}</span>
             {% for t in templates %}
             <button type="button" class="tmpl-chip px-3 py-1.5 rounded-full text-xs font-medium border-2 transition cursor-pointer"
                     data-tmpl-id="{{ t.id }}"
@@ -47,38 +47,38 @@
                 <span class="text-gray-400 ml-1">{{ t.start_time|time:"H:i" }}-{{ t.end_time|time:"H:i" }}</span>
             </button>
             {% empty %}
-            <span class="text-xs text-gray-400">テンプレート未設定</span>
+            <span class="text-xs text-gray-400">{% trans "テンプレート未設定" %}</span>
             {% endfor %}
             <button type="button" class="tmpl-chip px-3 py-1.5 rounded-full text-xs font-medium border-2 transition cursor-pointer border-red-400 text-red-400 bg-white"
                     data-tmpl-id="unavailable"
                     onclick="selectTemplate('unavailable')">
-                休み
+                {% trans "休み" %}
             </button>
         </div>
         <div class="flex flex-wrap items-center gap-2">
             <button type="button" onclick="copyPreviousWeek()" class="text-xs px-3 py-1.5 bg-gray-100 hover:bg-gray-200 rounded-lg transition">
-                前週コピー
+                {% trans "前週コピー" %}
             </button>
             <button type="button" onclick="clearSelected()" class="text-xs px-3 py-1.5 bg-gray-100 hover:bg-gray-200 rounded-lg transition">
-                選択解除
+                {% trans "選択解除" %}
             </button>
             <button type="button" onclick="saveBulk()" class="text-xs px-3 py-1.5 bg-salon-brown text-white hover:bg-salon-dark rounded-lg transition font-medium">
-                一括保存
+                {% trans "一括保存" %}
             </button>
-            <span id="selected-count" class="text-xs text-gray-500 ml-2">0日選択中</span>
+            <span id="selected-count" class="text-xs text-gray-500 ml-2">{% trans "0日選択中" %}</span>
         </div>
     </div>
 
     <!-- カレンダーグリッド -->
     <div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden mb-6">
         <div class="grid grid-cols-7 text-center text-xs font-bold bg-salon-beige">
-            <div class="py-2 text-red-500">日</div>
-            <div class="py-2">月</div>
-            <div class="py-2">火</div>
-            <div class="py-2">水</div>
-            <div class="py-2">木</div>
-            <div class="py-2">金</div>
-            <div class="py-2 text-blue-500">土</div>
+            <div class="py-2 text-red-500">{% trans "日" %}</div>
+            <div class="py-2">{% trans "月" %}</div>
+            <div class="py-2">{% trans "火" %}</div>
+            <div class="py-2">{% trans "水" %}</div>
+            <div class="py-2">{% trans "木" %}</div>
+            <div class="py-2">{% trans "金" %}</div>
+            <div class="py-2 text-blue-500">{% trans "土" %}</div>
         </div>
         <div id="calendar-grid" class="grid grid-cols-7">
             <!-- JS で描画 -->
@@ -95,16 +95,31 @@
         {% endfor %}
         <div class="flex items-center gap-1">
             <span class="inline-block w-3 h-3 rounded bg-red-400"></span>
-            休み
+            {% trans "休み" %}
         </div>
         <div class="flex items-center gap-1">
             <span class="inline-block w-3 h-3 rounded border-2 border-salon-brown"></span>
-            選択中
+            {% trans "選択中" %}
         </div>
     </div>
 </div>
 
+<div id="js-i18n" class="hidden"
+     data-select-template-first="{% trans "先にテンプレートを選択してください" %}"
+     data-day-off="{% trans "休み" %}"
+     data-days-selected="{% trans "日選択中" %}"
+     data-no-changes="{% trans "保存する変更がありません" %}"
+     data-registered="{% trans "件登録、" %}"
+     data-updated="{% trans "件更新しました" %}"
+     data-generic-error="{% trans "エラーが発生しました" %}"
+     data-network-error="{% trans "通信エラー:" %}"
+     data-copy-from-prev="{% trans "前週から" %}"
+     data-copied="{% trans "件コピーしました" %}"
+     data-copy-failed="{% trans "コピーに失敗しました" %}"
+></div>
+
 <script>
+const I18N = document.getElementById('js-i18n').dataset;
 const CSRF_TOKEN = '{{ csrf_token }}';
 const PERIOD_ID = {{ period.pk }};
 const OPEN_HOUR = {{ open_hour }};
@@ -166,7 +181,7 @@ function selectTemplate(id) {
 
 function toggleDate(dateStr) {
     if (!activeTmplId) {
-        showToast('先にテンプレートを選択してください', true);
+        showToast(I18N.selectTemplateFirst, true);
         return;
     }
 
@@ -183,7 +198,7 @@ function toggleDate(dateStr) {
                 preference: 'unavailable',
                 _tmplId: 'unavailable',
                 _color: '#F87171',
-                _name: '休み',
+                _name: I18N.dayOff,
             };
         } else {
             const tmpl = TEMPLATES.find(t => t.id === activeTmplId);
@@ -243,7 +258,7 @@ function renderCalendar() {
                 if (req.preference === 'unavailable') {
                     tag.style.background = '#FEE2E2';
                     tag.style.color = '#B91C1C';
-                    tag.textContent = '休み';
+                    tag.textContent = I18N.dayOff;
                 } else {
                     const matchTmpl = TEMPLATES.find(t => t.start_hour === req.start_hour && t.end_hour === req.end_hour);
                     if (matchTmpl) {
@@ -286,7 +301,7 @@ function renderCalendar() {
     }
 
     // 選択数カウント
-    document.getElementById('selected-count').textContent = Object.keys(pendingChanges).length + '日選択中';
+    document.getElementById('selected-count').textContent = Object.keys(pendingChanges).length + I18N.daysSelected;
 }
 
 function createEmptyCell() {
@@ -304,7 +319,7 @@ async function saveBulk() {
     }));
 
     if (entries.length === 0) {
-        showToast('保存する変更がありません', true);
+        showToast(I18N.noChanges, true);
         return;
     }
 
@@ -316,7 +331,7 @@ async function saveBulk() {
         });
         const result = await resp.json();
         if (resp.ok) {
-            showToast(`${result.created}件登録、${result.updated}件更新しました`, false);
+            showToast(`${result.created}${I18N.registered}${result.updated}${I18N.updated}`, false);
             // 既存データを更新
             for (const [date, data] of Object.entries(pendingChanges)) {
                 if (!EXISTING[date]) EXISTING[date] = [];
@@ -332,10 +347,10 @@ async function saveBulk() {
             selectedDates.clear();
             renderCalendar();
         } else {
-            showToast(result.error || 'エラーが発生しました', true);
+            showToast(result.error || I18N.genericError, true);
         }
     } catch (e) {
-        showToast('通信エラー: ' + e.message, true);
+        showToast(I18N.networkError + ' ' + e.message, true);
     }
 }
 
@@ -362,14 +377,14 @@ async function copyPreviousWeek() {
         });
         const result = await resp.json();
         if (resp.ok) {
-            showToast(`前週から${result.created}件コピーしました`, false);
+            showToast(`${I18N.copyFromPrev}${result.created}${I18N.copied}`, false);
             // ページリロードで反映
             setTimeout(() => location.reload(), 1000);
         } else {
-            showToast(result.error || 'コピーに失敗しました', true);
+            showToast(result.error || I18N.copyFailed, true);
         }
     } catch (e) {
-        showToast('通信エラー: ' + e.message, true);
+        showToast(I18N.networkError + ' ' + e.message, true);
     }
 }
 

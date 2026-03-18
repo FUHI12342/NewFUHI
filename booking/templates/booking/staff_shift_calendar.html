@@ -20,7 +20,7 @@
             <div class="bg-white border border-gray-200 rounded-lg p-4 flex items-center justify-between">
                 <div>
                     <span class="font-semibold text-salon-dark">{{ period.year_month|date:"Y年n月" }}</span>
-                    <span class="text-sm text-gray-500 ml-2">締切: {{ period.deadline|date:"Y/m/d H:i" }}</span>
+                    <span class="text-sm text-gray-500 ml-2">{% trans "締切:" %} {{ period.deadline|date:"Y/m/d H:i" }}</span>
                 </div>
                 <a href="{% url 'booking:staff_shift_submit' period.pk %}"
                    class="bg-salon-brown text-white text-sm px-4 py-2 rounded-lg hover:bg-salon-dark transition">

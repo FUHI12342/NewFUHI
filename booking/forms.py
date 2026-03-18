@@ -1,4 +1,5 @@
 from django import forms
+from django.utils.translation import gettext_lazy as _
 from .models import Staff, AdminMenuConfig
 
 
@@ -10,40 +11,40 @@ class StaffForm(forms.ModelForm):
 
 # モデルキー → わかりやすい日本語ラベル
 MODEL_JAPANESE_LABELS = {
-    'schedule': '予約スケジュール',
-    'shiftperiod': 'シフト募集期間',
-    'shiftrequest': 'シフト希望',
-    'shiftassignment': '確定シフト',
-    'staff': 'スタッフ',
-    'store': '店舗',
-    'storescheduleconfig': '店舗スケジュール設定',
-    'category': '商品カテゴリ',
-    'product': '商品',
-    'producttranslation': '商品翻訳',
-    'order': '注文',
-    'iotdevice': 'IoTデバイス',
-    'property': '物件',
-    'propertydevice': '物件デバイス',
-    'company': '運営会社情報',
-    'notice': 'お知らせ',
-    'media': 'メディア掲載',
-    'sitesettings': 'サイト設定',
-    'homepagecustomblock': 'カスタムブロック',
-    'herobanner': 'ヒーローバナー',
-    'bannerad': 'バナー広告',
-    'externallink': '外部リンク',
-    'systemconfig': 'システム設定',
-    'admintheme': '管理画面テーマ',
-    'dashboardlayout': 'ダッシュボードレイアウト',
-    'adminmenuconfig': 'メニュー権限設定',
-    'employmentcontract': '雇用契約',
-    'workattendance': '勤怠記録',
-    'payrollperiod': '給与計算期間',
-    'payrollentry': '給与明細',
-    'payrolldeduction': '控除明細',
-    'salarystructure': '給与体系',
-    'user': 'ユーザー',
-    'group': 'グループ',
+    'schedule': _('予約スケジュール'),
+    'shiftperiod': _('シフト募集期間'),
+    'shiftrequest': _('シフト希望'),
+    'shiftassignment': _('確定シフト'),
+    'staff': _('スタッフ'),
+    'store': _('店舗'),
+    'storescheduleconfig': _('店舗スケジュール設定'),
+    'category': _('商品カテゴリ'),
+    'product': _('商品'),
+    'producttranslation': _('商品翻訳'),
+    'order': _('注文'),
+    'iotdevice': _('IoTデバイス'),
+    'property': _('物件'),
+    'propertydevice': _('物件デバイス'),
+    'company': _('運営会社情報'),
+    'notice': _('お知らせ'),
+    'media': _('メディア掲載'),
+    'sitesettings': _('サイト設定'),
+    'homepagecustomblock': _('カスタムブロック'),
+    'herobanner': _('ヒーローバナー'),
+    'bannerad': _('バナー広告'),
+    'externallink': _('外部リンク'),
+    'systemconfig': _('システム設定'),
+    'admintheme': _('管理画面テーマ'),
+    'dashboardlayout': _('ダッシュボードレイアウト'),
+    'adminmenuconfig': _('メニュー権限設定'),
+    'employmentcontract': _('雇用契約'),
+    'workattendance': _('勤怠記録'),
+    'payrollperiod': _('給与計算期間'),
+    'payrollentry': _('給与明細'),
+    'payrolldeduction': _('控除明細'),
+    'salarystructure': _('給与体系'),
+    'user': _('ユーザー'),
+    'group': _('グループ'),
 }
 
 
@@ -64,10 +65,10 @@ def _build_model_choices():
 
 class AdminMenuConfigForm(forms.ModelForm):
     allowed_models = forms.MultipleChoiceField(
-        label='表示許可メニュー',
+        label=_('表示許可メニュー'),
         widget=forms.CheckboxSelectMultiple,
         required=False,
-        help_text='このロールに表示するメニュー項目にチェックを入れてください。',
+        help_text=_('このロールに表示するメニュー項目にチェックを入れてください。'),
     )
 
     class Meta:
@@ -77,6 +78,6 @@ class AdminMenuConfigForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields['allowed_models'].choices = _build_model_choices()
-        self.fields['role'].help_text = 'superuserは常に全メニューを表示するため設定不要です。'
+        self.fields['role'].help_text = _('superuserは常に全メニューを表示するため設定不要です。')
         if self.instance and self.instance.pk:
             self.initial['allowed_models'] = self.instance.allowed_models or []

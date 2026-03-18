@@ -395,7 +395,7 @@ JAZZMIN_SETTINGS = {
     "site_header": _("占いサロンチャンス 管理画面"),
     "site_brand": _("占いサロンチャンス"),
     "welcome_sign": _("占いサロンチャンス 管理画面へようこそ"),
-    "copyright": "占いサロンチャンス",
+    "copyright": _("占いサロンチャンス"),
 
     # サイドバーナビ設定
     "show_sidebar": True,

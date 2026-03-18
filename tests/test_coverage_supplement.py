@@ -168,7 +168,8 @@ class TestBuildModelChoices:
         # Each choice is (key, label)
         for key, label in choices:
             assert isinstance(key, str)
-            assert isinstance(label, str)
+            # label may be a lazy translation string
+            assert len(str(label)) > 0
 
     def test_no_duplicates(self):
         from booking.forms import _build_model_choices

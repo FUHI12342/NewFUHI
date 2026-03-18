@@ -1,9 +1,10 @@
+{% load i18n %}
 <!DOCTYPE html>
 <html lang="ja">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>勤怠打刻 - {{ store.name }}</title>
+<title>{% trans "勤怠打刻" %} - {{ store.name }}</title>
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; }
   body {
@@ -62,19 +63,19 @@
 </head>
 <body>
 <div class="header">
-  勤怠打刻
+  {% trans "勤怠打刻" %}
   <div class="store-name">{{ store.name }}</div>
 </div>
 
 <div class="container">
   <div id="expired-warning" class="expired-warning">
-    QRコードの有効期限が切れている可能性があります。<br>再度スキャンしてください。
+    {% trans "QRコードの有効期限が切れている可能性があります。" %}<br>{% trans "再度スキャンしてください。" %}
   </div>
 
   <div class="form-group">
-    <label for="staff-select">スタッフ</label>
+    <label for="staff-select">{% trans "スタッフ" %}</label>
     <select id="staff-select">
-      <option value="">-- 選択してください --</option>
+      <option value="">-- {% trans "選択してください" %} --</option>
       {% for s in staffs %}
       <option value="{{ s.id }}">{{ s.name }}</option>
       {% endfor %}
@@ -82,23 +83,36 @@
   </div>
 
   <div class="form-group">
-    <label for="pin-input">4桁PIN</label>
+    <label for="pin-input">{% trans "4桁PIN" %}</label>
     <input type="password" id="pin-input" maxlength="4" pattern="\d{4}"
            inputmode="numeric" placeholder="****" autocomplete="off">
   </div>
 
   <div class="stamp-buttons">
-    <button class="stamp-btn btn-clock-in" onclick="doStamp('clock_in')">出勤</button>
-    <button class="stamp-btn btn-clock-out" onclick="doStamp('clock_out')">退勤</button>
-    <button class="stamp-btn btn-break-start" onclick="doStamp('break_start')">休憩開始</button>
-    <button class="stamp-btn btn-break-end" onclick="doStamp('break_end')">休憩終了</button>
+    <button class="stamp-btn btn-clock-in" onclick="doStamp('clock_in')">{% trans "出勤" %}</button>
+    <button class="stamp-btn btn-clock-out" onclick="doStamp('clock_out')">{% trans "退勤" %}</button>
+    <button class="stamp-btn btn-break-start" onclick="doStamp('break_start')">{% trans "休憩開始" %}</button>
+    <button class="stamp-btn btn-break-end" onclick="doStamp('break_end')">{% trans "休憩終了" %}</button>
   </div>
 
   <div id="result-msg" class="result-msg"></div>
 </div>
 
+<div id="i18n-data" hidden
+     data-clock-in="{% trans "出勤" %}"
+     data-clock-out="{% trans "退勤" %}"
+     data-break-start="{% trans "休憩開始" %}"
+     data-break-end="{% trans "休憩終了" %}"
+     data-done="{% trans "完了" %}"
+     data-select-staff="{% trans "スタッフを選択してください" %}"
+     data-enter-pin="{% trans "4桁PINを入力してください" %}"
+     data-generic-error="{% trans "エラーが発生しました" %}"
+     data-network-error="{% trans "通信エラーが発生しました" %}"
+></div>
+
 <script>
-var STAMP_LABELS = {clock_in:'出勤',clock_out:'退勤',break_start:'休憩開始',break_end:'休憩終了'};
+var I18N = document.getElementById('i18n-data').dataset;
+var STAMP_LABELS = {clock_in:I18N.clockIn,clock_out:I18N.clockOut,break_start:I18N.breakStart,break_end:I18N.breakEnd};
 var STORE_ID = '{{ store.id }}';
 var TOTP_CODE = '{{ totp_code }}';
 
@@ -118,8 +132,8 @@ function getCookie(name) {
 function doStamp(stampType) {
   var staffId = document.getElementById('staff-select').value;
   var pin = document.getElementById('pin-input').value;
-  if (!staffId) { showMsg('error', 'スタッフを選択してください'); return; }
-  if (!pin || pin.length !== 4) { showMsg('error', '4桁PINを入力してください'); return; }
+  if (!staffId) { showMsg('error', I18N.selectStaff); return; }
+  if (!pin || pin.length !== 4) { showMsg('error', I18N.enterPin); return; }
 
   var btns = document.querySelectorAll('.stamp-btn');
   btns.forEach(function(b) { b.disabled = true; });
@@ -142,10 +156,10 @@ function doStamp(stampType) {
   .then(function(data) {
     btns.forEach(function(b) { b.disabled = false; });
     if (data.success) {
-      showMsg('success', data.staff_name + ' - ' + STAMP_LABELS[stampType] + ' 完了');
+      showMsg('success', data.staff_name + ' - ' + STAMP_LABELS[stampType] + ' ' + I18N.done);
       document.getElementById('pin-input').value = '';
     } else {
-      showMsg('error', data.error || 'エラーが発生しました');
+      showMsg('error', data.error || I18N.genericError);
       if (data.error && data.error.indexOf('有効期限') >= 0) {
         document.getElementById('expired-warning').style.display = 'block';
       }
@@ -153,7 +167,7 @@ function doStamp(stampType) {
   })
   .catch(function() {
     btns.forEach(function(b) { b.disabled = false; });
-    showMsg('error', '通信エラーが発生しました');
+    showMsg('error', I18N.networkError);
   });
 }
 </script>

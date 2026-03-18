@@ -135,7 +135,11 @@
 {% endblock %}
 
 {% block extra_js %}
+<div id="js-translations" class="hidden"
+     data-processing="{% trans '処理中...' %}"></div>
 <script>
+var i18n = document.getElementById('js-translations').dataset;
+
 // カード番号の自動フォーマット（4桁区切り）
 document.getElementById('card-number').addEventListener('input', function(e) {
     var v = e.target.value.replace(/\s/g, '').replace(/\D/g, '');
@@ -162,7 +166,7 @@ document.getElementById('payment-form').addEventListener('submit', function() {
     var btn = document.getElementById('pay-btn');
     btn.disabled = true;
     btn.classList.add('opacity-50', 'cursor-not-allowed');
-    document.getElementById('pay-text').textContent = '処理中...';
+    document.getElementById('pay-text').textContent = i18n.processing;
     document.getElementById('pay-spinner').classList.remove('hidden');
 });
 </script>

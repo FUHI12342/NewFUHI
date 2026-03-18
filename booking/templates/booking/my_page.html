@@ -5,7 +5,7 @@
 
 <!-- Page Heading -->
 <h1 class="text-2xl md:text-3xl font-bold text-salon-dark mb-6 border-b-2 border-salon-brown pb-3">
-    {{ user.username }}のマイページ
+    {% blocktrans with username=user.username %}{{ username }}のマイページ{% endblocktrans %}
 </h1>
 
 <div class="space-y-8">
@@ -13,7 +13,7 @@
     <!-- ===== 在籍店舗 Card ===== -->
     <div class="bg-white rounded-xl shadow-md overflow-hidden">
         <div class="bg-salon-beige px-5 py-3 border-b border-salon-brown/20">
-            <h2 class="text-lg font-bold text-salon-brown">在籍店舗</h2>
+            <h2 class="text-lg font-bold text-salon-brown">{% trans "在籍店舗" %}</h2>
         </div>
         <div class="divide-y divide-gray-100">
             {% for staff in staff_list %}
@@ -25,7 +25,7 @@
                              style="width:40px;height:40px;border-radius:50%;object-fit:cover;">
                         {% endif %}
                         <div>
-                            <p class="text-base font-semibold text-salon-dark">{{ staff.store.name }}店</p>
+                            <p class="text-base font-semibold text-salon-dark">{% blocktrans with store_name=staff.store.name %}{{ store_name }}店{% endblocktrans %}</p>
                             <p class="text-sm text-gray-500 mt-0.5">{{ staff.name }}
                                 {% if staff.staff_type == 'fortune_teller' %}
                                 <span style="background:#DBEAFE;color:#1E40AF;padding:1px 6px;border-radius:8px;font-size:11px;margin-left:4px;">{% trans "キャスト" %}</span>
@@ -49,7 +49,7 @@
             </div>
             {% empty %}
             <div class="px-5 py-10 text-center">
-                <p class="text-gray-400 text-sm">まだ在籍店舗がありません。</p>
+                <p class="text-gray-400 text-sm">{% trans "まだ在籍店舗がありません。" %}</p>
             </div>
             {% endfor %}
         </div>
@@ -76,7 +76,7 @@
             </a>
             {% empty %}
             <div class="px-5 py-10 text-center">
-                <p class="text-gray-400 text-sm">予約はありません。</p>
+                <p class="text-gray-400 text-sm">{% trans "予約はありません。" %}</p>
             </div>
             {% endfor %}
         </div>

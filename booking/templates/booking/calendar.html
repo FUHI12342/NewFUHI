@@ -211,7 +211,7 @@
     </a>
     <a href="{% url 'booking:staff_list' staff.store.pk %}"
        class="text-sm text-gray-500 hover:text-salon-brown transition underline underline-offset-2">
-        {{ staff_label }}一覧に戻る
+        {% blocktrans with label=staff_label %}{{ label }}一覧に戻る{% endblocktrans %}
     </a>
     <a href="{% url 'booking:calendar' staff.pk next.year next.month next.day %}"
        class="inline-flex items-center gap-1 text-sm font-medium text-salon-brown hover:text-salon-dark bg-salon-beige hover:bg-gray-200 px-4 py-2 rounded-lg transition">

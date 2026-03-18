@@ -1,5 +1,6 @@
 # booking/custom_auth.py
 from django.contrib.auth.apps import AuthConfig
+from django.utils.translation import gettext_lazy as _
 
 
 class CustomAuthConfig(AuthConfig):
@@ -14,4 +15,4 @@ class CustomAuthConfig(AuthConfig):
 
     name = "django.contrib.auth"
     label = "auth"
-    verbose_name = "アカウント管理"  # 左メニューに出る名前
+    verbose_name = _("アカウント管理")

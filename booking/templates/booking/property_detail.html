@@ -245,8 +245,23 @@
 {% endblock %}
 
 {% block extra_js %}
+<div id="i18n-data" hidden
+     data-online="{% trans "オンライン" %}"
+     data-offline="{% trans "オフライン" %}"
+     data-detected="{% trans "検知" %}"
+     data-none="{% trans "なし" %}"
+     data-critical="{% trans "危険" %}"
+     data-warning="{% trans "警告" %}"
+     data-info="{% trans "情報" %}"
+     data-no-active-alerts="{% trans "アクティブなアラートはありません。" %}"
+     data-resolve="{% trans "解決" %}"
+     data-occupied="{% trans "在室中" %}"
+     data-vacant="{% trans "不在" %}"
+     data-stale-warning="{% trans "データの取得に失敗しています。接続を確認してください。" %}"
+></div>
 <script>
 (function () {
+    const I18N = document.getElementById('i18n-data').dataset;
     const PROPERTY_ID = {{ property.id }};
     const REFRESH_INTERVAL = 30000; // 30 seconds
     const API_URL = '/api/properties/' + PROPERTY_ID + '/status/';
@@ -309,10 +324,10 @@
             if (statusEl) {
                 if (d.online) {
                     statusEl.className = 'device-status inline-flex items-center gap-1 text-xs font-medium bg-green-100 text-green-700 px-2 py-0.5 rounded-full';
-                    statusEl.innerHTML = '<span class="inline-block w-1.5 h-1.5 rounded-full bg-green-500"></span> オンライン';
+                    statusEl.innerHTML = '<span class="inline-block w-1.5 h-1.5 rounded-full bg-green-500"></span> ' + I18N.online;
                 } else {
                     statusEl.className = 'device-status inline-flex items-center gap-1 text-xs font-medium bg-red-100 text-red-600 px-2 py-0.5 rounded-full';
-                    statusEl.innerHTML = '<span class="inline-block w-1.5 h-1.5 rounded-full bg-red-500"></span> オフライン';
+                    statusEl.innerHTML = '<span class="inline-block w-1.5 h-1.5 rounded-full bg-red-500"></span> ' + I18N.offline;
                 }
             }
 
@@ -329,9 +344,9 @@
             var pirEl = card.querySelector('.sensor-pir');
             if (pirEl) {
                 if (d.pir_recent) {
-                    pirEl.innerHTML = '<span class="text-orange-600">検知</span>';
+                    pirEl.innerHTML = '<span class="text-orange-600">' + I18N.detected + '</span>';
                 } else {
-                    pirEl.innerHTML = '<span class="text-gray-400">なし</span>';
+                    pirEl.innerHTML = '<span class="text-gray-400">' + I18N.none + '</span>';
                 }
             }
         });
@@ -342,13 +357,13 @@
         var label;
         if (severity === 'critical') {
             colors = active ? 'bg-red-100 text-red-700' : 'bg-red-50 text-red-400';
-            label = '危険';
+            label = I18N.critical;
         } else if (severity === 'warning') {
             colors = active ? 'bg-yellow-100 text-yellow-700' : 'bg-yellow-50 text-yellow-400';
-            label = '警告';
+            label = I18N.warning;
         } else {
             colors = active ? 'bg-blue-100 text-blue-700' : 'bg-blue-50 text-blue-400';
-            label = '情報';
+            label = I18N.info;
         }
         var dotColor = severity === 'critical' ? 'bg-red-500' : severity === 'warning' ? 'bg-yellow-500' : 'bg-blue-500';
         var dot = active ? '<span class="inline-block w-1.5 h-1.5 rounded-full ' + dotColor + '"></span>' : '';
@@ -366,7 +381,7 @@
                 tbody.innerHTML = '<tr id="no-active-alerts"><td colspan="5" class="px-4 py-8 text-center text-gray-400">' +
                     '<svg class="w-8 h-8 mx-auto mb-2 text-green-300" fill="currentColor" viewBox="0 0 20 20">' +
                     '<path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>' +
-                    '</svg>アクティブなアラートはありません。</td></tr>';
+                    '</svg>' + I18N.noActiveAlerts + '</td></tr>';
             } else {
                 var rows = '';
                 activeAlerts.forEach(function (a) {
@@ -378,7 +393,7 @@
                         '<td class="px-4 py-3 text-center">' +
                         '<button onclick="resolveAlert(' + a.id + ')" class="resolve-btn inline-flex items-center gap-1 text-xs font-medium bg-green-50 text-green-700 hover:bg-green-100 px-3 py-1.5 rounded transition">' +
                         '<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>' +
-                        ' 解決</button>' +
+                        ' ' + I18N.resolve + '</button>' +
                         '</td></tr>';
                 });
                 tbody.innerHTML = rows;
@@ -397,11 +412,11 @@
             el.innerHTML = '<span class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-semibold bg-orange-100 text-orange-700">' +
                 '<span class="relative flex h-2.5 w-2.5"><span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-orange-400 opacity-75"></span>' +
                 '<span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-orange-500"></span></span>' +
-                ' 在室中</span>';
+                ' ' + I18N.occupied + '</span>';
         } else {
             el.innerHTML = '<span class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-semibold bg-gray-100 text-gray-500">' +
                 '<span class="inline-flex rounded-full h-2.5 w-2.5 bg-gray-400"></span>' +
-                ' 不在</span>';
+                ' ' + I18N.vacant + '</span>';
         }
     }
 
@@ -462,7 +477,7 @@
             el = document.createElement('div');
             el.id = 'stale-warning';
             el.className = 'bg-yellow-50 border border-yellow-200 text-yellow-700 text-sm px-4 py-2 rounded mb-4';
-            el.textContent = 'データの取得に失敗しています。接続を確認してください。';
+            el.textContent = I18N.staleWarning;
             var container = document.querySelector('.container, main, [role="main"]');
             if (container) container.prepend(el);
         }

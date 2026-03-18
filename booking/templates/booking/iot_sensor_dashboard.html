@@ -303,9 +303,16 @@
 {% block extra_js %}
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7"></script>
 <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@3.0.0"></script>
+<div id="iot-i18n" hidden
+     data-stale-warning="{% trans 'データの取得に失敗しています。接続を確認してください。' %}"
+     data-pir-active="{% trans '人感センサー反応中' %}"
+     data-pir-inactive="{% trans '静止中' %}"
+     data-no-device="{% trans 'デバイスが登録されていません。管理画面からIoTデバイスを追加してください。' %}"></div>
 <script>
 (function() {
   'use strict';
+
+  var iotI18n = document.getElementById('iot-i18n').dataset;
 
   // ── Sensor tab switching ────────────────────────────────
   window.switchSensor = function(sensorName) {
@@ -552,7 +559,7 @@
         var el = document.createElement('div');
         el.id = 'stale-warning';
         el.className = 'bg-yellow-50 border border-yellow-200 text-yellow-700 text-sm px-4 py-2 rounded mb-4';
-        el.textContent = 'データの取得に失敗しています。接続を確認してください。';
+        el.textContent = iotI18n.staleWarning;
         var container = document.querySelector('.container, main, [role="main"]');
         if (container) container.prepend(el);
       }
@@ -619,10 +626,10 @@
           var text = document.getElementById('pir-status-text');
           if (d.active) {
             badge.className = 'pir-badge active';
-            text.textContent = '人感センサー反応中';
+            text.textContent = iotI18n.pirActive;
           } else {
             badge.className = 'pir-badge inactive';
-            text.textContent = '静止中';
+            text.textContent = iotI18n.pirInactive;
           }
         }).catch(function() {});
     }
@@ -639,7 +646,7 @@
       deviceSelect.innerHTML = '';
 
       if (!Array.isArray(devices) || devices.length === 0) {
-        deviceSelect.innerHTML = '<option value="">デバイスが登録されていません。管理画面からIoTデバイスを追加してください。</option>';
+        deviceSelect.innerHTML = '<option value="">' + iotI18n.noDevice + '</option>';
         return;
       }
 
@@ -659,7 +666,7 @@
       currentDevice = deviceSelect.value;
       startPolling();
     }).catch(function() {
-      deviceSelect.innerHTML = '<option value="">デバイスが登録されていません。管理画面からIoTデバイスを追加してください。</option>';
+      deviceSelect.innerHTML = '<option value="">' + iotI18n.noDevice + '</option>';
     });
   }
 

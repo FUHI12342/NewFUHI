@@ -39,7 +39,7 @@
                 </tr>
                 <tr>
                     <th class="px-4 py-3 bg-salon-beige text-left font-semibold text-salon-dark">{% trans "価格" %}</th>
-                    <td class="px-4 py-3">各{{ staff_label }}のプロフィールページに記載の料金をご確認ください。表示価格は税込みです。</td>
+                    <td class="px-4 py-3">{% blocktrans with label=staff_label %}各{{ label }}のプロフィールページに記載の料金をご確認ください。表示価格は税込みです。{% endblocktrans %}</td>
                 </tr>
                 <tr>
                     <th class="px-4 py-3 bg-salon-beige text-left font-semibold text-salon-dark">{% trans "支払方法" %}</th>

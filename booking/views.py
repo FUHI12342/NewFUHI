@@ -16,6 +16,7 @@ from booking.admin_site import custom_site
 from typing import Optional, Dict, Any, Tuple
 
 from django.utils import timezone
+from django.utils.translation import gettext_lazy as _
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth import get_user_model
@@ -1085,8 +1086,8 @@ class BookingChannelChoice(generic.TemplateView):
 
 
 class EmailBookingForm(forms.Form):
-    customer_name = forms.CharField(max_length=255, label='お名前')
-    customer_email = forms.EmailField(label='メールアドレス')
+    customer_name = forms.CharField(max_length=255, label=_('お名前'))
+    customer_email = forms.EmailField(label=_('メールアドレス'))
 
 
 class EmailBookingView(View):
