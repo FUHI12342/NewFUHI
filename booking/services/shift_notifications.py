@@ -1,17 +1,53 @@
-"""シフト関連 LINE/メール通知サービス"""
+"""シフト関連 LINE/メール通知サービス
+
+LINE通知: send_staff_line() による個別Push（通知設定を尊重）
+メール通知: send_mail() による一括送信（従来通り）
+"""
 import logging
 
 from django.conf import settings
 from django.core.mail import send_mail
 from django.utils import timezone
 
-from booking.line_notify import send_line_notify
+from booking.services.staff_notifications import send_staff_line
 
 logger = logging.getLogger(__name__)
 
 
+def _send_email_to_store_staff(store, subject, message):
+    """店舗スタッフ全員にメール送信（内部ヘルパー）"""
+    from booking.models import Staff
+    staff_emails = list(
+        Staff.objects.filter(store=store)
+        .exclude(user__email='')
+        .values_list('user__email', flat=True)
+    )
+    if not staff_emails:
+        return
+    try:
+        send_mail(
+            subject=subject,
+            message=message,
+            from_email=settings.DEFAULT_FROM_EMAIL,
+            recipient_list=staff_emails,
+            fail_silently=True,
+        )
+    except Exception as e:
+        logger.warning("Email notify failed: %s", e)
+
+
+def _send_line_to_store_staff(store, message, notification_type='shift'):
+    """店舗スタッフ全員にLINE個別Push"""
+    from booking.models import Staff
+    for staff in Staff.objects.filter(store=store).select_related('user'):
+        try:
+            send_staff_line(staff, message, notification_type=notification_type)
+        except Exception as e:
+            logger.warning("LINE push failed for %s: %s", staff.name, e)
+
+
 def notify_shift_period_open(period):
-    """シフト募集開始通知 (LINE + メール)"""
+    """シフト募集開始通知 (LINE個別Push + メール)"""
     store = period.store
     month_str = period.year_month.strftime('%Y年%m月')
     deadline_str = timezone.localtime(period.deadline).strftime('%Y/%m/%d %H:%M')
@@ -24,34 +60,12 @@ def notify_shift_period_open(period):
         f"管理画面からシフト希望を入力してください。"
     )
 
-    # LINE通知
-    try:
-        send_line_notify(message)
-    except Exception as e:
-        logger.warning("LINE notify failed for shift period open: %s", e)
-
-    # メール通知（スタッフ全員）
-    from booking.models import Staff
-    staff_emails = list(
-        Staff.objects.filter(store=store)
-        .exclude(user__email='')
-        .values_list('user__email', flat=True)
-    )
-    if staff_emails:
-        try:
-            send_mail(
-                subject=f'シフト募集開始: {month_str}',
-                message=message,
-                from_email=settings.DEFAULT_FROM_EMAIL,
-                recipient_list=staff_emails,
-                fail_silently=True,
-            )
-        except Exception as e:
-            logger.warning("Email notify failed for shift period open: %s", e)
+    _send_line_to_store_staff(store, message, notification_type='shift')
+    _send_email_to_store_staff(store, f'シフト募集開始: {month_str}', message)
 
 
 def notify_shift_approved(period):
-    """シフト承認完了通知 (LINE + メール)"""
+    """シフト承認完了通知 (LINE個別Push + メール)"""
     store = period.store
     month_str = period.year_month.strftime('%Y年%m月')
 
@@ -62,32 +76,12 @@ def notify_shift_approved(period):
         f"シフトが確定しました。管理画面でご確認ください。"
     )
 
-    try:
-        send_line_notify(message)
-    except Exception as e:
-        logger.warning("LINE notify failed for shift approved: %s", e)
-
-    from booking.models import Staff
-    staff_emails = list(
-        Staff.objects.filter(store=store)
-        .exclude(user__email='')
-        .values_list('user__email', flat=True)
-    )
-    if staff_emails:
-        try:
-            send_mail(
-                subject=f'シフト確定: {month_str}',
-                message=message,
-                from_email=settings.DEFAULT_FROM_EMAIL,
-                recipient_list=staff_emails,
-                fail_silently=True,
-            )
-        except Exception as e:
-            logger.warning("Email notify failed for shift approved: %s", e)
+    _send_line_to_store_staff(store, message, notification_type='shift')
+    _send_email_to_store_staff(store, f'シフト確定: {month_str}', message)
 
 
 def notify_shift_revoked(period, reason=''):
-    """シフト撤回通知 (LINE + メール)"""
+    """シフト撤回通知 (LINE個別Push + メール)"""
     store = period.store
     month_str = period.year_month.strftime('%Y年%m月')
 
@@ -100,32 +94,12 @@ def notify_shift_revoked(period, reason=''):
         f"再度公開されるまでお待ちください。"
     )
 
-    try:
-        send_line_notify(message)
-    except Exception as e:
-        logger.warning("LINE notify failed for shift revoked: %s", e)
-
-    from booking.models import Staff
-    staff_emails = list(
-        Staff.objects.filter(store=store)
-        .exclude(user__email='')
-        .values_list('user__email', flat=True)
-    )
-    if staff_emails:
-        try:
-            send_mail(
-                subject=f'シフト撤回: {month_str}',
-                message=message,
-                from_email=settings.DEFAULT_FROM_EMAIL,
-                recipient_list=staff_emails,
-                fail_silently=True,
-            )
-        except Exception as e:
-            logger.warning("Email notify failed for shift revoked: %s", e)
+    _send_line_to_store_staff(store, message, notification_type='shift')
+    _send_email_to_store_staff(store, f'シフト撤回: {month_str}', message)
 
 
 def notify_shift_revised(assignment, changes):
-    """個別シフト修正通知 (LINE + メール)"""
+    """個別シフト修正通知 (LINE個別Push + メール)"""
     staff = assignment.staff
     store = assignment.period.store
     date_str = assignment.date.strftime('%Y/%m/%d')
@@ -144,9 +118,9 @@ def notify_shift_revised(assignment, changes):
     )
 
     try:
-        send_line_notify(message)
+        send_staff_line(staff, message, notification_type='shift')
     except Exception as e:
-        logger.warning("LINE notify failed for shift revised: %s", e)
+        logger.warning("LINE push failed for shift revised: %s", e)
 
     if hasattr(staff, 'user') and staff.user and staff.user.email:
         try:
@@ -162,18 +136,6 @@ def notify_shift_revised(assignment, changes):
 
 
 def notify_booking_confirmed(schedule):
-    """予約確定通知 (スタッフ向け LINE)"""
-    staff = schedule.staff
-    local_time = timezone.localtime(schedule.start).strftime('%Y/%m/%d %H:%M')
-
-    message = (
-        f"【予約確定】\n"
-        f"日時: {local_time}\n"
-        f"お客様: {schedule.customer_name or '未設定'}\n"
-        f"料金: {schedule.price}円"
-    )
-
-    try:
-        send_line_notify(message)
-    except Exception as e:
-        logger.warning("LINE notify failed for booking confirmed: %s", e)
+    """予約確定通知 (スタッフ向け LINE個別Push)"""
+    from booking.services.staff_notifications import notify_booking_to_staff
+    return notify_booking_to_staff(schedule)

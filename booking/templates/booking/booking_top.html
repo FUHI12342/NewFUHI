@@ -101,6 +101,7 @@
 <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-6 mb-8">
 
     <!-- Card 1: 店舗から選ぶ -->
+    {% if site_settings.show_card_store %}
     <a href="{% url 'booking:store_list' %}"
        class="block bg-white rounded-xl shadow-md hover:shadow-lg transition-all duration-300 overflow-hidden border border-gray-200 hover:border-salon-brown/50 group">
         <div class="h-20 md:h-40 bg-gradient-to-br from-amber-100 to-amber-50 flex items-center justify-center">
@@ -116,8 +117,10 @@
             <span class="text-[10px] md:text-xs font-medium text-salon-brown">{% trans "店舗一覧へ" %} &rarr;</span>
         </div>
     </a>
+    {% endif %}
 
     <!-- Card 2: キャストから選ぶ -->
+    {% if site_settings.show_card_fortune_teller %}
     <a href="{% url 'booking:all_fortune_tellers' %}"
        class="block bg-white rounded-xl shadow-md hover:shadow-lg transition-all duration-300 overflow-hidden border border-gray-200 hover:border-salon-brown/50 group">
         <div class="h-20 md:h-40 bg-gradient-to-br from-purple-100 to-purple-50 flex items-center justify-center">
@@ -133,8 +136,10 @@
             <span class="text-[10px] md:text-xs font-medium text-salon-brown">{% blocktrans with staff_label=staff_label %}{{ staff_label }}一覧へ{% endblocktrans %} &rarr;</span>
         </div>
     </a>
+    {% endif %}
 
     <!-- Card 3: 日付から選ぶ -->
+    {% if site_settings.show_card_calendar %}
     <a href="{% url 'booking:date_first_calendar' %}"
        class="block bg-white rounded-xl shadow-md hover:shadow-lg transition-all duration-300 overflow-hidden border border-gray-200 hover:border-salon-brown/50 group">
         <div class="h-20 md:h-40 bg-gradient-to-br from-emerald-100 to-emerald-50 flex items-center justify-center">
@@ -150,8 +155,10 @@
             <span class="text-[10px] md:text-xs font-medium text-salon-brown">{% trans "カレンダーへ" %} &rarr;</span>
         </div>
     </a>
+    {% endif %}
 
     <!-- Card 4: ショップ -->
+    {% if site_settings.show_card_shop %}
     <a href="{% url 'booking:shop' %}"
        class="block bg-white rounded-xl shadow-md hover:shadow-lg transition-all duration-300 overflow-hidden border border-gray-200 hover:border-salon-brown/50 group">
         <div class="h-20 md:h-40 bg-gradient-to-br from-rose-100 to-rose-50 flex items-center justify-center">
@@ -167,6 +174,7 @@
             <span class="text-[10px] md:text-xs font-medium text-salon-brown">{% trans "ショップへ" %} &rarr;</span>
         </div>
     </a>
+    {% endif %}
 
 </div>
 

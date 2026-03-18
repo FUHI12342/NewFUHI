@@ -141,6 +141,7 @@ class StaffAdmin(admin.ModelAdmin):
     _full_fieldsets = (
         (None, {'fields': ('user', 'store', 'name', 'staff_type')}),
         (_('プロフィール'), {'fields': ('thumbnail', 'introduction', 'price', 'line_id')}),
+        (_('通知設定'), {'fields': ('notify_booking', 'notify_shift', 'notify_business')}),
         (_('権限'), {'fields': ('is_owner', 'is_store_manager', 'is_developer', 'is_recommended')}),
         (_('勤怠'), {'fields': ('attendance_pin',)}),
     )
@@ -148,6 +149,7 @@ class StaffAdmin(admin.ModelAdmin):
     # スタッフ/キャスト本人が編集できるフィールド
     _profile_fieldsets = (
         (_('マイプロフィール'), {'fields': ('name', 'thumbnail', 'introduction', 'price', 'line_id')}),
+        (_('通知設定'), {'fields': ('notify_booking', 'notify_shift', 'notify_business')}),
     )
 
     def get_fieldsets(self, request, obj=None):
@@ -221,6 +223,43 @@ class StaffAdmin(admin.ModelAdmin):
             return staff.is_store_manager
         except Staff.DoesNotExist:
             return False
+
+    # --------------------------------------------------
+    # カスタムアクション: LINE業務連絡送信
+    # --------------------------------------------------
+    actions = ['send_business_line']
+
+    @admin.action(description=_('選択したスタッフにLINE業務連絡を送信'))
+    def send_business_line(self, request, queryset):
+        from django.shortcuts import render
+        from booking.services.staff_notifications import send_business_message
+
+        if 'send' in request.POST:
+            message_text = request.POST.get('message', '').strip()
+            if not message_text:
+                self.message_user(request, _('メッセージを入力してください。'), messages.ERROR)
+                return
+
+            sender_name = ''
+            try:
+                sender_name = request.user.staff.name
+            except (Staff.DoesNotExist, AttributeError):
+                sender_name = request.user.get_full_name() or request.user.username
+
+            results = send_business_message(queryset, message_text, sender_name=sender_name)
+            self.message_user(
+                request,
+                _(f'送信完了: {results["sent"]}件成功, {results["skipped"]}件スキップ, {results["failed"]}件失敗'),
+                messages.SUCCESS if results['failed'] == 0 else messages.WARNING,
+            )
+            return
+
+        return render(request, 'admin/booking/send_business_line.html', {
+            'title': _('LINE業務連絡送信'),
+            'staffs': queryset,
+            'opts': self.model._meta,
+            'action_checkbox_name': admin.helpers.ACTION_CHECKBOX_NAME,
+        })
 
 
 class StoreScheduleConfigInline(admin.StackedInline):

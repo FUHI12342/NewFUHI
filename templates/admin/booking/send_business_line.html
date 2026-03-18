@@ -1,0 +1,54 @@
+{% extends "admin/base_site.html" %}
+{% load i18n %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+<form method="post">
+  {% csrf_token %}
+
+  {% for staff in staffs %}
+    <input type="hidden" name="{{ action_checkbox_name }}" value="{{ staff.pk }}" />
+  {% endfor %}
+  <input type="hidden" name="action" value="send_business_line" />
+  <input type="hidden" name="send" value="1" />
+
+  <fieldset class="module aligned">
+    <h2>{% trans '送信対象スタッフ' %}</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>{% trans '名前' %}</th>
+          <th>{% trans '店舗' %}</th>
+          <th>{% trans 'LINE ID' %}</th>
+          <th>{% trans '業務連絡通知' %}</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for staff in staffs %}
+        <tr>
+          <td>{{ staff.name }}</td>
+          <td>{{ staff.store.name }}</td>
+          <td>{{ staff.line_id|default:"未設定" }}</td>
+          <td>{% if staff.notify_business %}ON{% else %}OFF{% endif %}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </fieldset>
+
+  <fieldset class="module aligned" style="margin-top: 1em;">
+    <h2>{% trans 'メッセージ入力' %}</h2>
+    <div class="form-row">
+      <textarea name="message" rows="6" style="width: 100%; max-width: 600px;"
+                placeholder="{% trans '業務連絡の内容を入力してください...' %}"
+                required></textarea>
+    </div>
+  </fieldset>
+
+  <div class="submit-row" style="margin-top: 1em;">
+    <input type="submit" value="{% trans '送信する' %}" class="default" />
+    <a href="{% url 'admin:booking_staff_changelist' %}" class="button cancel-link">{% trans 'キャンセル' %}</a>
+  </div>
+</form>
+{% endblock %}

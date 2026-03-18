@@ -1,6 +1,54 @@
 {% extends "admin/change_form.html" %}
 {% load i18n %}
 
+{% block extrahead %}
+{{ block.super }}
+<style>
+  .sticky-save-bar {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: #417690;
+    padding: 10px 20px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+    border-radius: 0 0 8px 8px;
+    margin-bottom: 16px;
+  }
+  .sticky-save-bar .save-btn {
+    background: #fff;
+    color: #417690;
+    border: none;
+    padding: 8px 24px;
+    font-size: 14px;
+    font-weight: bold;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+  .sticky-save-bar .save-btn:hover {
+    background: #e8f0fe;
+  }
+  .sticky-save-bar .page-title {
+    color: #fff;
+    font-size: 16px;
+    font-weight: bold;
+    flex: 1;
+  }
+</style>
+{% endblock %}
+
+{% block form_top %}
+<div class="sticky-save-bar">
+  <span class="page-title">{% trans "メインページ設定" %}</span>
+  <button type="submit" class="save-btn" name="_save">
+    {% trans "保存する" %}
+  </button>
+</div>
+{% endblock %}
+
 {% block after_related_objects %}
 <div class="sub-models-section" style="margin-top: 30px;">
   <h2 style="font-size: 18px; border-bottom: 2px solid #417690; padding-bottom: 8px; margin-bottom: 16px;">

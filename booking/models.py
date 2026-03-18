@@ -134,6 +134,20 @@ class Staff(models.Model):
     introduction = models.TextField(_('自己紹介文'), null=True, blank=True)
     price = models.IntegerField(_('価格'), default=0)
 
+    # 通知設定（アカウントごとにON/OFF）
+    notify_booking = models.BooleanField(
+        _('予約通知'), default=True,
+        help_text=_('予約が入った時にLINEで通知を受け取る'),
+    )
+    notify_shift = models.BooleanField(
+        _('シフト通知'), default=True,
+        help_text=_('シフト公開・変更時にLINEで通知を受け取る'),
+    )
+    notify_business = models.BooleanField(
+        _('業務連絡通知'), default=True,
+        help_text=_('管理者からの業務連絡をLINEで受け取る'),
+    )
+
     attendance_pin = models.CharField(
         _('勤怠PIN'), max_length=128, blank=True, default='',
         help_text=_('4桁の打刻用PINコード（ハッシュ化して保存）'),

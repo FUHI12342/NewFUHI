@@ -1523,22 +1523,9 @@ def process_payment(payment_response, request, order_id):
 
         line_bot_api = LineBotApi(settings.LINE_ACCESS_TOKEN)
 
-        # スタッフ通知
-        staff_line_account_id = schedule.staff.line_id
-        if staff_line_account_id:
-            local_tz = pytz.timezone('Asia/Tokyo')
-            local_time = schedule.start.astimezone(local_tz)
-            message_text = (
-                f'予約が確定しました。\n'
-                f'予約者: {schedule.customer_name or "Unknown"}\n'
-                f'日時: {local_time.strftime("%Y/%m/%d %H:%M")}\n'
-                f'店舗: {schedule.staff.store.name}\n'
-                f'予約番号: {schedule.reservation_number}'
-            )
-            try:
-                line_bot_api.push_message(staff_line_account_id, TextSendMessage(text=message_text))
-            except LineBotApiError as e:
-                logger.error('スタッフメッセージにてLineBotApiErrorが発生しました: %s', e)
+        # スタッフ通知（通知設定を尊重）
+        from booking.services.staff_notifications import notify_booking_to_staff
+        notify_booking_to_staff(schedule)
 
         # ▼顧客通知：Scheduleに保存した暗号化LINE user id を復号してpush
         user_id = None
