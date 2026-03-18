@@ -1519,6 +1519,14 @@ class SiteSettings(models.Model):
     show_ai_chat = models.BooleanField(_('AIアシスタント表示'), default=False,
         help_text=_('フロントページにAIアシスタントチャットを表示するかどうか'))
 
+    # 管理画面サイドバー機能ON/OFF
+    show_admin_menu_manage = models.BooleanField(_('メニュー管理を表示'), default=True,
+        help_text=_('管理サイドバーに「メニュー管理」を表示するかどうか'))
+    show_admin_inventory = models.BooleanField(_('在庫管理を表示'), default=True,
+        help_text=_('管理サイドバーに「在庫管理」を表示するかどうか'))
+    show_admin_ec_shop = models.BooleanField(_('オンラインショップを表示'), default=True,
+        help_text=_('管理サイドバーに「オンラインショップ」を表示するかどうか'))
+
     # 法定ページ（HTML編集可能）
     privacy_policy_html = models.TextField(_('プライバシーポリシー'), blank=True, default='',
         help_text=_('HTMLで記述。空の場合はデフォルトテンプレートが表示されます。'))

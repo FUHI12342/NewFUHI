@@ -451,12 +451,10 @@ class ShiftAutoScheduleAPIView(View):
         count = auto_schedule(period)
 
         if request.headers.get('HX-Request'):
-            # 期間の月初の週を表示（HTMXリクエスト時week_startがない場合）
-            week_start = request.GET.get('week_start') or data.get('week_start')
-            if not week_start:
-                week_start = period.year_month.isoformat()
-            html = _render_week_grid(request, store, week_start)
-            return HttpResponse(html)
+            # ステータスが変わるので全体リロード
+            return HttpResponse(
+                '', headers={'HX-Redirect': f'/admin/shift/calendar/?period_id={period.id}'},
+            )
         return JsonResponse({'created': count, 'period_id': period.id})
 
 
@@ -509,8 +507,10 @@ class ShiftPublishAPIView(View):
             logger.warning("Failed to send shift notification: %s", e)
 
         if request.headers.get('HX-Request'):
-            html = _render_week_grid(request, store, request.GET.get('week_start'))
-            return HttpResponse(html)
+            # ステータスが変わるので全体リロード
+            return HttpResponse(
+                '', headers={'HX-Redirect': f'/admin/shift/calendar/?period_id={period.id}'},
+            )
         return JsonResponse({
             'synced': synced,
             'period_id': period.id,
@@ -652,9 +652,9 @@ class ShiftRevokeAPIView(View):
             )
 
         if request.headers.get('HX-Request'):
-            week_start = request.GET.get('week_start') or data.get('week_start')
-            html = _render_week_grid(request, store, week_start)
-            return HttpResponse(html)
+            return HttpResponse(
+                '', headers={'HX-Redirect': f'/admin/shift/calendar/?period_id={period.id}'},
+            )
         return JsonResponse({
             'cancelled': cancelled,
             'period_id': period.id,
@@ -698,7 +698,7 @@ class ShiftReopenAPIView(View):
 
         if request.headers.get('HX-Request'):
             return HttpResponse(
-                '<script>location.reload();</script>',
+                '', headers={'HX-Redirect': f'/admin/shift/calendar/?period_id={period.id}'},
             )
         return JsonResponse({
             'kept_assignments': kept,
