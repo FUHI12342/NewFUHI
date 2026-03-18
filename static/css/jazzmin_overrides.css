@@ -109,6 +109,55 @@
     --dm-hover: #253352;
 }
 
+/* ---- メインエリア背景 ---- */
+[data-bs-theme="dark"] body,
+[data-bs-theme="dark"] .content-wrapper,
+[data-bs-theme="dark"] .wrapper {
+    background: var(--dm-bg) !important;
+    color: var(--dm-text) !important;
+}
+[data-bs-theme="dark"] .content-header {
+    background: transparent !important;
+}
+[data-bs-theme="dark"] .card,
+[data-bs-theme="dark"] .card-body,
+[data-bs-theme="dark"] .card-header {
+    background: var(--dm-bg-card) !important;
+    color: var(--dm-text) !important;
+    border-color: var(--dm-border) !important;
+}
+[data-bs-theme="dark"] .breadcrumb {
+    background: transparent !important;
+}
+[data-bs-theme="dark"] .breadcrumb-item,
+[data-bs-theme="dark"] .breadcrumb-item a {
+    color: var(--dm-text-muted) !important;
+}
+[data-bs-theme="dark"] .table {
+    color: var(--dm-text) !important;
+    border-color: var(--dm-border) !important;
+}
+[data-bs-theme="dark"] .table thead th {
+    background: var(--dm-bg-secondary) !important;
+    border-color: var(--dm-border) !important;
+}
+[data-bs-theme="dark"] .table td {
+    border-color: var(--dm-border) !important;
+}
+[data-bs-theme="dark"] .table-striped tbody tr:nth-of-type(odd) {
+    background: var(--dm-bg-secondary) !important;
+}
+[data-bs-theme="dark"] .main-footer {
+    background: var(--dm-bg-card) !important;
+    color: var(--dm-text-muted) !important;
+    border-color: var(--dm-border) !important;
+}
+/* ナビバーもダーク対応 */
+[data-bs-theme="dark"] .main-header.navbar {
+    background: #0f172a !important;
+    border-color: var(--dm-border) !important;
+}
+
 /* ---- 共通: カード・テーブル・フォーム ---- */
 [data-bs-theme="dark"] .model-card,
 [data-bs-theme="dark"] .chart-container,
