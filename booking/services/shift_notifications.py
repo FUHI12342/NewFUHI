@@ -139,3 +139,109 @@ def notify_booking_confirmed(schedule):
     """予約確定通知 (スタッフ向け LINE個別Push)"""
     from booking.services.staff_notifications import notify_booking_to_staff
     return notify_booking_to_staff(schedule)
+
+
+# ==============================
+# イレギュラー対策通知
+# ==============================
+
+def notify_swap_request(swap_req):
+    """交代・欠勤申請通知（管理者 + 対象スタッフへ）"""
+    from booking.models import Staff
+    assignment = swap_req.assignment
+    store = assignment.period.store
+    date_str = assignment.date.strftime('%Y/%m/%d')
+    type_display = swap_req.get_request_type_display()
+
+    # 管理者への通知
+    manager_msg = (
+        f"【{type_display}申請】\n"
+        f"店舗: {store.name}\n"
+        f"申請者: {swap_req.requested_by.name}\n"
+        f"日時: {date_str} {assignment.start_hour}:00-{assignment.end_hour}:00\n"
+        f"理由: {swap_req.reason}\n"
+        f"管理画面から承認/却下してください。"
+    )
+    managers = Staff.objects.filter(
+        store=store, is_store_manager=True,
+    ).select_related('user')
+    for mgr in managers:
+        try:
+            send_staff_line(mgr, manager_msg, notification_type='shift')
+        except Exception as e:
+            logger.warning("LINE push failed for swap request to manager: %s", e)
+
+    # 交代先スタッフへの通知
+    if swap_req.cover_staff:
+        cover_msg = (
+            f"【シフト交代依頼】\n"
+            f"{swap_req.requested_by.name}さんから交代依頼があります。\n"
+            f"日時: {date_str} {assignment.start_hour}:00-{assignment.end_hour}:00\n"
+            f"理由: {swap_req.reason}\n"
+            f"管理者の承認後に確定します。"
+        )
+        try:
+            send_staff_line(swap_req.cover_staff, cover_msg, notification_type='shift')
+        except Exception as e:
+            logger.warning("LINE push failed for swap cover staff: %s", e)
+
+
+def notify_swap_approved(swap_req):
+    """交代・欠勤申請の承認/却下通知"""
+    assignment = swap_req.assignment
+    store = assignment.period.store
+    date_str = assignment.date.strftime('%Y/%m/%d')
+    status_display = swap_req.get_status_display()
+    type_display = swap_req.get_request_type_display()
+
+    # 申請者への通知
+    requester_msg = (
+        f"【{type_display}申請 {status_display}】\n"
+        f"店舗: {store.name}\n"
+        f"日時: {date_str} {assignment.start_hour}:00-{assignment.end_hour}:00\n"
+        f"あなたの{type_display}申請が{status_display}されました。"
+    )
+    try:
+        send_staff_line(swap_req.requested_by, requester_msg, notification_type='shift')
+    except Exception as e:
+        logger.warning("LINE push failed for swap approval to requester: %s", e)
+
+    # 交代先スタッフへの通知
+    if swap_req.cover_staff:
+        cover_msg = (
+            f"【シフト交代 {status_display}】\n"
+            f"{date_str} {assignment.start_hour}:00-{assignment.end_hour}:00\n"
+            f"交代が{status_display}されました。"
+        )
+        try:
+            send_staff_line(swap_req.cover_staff, cover_msg, notification_type='shift')
+        except Exception as e:
+            logger.warning("LINE push failed for swap approval to cover: %s", e)
+
+
+def notify_emergency_cover(vacancy):
+    """緊急カバー募集通知（全スタッフへ）"""
+    store = vacancy.store
+    date_str = vacancy.date.strftime('%Y/%m/%d')
+    type_display = dict(vacancy._meta.get_field('staff_type').choices).get(
+        vacancy.staff_type, vacancy.staff_type,
+    )
+
+    message = (
+        f"【緊急カバー募集】\n"
+        f"店舗: {store.name}\n"
+        f"日時: {date_str} {vacancy.start_hour}:00〜{vacancy.end_hour}:00\n"
+        f"種別: {type_display}\n"
+        f"不足: {vacancy.shortage}名\n"
+        f"対応可能な方はシフト管理画面から応募してください。"
+    )
+
+    from booking.models import Staff
+    target_staff = Staff.objects.filter(
+        store=store, staff_type=vacancy.staff_type,
+    ).select_related('user')
+    for s in target_staff:
+        try:
+            send_staff_line(s, message, notification_type='shift')
+        except Exception as e:
+            logger.warning("LINE push for emergency cover failed for %s: %s", s.name, e)

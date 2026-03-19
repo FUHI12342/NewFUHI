@@ -78,6 +78,8 @@ from booking.models import (
     PaymentMethod,
     # ===== 送料 =====
     ShippingConfig,
+    # ===== シフト改善 =====
+    ShiftVacancy,
 )
 from .forms import StaffForm
 from linebot import LineBotApi
@@ -2114,10 +2116,19 @@ class StaffShiftCalendarView(LoginRequiredMixin, generic.TemplateView):
             date__gte=three_months_ago,
         ).select_related('period').order_by('date', 'start_hour')
 
+        # 再募集枠（スタッフ種別に合わせて表示）
+        vacancies = ShiftVacancy.objects.filter(
+            store=staff.store,
+            status='open',
+            date__gte=today,
+            staff_type=staff.staff_type,
+        ).order_by('date', 'start_hour')[:20]
+
         context['staff'] = staff
         context['today'] = today
         context['months'] = months
         context['my_requests'] = my_requests
+        context['vacancies'] = vacancies
         return context
 
 
@@ -2182,6 +2193,13 @@ class StaffShiftSubmitView(LoginRequiredMixin, View):
         )
         closed_dates_json = json.dumps([d.isoformat() for d in closed_dates])
 
+        # 最低シフト時間
+        try:
+            config = StoreScheduleConfig.objects.get(store=staff.store)
+            min_shift_hours = config.min_shift_hours
+        except StoreScheduleConfig.DoesNotExist:
+            min_shift_hours = 2
+
         return render(request, 'booking/staff_shift_submit.html', {
             'staff': staff,
             'period': period,
@@ -2194,6 +2212,7 @@ class StaffShiftSubmitView(LoginRequiredMixin, View):
             'closed_dates_json': closed_dates_json,
             'month_dates': month_dates,
             'year_month': year_month,
+            'min_shift_hours': min_shift_hours,
         })
 
     def post(self, request, period_id):
@@ -2229,6 +2248,17 @@ class StaffShiftSubmitView(LoginRequiredMixin, View):
         if start_h < open_h or end_h > close_h or start_h >= end_h:
             messages.error(request, f'営業時間({open_h}:00-{close_h}:00)の範囲で入力してください。')
             return redirect('booking:staff_shift_submit', period_id=period_id)
+
+        # 最低連続勤務時間チェック（unavailable以外）
+        if preference != 'unavailable':
+            try:
+                config = StoreScheduleConfig.objects.get(store=staff.store)
+                min_shift = config.min_shift_hours
+            except StoreScheduleConfig.DoesNotExist:
+                min_shift = 2
+            if (end_h - start_h) < min_shift:
+                messages.error(request, f'最低{min_shift}時間以上のシフトを入力してください。')
+                return redirect('booking:staff_shift_submit', period_id=period_id)
 
         ShiftRequest.objects.update_or_create(
             period=period,

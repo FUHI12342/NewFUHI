@@ -1,6 +1,7 @@
 """自動スケジューリング + Schedule同期 + 撤回・修正サービス"""
 import datetime
 import logging
+from calendar import monthrange
 
 from django.db import transaction
 from django.db.models import Case, When, IntegerField
@@ -17,6 +18,12 @@ from booking.models import (
     Schedule,
     StoreScheduleConfig,
     StoreClosedDate,
+)
+from booking.services.shift_coverage import (
+    build_coverage_map,
+    record_assignment,
+    check_coverage_need,
+    generate_vacancies,
 )
 
 logger = logging.getLogger(__name__)
@@ -55,31 +62,66 @@ def _get_store_config(store):
     return open_h, close_h, duration
 
 
-def auto_schedule(period):
-    """ShiftRequest → ShiftAssignment 自動生成
+def _build_req_map(store, period):
+    """期間内の全日付に対して必要人数マップを構築
 
-    - preference='preferred' を最優先で割り当て
-    - preference='available' で埋める
-    - preference='unavailable' は除外
-    - 営業時間外はブロック
-    - 同一店舗・同一時間帯の重複チェック（占い師間）
+    Returns:
+        dict: {date: {staff_type: required_count}}
+    """
+    year = period.year_month.year
+    month = period.year_month.month
+    _, last_day = monthrange(year, month)
+
+    req_map = {}
+    for day in range(1, last_day + 1):
+        d = datetime.date(year, month, day)
+        counts = get_required_counts(store, d)
+        if counts:
+            req_map[d] = counts
+    return req_map
+
+
+def _get_min_shift_hours(store):
+    """店舗の最低シフト時間を取得"""
+    config = getattr(store, 'schedule_config', None)
+    if config is None:
+        try:
+            config = StoreScheduleConfig.objects.get(store=store)
+        except StoreScheduleConfig.DoesNotExist:
+            return 2
+    return getattr(config, 'min_shift_hours', 2)
+
+
+def auto_schedule(period):
+    """ShiftRequest → ShiftAssignment 自動生成（カバレッジベース）
+
+    アルゴリズム:
+    1. 既存アサイン全削除（再スケジューリング）
+    2. リクエスト取得（unavailable除外、preferred→available順）
+    3. 日付ごとの必要人数マップ構築
+    4. カバレッジ追跡マップで各時間帯の充足状況を管理
+    5. リクエストを1件ずつ処理:
+       - 休業日/営業時間外/最低勤務時間未満 → skip
+       - カバレッジ判定: 時間帯に空きがなければ skip
+       - preferred は全時間帯充足でもアサイン（希望優先）
+    6. 不足枠(ShiftVacancy)を自動生成
     """
     store = period.store
     open_h, close_h, duration = _get_store_config(store)
+    min_shift = _get_min_shift_hours(store)
 
-    # 休業日を取得してスキップ対象にする
     closed_dates = set(
         StoreClosedDate.objects.filter(store=store).values_list('date', flat=True)
     )
 
+    req_map = _build_req_map(store, period)
+    coverage_map = build_coverage_map()
+
     with transaction.atomic():
-        # 既存のアサインメントをクリア（再スケジューリング対応）
         period.assignments.all().delete()
 
-        # 割り当て済みスロットの追跡: (date, start_hour) → staff_id のセット
         assigned_slots = {}
 
-        # preferred を先に処理（明示的な優先度順。アルファベット順に依存しない）
         preference_order = Case(
             When(preference='preferred', then=0),
             When(preference='available', then=1),
@@ -111,13 +153,35 @@ def auto_schedule(period):
                 )
                 continue
 
-            # 重複チェック: 同一日・同一時間帯に既にアサインされていないか
+            # 最低連続勤務時間チェック
+            shift_hours = req.end_hour - req.start_hour
+            if shift_hours < min_shift:
+                logger.info(
+                    "Skipping request %s: shift duration %dh < min %dh",
+                    req, shift_hours, min_shift,
+                )
+                continue
+
+            # 重複チェック
             slot_key = (req.date, req.start_hour)
             if slot_key not in assigned_slots:
                 assigned_slots[slot_key] = set()
-
             if req.staff_id in assigned_slots[slot_key]:
-                continue  # 既にこのスタッフはこのスロットにアサイン済み
+                continue
+
+            # カバレッジ判定
+            staff_type = req.staff.staff_type
+            has_need = check_coverage_need(
+                coverage_map, req_map, req.date, staff_type,
+                req.start_hour, req.end_hour,
+            )
+
+            if not has_need and req.preference != 'preferred':
+                logger.info(
+                    "Skipping request %s: all hours fully covered",
+                    req,
+                )
+                continue
 
             ShiftAssignment.objects.create(
                 period=period,
@@ -129,12 +193,24 @@ def auto_schedule(period):
                 end_time=req.end_time or datetime.time(req.end_hour, 0),
             )
             assigned_slots[slot_key].add(req.staff_id)
+            record_assignment(
+                coverage_map, req.date, staff_type,
+                req.start_hour, req.end_hour, req.staff_id,
+            )
             created_count += 1
+
+        # 不足枠の自動生成
+        vacancy_count = generate_vacancies(
+            period, store, req_map, coverage_map, open_h, close_h,
+        )
 
         period.status = 'scheduled'
         period.save(update_fields=['status'])
 
-    logger.info("auto_schedule: period=%s, created %d assignments", period, created_count)
+    logger.info(
+        "auto_schedule: period=%s, created %d assignments, %d vacancies",
+        period, created_count, vacancy_count,
+    )
     return created_count
 
 

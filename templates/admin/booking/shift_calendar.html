@@ -931,6 +931,84 @@
         </div>
       {% endif %}
     </div>
+
+    {# ===== 不足枠パネル ===== #}
+    {% if vacancy_count > 0 %}
+    <div style="margin-top:16px;padding:16px;background:#FEF3C7;border-radius:8px;border:1px solid #F59E0B;">
+      <h4 style="margin:0 0 8px;color:#92400E;font-size:15px;">
+        <span style="margin-right:4px;">&#9888;</span>
+        {% trans "不足枠" %} ({{ vacancy_count }}{% trans "件" %})
+      </h4>
+      <p style="font-size:13px;color:#78350F;margin:0 0 12px;">{% trans "以下の時間帯で定員に達していません。再募集またはスタッフの追加をご検討ください。" %}</p>
+      <div style="max-height:200px;overflow-y:auto;">
+        <table style="width:100%;font-size:13px;border-collapse:collapse;">
+          <thead>
+            <tr style="background:#FDE68A;">
+              <th style="padding:4px 8px;text-align:left;">{% trans "日付" %}</th>
+              <th style="padding:4px 8px;text-align:left;">{% trans "時間" %}</th>
+              <th style="padding:4px 8px;text-align:left;">{% trans "種別" %}</th>
+              <th style="padding:4px 8px;text-align:center;">{% trans "不足" %}</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for v in vacancies %}
+            <tr style="border-bottom:1px solid #FDE68A;">
+              <td style="padding:4px 8px;">{{ v.date|date:"m/d(D)" }}</td>
+              <td style="padding:4px 8px;">{{ v.start_hour }}:00〜{{ v.end_hour }}:00</td>
+              <td style="padding:4px 8px;">{{ v.get_staff_type_display }}</td>
+              <td style="padding:4px 8px;text-align:center;color:#DC2626;font-weight:600;">
+                {{ v.assigned_count }}/{{ v.required_count }}
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+    {% endif %}
+
+    {# ===== 交代・欠勤申請パネル ===== #}
+    {% if swap_pending_count > 0 %}
+    <div style="margin-top:16px;padding:16px;background:#FEE2E2;border-radius:8px;border:1px solid #EF4444;">
+      <h4 style="margin:0 0 8px;color:#991B1B;font-size:15px;">
+        <span style="margin-right:4px;">&#128276;</span>
+        {% trans "交代・欠勤申請" %} ({{ swap_pending_count }}{% trans "件" %})
+      </h4>
+      <div style="display:flex;flex-direction:column;gap:8px;">
+        {% for sr in swap_requests %}
+        <div style="background:white;padding:10px 12px;border-radius:6px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;">
+          <div style="font-size:13px;">
+            <strong>{{ sr.requested_by.name }}</strong>
+            <span style="display:inline-block;padding:2px 6px;border-radius:4px;font-size:11px;background:{% if sr.request_type == 'absence' %}#FEE2E2;color:#991B1B{% elif sr.request_type == 'swap' %}#DBEAFE;color:#1E40AF{% else %}#D1FAE5;color:#065F46{% endif %};">
+              {{ sr.get_request_type_display }}
+            </span>
+            {{ sr.assignment.date|date:"m/d" }}
+            {{ sr.assignment.start_hour }}:00〜{{ sr.assignment.end_hour }}:00
+            {% if sr.cover_staff %} → {{ sr.cover_staff.name }}{% endif %}
+            <span style="color:#6B7280;font-size:12px;margin-left:4px;">{{ sr.reason|truncatechars:30 }}</span>
+          </div>
+          <div style="display:flex;gap:6px;">
+            <button class="btn btn-success btn-sm"
+                    hx-put="/api/shift/swap-requests/{{ sr.id }}/"
+                    hx-headers='{"X-CSRFToken": "{{ csrf_token }}", "Content-Type": "application/json"}'
+                    hx-vals='{"status": "approved"}'
+                    hx-target="body" hx-swap="none"
+                    hx-confirm="{% trans '承認しますか？' %}"
+                    style="font-size:12px;padding:2px 10px;">{% trans "承認" %}</button>
+            <button class="btn btn-danger btn-sm"
+                    hx-put="/api/shift/swap-requests/{{ sr.id }}/"
+                    hx-headers='{"X-CSRFToken": "{{ csrf_token }}", "Content-Type": "application/json"}'
+                    hx-vals='{"status": "rejected"}'
+                    hx-target="body" hx-swap="none"
+                    hx-confirm="{% trans '却下しますか？' %}"
+                    style="font-size:12px;padding:2px 10px;">{% trans "却下" %}</button>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+    {% endif %}
+
   </div>
   {% endif %}
 

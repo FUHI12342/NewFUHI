@@ -9,7 +9,7 @@ from django.utils.decorators import method_decorator
 from django.contrib.admin.views.decorators import staff_member_required
 
 from booking.models import (
-    Staff, ShiftPeriod, ShiftRequest, StoreClosedDate,
+    Staff, ShiftPeriod, ShiftRequest, StoreClosedDate, StoreScheduleConfig,
 )
 from booking.views import get_or_create_shift_period
 
@@ -118,6 +118,18 @@ class StaffShiftRequestAPIView(View):
 
         if StoreClosedDate.objects.filter(store=store, date=check_date).exists():
             return JsonResponse({'error': 'この日は休業日のためシフトを入れられません'}, status=400)
+
+        # 最低連続勤務時間チェック（unavailable以外）
+        if preference != 'unavailable':
+            try:
+                config = StoreScheduleConfig.objects.get(store=store)
+                min_shift = config.min_shift_hours
+            except StoreScheduleConfig.DoesNotExist:
+                min_shift = 2
+            if (end_h - start_h) < min_shift:
+                return JsonResponse({
+                    'error': f'最低{min_shift}時間以上のシフトを入力してください。',
+                }, status=400)
 
         # period_id指定があればそれを使い、なければ日付から自動作成
         if period_id:

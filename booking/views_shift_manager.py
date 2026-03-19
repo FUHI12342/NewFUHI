@@ -12,6 +12,7 @@ from booking.views_restaurant_dashboard import AdminSidebarMixin
 from booking.models import (
     Store, Staff, ShiftPeriod, ShiftAssignment,
     ShiftTemplate, ShiftPublishHistory, ShiftRequest,
+    ShiftVacancy, ShiftSwapRequest,
 )
 from booking.services.shift_scheduler import get_required_counts
 
@@ -227,6 +228,21 @@ class ManagerShiftCalendarView(AdminSidebarMixin, TemplateView):
             period__store=store,
         ).select_related('published_by', 'period').order_by('-published_at')[:5] if store else []
 
+        # 不足枠 & 交代申請
+        vacancies = ShiftVacancy.objects.none()
+        vacancy_count = 0
+        swap_requests = ShiftSwapRequest.objects.none()
+        swap_pending_count = 0
+        if active_period and not is_staff_role:
+            vacancies = ShiftVacancy.objects.filter(
+                period=active_period, status='open',
+            ).order_by('date', 'start_hour')
+            vacancy_count = vacancies.count()
+            swap_requests = ShiftSwapRequest.objects.filter(
+                assignment__period=active_period, status='pending',
+            ).select_related('assignment', 'requested_by', 'cover_staff')
+            swap_pending_count = swap_requests.count()
+
         ctx.update({
             'title': _('シフトカレンダー'),
             'has_permission': True,
@@ -252,6 +268,10 @@ class ManagerShiftCalendarView(AdminSidebarMixin, TemplateView):
             'staff_type_filter': staff_type_filter,
             'cast_count': Staff.objects.filter(store=store, staff_type='fortune_teller').count() if store else 0,
             'store_staff_count': Staff.objects.filter(store=store, staff_type='store_staff').count() if store else 0,
+            'vacancies': vacancies,
+            'vacancy_count': vacancy_count,
+            'swap_requests': swap_requests,
+            'swap_pending_count': swap_pending_count,
         })
 
         # スタッフ用追加コンテキスト

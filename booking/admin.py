@@ -80,6 +80,8 @@ from .models import (
     ECProduct,
     ShiftStaffRequirement,
     ShiftStaffRequirementOverride,
+    ShiftVacancy,
+    ShiftSwapRequest,
     ShippingConfig,
 )
 
@@ -1364,10 +1366,24 @@ class ShiftChangeLogAdmin(admin.ModelAdmin):
         return self.has_view_permission(request)
 
 
+class ShiftVacancyAdmin(admin.ModelAdmin):
+    list_display = ('period', 'store', 'date', 'start_hour', 'end_hour', 'staff_type', 'required_count', 'assigned_count', 'status')
+    list_filter = ('status', 'staff_type')
+    search_fields = ('store__name',)
+
+
+class ShiftSwapRequestAdmin(admin.ModelAdmin):
+    list_display = ('assignment', 'request_type', 'requested_by', 'cover_staff', 'status', 'reviewed_by', 'created_at')
+    list_filter = ('status', 'request_type')
+    search_fields = ('requested_by__name', 'reason')
+
+
 custom_site.register(ShiftPeriod, ShiftPeriodAdmin)
 custom_site.register(ShiftRequest, ShiftRequestAdmin)
 custom_site.register(ShiftAssignment, ShiftAssignmentAdmin)
 custom_site.register(ShiftChangeLog, ShiftChangeLogAdmin)
+custom_site.register(ShiftVacancy, ShiftVacancyAdmin)
+custom_site.register(ShiftSwapRequest, ShiftSwapRequestAdmin)
 
 
 # ==============================

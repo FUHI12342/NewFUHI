@@ -13,6 +13,9 @@ from .views_shift_api import (
     ShiftReopenAPIView,
     ShiftPeriodAPIView,
     StoreClosedDateAPIView,
+    ShiftVacancyAPIView,
+    ShiftVacancyApplyAPIView,
+    ShiftSwapRequestAPIView,
 )
 from .views_shift_staff import StaffShiftRequestAPIView
 
@@ -36,4 +39,10 @@ urlpatterns = [
     path('closed-dates/', StoreClosedDateAPIView.as_view(), name='closed_dates'),
     path('my-requests/', StaffShiftRequestAPIView.as_view(), name='my_shift_requests'),
     path('my-requests/<int:pk>/', StaffShiftRequestAPIView.as_view(), name='my_shift_request_detail'),
+    # 不足枠
+    path('vacancies/', ShiftVacancyAPIView.as_view(), name='shift_vacancies'),
+    path('vacancies/<int:pk>/apply/', ShiftVacancyApplyAPIView.as_view(), name='shift_vacancy_apply'),
+    # 交代・欠勤申請
+    path('swap-requests/', ShiftSwapRequestAPIView.as_view(), name='shift_swap_requests'),
+    path('swap-requests/<int:pk>/', ShiftSwapRequestAPIView.as_view(), name='shift_swap_request_detail'),
 ]

@@ -32,6 +32,45 @@
         </div>
     </div>
 
+    <!-- 再募集枠（不足枠） -->
+    {% if vacancies %}
+    <div class="mb-8">
+        <h2 class="text-lg font-bold text-salon-dark mb-4">
+            <span style="color:#F59E0B;">&#9888;</span> {% trans "追加募集中のシフト" %}
+        </h2>
+        <p class="text-sm text-gray-500 mb-3">{% trans "以下の時間帯でスタッフが不足しています。応募できます。" %}</p>
+        <div class="bg-white rounded-lg shadow-sm border border-amber-200 overflow-hidden">
+            <table class="w-full text-sm">
+                <thead>
+                    <tr class="bg-amber-50">
+                        <th class="px-4 py-2 text-left">{% trans "日付" %}</th>
+                        <th class="px-4 py-2 text-left">{% trans "時間" %}</th>
+                        <th class="px-4 py-2 text-center">{% trans "不足人数" %}</th>
+                        <th class="px-4 py-2 text-center">{% trans "応募" %}</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-100">
+                    {% for v in vacancies %}
+                    <tr>
+                        <td class="px-4 py-2">{{ v.date|date:"m/d(D)" }}</td>
+                        <td class="px-4 py-2">{{ v.start_hour }}:00〜{{ v.end_hour }}:00</td>
+                        <td class="px-4 py-2 text-center">
+                            <span class="text-red-600 font-bold">{{ v.shortage }}{% trans "名" %}</span>
+                        </td>
+                        <td class="px-4 py-2 text-center">
+                            <button onclick="applyVacancy({{ v.id }})"
+                                    class="bg-amber-500 text-white text-xs px-3 py-1 rounded hover:bg-amber-600 transition">
+                                {% trans "応募する" %}
+                            </button>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {% endif %}
+
     <!-- 自分のシフト希望一覧 -->
     {% if my_requests %}
     <div>
@@ -68,4 +107,27 @@
     </div>
     {% endif %}
 </div>
+
+<script>
+function applyVacancy(vacancyId) {
+    if (!confirm('この不足枠に応募しますか？')) return;
+    fetch('/api/shift/vacancies/' + vacancyId + '/apply/', {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': '{{ csrf_token }}',
+            'Content-Type': 'application/json',
+        },
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.error) {
+            alert(data.error);
+        } else {
+            alert('応募しました！');
+            location.reload();
+        }
+    })
+    .catch(() => alert('エラーが発生しました。'));
+}
+</script>
 {% endblock %}

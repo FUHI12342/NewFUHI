@@ -12,11 +12,16 @@
         </a>
     </div>
 
-    <p class="text-sm text-gray-500 mb-4">
+    <p class="text-sm text-gray-500 mb-2">
         {{ staff.store.name }} &mdash; {{ staff.name }}
         &mdash; {{ period.year_month|date:"Y年n月" }}
         {% if period.deadline %}&mdash; {% trans "締切:" %} {{ period.deadline|date:"m/d H:i" }}{% endif %}
     </p>
+    {% if min_shift_hours %}
+    <p class="text-xs text-amber-600 mb-4">
+        &#9888; {% blocktrans with hours=min_shift_hours %}最低{{ hours }}時間以上のシフトを入力してください。{% endblocktrans %}
+    </p>
+    {% endif %}
 
     <!-- 通知エリア -->
     <div id="toast" class="hidden fixed top-4 right-4 z-50 rounded-lg px-4 py-3 text-sm shadow-lg transition-all"></div>

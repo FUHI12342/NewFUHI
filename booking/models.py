@@ -1394,6 +1394,11 @@ class StoreScheduleConfig(models.Model):
     close_hour = models.IntegerField(_('営業終了時間'), default=21)     # 0-23
     slot_duration = models.IntegerField(_('予約コマ(分)'), default=60,
         help_text=_('15, 30, 45, 60 のいずれか'))
+    min_shift_hours = models.IntegerField(
+        _('最低シフト時間(時間)'), default=2,
+        validators=[MinValueValidator(1), MaxValueValidator(12)],
+        help_text=_('自動調整時に割り当てる最低連続勤務時間'),
+    )
 
     class Meta:
         app_label = 'booking'
@@ -1692,6 +1697,87 @@ class ShiftStaffRequirementOverride(models.Model):
 
     def __str__(self):
         return f"{self.store.name} {self.date} {self.get_staff_type_display()} ×{self.required_count}"
+
+
+class ShiftVacancy(models.Model):
+    """シフト不足枠（再募集用）— auto_schedule後に定員未達の時間帯を記録"""
+    VACANCY_STATUS_CHOICES = [
+        ('open', _('募集中')),
+        ('filled', _('充足')),
+        ('cancelled', _('取消')),
+    ]
+    period = models.ForeignKey(ShiftPeriod, on_delete=models.CASCADE, related_name='vacancies')
+    store = models.ForeignKey(Store, on_delete=models.CASCADE, related_name='shift_vacancies')
+    date = models.DateField(_('日付'), db_index=True)
+    start_hour = models.IntegerField(_('開始時間'), validators=[MinValueValidator(0), MaxValueValidator(23)])
+    end_hour = models.IntegerField(_('終了時間'), validators=[MinValueValidator(1), MaxValueValidator(24)])
+    staff_type = models.CharField(_('従業員種別'), max_length=20, choices=STAFF_TYPE_CHOICES)
+    required_count = models.PositiveIntegerField(_('必要人数'))
+    assigned_count = models.PositiveIntegerField(_('配置済み人数'), default=0)
+    status = models.CharField(_('状態'), max_length=10, choices=VACANCY_STATUS_CHOICES, default='open')
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        app_label = 'booking'
+        unique_together = ('period', 'date', 'start_hour', 'staff_type')
+        ordering = ['date', 'start_hour']
+        verbose_name = _('シフト不足枠')
+        verbose_name_plural = _('シフト不足枠')
+
+    def __str__(self):
+        return (
+            f"{self.store.name} {self.date} {self.start_hour}:00-{self.end_hour}:00 "
+            f"{self.get_staff_type_display()} ({self.assigned_count}/{self.required_count})"
+        )
+
+    @property
+    def shortage(self):
+        return max(0, self.required_count - self.assigned_count)
+
+
+class ShiftSwapRequest(models.Model):
+    """シフト交代・欠勤申請"""
+    REQUEST_TYPE_CHOICES = [
+        ('swap', _('交代')),
+        ('cover', _('カバー')),
+        ('absence', _('欠勤')),
+    ]
+    SWAP_STATUS_CHOICES = [
+        ('pending', _('申請中')),
+        ('approved', _('承認')),
+        ('rejected', _('却下')),
+        ('cancelled', _('取消')),
+    ]
+    assignment = models.ForeignKey(ShiftAssignment, on_delete=models.CASCADE, related_name='swap_requests')
+    request_type = models.CharField(_('申請種別'), max_length=10, choices=REQUEST_TYPE_CHOICES)
+    requested_by = models.ForeignKey(
+        Staff, on_delete=models.CASCADE, related_name='swap_requests_made',
+        verbose_name=_('申請者'),
+    )
+    cover_staff = models.ForeignKey(
+        Staff, on_delete=models.SET_NULL, null=True, blank=True,
+        related_name='swap_requests_received', verbose_name=_('交代先スタッフ'),
+    )
+    reason = models.TextField(_('理由'))
+    status = models.CharField(_('状態'), max_length=10, choices=SWAP_STATUS_CHOICES, default='pending')
+    reviewed_by = models.ForeignKey(
+        Staff, on_delete=models.SET_NULL, null=True, blank=True,
+        related_name='swap_requests_reviewed', verbose_name=_('承認者'),
+    )
+    reviewed_at = models.DateTimeField(_('承認日時'), null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        app_label = 'booking'
+        ordering = ['-created_at']
+        verbose_name = _('シフト交代・欠勤申請')
+        verbose_name_plural = _('シフト交代・欠勤申請')
+
+    def __str__(self):
+        return (
+            f"{self.requested_by.name} {self.get_request_type_display()} "
+            f"{self.assignment.date} ({self.get_status_display()})"
+        )
 
 
 class AdminTheme(models.Model):
