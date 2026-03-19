@@ -1640,6 +1640,7 @@ def _product_display(product: Product, lang: str) -> dict:
         "stock": product.stock,
         "is_sold_out": (product.stock <= 0),
         "category_id": product.category_id,
+        "image_url": product.image.url if product.image else "",
     }
 
 
