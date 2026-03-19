@@ -68,6 +68,7 @@ from booking.models import (
     ShiftPeriod,
     ShiftRequest,
     ShiftTemplate,
+    StoreClosedDate,
     # ===== Round4: CMS =====
     SiteSettings,
     HeroBanner,
@@ -123,6 +124,16 @@ def get_hour_range(store):
     open_h = config.open_hour if config else 9
     close_h = config.close_hour if config else 21
     return open_h, close_h
+
+
+def get_or_create_shift_period(store, year, month, staff=None):
+    """月指定で ShiftPeriod を自動取得/作成する（自由入力モード用）"""
+    ym = datetime.date(year, month, 1)
+    period, _ = ShiftPeriod.objects.get_or_create(
+        store=store, year_month=ym,
+        defaults={'status': 'open', 'created_by': staff},
+    )
+    return period
 
 
 # ===== IoT API Helper Functions =====
@@ -2068,7 +2079,7 @@ class IoTSensorDashboardView(generic.TemplateView):
 # ===== Round2: シフト管理ビュー =====
 
 class StaffShiftCalendarView(LoginRequiredMixin, generic.TemplateView):
-    """占い師が自分のシフトカレンダーを表示"""
+    """占い師が自分のシフトカレンダーを表示（当月〜翌2ヶ月を常時表示）"""
     template_name = 'booking/staff_shift_calendar.html'
 
     def get_context_data(self, **kwargs):
@@ -2076,20 +2087,36 @@ class StaffShiftCalendarView(LoginRequiredMixin, generic.TemplateView):
         staff = get_object_or_404(Staff, user=self.request.user)
         today = datetime.date.today()
 
-        # 現在募集中のシフト期間を取得
-        open_periods = ShiftPeriod.objects.filter(
-            store=staff.store,
-            status='open',
-        ).order_by('year_month')
+        # 当月〜翌2ヶ月の月リストを生成
+        months = []
+        for offset in range(3):
+            y = today.year + (today.month + offset - 1) // 12
+            m = (today.month + offset - 1) % 12 + 1
+            ym = datetime.date(y, m, 1)
+            period = ShiftPeriod.objects.filter(
+                store=staff.store, year_month=ym,
+            ).first()
+            request_count = ShiftRequest.objects.filter(
+                staff=staff, period=period,
+            ).count() if period else 0
+            months.append({
+                'year': y,
+                'month': m,
+                'year_month': ym,
+                'period': period,
+                'request_count': request_count,
+            })
 
-        # 自分のシフト希望
+        # 自分のシフト希望（最近3ヶ月分）
+        three_months_ago = datetime.date(months[0]['year'], months[0]['month'], 1)
         my_requests = ShiftRequest.objects.filter(
             staff=staff,
+            date__gte=three_months_ago,
         ).select_related('period').order_by('date', 'start_hour')
 
         context['staff'] = staff
         context['today'] = today
-        context['open_periods'] = open_periods
+        context['months'] = months
         context['my_requests'] = my_requests
         return context
 
@@ -2145,6 +2172,16 @@ class StaffShiftSubmitView(LoginRequiredMixin, View):
             for t in templates
         ]
 
+        # 休業日リスト（JSON用）
+        closed_dates = list(
+            StoreClosedDate.objects.filter(
+                store=staff.store,
+                date__year=year_month.year,
+                date__month=year_month.month,
+            ).values_list('date', flat=True)
+        )
+        closed_dates_json = json.dumps([d.isoformat() for d in closed_dates])
+
         return render(request, 'booking/staff_shift_submit.html', {
             'staff': staff,
             'period': period,
@@ -2154,6 +2191,7 @@ class StaffShiftSubmitView(LoginRequiredMixin, View):
             'templates': templates,
             'templates_json': json.dumps(templates_json),
             'existing_map_json': json.dumps(existing_map),
+            'closed_dates_json': closed_dates_json,
             'month_dates': month_dates,
             'year_month': year_month,
         })
@@ -2161,10 +2199,6 @@ class StaffShiftSubmitView(LoginRequiredMixin, View):
     def post(self, request, period_id):
         staff = get_object_or_404(Staff, user=request.user)
         period = get_object_or_404(ShiftPeriod, pk=period_id, store=staff.store)
-
-        if period.status != 'open':
-            messages.error(request, 'この募集期間は締め切られています。')
-            return redirect('booking:staff_shift_calendar')
 
         open_h, close_h = get_hour_range(staff.store)
 
@@ -2184,6 +2218,11 @@ class StaffShiftSubmitView(LoginRequiredMixin, View):
             end_h = int(end_hour)
         except (ValueError, TypeError):
             messages.error(request, '入力値が不正です。')
+            return redirect('booking:staff_shift_submit', period_id=period_id)
+
+        # 休業日チェック
+        if StoreClosedDate.objects.filter(store=staff.store, date=date).exists():
+            messages.error(request, 'この日は休業日のためシフトを入れられません。')
             return redirect('booking:staff_shift_submit', period_id=period_id)
 
         # 営業時間バリデーション
@@ -2207,15 +2246,21 @@ class StaffShiftSubmitView(LoginRequiredMixin, View):
         return redirect('booking:staff_shift_submit', period_id=period_id)
 
 
+class StaffShiftSubmitByMonthView(LoginRequiredMixin, View):
+    """月指定でアクセス → Period自動作成 → 既存SubmitViewへ委譲"""
+
+    def dispatch(self, request, year, month, *args, **kwargs):
+        staff = get_object_or_404(Staff, user=request.user)
+        period = get_or_create_shift_period(staff.store, year, month, staff=staff)
+        return redirect('booking:staff_shift_submit', period_id=period.pk)
+
+
 class StaffShiftBulkRequestAPIView(LoginRequiredMixin, View):
     """スタッフがカレンダーUIからシフト希望を一括登録するAPI"""
 
     def post(self, request, period_id):
         staff = get_object_or_404(Staff, user=request.user)
         period = get_object_or_404(ShiftPeriod, pk=period_id, store=staff.store)
-
-        if period.status != 'open':
-            return JsonResponse({'error': 'この募集期間は締め切られています。'}, status=400)
 
         try:
             data = json.loads(request.body)
@@ -2227,6 +2272,19 @@ class StaffShiftBulkRequestAPIView(LoginRequiredMixin, View):
             return JsonResponse({'error': 'entries が空です。'}, status=400)
 
         open_h, close_h = get_hour_range(staff.store)
+        # 休業日を一括取得
+        entry_dates = set()
+        for entry in entries:
+            try:
+                entry_dates.add(datetime.date.fromisoformat(entry['date']))
+            except (KeyError, ValueError, TypeError):
+                pass
+        closed_dates = set(
+            StoreClosedDate.objects.filter(
+                store=staff.store, date__in=entry_dates,
+            ).values_list('date', flat=True)
+        )
+
         created = 0
         updated = 0
         errors = []
@@ -2241,6 +2299,10 @@ class StaffShiftBulkRequestAPIView(LoginRequiredMixin, View):
                     note = entry.get('note', '')
                 except (KeyError, ValueError, TypeError) as e:
                     errors.append(f"Invalid entry: {entry} ({e})")
+                    continue
+
+                if date in closed_dates:
+                    errors.append(f"{date}: 休業日のためシフトを入れられません")
                     continue
 
                 if start_h < open_h or end_h > close_h or start_h >= end_h:
@@ -2274,9 +2336,6 @@ class StaffShiftBulkRequestAPIView(LoginRequiredMixin, View):
         staff = get_object_or_404(Staff, user=request.user)
         period = get_object_or_404(ShiftPeriod, pk=period_id, store=staff.store)
 
-        if period.status != 'open':
-            return JsonResponse({'error': 'この募集期間は締め切られています。'}, status=400)
-
         try:
             data = json.loads(request.body)
         except json.JSONDecodeError:
@@ -2306,9 +2365,6 @@ class StaffShiftCopyWeekAPIView(LoginRequiredMixin, View):
     def post(self, request, period_id):
         staff = get_object_or_404(Staff, user=request.user)
         period = get_object_or_404(ShiftPeriod, pk=period_id, store=staff.store)
-
-        if period.status != 'open':
-            return JsonResponse({'error': 'この募集期間は締め切られています。'}, status=400)
 
         try:
             data = json.loads(request.body)

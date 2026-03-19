@@ -1,4 +1,5 @@
 """スタッフ向けシフト API"""
+import datetime
 import json
 import logging
 
@@ -8,8 +9,9 @@ from django.utils.decorators import method_decorator
 from django.contrib.admin.views.decorators import staff_member_required
 
 from booking.models import (
-    Staff, ShiftPeriod, ShiftRequest,
+    Staff, ShiftPeriod, ShiftRequest, StoreClosedDate,
 )
+from booking.views import get_or_create_shift_period
 
 logger = logging.getLogger(__name__)
 
@@ -93,7 +95,7 @@ class StaffShiftRequestAPIView(View):
         end_hour = data.get('end_hour')
         preference = data.get('preference', 'available')
 
-        if not all([period_id, date_str, start_hour is not None, end_hour is not None]):
+        if not all([date_str, start_hour is not None, end_hour is not None]):
             return JsonResponse({'error': 'Missing required fields'}, status=400)
 
         # バリデーション: start_hour/end_hour 範囲チェック
@@ -107,11 +109,23 @@ class StaffShiftRequestAPIView(View):
             return JsonResponse({'error': 'Invalid hour range'}, status=400)
 
         store = staff.store
-        period = ShiftPeriod.objects.filter(
-            pk=period_id, store=store, status='open',
-        ).first()
-        if not period:
-            return JsonResponse({'error': '募集中の期間が見つかりません'}, status=404)
+
+        # 休業日チェック
+        try:
+            check_date = datetime.date.fromisoformat(date_str)
+        except (ValueError, TypeError):
+            return JsonResponse({'error': 'Invalid date format'}, status=400)
+
+        if StoreClosedDate.objects.filter(store=store, date=check_date).exists():
+            return JsonResponse({'error': 'この日は休業日のためシフトを入れられません'}, status=400)
+
+        # period_id指定があればそれを使い、なければ日付から自動作成
+        if period_id:
+            period = ShiftPeriod.objects.filter(pk=period_id, store=store).first()
+            if not period:
+                return JsonResponse({'error': '期間が見つかりません'}, status=404)
+        else:
+            period = get_or_create_shift_period(store, check_date.year, check_date.month, staff=staff)
 
         if preference not in ('available', 'preferred', 'unavailable'):
             return JsonResponse({'error': 'Invalid preference'}, status=400)

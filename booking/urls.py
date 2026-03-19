@@ -21,6 +21,7 @@ from .views import (
     TokushohoView,
     StaffShiftCalendarView,
     StaffShiftSubmitView,
+    StaffShiftSubmitByMonthView,
     # Round3: QR + EC
     ReservationQRView,
     CheckinScanView,
@@ -129,6 +130,7 @@ urlpatterns = [
     # Shift management
     path('shift/', StaffShiftCalendarView.as_view(), name='staff_shift_calendar'),
     path('shift/<int:period_id>/submit/', StaffShiftSubmitView.as_view(), name='staff_shift_submit'),
+    path('shift/<int:year>/<int:month>/', StaffShiftSubmitByMonthView.as_view(), name='staff_shift_submit_month'),
 
     # Static pages
     path('privacy/', PrivacyPolicyView.as_view(), name='privacy_policy'),

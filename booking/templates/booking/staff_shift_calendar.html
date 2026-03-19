@@ -11,30 +11,26 @@
 
     <p class="text-sm text-gray-500 mb-6">{{ staff.store.name }} &mdash; {{ staff.name }}</p>
 
-    <!-- 募集中のシフト期間 -->
-    {% if open_periods %}
+    <!-- 月カード（当月〜翌2ヶ月） -->
     <div class="mb-8">
-        <h2 class="text-lg font-bold text-salon-dark mb-4">{% trans "募集中のシフト期間" %}</h2>
-        <div class="space-y-3">
-            {% for period in open_periods %}
-            <div class="bg-white border border-gray-200 rounded-lg p-4 flex items-center justify-between">
-                <div>
-                    <span class="font-semibold text-salon-dark">{{ period.year_month|date:"Y年n月" }}</span>
-                    <span class="text-sm text-gray-500 ml-2">{% trans "締切:" %} {{ period.deadline|date:"Y/m/d H:i" }}</span>
-                </div>
-                <a href="{% url 'booking:staff_shift_submit' period.pk %}"
-                   class="bg-salon-brown text-white text-sm px-4 py-2 rounded-lg hover:bg-salon-dark transition">
+        <h2 class="text-lg font-bold text-salon-dark mb-4">{% trans "シフト希望入力" %}</h2>
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            {% for m in months %}
+            <div class="bg-white border border-gray-200 rounded-lg p-5 flex flex-col items-center">
+                <span class="text-2xl font-bold text-salon-dark mb-1">{{ m.year_month|date:"Y年n月" }}</span>
+                {% if m.request_count > 0 %}
+                <span class="text-xs text-green-600 mb-3">{% trans "提出済:" %} {{ m.request_count }}{% trans "件" %}</span>
+                {% else %}
+                <span class="text-xs text-gray-400 mb-3">{% trans "未提出" %}</span>
+                {% endif %}
+                <a href="{% url 'booking:staff_shift_submit_month' m.year m.month %}"
+                   class="bg-salon-brown text-white text-sm px-5 py-2 rounded-lg hover:bg-salon-dark transition w-full text-center">
                     {% trans "希望入力" %}
                 </a>
             </div>
             {% endfor %}
         </div>
     </div>
-    {% else %}
-    <div class="bg-salon-beige rounded-lg p-6 text-center mb-8">
-        <p class="text-gray-500">{% trans "現在募集中のシフト期間はありません。" %}</p>
-    </div>
-    {% endif %}
 
     <!-- 自分のシフト希望一覧 -->
     {% if my_requests %}
