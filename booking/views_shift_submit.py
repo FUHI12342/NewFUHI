@@ -18,6 +18,8 @@ from booking.models import (
     Staff, ShiftPeriod, ShiftRequest, ShiftTemplate,
     ShiftVacancy, StoreClosedDate, StoreScheduleConfig,
 )
+from booking.validators import validate_business_hours, validate_min_shift, validate_closed_date
+from booking.api_response import success_response, error_response
 
 logger = logging.getLogger(__name__)
 
@@ -212,25 +214,22 @@ class StaffShiftSubmitView(LoginRequiredMixin, View):
             return redirect('booking:staff_shift_submit', period_id=period_id)
 
         # 休業日チェック
-        if StoreClosedDate.objects.filter(store=staff.store, date=date).exists():
-            messages.error(request, 'この日は休業日のためシフトを入れられません。')
+        closed_err = validate_closed_date(staff.store, date)
+        if closed_err:
+            messages.error(request, closed_err)
             return redirect('booking:staff_shift_submit', period_id=period_id)
 
         # 営業時間バリデーション
-        if start_h < open_h or end_h > close_h or start_h >= end_h:
-            messages.error(request, f'営業時間({open_h}:00-{close_h}:00)の範囲で入力してください。')
+        bh_err = validate_business_hours(start_h, end_h, open_h, close_h)
+        if bh_err:
+            messages.error(request, bh_err)
             return redirect('booking:staff_shift_submit', period_id=period_id)
 
         # 最低連続勤務時間チェック（unavailable以外）
-        if preference != 'unavailable':
-            try:
-                config = StoreScheduleConfig.objects.get(store=staff.store)
-                min_shift = config.min_shift_hours
-            except StoreScheduleConfig.DoesNotExist:
-                min_shift = 2
-            if (end_h - start_h) < min_shift:
-                messages.error(request, f'最低{min_shift}時間以上のシフトを入力してください。')
-                return redirect('booking:staff_shift_submit', period_id=period_id)
+        _, min_shift_err = validate_min_shift(staff.store, start_h, end_h, preference)
+        if min_shift_err:
+            messages.error(request, min_shift_err)
+            return redirect('booking:staff_shift_submit', period_id=period_id)
 
         ShiftRequest.objects.update_or_create(
             period=period,
@@ -265,16 +264,16 @@ class StaffShiftBulkRequestAPIView(LoginRequiredMixin, View):
         period = get_object_or_404(ShiftPeriod, pk=period_id, store=staff.store)
 
         if period.status == 'closed':
-            return JsonResponse({'error': 'この期間は締め切られています。'}, status=400)
+            return error_response('この期間は締め切られています。')
 
         try:
             data = json.loads(request.body)
         except json.JSONDecodeError:
-            return JsonResponse({'error': 'Invalid JSON'}, status=400)
+            return error_response('Invalid JSON')
 
         entries = data.get('entries', [])
         if not entries:
-            return JsonResponse({'error': 'entries が空です。'}, status=400)
+            return error_response('entries が空です。')
 
         open_h, close_h = _get_hour_range(staff.store)
         # 休業日を一括取得
@@ -310,7 +309,8 @@ class StaffShiftBulkRequestAPIView(LoginRequiredMixin, View):
                     errors.append(f"{date}: 休業日のためシフトを入れられません")
                     continue
 
-                if start_h < open_h or end_h > close_h or start_h >= end_h:
+                bh_err = validate_business_hours(start_h, end_h, open_h, close_h)
+                if bh_err:
                     errors.append(f"{date}: 営業時間外 ({start_h}-{end_h})")
                     continue
 
@@ -330,7 +330,7 @@ class StaffShiftBulkRequestAPIView(LoginRequiredMixin, View):
                 else:
                     updated += 1
 
-        return JsonResponse({
+        return success_response({
             'created': created,
             'updated': updated,
             'errors': errors,
@@ -344,11 +344,11 @@ class StaffShiftBulkRequestAPIView(LoginRequiredMixin, View):
         try:
             data = json.loads(request.body)
         except json.JSONDecodeError:
-            return JsonResponse({'error': 'Invalid JSON'}, status=400)
+            return error_response('Invalid JSON')
 
         dates = data.get('dates', [])
         if not dates:
-            return JsonResponse({'error': 'dates が空です。'}, status=400)
+            return error_response('dates が空です。')
 
         parsed_dates = []
         for d in dates:
@@ -361,7 +361,7 @@ class StaffShiftBulkRequestAPIView(LoginRequiredMixin, View):
             period=period, staff=staff, date__in=parsed_dates,
         ).delete()
 
-        return JsonResponse({'deleted': deleted_count})
+        return success_response({'deleted': deleted_count})
 
 
 class StaffShiftCopyWeekAPIView(LoginRequiredMixin, View):
@@ -372,24 +372,24 @@ class StaffShiftCopyWeekAPIView(LoginRequiredMixin, View):
         period = get_object_or_404(ShiftPeriod, pk=period_id, store=staff.store)
 
         if period.status == 'closed':
-            return JsonResponse({'error': 'この期間は締め切られています。'}, status=400)
+            return error_response('この期間は締め切られています。')
 
         try:
             data = json.loads(request.body)
         except json.JSONDecodeError:
-            return JsonResponse({'error': 'Invalid JSON'}, status=400)
+            return error_response('Invalid JSON')
 
         source_start = data.get('source_week_start')  # e.g. "2026-03-09"
         target_start = data.get('target_week_start')   # e.g. "2026-03-16"
 
         if not source_start or not target_start:
-            return JsonResponse({'error': 'source_week_start と target_week_start が必要です。'}, status=400)
+            return error_response('source_week_start と target_week_start が必要です。')
 
         try:
             src_start = datetime.date.fromisoformat(source_start)
             tgt_start = datetime.date.fromisoformat(target_start)
         except ValueError:
-            return JsonResponse({'error': '日付形式が不正です。'}, status=400)
+            return error_response('日付形式が不正です。')
 
         src_end = src_start + timedelta(days=6)
         tgt_end = tgt_start + timedelta(days=6)
@@ -431,4 +431,4 @@ class StaffShiftCopyWeekAPIView(LoginRequiredMixin, View):
             if was_created:
                 created += 1
 
-        return JsonResponse({'created': created, 'skipped': skipped})
+        return success_response({'created': created, 'skipped': skipped})

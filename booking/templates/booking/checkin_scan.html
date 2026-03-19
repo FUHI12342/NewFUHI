@@ -8,6 +8,11 @@
 <style>
 #reader { width: 100%; max-width: 500px; margin: 0 auto; }
 #result-box { display: none; }
+.tab-btn { transition: all 0.2s; }
+.tab-btn.active { border-bottom: 3px solid #8B6914; color: #8B6914; font-weight: bold; }
+.tab-btn:not(.active) { border-bottom: 3px solid transparent; color: #6b7280; }
+.tab-panel { display: none; }
+.tab-panel.active { display: block; }
 </style>
 {% endblock %}
 
@@ -17,23 +22,37 @@
         {% trans "チェックインスキャン" %}
     </h2>
 
-    <p class="text-sm text-gray-600 mb-4">{% trans "お客様のQRコードをカメラでスキャンしてください。" %}</p>
-
-    <div id="reader" class="mb-6 rounded-lg overflow-hidden border border-gray-300"></div>
+    <!-- Tabs -->
+    <div class="flex mb-4 border-b border-gray-200">
+        <button class="tab-btn active flex-1 py-3 text-center text-sm" onclick="switchTab('qr')">
+            {% trans "QRスキャン" %}
+        </button>
+        <button class="tab-btn flex-1 py-3 text-center text-sm" onclick="switchTab('code')">
+            {% trans "口頭コード入力" %}
+        </button>
+    </div>
 
     <!-- Result -->
     <div id="result-box" class="p-4 rounded-lg mb-4">
         <p id="result-message" class="text-center font-bold"></p>
     </div>
 
-    <!-- Manual input -->
-    <div class="bg-white rounded-xl shadow-md p-4 border border-gray-200">
-        <h3 class="text-sm font-bold mb-2">{% trans "手動入力" %}</h3>
-        <div class="flex gap-2">
-            <input type="text" id="manual-input" placeholder="{% trans '予約番号' %}"
-                   class="flex-1 border border-gray-300 rounded px-3 py-2 text-sm">
-            <button onclick="doCheckin(document.getElementById('manual-input').value)"
-                    class="bg-salon-brown text-white px-4 py-2 rounded text-sm hover:opacity-80 transition">
+    <!-- QR Scan Tab -->
+    <div id="tab-qr" class="tab-panel active">
+        <p class="text-sm text-gray-600 mb-4">{% trans "お客様のQRコードをカメラでスキャンしてください。" %}</p>
+        <div id="reader" class="mb-6 rounded-lg overflow-hidden border border-gray-300"></div>
+    </div>
+
+    <!-- Backup Code Tab -->
+    <div id="tab-code" class="tab-panel">
+        <p class="text-sm text-gray-600 mb-4">{% trans "お客様から口頭で伝えられた6桁コードを入力してください。" %}</p>
+        <div class="bg-white rounded-xl shadow-md p-6 border border-gray-200">
+            <label class="block text-sm font-bold mb-2" for="backup-code-input">{% trans "6桁コード" %}</label>
+            <input type="text" id="backup-code-input" maxlength="6" inputmode="numeric" pattern="[0-9]*"
+                   placeholder="123456"
+                   class="w-full border border-gray-300 rounded px-4 py-3 text-2xl font-mono text-center tracking-widest mb-4">
+            <button onclick="doBackupCheckin()"
+                    class="w-full bg-salon-brown text-white px-4 py-3 rounded text-sm font-bold hover:opacity-80 transition">
                 {% trans "チェックイン" %}
             </button>
         </div>
@@ -47,6 +66,14 @@
 var csrfToken = '{{ csrf_token }}';
 var checkinUrl = '{% url "booking_api:checkin_api" %}';
 var isProcessing = false;
+
+function switchTab(tab) {
+    document.querySelectorAll('.tab-btn').forEach(function(btn, i) {
+        btn.classList.toggle('active', (tab === 'qr' && i === 0) || (tab === 'code' && i === 1));
+    });
+    document.getElementById('tab-qr').classList.toggle('active', tab === 'qr');
+    document.getElementById('tab-code').classList.toggle('active', tab === 'code');
+}
 
 function showResult(success, message) {
     var box = document.getElementById('result-box');
@@ -63,8 +90,8 @@ function showResult(success, message) {
     setTimeout(function() { box.style.display = 'none'; }, 5000);
 }
 
-function doCheckin(reservationNumber) {
-    if (!reservationNumber || isProcessing) return;
+function doCheckin(qrToken) {
+    if (!qrToken || isProcessing) return;
     isProcessing = true;
 
     fetch(checkinUrl, {
@@ -73,12 +100,45 @@ function doCheckin(reservationNumber) {
             'Content-Type': 'application/json',
             'X-CSRFToken': csrfToken,
         },
-        body: JSON.stringify({ reservation_number: reservationNumber }),
+        body: JSON.stringify({ qr_token: qrToken }),
     })
     .then(function(resp) { return resp.json(); })
     .then(function(data) {
         if (data.status === 'ok') {
             showResult(true, data.message || '{% trans "チェックイン成功" %}');
+        } else {
+            showResult(false, data.message || '{% trans "エラーが発生しました" %}');
+        }
+    })
+    .catch(function(err) {
+        showResult(false, 'ネットワークエラー: ' + err.message);
+    })
+    .finally(function() {
+        isProcessing = false;
+    });
+}
+
+function doBackupCheckin() {
+    var code = document.getElementById('backup-code-input').value.trim();
+    if (!code || code.length !== 6 || isProcessing) {
+        showResult(false, '6桁のコードを入力してください');
+        return;
+    }
+    isProcessing = true;
+
+    fetch(checkinUrl, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': csrfToken,
+        },
+        body: JSON.stringify({ backup_code: code }),
+    })
+    .then(function(resp) { return resp.json(); })
+    .then(function(data) {
+        if (data.status === 'ok') {
+            showResult(true, data.message || '{% trans "チェックイン成功" %}');
+            document.getElementById('backup-code-input').value = '';
         } else {
             showResult(false, data.message || '{% trans "エラーが発生しました" %}');
         }
@@ -107,7 +167,12 @@ document.addEventListener('DOMContentLoaded', function() {
     ).catch(function(err) {
         console.log('Camera start failed:', err);
         document.getElementById('reader').innerHTML =
-            '<p class="text-center text-gray-500 p-4">{% trans "カメラを利用できません。手動入力をご利用ください。" %}</p>';
+            '<p class="text-center text-gray-500 p-4">{% trans "カメラを利用できません。口頭コード入力タブをご利用ください。" %}</p>';
+    });
+
+    // Enter key on backup code input
+    document.getElementById('backup-code-input').addEventListener('keydown', function(e) {
+        if (e.key === 'Enter') doBackupCheckin();
     });
 });
 </script>

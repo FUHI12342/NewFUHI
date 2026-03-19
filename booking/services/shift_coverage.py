@@ -49,6 +49,45 @@ def check_coverage_need(coverage_map, req_map, date, staff_type, start_h, end_h)
     return False
 
 
+def find_needed_blocks(coverage_map, req_map, date, staff_type, start_h, end_h, min_block):
+    """リクエスト範囲内で定員未達の連続時間ブロックを抽出
+
+    Args:
+        coverage_map: カバレッジ追跡マップ
+        req_map: {date: {staff_type: required_count}}
+        date: 対象日
+        staff_type: スタッフ種別
+        start_h, end_h: リクエスト範囲
+        min_block: 最低連続時間（これ未満のブロックは除外）
+
+    Returns:
+        list[tuple[int, int]]: [(block_start, block_end), ...] min_block以上のブロックのみ
+    """
+    required = req_map.get(date, {}).get(staff_type, 0)
+    if required == 0:
+        # 定員未設定 → 全範囲を1ブロックとして返す
+        return [(start_h, end_h)]
+
+    # 不足時間帯を特定
+    blocks = []
+    block_start = None
+    for h in range(start_h, end_h):
+        assigned = len(coverage_map[date][staff_type].get(h, set()))
+        if assigned < required:
+            if block_start is None:
+                block_start = h
+        else:
+            if block_start is not None:
+                blocks.append((block_start, h))
+                block_start = None
+    # 末尾処理
+    if block_start is not None:
+        blocks.append((block_start, end_h))
+
+    # min_block未満のブロックを除外
+    return [(s, e) for s, e in blocks if (e - s) >= min_block]
+
+
 def count_coverage_hours(coverage_map, req_map, date, staff_type, start_h, end_h):
     """リクエストの時間範囲内で、定員未達の時間数を返す"""
     required = req_map.get(date, {}).get(staff_type, 0)

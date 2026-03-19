@@ -366,7 +366,7 @@ async function saveBulk() {
         });
         const result = await resp.json();
         if (resp.ok) {
-            showToast(`${result.created}${I18N.registered}${result.updated}${I18N.updated}`, false);
+            showToast(`${result.data.created}${I18N.registered}${result.data.updated}${I18N.updated}`, false);
             // 既存データを更新
             for (const [date, data] of Object.entries(pendingChanges)) {
                 if (!EXISTING[date]) EXISTING[date] = [];
@@ -382,7 +382,7 @@ async function saveBulk() {
             selectedDates.clear();
             renderCalendar();
         } else {
-            showToast(result.error || result.errors?.join(', ') || I18N.genericError, true);
+            showToast(result.error || result.data?.errors?.join(', ') || I18N.genericError, true);
         }
     } catch (e) {
         showToast(I18N.networkError + ' ' + e.message, true);
@@ -412,7 +412,7 @@ async function copyPreviousWeek() {
         });
         const result = await resp.json();
         if (resp.ok) {
-            showToast(`${I18N.copyFromPrev}${result.created}${I18N.copied}`, false);
+            showToast(`${I18N.copyFromPrev}${result.data.created}${I18N.copied}`, false);
             // ページリロードで反映
             setTimeout(() => location.reload(), 1000);
         } else {

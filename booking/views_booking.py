@@ -557,11 +557,24 @@ def process_payment(payment_response, request, order_id):
         schedule.is_temporary = False
         schedule.save(update_fields=["is_temporary"])
 
-        # QRコード生成
+        # 署名付きQRコード + 6桁バックアップコード生成
+        from booking.services.checkin_token import (
+            generate_backup_code,
+            generate_signed_checkin_qr,
+        )
         if not schedule.checkin_qr:
-            from booking.services.qr_service import generate_checkin_qr
-            qr_file = generate_checkin_qr(str(schedule.reservation_number))
+            qr_file = generate_signed_checkin_qr(
+                str(schedule.reservation_number), schedule.end,
+            )
             schedule.checkin_qr.save(qr_file.name, qr_file, save=True)
+        if not schedule.checkin_backup_code:
+            backup_code = generate_backup_code(
+                schedule.staff.store, schedule.start.date(),
+            )
+            Schedule.objects.filter(pk=schedule.pk).update(
+                checkin_backup_code=backup_code,
+            )
+            schedule.checkin_backup_code = backup_code
 
         line_bot_api = LineBotApi(settings.LINE_ACCESS_TOKEN)
 
@@ -579,10 +592,23 @@ def process_payment(payment_response, request, order_id):
         if user_id:
             timer_url = reverse('booking:LINETimerView', args=[user_id])
             encoded_timer_url = quote(timer_url)
+            qr_page_url = (
+                f'https://timebaibai.com/reservation/'
+                f'{schedule.reservation_number}/qr/'
+            )
             store = schedule.staff.store
             access_lines = _build_access_lines(store)
+            backup_line = ''
+            if schedule.checkin_backup_code:
+                backup_line = (
+                    f'\n\nチェックインQRコード: {qr_page_url}'
+                    f'\n口頭確認コード: {schedule.checkin_backup_code}'
+                    f'\n（QRが読み取れない場合、スタッフにこの6桁コードをお伝えください）'
+                )
             message_text = (
-                '決済が完了しました。こちらのURLから予約情報・タイマーを確認できます: '
+                '【予約確定】決済が完了しました。'
+                + backup_line
+                + '\n\n予約情報・タイマー: '
                 + '<' + 'https://timebaibai.com/' + encoded_timer_url + '>'
                 + access_lines
             )
@@ -597,6 +623,17 @@ def process_payment(payment_response, request, order_id):
             local_time = schedule.start.astimezone(local_tz)
             store = schedule.staff.store
             access_lines = _build_access_lines(store)
+            email_qr_url = (
+                f'https://timebaibai.com/reservation/'
+                f'{schedule.reservation_number}/qr/'
+            )
+            email_backup = ''
+            if schedule.checkin_backup_code:
+                email_backup = (
+                    f'\n\nチェックインQRコード: {email_qr_url}'
+                    f'\n口頭確認コード: {schedule.checkin_backup_code}'
+                    f'\n（QRが読み取れない場合、スタッフにこの6桁コードをお伝えください）'
+                )
             try:
                 send_mail(
                     subject='予約確定のお知らせ',
@@ -605,8 +642,9 @@ def process_payment(payment_response, request, order_id):
                         f'予約が確定しました。\n\n'
                         f'占い師: {schedule.staff.name}\n'
                         f'日時: {local_time.strftime("%Y年%m月%d日 %H:%M")}\n'
-                        f'料金: {schedule.price}円\n\n'
-                        f'ご予約ありがとうございます。'
+                        f'料金: {schedule.price}円'
+                        + email_backup
+                        + f'\n\nご予約ありがとうございます。'
                         + access_lines
                     ),
                     from_email=settings.DEFAULT_FROM_EMAIL,
@@ -679,32 +717,110 @@ class CheckinScanView(LoginRequiredMixin, UserPassesTestMixin, View):
 
 
 class CheckinAPIView(APIView):
-    """チェックイン API (POST: reservation_number)"""
+    """チェックイン API (POST: qr_token or backup_code)"""
     permission_classes = [IsAuthenticated]
 
     def post(self, request):
-        reservation_number = request.data.get('reservation_number', '').strip()
-        if not reservation_number:
-            return Response({'status': 'error', 'message': '予約番号が必要です'}, status=400)
+        from booking.services.checkin_token import (
+            is_within_checkin_window,
+            verify_qr_token,
+        )
 
-        try:
-            schedule = Schedule.objects.get(
-                reservation_number=reservation_number,
-                is_temporary=False,
-                is_cancelled=False,
+        qr_token = request.data.get('qr_token', '').strip()
+        backup_code = request.data.get('backup_code', '').strip()
+
+        if not qr_token and not backup_code:
+            return Response(
+                {'status': 'error', 'message': 'QRトークンまたはバックアップコードが必要です'},
+                status=400,
             )
-        except Schedule.DoesNotExist:
-            return Response({'status': 'error', 'message': '有効な予約が見つかりません'}, status=404)
 
+        schedule = None
+
+        # --- QR token path ---
+        if qr_token:
+            valid, reservation_number, error = verify_qr_token(qr_token)
+            if not valid:
+                return Response(
+                    {'status': 'error', 'message': error or 'QRコードが無効です'},
+                    status=400,
+                )
+            try:
+                schedule = Schedule.objects.select_related('staff__store').get(
+                    reservation_number=reservation_number,
+                    is_temporary=False,
+                    is_cancelled=False,
+                )
+            except Schedule.DoesNotExist:
+                return Response(
+                    {'status': 'error', 'message': '有効な予約が見つかりません'},
+                    status=404,
+                )
+
+        # --- Backup code path ---
+        elif backup_code:
+            staff = getattr(request.user, 'staff', None)
+            if not staff and not request.user.is_superuser:
+                return Response(
+                    {'status': 'error', 'message': 'スタッフアカウントが必要です'},
+                    status=403,
+                )
+            today = timezone.localdate()
+            store_filter = {} if request.user.is_superuser else {'staff__store': staff.store}
+            try:
+                schedule = Schedule.objects.select_related('staff__store').get(
+                    checkin_backup_code=backup_code,
+                    start__date=today,
+                    is_temporary=False,
+                    is_cancelled=False,
+                    is_checked_in=False,
+                    **store_filter,
+                )
+            except Schedule.DoesNotExist:
+                return Response(
+                    {'status': 'error', 'message': '該当する予約が見つかりません'},
+                    status=404,
+                )
+            except Schedule.MultipleObjectsReturned:
+                return Response(
+                    {'status': 'error', 'message': '複数の予約が該当しました。QRコードをご利用ください'},
+                    status=400,
+                )
+
+        # --- Store scope check ---
+        if not request.user.is_superuser:
+            staff = getattr(request.user, 'staff', None)
+            if staff and schedule.staff.store_id != staff.store_id:
+                return Response(
+                    {'status': 'error', 'message': '別店舗の予約はチェックインできません'},
+                    status=403,
+                )
+
+        # --- Time window check ---
+        if not is_within_checkin_window(schedule):
+            return Response(
+                {'status': 'error', 'message': 'チェックイン可能時間外です（予約開始30分前〜終了まで）'},
+                status=400,
+            )
+
+        # --- Already checked in ---
         if schedule.is_checked_in:
-            return Response({'status': 'error', 'message': 'すでにチェックイン済みです'})
+            return Response(
+                {'status': 'error', 'message': 'すでにチェックイン済みです'},
+                status=409,
+            )
 
-        schedule.is_checked_in = True
-        schedule.checked_in_at = timezone.now()
-        schedule.save(update_fields=['is_checked_in', 'checked_in_at'])
+        # --- Execute checkin ---
+        checked_in_by = getattr(request.user, 'staff', None)
+        now = timezone.now()
+        Schedule.objects.filter(pk=schedule.pk).update(
+            is_checked_in=True,
+            checked_in_at=now,
+            checked_in_by=checked_in_by,
+        )
 
         return Response({
             'status': 'ok',
             'message': f'{schedule.customer_name or "お客様"} のチェックインが完了しました',
-            'checked_in_at': schedule.checked_in_at.isoformat(),
+            'checked_in_at': now.isoformat(),
         })

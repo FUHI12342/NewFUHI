@@ -58,6 +58,16 @@ class Schedule(models.Model):
     checkin_qr = models.ImageField(_('チェックインQR'), upload_to='checkin_qr/', blank=True, null=True)
     is_checked_in = models.BooleanField(_('チェックイン済み'), default=False)
     checked_in_at = models.DateTimeField(_('チェックイン日時'), blank=True, null=True)
+    checkin_backup_code = models.CharField(
+        _('バックアップコード'), max_length=6,
+        blank=True, null=True,
+        help_text=_('口頭確認用6桁コード'),
+    )
+    checked_in_by = models.ForeignKey(
+        'Staff', verbose_name=_('チェックイン担当'),
+        on_delete=models.SET_NULL, null=True, blank=True,
+        related_name='checkins_performed',
+    )
 
     class Meta:
         app_label = 'booking'

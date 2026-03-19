@@ -307,7 +307,8 @@
       ? `/api/shift/my-requests/?period_id=${this.selectedPeriodId}`
       : '/api/shift/my-requests/';
     const res = await fetch(url, {credentials: 'same-origin'});
-    this.myRequests = await res.json();
+    const body = await res.json();
+    this.myRequests = body.data;
     this.requestDates = new Set(this.myRequests.map(r => r.date));
   },
 
@@ -547,8 +548,8 @@
   closedCalDays: [],
   async loadClosedDates() {
     const res = await fetch(`/api/shift/closed-dates/?year=${this.closedYear}&month=${this.closedMonth + 1}`, {credentials: 'same-origin'});
-    const data = await res.json();
-    this.closedDates = new Set(data.map(d => d.date));
+    const body = await res.json();
+    this.closedDates = new Set(body.data.map(d => d.date));
     this.buildCalDays();
   },
   buildCalDays() {
@@ -570,8 +571,8 @@
       body: JSON.stringify({date: ds}),
       credentials: 'same-origin',
     });
-    const data = await res.json();
-    if (data.action === 'added') this.closedDates.add(ds);
+    const body = await res.json();
+    if (body.data.action === 'added') this.closedDates.add(ds);
     else this.closedDates.delete(ds);
     this.buildCalDays();
   },
@@ -597,7 +598,8 @@
   async loadTemplates() {
     this.tplLoading = true;
     const res = await fetch('/api/shift/templates/', {credentials: 'same-origin'});
-    this.tplList = await res.json();
+    const body = await res.json();
+    this.tplList = body.data;
     this.tplLoading = false;
   },
   async saveTemplate() {
@@ -1061,7 +1063,8 @@
       const url = `/api/shift/my-requests/?staff_id=${this.proxyStaffId}&period_id={{ active_period.id }}`;
       const res = await fetch(url, {credentials: 'same-origin'});
       if (res.ok) {
-        this.proxyRequests = await res.json();
+        const body = await res.json();
+        this.proxyRequests = body.data;
         this.proxyRequestDates = new Set(this.proxyRequests.map(r => r.date));
       }
     },

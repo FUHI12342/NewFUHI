@@ -5,7 +5,7 @@ import json
 import logging
 from datetime import date, datetime
 
-from django.http import JsonResponse, HttpResponse
+from django.http import HttpResponse
 from django.views import View
 from django.utils.decorators import method_decorator
 from django.contrib.admin.views.decorators import staff_member_required
@@ -16,6 +16,7 @@ from booking.models import (
     Staff, ShiftPeriod, StoreClosedDate,
 )
 from booking.views_shift_manager import _get_user_store
+from booking.api_response import success_response, error_response
 
 logger = logging.getLogger(__name__)
 
@@ -29,10 +30,10 @@ def _parse_body(request):
 
 
 def _require_store(request):
-    """店舗取得。取得できなければ JsonResponse を返す。"""
+    """店舗取得。取得できなければ error_response を返す。"""
     store = _get_user_store(request)
     if store is None:
-        return None, JsonResponse({'error': 'Store not found'}, status=403)
+        return None, error_response('Store not found', status=403)
     return store, None
 
 
@@ -49,17 +50,19 @@ class ShiftPeriodAPIView(View):
         try:
             data = json.loads(request.body)
         except json.JSONDecodeError:
-            return JsonResponse({'error': 'Invalid JSON'}, status=400)
+            return error_response('Invalid JSON')
 
         year_month = data.get('year_month')
         deadline = data.get('deadline')
 
         if not year_month:
-            return JsonResponse({'error': 'year_month is required'}, status=400)
+            return error_response('year_month is required')
 
         existing = ShiftPeriod.objects.filter(store=store, year_month=year_month).first()
         if existing:
-            return JsonResponse({'error': f'{year_month} の期間は既に存在します', 'period_id': existing.id}, status=409)
+            return error_response(
+                f'{year_month} の期間は既に存在します', status=409,
+            )
 
         created_by = None
         try:
@@ -87,7 +90,7 @@ class ShiftPeriodAPIView(View):
                 {'period': period}, request=request,
             )
             return HttpResponse(html, headers={'HX-Trigger': 'periodCreated'})
-        return JsonResponse({'id': period.id, 'status': period.status}, status=201)
+        return success_response({'id': period.id, 'status': period.status}, status=201)
 
     def put(self, request, pk=None):
         """シフト期間のステータスを更新"""
@@ -100,7 +103,7 @@ class ShiftPeriodAPIView(View):
         try:
             data = json.loads(request.body)
         except json.JSONDecodeError:
-            return JsonResponse({'error': 'Invalid JSON'}, status=400)
+            return error_response('Invalid JSON')
 
         new_status = data.get('status')
         valid_transitions = {
@@ -110,16 +113,16 @@ class ShiftPeriodAPIView(View):
             'approved': ['scheduled'],
         }
         if new_status not in valid_transitions.get(period.status, []):
-            return JsonResponse({
-                'error': f'{period.get_status_display()} -> {new_status} への遷移は無効です',
-            }, status=400)
+            return error_response(
+                f'{period.get_status_display()} -> {new_status} への遷移は無効です',
+            )
 
         period.status = new_status
         if data.get('deadline'):
             period.deadline = data['deadline']
         period.save()
 
-        return JsonResponse({'id': period.id, 'status': period.status})
+        return success_response({'id': period.id, 'status': period.status})
 
 
 @method_decorator(staff_member_required, name='dispatch')
@@ -137,14 +140,14 @@ class ShiftRevokeAPIView(View):
         reason = data.get('reason', '')
 
         if not period_id:
-            return JsonResponse({'error': 'period_id is required'}, status=400)
+            return error_response('period_id is required')
 
         period = get_object_or_404(ShiftPeriod, pk=period_id, store=store)
 
         if period.status not in ('approved', 'scheduled'):
-            return JsonResponse({
-                'error': '撤回は公開済み(approved)またはスケジュール済み(scheduled)状態でのみ可能です',
-            }, status=400)
+            return error_response(
+                '撤回は公開済み(approved)またはスケジュール済み(scheduled)状態でのみ可能です',
+            )
 
         revoked_by = None
         try:
@@ -173,7 +176,7 @@ class ShiftRevokeAPIView(View):
             return HttpResponse(
                 '', headers={'HX-Redirect': f'/admin/shift/calendar/?period_id={period.id}'},
             )
-        return JsonResponse({
+        return success_response({
             'cancelled': cancelled,
             'period_id': period.id,
             'status': period.status,
@@ -194,14 +197,14 @@ class ShiftReopenAPIView(View):
         reason = data.get('reason', '')
 
         if not period_id:
-            return JsonResponse({'error': 'period_id is required'}, status=400)
+            return error_response('period_id is required')
 
         period = get_object_or_404(ShiftPeriod, pk=period_id, store=store)
 
         if period.status != 'scheduled':
-            return JsonResponse({
-                'error': '再募集はスケジュール済み(scheduled)状態でのみ可能です',
-            }, status=400)
+            return error_response(
+                '再募集はスケジュール済み(scheduled)状態でのみ可能です',
+            )
 
         reopened_by = None
         try:
@@ -218,7 +221,7 @@ class ShiftReopenAPIView(View):
             return HttpResponse(
                 '', headers={'HX-Redirect': f'/admin/shift/calendar/?period_id={period.id}'},
             )
-        return JsonResponse({
+        return success_response({
             'kept_assignments': kept,
             'period_id': period.id,
             'status': period.status,
@@ -232,14 +235,14 @@ class StoreClosedDateAPIView(View):
     def get(self, request):
         store = _get_user_store(request)
         if not store:
-            return JsonResponse([], safe=False)
+            return success_response([])
 
         year = request.GET.get('year', str(date.today().year))
         month = request.GET.get('month', str(date.today().month))
         try:
             y, m = int(year), int(month)
         except (ValueError, TypeError):
-            return JsonResponse({'error': 'Invalid year/month'}, status=400)
+            return error_response('Invalid year/month')
 
         from calendar import monthrange
         start = date(y, m, 1)
@@ -249,11 +252,11 @@ class StoreClosedDateAPIView(View):
             store=store, date__gte=start, date__lte=end,
         ).order_by('date')
 
-        data = [
+        results = [
             {'id': c.id, 'date': c.date.isoformat(), 'reason': c.reason}
             for c in closed
         ]
-        return JsonResponse(data, safe=False)
+        return success_response(results)
 
     def post(self, request):
         store, err = _require_store(request)
@@ -263,23 +266,23 @@ class StoreClosedDateAPIView(View):
         try:
             data = json.loads(request.body)
         except json.JSONDecodeError:
-            return JsonResponse({'error': 'Invalid JSON'}, status=400)
+            return error_response('Invalid JSON')
 
         date_str = data.get('date')
         if not date_str:
-            return JsonResponse({'error': 'date is required'}, status=400)
+            return error_response('date is required')
 
         try:
             target_date = datetime.strptime(date_str, '%Y-%m-%d').date()
         except ValueError:
-            return JsonResponse({'error': 'Invalid date format'}, status=400)
+            return error_response('Invalid date format')
 
         reason = data.get('reason', '')
 
         existing = StoreClosedDate.objects.filter(store=store, date=target_date).first()
         if existing:
             existing.delete()
-            return JsonResponse({'action': 'removed', 'date': date_str})
+            return success_response({'action': 'removed', 'date': date_str})
 
         StoreClosedDate.objects.create(store=store, date=target_date, reason=reason)
-        return JsonResponse({'action': 'added', 'date': date_str}, status=201)
+        return success_response({'action': 'added', 'date': date_str}, status=201)

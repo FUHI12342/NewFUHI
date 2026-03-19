@@ -355,6 +355,9 @@ task_serializer = os.getenv("CELERY_TASK_SERIALIZER", "json")
 LINE_USER_ID_ENCRYPTION_KEY = env_required("LINE_USER_ID_ENCRYPTION_KEY")
 LINE_USER_ID_HASH_PEPPER = env_required("LINE_USER_ID_HASH_PEPPER")
 
+# QR checkin HMAC secret (falls back to SECRET_KEY if empty)
+CHECKIN_QR_SECRET = os.getenv('CHECKIN_QR_SECRET', '')
+
 
 # ====================================
 # CSRF Trusted Origins (Django 4.x requires this for HTTPS)

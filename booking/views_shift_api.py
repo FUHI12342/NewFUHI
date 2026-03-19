@@ -18,34 +18,15 @@ from booking.models import (
     ShiftTemplate, ShiftPublishHistory, ShiftChangeLog,
 )
 from booking.views_shift_manager import _get_user_store, _render_calendar_section
+from booking.validators import (
+    validate_hour_range, validate_color, truncate_note,
+)
+from booking.api_response import success_response, error_response, list_response
 
 logger = logging.getLogger(__name__)
 
 
-_COLOR_RE = re.compile(r'^#[0-9A-Fa-f]{6}$')
-
-
 _TIME_RE = re.compile(r'^\d{1,2}:\d{2}(:\d{2})?$')
-_MAX_NOTE_LENGTH = 500
-
-
-def _validate_color(color):
-    """色コードのバリデーション（XSS防止）。不正ならNone、正常なら値を返す。"""
-    if color and _COLOR_RE.match(color):
-        return color
-    return None
-
-
-def _validate_hour_range(data):
-    """start_hour/end_hour のレンジバリデーション。エラーがあれば JsonResponse を返す。"""
-    try:
-        start_h = int(data.get('start_hour', 9))
-        end_h = int(data.get('end_hour', 17))
-    except (ValueError, TypeError):
-        return None, None, JsonResponse({'error': 'Invalid hour value'}, status=400)
-    if not (0 <= start_h <= 23 and 0 <= end_h <= 24 and start_h < end_h):
-        return None, None, JsonResponse({'error': 'Invalid hour range (0-24, start < end)'}, status=400)
-    return start_h, end_h, None
 
 
 def _validate_time_str(val):
@@ -53,13 +34,6 @@ def _validate_time_str(val):
     if val and _TIME_RE.match(str(val)):
         return str(val)
     return None
-
-
-def _truncate_note(note):
-    """noteフィールドの長さを制限。"""
-    if note and len(str(note)) > _MAX_NOTE_LENGTH:
-        return str(note)[:_MAX_NOTE_LENGTH]
-    return str(note) if note else ''
 
 
 def _parse_body(request):
@@ -72,17 +46,17 @@ def _parse_body(request):
 
 
 def _require_store(request):
-    """店舗取得。取得できなければ JsonResponse を返す。"""
+    """店舗取得。取得できなければ error_response を返す。"""
     store = _get_user_store(request)
     if store is None:
-        return None, JsonResponse({'error': 'Store not found'}, status=403)
+        return None, error_response('Store not found', status=403)
     return store, None
 
 
 def _verify_store_ownership(obj_store, user_store):
     """オブジェクトの店舗がユーザーの店舗と一致するか確認"""
     if obj_store.pk != user_store.pk:
-        return JsonResponse({'error': 'Permission denied'}, status=403)
+        return error_response('Permission denied', status=403)
     return None
 
 
@@ -139,7 +113,7 @@ class ShiftAssignmentAPIView(View):
         try:
             data = json.loads(request.body)
         except json.JSONDecodeError:
-            return JsonResponse({'error': 'Invalid JSON'}, status=400)
+            return error_response('Invalid JSON')
 
         period_id = data.get('period_id')
         staff_id = data.get('staff_id')
@@ -147,11 +121,11 @@ class ShiftAssignmentAPIView(View):
         template_id = data.get('template_id')
 
         if not all([period_id, staff_id, date_str]):
-            return JsonResponse({'error': 'Missing required fields'}, status=400)
+            return error_response('Missing required fields')
 
-        start_h, end_h, err = _validate_hour_range(data)
+        start_h, end_h, err = validate_hour_range(data)
         if err:
-            return err
+            return error_response(err)
 
         period = get_object_or_404(ShiftPeriod, pk=period_id, store=store)
         staff = get_object_or_404(Staff, pk=staff_id, store=store)
@@ -177,11 +151,11 @@ class ShiftAssignmentAPIView(View):
             if validated_time:
                 kwargs['end_time'] = validated_time
         if data.get('color'):
-            validated_color = _validate_color(data['color'])
+            validated_color = validate_color(data['color'])
             if validated_color:
                 kwargs['color'] = validated_color
         if data.get('note'):
-            kwargs['note'] = _truncate_note(data['note'])
+            kwargs['note'] = truncate_note(data['note'])
 
         assignment = ShiftAssignment.objects.create(**kwargs)
 
@@ -206,7 +180,7 @@ class ShiftAssignmentAPIView(View):
         try:
             data = json.loads(request.body)
         except json.JSONDecodeError:
-            return JsonResponse({'error': 'Invalid JSON'}, status=400)
+            return error_response('Invalid JSON')
 
         is_approved = assignment.period.status == 'approved'
 
@@ -227,7 +201,7 @@ class ShiftAssignmentAPIView(View):
                     if field in data:
                         new_data[field] = data[field]
                 if 'color' in data:
-                    validated_color = _validate_color(data['color'])
+                    validated_color = validate_color(data['color'])
                     if validated_color:
                         new_data['color'] = validated_color
 
@@ -258,15 +232,15 @@ class ShiftAssignmentAPIView(View):
                     'start_hour': data.get('start_hour', assignment.start_hour),
                     'end_hour': data.get('end_hour', assignment.end_hour),
                 }
-                s_h, e_h, err = _validate_hour_range(merged)
+                s_h, e_h, err = validate_hour_range(merged)
                 if err:
-                    return err
+                    return error_response(err)
                 assignment.start_hour = s_h
                 assignment.end_hour = e_h
             if 'note' in data:
-                assignment.note = _truncate_note(data['note'])
+                assignment.note = truncate_note(data['note'])
             if 'color' in data:
-                validated_color = _validate_color(data['color'])
+                validated_color = validate_color(data['color'])
                 if validated_color:
                     assignment.color = validated_color
             if 'start_time' in data:
@@ -329,21 +303,21 @@ class ShiftApplyTemplateAPIView(View):
         try:
             data = json.loads(request.body)
         except json.JSONDecodeError:
-            return JsonResponse({'error': 'Invalid JSON'}, status=400)
+            return error_response('Invalid JSON')
 
         template = get_object_or_404(ShiftTemplate, pk=data.get('template_id'), store=store)
         staff = get_object_or_404(Staff, pk=data.get('staff_id'), store=store)
         date_str = data.get('date')
 
         if not date_str:
-            return JsonResponse({'error': 'Missing date'}, status=400)
+            return error_response('Missing date')
 
         period = ShiftPeriod.objects.filter(
             store=store, status__in=['open', 'scheduled'],
         ).order_by('-year_month').first()
 
         if not period:
-            return JsonResponse({'error': 'No active shift period'}, status=400)
+            return error_response('No active shift period')
 
         assignment, created = ShiftAssignment.objects.update_or_create(
             period=period,
@@ -376,14 +350,14 @@ class ShiftTemplateAPIView(View):
             return err
 
         templates = ShiftTemplate.objects.filter(store=store, is_active=True)
-        data = [{
+        results = [{
             'id': t.id,
             'name': t.name,
             'start_time': t.start_time.strftime('%H:%M'),
             'end_time': t.end_time.strftime('%H:%M'),
             'color': t.color,
         } for t in templates]
-        return JsonResponse(data, safe=False)
+        return success_response(results)
 
     def post(self, request):
         store, err = _require_store(request)
@@ -393,9 +367,9 @@ class ShiftTemplateAPIView(View):
         try:
             data = json.loads(request.body)
         except json.JSONDecodeError:
-            return JsonResponse({'error': 'Invalid JSON'}, status=400)
+            return error_response('Invalid JSON')
 
-        color = _validate_color(data.get('color', '')) or '#3B82F6'
+        color = validate_color(data.get('color', '')) or '#3B82F6'
         template = ShiftTemplate.objects.create(
             store=store,
             name=data.get('name', ''),
@@ -403,7 +377,7 @@ class ShiftTemplateAPIView(View):
             end_time=data.get('end_time', '17:00'),
             color=color,
         )
-        return JsonResponse({'id': template.id, 'name': template.name}, status=201)
+        return success_response({'id': template.id, 'name': template.name}, status=201)
 
     def put(self, request, pk=None):
         store, err = _require_store(request)
@@ -418,17 +392,17 @@ class ShiftTemplateAPIView(View):
         try:
             data = json.loads(request.body)
         except json.JSONDecodeError:
-            return JsonResponse({'error': 'Invalid JSON'}, status=400)
+            return error_response('Invalid JSON')
 
         for f in ['name', 'start_time', 'end_time']:
             if f in data:
                 setattr(template, f, data[f])
         if 'color' in data:
-            validated_color = _validate_color(data['color'])
+            validated_color = validate_color(data['color'])
             if validated_color:
                 template.color = validated_color
         template.save()
-        return JsonResponse({'id': template.id, 'name': template.name})
+        return success_response({'id': template.id, 'name': template.name})
 
     def delete(self, request, pk=None):
         store, err = _require_store(request)
@@ -457,7 +431,7 @@ class ShiftBulkAssignAPIView(View):
         try:
             data = json.loads(request.body)
         except json.JSONDecodeError:
-            return JsonResponse({'error': 'Invalid JSON'}, status=400)
+            return error_response('Invalid JSON')
 
         template_id = data.get('template_id')
         staff_ids = data.get('staff_ids', [])
@@ -495,7 +469,7 @@ class ShiftBulkAssignAPIView(View):
                     if was_created:
                         created += 1
 
-        return JsonResponse({'created': created})
+        return success_response({'created': created})
 
 
 @method_decorator(staff_member_required, name='dispatch')
@@ -520,12 +494,11 @@ class ShiftAutoScheduleAPIView(View):
         if not period:
             if request.headers.get('HX-Request'):
                 return HttpResponse('<p style="color:#EF4444;padding:16px;">シフト期間が見つかりません</p>')
-            return JsonResponse({'error': 'No shift period found'}, status=404)
+            return error_response('No shift period found', status=404)
 
         if period.status == 'approved':
-            return JsonResponse(
-                {'error': '承認済みの期間は自動スケジューリングできません。先に取消してください。'},
-                status=400,
+            return error_response(
+                '承認済みの期間は自動スケジューリングできません。先に取消してください。',
             )
 
         from booking.services.shift_scheduler import auto_schedule
@@ -537,7 +510,7 @@ class ShiftAutoScheduleAPIView(View):
             return HttpResponse(
                 '', headers={'HX-Redirect': f'/admin/shift/calendar/?period_id={period.id}'},
             )
-        return JsonResponse({
+        return success_response({
             'created': count,
             'period_id': period.id,
             'vacancy_count': vacancy_count,
@@ -556,7 +529,7 @@ class ShiftPublishAPIView(View):
         data = _parse_body(request)
 
         period_id = data.get('period_id')
-        note = _truncate_note(data.get('note', ''))
+        note = truncate_note(data.get('note', ''))
 
         if period_id:
             period = get_object_or_404(ShiftPeriod, pk=period_id, store=store)
@@ -566,7 +539,7 @@ class ShiftPublishAPIView(View):
             ).order_by('-year_month').first()
 
         if not period:
-            return JsonResponse({'error': 'No shift period found'}, status=404)
+            return error_response('No shift period found', status=404)
 
         from booking.services.shift_scheduler import sync_assignments_to_schedule
         from booking.services.shift_notifications import notify_shift_approved
@@ -597,12 +570,47 @@ class ShiftPublishAPIView(View):
             return HttpResponse(
                 '', headers={'HX-Redirect': f'/admin/shift/calendar/?period_id={period.id}'},
             )
-        return JsonResponse({
+        return success_response({
             'synced': synced,
             'period_id': period.id,
             'status': period.status,
         })
 
+
+
+@method_decorator(staff_member_required, name='dispatch')
+class ShiftChangeLogAPIView(View):
+    """ShiftChangeLog 一覧取得"""
+
+    def get(self, request):
+        store, err = _require_store(request)
+        if err:
+            return err
+
+        period_id = request.GET.get('period_id')
+        logs = ShiftChangeLog.objects.filter(
+            assignment__period__store=store,
+        ).select_related(
+            'assignment__staff', 'assignment__period', 'changed_by',
+        ).order_by('-changed_at')
+
+        if period_id:
+            logs = logs.filter(assignment__period_id=period_id)
+
+        results = [{
+            'id': log.id,
+            'assignment_id': log.assignment_id,
+            'staff_name': log.assignment.staff.name,
+            'date': log.assignment.date.isoformat(),
+            'change_type': log.change_type,
+            'old_values': log.old_values,
+            'new_values': log.new_values,
+            'changed_by': log.changed_by.name if log.changed_by else None,
+            'reason': log.reason,
+            'changed_at': log.changed_at.isoformat(),
+        } for log in logs[:100]]
+
+        return list_response(results, total=len(results))
 
 
 # ==============================

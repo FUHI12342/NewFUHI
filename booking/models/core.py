@@ -70,6 +70,12 @@ class Store(models.Model):
     photo_2 = models.ImageField(_('店舗写真2'), upload_to='store_photos/', blank=True)
     photo_3 = models.ImageField(_('店舗写真3'), upload_to='store_photos/', blank=True)
 
+    # タイムゾーン
+    timezone = models.CharField(
+        _('タイムゾーン'), max_length=50, default='Asia/Tokyo',
+        help_text=_('店舗のタイムゾーン (例: Asia/Tokyo)'),
+    )
+
     # 追加（多言語）：店舗の既定言語（任意）
     default_language = models.CharField(
         _('既定言語'), max_length=10, default='ja', blank=True, choices=LANG_CHOICES,

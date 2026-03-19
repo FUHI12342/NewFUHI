@@ -34,6 +34,7 @@ from booking.services.shift_coverage import (
     record_assignment,
     check_coverage_need,
     count_coverage_hours,
+    find_needed_blocks,
     generate_vacancies,
 )
 from booking.services.shift_scheduler import auto_schedule
@@ -706,10 +707,10 @@ class TestShiftVacancyAPIView(TestCase):
         resp = self.client.get(self.vacancy_url)
         self.assertEqual(resp.status_code, 200)
         body = json.loads(resp.content)
-        data = body['results']
+        data = body['data']['results']
         self.assertEqual(len(data), 1)
         self.assertEqual(data[0]['status'], 'open')
-        self.assertEqual(body['total'], 1)
+        self.assertEqual(body['data']['total'], 1)
 
     def test_get_filters_by_period_id(self):
         """period_id フィルターが機能する"""
@@ -729,7 +730,7 @@ class TestShiftVacancyAPIView(TestCase):
 
         resp = self.client.get(self.vacancy_url, {'period_id': self.period.id})
         self.assertEqual(resp.status_code, 200)
-        data = json.loads(resp.content)['results']
+        data = json.loads(resp.content)['data']['results']
         self.assertEqual(len(data), 1)
         self.assertEqual(data[0]['period_id'], self.period.id)
 
@@ -740,7 +741,7 @@ class TestShiftVacancyAPIView(TestCase):
 
         resp = self.client.get(self.vacancy_url, {'staff_type': 'fortune_teller'})
         self.assertEqual(resp.status_code, 200)
-        data = json.loads(resp.content)['results']
+        data = json.loads(resp.content)['data']['results']
         self.assertTrue(all(v['staff_type'] == 'fortune_teller' for v in data))
 
     def test_shortage_property_in_response(self):
@@ -748,7 +749,7 @@ class TestShiftVacancyAPIView(TestCase):
         self._create_vacancy(datetime.date(2026, 1, 5), required=3, assigned=1)
         resp = self.client.get(self.vacancy_url)
         self.assertEqual(resp.status_code, 200)
-        data = json.loads(resp.content)['results']
+        data = json.loads(resp.content)['data']['results']
         self.assertEqual(data[0]['shortage'], 2)
 
 
@@ -919,7 +920,7 @@ class TestShiftSwapRequestAPIView(TestCase):
             )
         self.assertEqual(resp.status_code, 201)
         data = json.loads(resp.content)
-        self.assertEqual(data['status'], 'pending')
+        self.assertEqual(data['data']['status'], 'pending')
 
     def test_create_absence_request(self):
         """欠勤申請を作成できる"""
@@ -1071,8 +1072,8 @@ class TestShiftSwapRequestAPIView(TestCase):
         resp = self.client.get(self.create_url)
         self.assertEqual(resp.status_code, 200)
         body = json.loads(resp.content)
-        self.assertEqual(body['total'], 1)
-        self.assertEqual(len(body['results']), 1)
+        self.assertEqual(body['data']['total'], 1)
+        self.assertEqual(len(body['data']['results']), 1)
 
 
 # ===========================================================================
@@ -1268,3 +1269,185 @@ class TestEdgeCases(TestCase):
             status='open',
         )
         self.assertEqual(v.shortage, 0)
+
+
+# ===========================================================================
+# 9. find_needed_blocks + 部分アサインのテスト
+# ===========================================================================
+
+class TestFindNeededBlocks(TestCase):
+    """find_needed_blocks() の単体テスト"""
+
+    def setUp(self):
+        self.d = datetime.date(2026, 1, 15)
+        self.req_map = {self.d: {'fortune_teller': 2}}
+        self.cmap = build_coverage_map()
+
+    def test_returns_full_range_when_all_unfilled(self):
+        """全時間帯が未充足 → 全範囲を1ブロックとして返す"""
+        blocks = find_needed_blocks(
+            self.cmap, self.req_map, self.d, 'fortune_teller', 9, 17, 2,
+        )
+        self.assertEqual(blocks, [(9, 17)])
+
+    def test_returns_only_needed_hours(self):
+        """充足済み時間帯を除外し、不足時間帯のみ返す"""
+        # 12-14 を2名で充足
+        record_assignment(self.cmap, self.d, 'fortune_teller', 12, 14, staff_id=1)
+        record_assignment(self.cmap, self.d, 'fortune_teller', 12, 14, staff_id=2)
+
+        blocks = find_needed_blocks(
+            self.cmap, self.req_map, self.d, 'fortune_teller', 10, 18, 2,
+        )
+        # 10-12 と 14-18 の2ブロック
+        self.assertEqual(blocks, [(10, 12), (14, 18)])
+
+    def test_filters_blocks_below_min(self):
+        """min_block未満のブロックは除外される"""
+        # 10-11, 13-14 を充足（不足は 9-10=1h, 11-13=2h, 14-17=3h）
+        for sid in (1, 2):
+            record_assignment(self.cmap, self.d, 'fortune_teller', 10, 11, staff_id=sid)
+            record_assignment(self.cmap, self.d, 'fortune_teller', 13, 14, staff_id=sid)
+
+        blocks = find_needed_blocks(
+            self.cmap, self.req_map, self.d, 'fortune_teller', 9, 17, 2,
+        )
+        # 9-10=1h < 2 → 除外, 11-13=2h ≥ 2 → OK, 14-17=3h ≥ 2 → OK
+        self.assertEqual(blocks, [(11, 13), (14, 17)])
+
+    def test_returns_empty_when_all_filled(self):
+        """全時間帯が充足済み → 空リスト"""
+        for sid in (1, 2):
+            record_assignment(self.cmap, self.d, 'fortune_teller', 9, 17, staff_id=sid)
+
+        blocks = find_needed_blocks(
+            self.cmap, self.req_map, self.d, 'fortune_teller', 9, 17, 2,
+        )
+        self.assertEqual(blocks, [])
+
+    def test_returns_full_range_when_no_requirement(self):
+        """定員未設定(required=0) → 全範囲を1ブロックとして返す"""
+        req_map = {self.d: {'fortune_teller': 0}}
+        blocks = find_needed_blocks(
+            self.cmap, req_map, self.d, 'fortune_teller', 9, 17, 2,
+        )
+        self.assertEqual(blocks, [(9, 17)])
+
+    def test_returns_full_range_when_date_not_in_req_map(self):
+        """req_mapに日付がない → 全範囲を1ブロックとして返す"""
+        blocks = find_needed_blocks(
+            self.cmap, {}, self.d, 'fortune_teller', 9, 17, 2,
+        )
+        self.assertEqual(blocks, [(9, 17)])
+
+
+class TestPartialAssignment(AutoScheduleBase):
+    """auto_schedule の部分アサインテスト"""
+
+    def test_partial_assignment_only_needed_hours(self):
+        """不足時間帯のみアサインされること"""
+        d = datetime.date(2026, 1, 5)  # 月曜（required=2）
+        # staff1 を preferred で 9-17 全体アサイン
+        make_request(self.period, self.staff1, d, 9, 17, preference='preferred')
+        # staff2 は available で 9-17 希望（1名不足なので全体が不足→全体アサイン）
+        make_request(self.period, self.staff2, d, 9, 17, preference='available')
+
+        auto_schedule(self.period)
+
+        # staff2 は不足時間帯にアサインされる（staff1で1名、定員2なので全時間不足）
+        assignments = ShiftAssignment.objects.filter(
+            period=self.period, staff=self.staff2,
+        )
+        self.assertEqual(assignments.count(), 1)
+        a = assignments.first()
+        self.assertEqual(a.start_hour, 9)
+        self.assertEqual(a.end_hour, 17)
+
+    def test_partial_block_below_min_shift_skipped(self):
+        """min_shift未満のブロックがスキップされること"""
+        d = datetime.date(2026, 1, 5)  # 月曜（required=2）
+        extra_user3 = make_user('partial_user3')
+        staff3 = make_staff(extra_user3, self.store, name='部分スタッフ3')
+
+        # staff1, staff2 で 9-16 を充足（preferred）
+        make_request(self.period, self.staff1, d, 9, 16, preference='preferred')
+        make_request(self.period, self.staff2, d, 9, 16, preference='preferred')
+        # staff3 は available で 9-17 希望
+        # 不足は 16-17 の1時間のみ → min_shift=2 なのでスキップ
+        make_request(self.period, staff3, d, 9, 17, preference='available')
+
+        auto_schedule(self.period)
+
+        assignments = ShiftAssignment.objects.filter(
+            period=self.period, staff=staff3,
+        )
+        self.assertEqual(assignments.count(), 0)
+
+    def test_partial_creates_multiple_assignments(self):
+        """1リクエストから複数アサインが生成されること"""
+        d = datetime.date(2026, 1, 5)  # 月曜（required=2）
+        extra_user3 = make_user('multi_user3')
+        extra_user4 = make_user('multi_user4')
+        staff3 = make_staff(extra_user3, self.store, name='マルチスタッフ3')
+        staff4 = make_staff(extra_user4, self.store, name='マルチスタッフ4')
+
+        # staff1, staff2 で 12-14 のみ充足（preferred）
+        make_request(self.period, self.staff1, d, 12, 14, preference='preferred')
+        make_request(self.period, self.staff2, d, 12, 14, preference='preferred')
+        # staff3 は available で 9-18 希望
+        # 不足は 9-12 (3h) と 14-18 (4h) → 両方 >= min_shift=2
+        make_request(self.period, staff3, d, 9, 18, preference='available')
+
+        auto_schedule(self.period)
+
+        assignments = list(
+            ShiftAssignment.objects.filter(
+                period=self.period, staff=staff3,
+            ).order_by('start_hour')
+        )
+        self.assertEqual(len(assignments), 2)
+        self.assertEqual(assignments[0].start_hour, 9)
+        self.assertEqual(assignments[0].end_hour, 12)
+        self.assertEqual(assignments[1].start_hour, 14)
+        self.assertEqual(assignments[1].end_hour, 18)
+
+    def test_preferred_gets_full_range(self):
+        """preferredはフルレンジでアサインされること"""
+        d = datetime.date(2026, 1, 5)
+        extra_user3 = make_user('pref_full_user3')
+        staff3 = make_staff(extra_user3, self.store, name='preferred全範囲')
+
+        # staff1, staff2 で定員充足済み
+        make_request(self.period, self.staff1, d, 9, 17, preference='preferred')
+        make_request(self.period, self.staff2, d, 9, 17, preference='preferred')
+        # staff3 は preferred で 10-16 → 充足済みでもフルレンジでアサイン
+        make_request(self.period, staff3, d, 10, 16, preference='preferred')
+
+        auto_schedule(self.period)
+
+        assignments = ShiftAssignment.objects.filter(
+            period=self.period, staff=staff3,
+        )
+        self.assertEqual(assignments.count(), 1)
+        a = assignments.first()
+        self.assertEqual(a.start_hour, 10)
+        self.assertEqual(a.end_hour, 16)
+
+    def test_no_coverage_need_skips_available(self):
+        """不足なしのavailableがスキップされること"""
+        d = datetime.date(2026, 1, 5)  # 月曜（required=2）
+        extra_user3 = make_user('no_need_user3')
+        staff3 = make_staff(extra_user3, self.store, name='不要スタッフ')
+
+        # staff1, staff2 で 9-17 定員充足（preferred）
+        make_request(self.period, self.staff1, d, 9, 17, preference='preferred')
+        make_request(self.period, self.staff2, d, 9, 17, preference='preferred')
+        # staff3 は available で 9-17 → 全時間充足なのでスキップ
+        make_request(self.period, staff3, d, 9, 17, preference='available')
+
+        auto_schedule(self.period)
+
+        assignments = ShiftAssignment.objects.filter(
+            period=self.period, staff=staff3,
+        )
+        self.assertEqual(assignments.count(), 0)

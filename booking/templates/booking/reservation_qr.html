@@ -19,6 +19,15 @@
         </div>
         {% endif %}
 
+        {% if schedule.checkin_backup_code %}
+        <div class="bg-salon-beige rounded-lg p-4 mb-6 text-center border border-salon-brown">
+            <p class="text-xs text-gray-500 mb-1">{% trans "QRが読み取れない場合の口頭確認コード" %}</p>
+            <p class="text-3xl font-mono font-bold tracking-widest text-salon-dark">
+                {{ schedule.checkin_backup_code }}
+            </p>
+        </div>
+        {% endif %}
+
         <!-- Reservation Details -->
         <div class="space-y-3 border-t pt-4">
             <div class="flex justify-between">

@@ -115,10 +115,10 @@ echo ""
 # ========== Step 6: ヘルスチェック ==========
 echo -e "${GREEN}[6/6] ヘルスチェック...${NC}"
 sleep 3
-HTTP_CODE=$($SSH_CMD "curl -s -o /dev/null -w '%{http_code}' https://timebaibai.com/booking/" 2>/dev/null || echo "000")
+HTTP_CODE=$($SSH_CMD "curl -s -o /dev/null -w '%{http_code}' https://timebaibai.com/healthz" 2>/dev/null || echo "000")
 # HTTPS失敗時はローカルへフォールバック
 if [ "$HTTP_CODE" = "000" ]; then
-    HTTP_CODE=$($SSH_CMD "curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:8000/booking/" 2>/dev/null || echo "000")
+    HTTP_CODE=$($SSH_CMD "curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:8000/healthz" 2>/dev/null || echo "000")
 fi
 
 if [ "$HTTP_CODE" = "200" ] || [ "$HTTP_CODE" = "301" ] || [ "$HTTP_CODE" = "302" ]; then

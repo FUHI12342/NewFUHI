@@ -1,6 +1,7 @@
 """自動スケジューリング + Schedule同期 + 撤回・修正サービス"""
 import datetime
 import logging
+import zoneinfo
 from calendar import monthrange
 from collections import defaultdict
 
@@ -22,10 +23,17 @@ from booking.services.shift_coverage import (
     build_coverage_map,
     record_assignment,
     check_coverage_need,
+    find_needed_blocks,
     generate_vacancies,
 )
 
 logger = logging.getLogger(__name__)
+
+
+def _make_aware_for_store(dt, store):
+    """店舗タイムゾーンで aware datetime に変換"""
+    tz = zoneinfo.ZoneInfo(getattr(store, 'timezone', 'Asia/Tokyo'))
+    return timezone.make_aware(dt, tz)
 
 
 def get_required_counts(store, target_date):
@@ -149,49 +157,73 @@ def auto_schedule(period):
                 )
                 continue
 
-            # 最低連続勤務時間チェック（クリップ後の実効時間で判定）
-            shift_hours = eff_end - eff_start
-            if shift_hours < min_shift:
-                logger.info(
-                    "Skipping request %s: clipped duration %dh < min %dh",
-                    req, shift_hours, min_shift,
-                )
-                continue
-
-            # 重複チェック
-            slot_key = (req.date, eff_start)
-            if req.staff_id in assigned_slots[slot_key]:
-                continue
-
-            # カバレッジ判定
             staff_type = req.staff.staff_type
-            has_need = check_coverage_need(
+
+            # === preferred: フルレンジアサイン（希望を尊重）===
+            if req.preference == 'preferred':
+                shift_hours = eff_end - eff_start
+                if shift_hours < min_shift:
+                    logger.info(
+                        "Skipping preferred %s: clipped duration %dh < min %dh",
+                        req, shift_hours, min_shift,
+                    )
+                    continue
+
+                slot_key = (req.date, eff_start)
+                if req.staff_id in assigned_slots[slot_key]:
+                    continue
+
+                ShiftAssignment.objects.create(
+                    period=period,
+                    staff=req.staff,
+                    date=req.date,
+                    start_hour=eff_start,
+                    end_hour=eff_end,
+                    start_time=req.start_time or datetime.time(eff_start, 0),
+                    end_time=req.end_time or datetime.time(eff_end, 0),
+                )
+                assigned_slots[slot_key].add(req.staff_id)
+                record_assignment(
+                    coverage_map, req.date, staff_type,
+                    eff_start, eff_end, req.staff_id,
+                )
+                created_count += 1
+                continue
+
+            # === available: 部分アサイン ===
+            # カバレッジ不足のブロックを抽出（min_shift未満は除外）
+            blocks = find_needed_blocks(
                 coverage_map, req_map, req.date, staff_type,
-                eff_start, eff_end,
+                eff_start, eff_end, min_shift,
             )
 
-            if not has_need and req.preference != 'preferred':
+            if not blocks:
                 logger.info(
-                    "Skipping request %s: all hours fully covered",
-                    req,
+                    "Skipping available %s: no needed blocks >= %dh",
+                    req, min_shift,
                 )
                 continue
 
-            ShiftAssignment.objects.create(
-                period=period,
-                staff=req.staff,
-                date=req.date,
-                start_hour=eff_start,
-                end_hour=eff_end,
-                start_time=req.start_time or datetime.time(eff_start, 0),
-                end_time=req.end_time or datetime.time(eff_end, 0),
-            )
-            assigned_slots[slot_key].add(req.staff_id)
-            record_assignment(
-                coverage_map, req.date, staff_type,
-                eff_start, eff_end, req.staff_id,
-            )
-            created_count += 1
+            for block_start, block_end in blocks:
+                slot_key = (req.date, block_start)
+                if req.staff_id in assigned_slots[slot_key]:
+                    continue
+
+                ShiftAssignment.objects.create(
+                    period=period,
+                    staff=req.staff,
+                    date=req.date,
+                    start_hour=block_start,
+                    end_hour=block_end,
+                    start_time=datetime.time(block_start, 0),
+                    end_time=datetime.time(block_end, 0),
+                )
+                assigned_slots[slot_key].add(req.staff_id)
+                record_assignment(
+                    coverage_map, req.date, staff_type,
+                    block_start, block_end, req.staff_id,
+                )
+                created_count += 1
 
         # 不足枠の自動生成
         vacancy_count = generate_vacancies(
@@ -233,11 +265,11 @@ def sync_assignments_to_schedule(period):
             )
             end_dt = start_dt + datetime.timedelta(minutes=duration)
 
-            # タイムゾーン対応
+            # 店舗タイムゾーンで aware 化
             if timezone.is_naive(start_dt):
-                start_dt = timezone.make_aware(start_dt)
+                start_dt = _make_aware_for_store(start_dt, store)
             if timezone.is_naive(end_dt):
-                end_dt = timezone.make_aware(end_dt)
+                end_dt = _make_aware_for_store(end_dt, store)
 
             # 重複チェック: 既に同じスタッフ・同じ時間のScheduleがないか
             exists = Schedule.objects.filter(
@@ -299,6 +331,21 @@ def revoke_published_shifts(period, reason, revoked_by=None):
             ).update(is_cancelled=True)
         else:
             cancelled_count = 0
+
+        # 個別の ChangeLog を記録
+        for assignment in assignments:
+            ShiftChangeLog.objects.create(
+                assignment=assignment,
+                changed_by=revoked_by,
+                change_type='revoked',
+                old_values={
+                    'status': 'approved',
+                    'start_hour': assignment.start_hour,
+                    'end_hour': assignment.end_hour,
+                },
+                new_values={'status': 'scheduled'},
+                reason=reason,
+            )
 
         # Assignment の同期フラグリセット
         period.assignments.update(is_synced=False)
@@ -458,9 +505,9 @@ def _update_synced_schedules(assignment, old_values):
         datetime.time(hour=int(old_end_h), minute=0),
     )
     if timezone.is_naive(old_start_dt):
-        old_start_dt = timezone.make_aware(old_start_dt)
+        old_start_dt = _make_aware_for_store(old_start_dt, store)
     if timezone.is_naive(old_end_dt):
-        old_end_dt = timezone.make_aware(old_end_dt)
+        old_end_dt = _make_aware_for_store(old_end_dt, store)
 
     Schedule.objects.filter(
         staff=assignment.staff,
@@ -481,9 +528,9 @@ def _update_synced_schedules(assignment, old_values):
         )
         end_dt = start_dt + datetime.timedelta(minutes=duration)
         if timezone.is_naive(start_dt):
-            start_dt = timezone.make_aware(start_dt)
+            start_dt = _make_aware_for_store(start_dt, store)
         if timezone.is_naive(end_dt):
-            end_dt = timezone.make_aware(end_dt)
+            end_dt = _make_aware_for_store(end_dt, store)
 
         Schedule.objects.create(
             staff=assignment.staff,
