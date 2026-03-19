@@ -175,7 +175,8 @@ def aggregate_visitor_data():
 
     today = date.today()
     total = 0
-    for store in Store.objects.all():
+    stores = list(Store.objects.only('id', 'name'))
+    for store in stores:
         count = aggregate_visitor_counts(store, today, today)
         total += count
-    logger.info('Visitor data aggregation completed: %d records', total)
+    logger.info('Visitor data aggregation completed: %d records for %d stores', total, len(stores))

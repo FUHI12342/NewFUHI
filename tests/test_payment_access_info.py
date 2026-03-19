@@ -144,7 +144,7 @@ def schedule_email(db, staff_member):
 class TestProcessPaymentAccessInfo:
     """process_payment で LINE / メール通知にアクセス情報が含まれるか."""
 
-    @patch('booking.views.LineBotApi')
+    @patch('booking.views_booking.LineBotApi')
     def test_line_message_includes_access_info(
         self, mock_linebot_cls, schedule_line, store_with_access
     ):
@@ -170,8 +170,8 @@ class TestProcessPaymentAccessInfo:
         assert '西口を出て右折、徒歩3分' in msg_text
         assert 'https://maps.google.com/?q=shinjuku' in msg_text
 
-    @patch('booking.views.send_mail')
-    @patch('booking.views.LineBotApi')
+    @patch('booking.views_booking.send_mail')
+    @patch('booking.views_booking.LineBotApi')
     def test_email_includes_access_info(
         self, mock_linebot_cls, mock_send_mail, schedule_email, store_with_access
     ):
@@ -192,7 +192,7 @@ class TestProcessPaymentAccessInfo:
         assert '新宿店' in email_body
         assert '西口を出て右折、徒歩3分' in email_body
 
-    @patch('booking.views.LineBotApi')
+    @patch('booking.views_booking.LineBotApi')
     def test_payment_not_succeeded_ignored(self, mock_linebot_cls):
         mock_linebot_cls.return_value = MagicMock()
 

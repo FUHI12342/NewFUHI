@@ -158,7 +158,7 @@ class TestCoineyWebhook:
         )
         assert resp.status_code == 403
 
-    @patch('booking.views.PayingSuccessView')
+    @patch('booking.views_booking.PayingSuccessView')
     def test_valid_signature_delegates(self, mock_view_cls, anon_client, settings):
         """Valid signature → delegates to PayingSuccessView.post."""
         settings.COINEY_WEBHOOK_SECRET = 'test-secret'
@@ -198,8 +198,8 @@ class TestProcessPayment:
         data = json.loads(result.content)
         assert data['status'] == 'success'
 
-    @patch('booking.views.LineBotApi')
-    @patch('booking.views._build_access_lines', return_value='')
+    @patch('booking.views_booking.LineBotApi')
+    @patch('booking.views_booking._build_access_lines', return_value='')
     def test_success_confirms_schedule(
         self, mock_access, mock_linebot_cls, schedule_confirmed, settings
     ):
@@ -218,8 +218,8 @@ class TestProcessPayment:
         schedule_confirmed.refresh_from_db()
         assert schedule_confirmed.is_temporary is False
 
-    @patch('booking.views.LineBotApi')
-    @patch('booking.views._build_access_lines', return_value='')
+    @patch('booking.views_booking.LineBotApi')
+    @patch('booking.views_booking._build_access_lines', return_value='')
     def test_success_generates_qr(
         self, mock_access, mock_linebot_cls, schedule_confirmed, settings
     ):
@@ -250,9 +250,9 @@ class TestProcessPayment:
         )
         assert result.status_code == 404
 
-    @patch('booking.views.LineBotApi')
-    @patch('booking.views._build_access_lines', return_value='')
-    @patch('booking.views.send_mail')
+    @patch('booking.views_booking.LineBotApi')
+    @patch('booking.views_booking._build_access_lines', return_value='')
+    @patch('booking.views_booking.send_mail')
     def test_email_booking_sends_confirmation(
         self, mock_mail, mock_access, mock_linebot_cls, schedule_email, settings
     ):
@@ -312,7 +312,7 @@ class TestEmailBookingView:
         resp = anon_client.post(self.URL, {'customer_name': 'test', 'customer_email': 'a@b.com'})
         assert resp.status_code == 302
 
-    @patch('booking.views.send_mail')
+    @patch('booking.views_booking.send_mail')
     def test_post_valid_sends_otp(self, mock_mail, anon_client, staff_member):
         """Valid POST → sends OTP email."""
         _set_session(anon_client, {
@@ -348,7 +348,7 @@ class TestEmailBookingView:
         })
         assert resp.status_code == 200  # re-render
 
-    @patch('booking.views.send_mail', side_effect=Exception('SMTP error'))
+    @patch('booking.views_booking.send_mail', side_effect=Exception('SMTP error'))
     def test_post_mail_failure(self, mock_mail, anon_client, staff_member):
         """Mail send failure → re-renders form with error."""
         _set_session(anon_client, {
@@ -429,8 +429,8 @@ class TestEmailVerifyView:
         resp = anon_client.post(self.URL, {'otp': otp})
         assert resp.status_code == 302  # redirect back
 
-    @patch('booking.views.requests.post')
-    @patch('booking.views.send_mail')
+    @patch('booking.views_booking.requests.post')
+    @patch('booking.views_booking.send_mail')
     def test_post_valid_otp(self, mock_mail, mock_requests, anon_client, staff_member, settings):
         """Valid OTP → creates schedule, gets payment URL."""
         settings.PAYMENT_API_URL = 'https://api.coiney.io/test'
@@ -493,7 +493,7 @@ class TestCancelReservationView:
         resp = anon_client.post(self._url(schedule_confirmed.id))
         assert resp.status_code == 302  # redirect to login
 
-    @patch('booking.views.LineBotApi')
+    @patch('booking.views_booking.LineBotApi')
     def test_staff_can_cancel(self, mock_linebot_cls, staff_client, schedule_confirmed):
         """Staff user can cancel any schedule."""
         mock_linebot_cls.return_value = MagicMock()
@@ -502,7 +502,7 @@ class TestCancelReservationView:
         schedule_confirmed.refresh_from_db()
         assert schedule_confirmed.is_cancelled is True
 
-    @patch('booking.views.LineBotApi')
+    @patch('booking.views_booking.LineBotApi')
     def test_admin_can_cancel(self, mock_linebot_cls, admin_pay, schedule_confirmed):
         """Admin can cancel any schedule."""
         mock_linebot_cls.return_value = MagicMock()
@@ -515,7 +515,7 @@ class TestCancelReservationView:
         resp = staff_client.post(self._url(99999))
         assert resp.status_code == 404
 
-    @patch('booking.views.LineBotApi')
+    @patch('booking.views_booking.LineBotApi')
     def test_line_notification_failure_graceful(
         self, mock_linebot_cls, staff_client, schedule_confirmed
     ):

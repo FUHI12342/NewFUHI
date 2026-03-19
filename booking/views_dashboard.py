@@ -27,8 +27,6 @@ class IoTSensorDashboardView(TemplateView):
 
 class SensorDataAPIView(APIView):
     """GET /api/iot/sensors/data/ — time-series sensor data for Chart.js."""
-    authentication_classes = []
-    permission_classes = []
 
     RANGE_MAP = {
         '1h': timedelta(hours=1),
@@ -89,8 +87,6 @@ class SensorDataAPIView(APIView):
 
 class PIRStatusAPIView(APIView):
     """GET /api/iot/sensors/pir-status/ — real-time PIR active status."""
-    authentication_classes = []
-    permission_classes = []
 
     def get(self, request):
         device_id = request.GET.get('device_id')
@@ -114,8 +110,6 @@ class PIRStatusAPIView(APIView):
 
 class PIREventsAPIView(APIView):
     """GET /api/iot/sensors/pir-events/ — PIR motion events bucketed by hour."""
-    authentication_classes = []
-    permission_classes = []
 
     RANGE_MAP = {
         '1h': timedelta(hours=1),

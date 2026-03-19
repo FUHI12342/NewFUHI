@@ -203,7 +203,7 @@ class TestEmailBookingView:
 
 @pytest.mark.django_db
 class TestCancelReservationView:
-    @patch('booking.views.LineBotApi')
+    @patch('booking.views_booking.LineBotApi')
     def test_post_cancels_schedule(self, mock_linebot_cls, admin_client, staff):
         """Admin/staff user can cancel a schedule."""
         mock_linebot_cls.return_value = MagicMock()

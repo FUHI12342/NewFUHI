@@ -2,14 +2,13 @@
 import datetime
 import logging
 from calendar import monthrange
+from collections import defaultdict
 
 from django.db import transaction
 from django.db.models import Case, When, IntegerField
 from django.utils import timezone
 
 from booking.models import (
-    ShiftPeriod,
-    ShiftRequest,
     ShiftAssignment,
     ShiftPublishHistory,
     ShiftChangeLog,
@@ -49,7 +48,11 @@ def get_required_counts(store, target_date):
 
 
 def _get_store_config(store):
-    """店舗のスケジュール設定を取得（なければデフォルト値）"""
+    """店舗のスケジュール設定を取得（なければデフォルト値）
+
+    Returns:
+        tuple: (open_h, close_h, duration, min_shift_hours)
+    """
     config = getattr(store, 'schedule_config', None)
     if config is None:
         try:
@@ -59,7 +62,8 @@ def _get_store_config(store):
     open_h = config.open_hour if config else 9
     close_h = config.close_hour if config else 21
     duration = config.slot_duration if config else 60
-    return open_h, close_h, duration
+    min_shift = getattr(config, 'min_shift_hours', 2) if config else 2
+    return open_h, close_h, duration, min_shift
 
 
 def _build_req_map(store, period):
@@ -81,17 +85,6 @@ def _build_req_map(store, period):
     return req_map
 
 
-def _get_min_shift_hours(store):
-    """店舗の最低シフト時間を取得"""
-    config = getattr(store, 'schedule_config', None)
-    if config is None:
-        try:
-            config = StoreScheduleConfig.objects.get(store=store)
-        except StoreScheduleConfig.DoesNotExist:
-            return 2
-    return getattr(config, 'min_shift_hours', 2)
-
-
 def auto_schedule(period):
     """ShiftRequest → ShiftAssignment 自動生成（カバレッジベース）
 
@@ -107,8 +100,7 @@ def auto_schedule(period):
     6. 不足枠(ShiftVacancy)を自動生成
     """
     store = period.store
-    open_h, close_h, duration = _get_store_config(store)
-    min_shift = _get_min_shift_hours(store)
+    open_h, close_h, duration, min_shift = _get_store_config(store)
 
     closed_dates = set(
         StoreClosedDate.objects.filter(store=store).values_list('date', flat=True)
@@ -120,7 +112,7 @@ def auto_schedule(period):
     with transaction.atomic():
         period.assignments.all().delete()
 
-        assigned_slots = {}
+        assigned_slots = defaultdict(set)
 
         preference_order = Case(
             When(preference='preferred', then=0),
@@ -168,8 +160,6 @@ def auto_schedule(period):
 
             # 重複チェック
             slot_key = (req.date, eff_start)
-            if slot_key not in assigned_slots:
-                assigned_slots[slot_key] = set()
             if req.staff_id in assigned_slots[slot_key]:
                 continue
 
@@ -225,7 +215,7 @@ def sync_assignments_to_schedule(period):
     customer_name=None, price=0 (空きコマ) として Schedule に同期
     """
     store = period.store
-    _, _, duration = _get_store_config(store)
+    _, _, duration, _ = _get_store_config(store)
 
     synced_count = 0
     assignments = period.assignments.filter(is_synced=False).select_related('staff')
@@ -453,7 +443,7 @@ def revise_assignment(assignment, new_data, revised_by=None, reason=''):
 def _update_synced_schedules(assignment, old_values):
     """同期済み Schedule を更新（旧時間帯のレコードをキャンセルし、新時間帯で再作成）"""
     store = assignment.period.store
-    _, _, duration = _get_store_config(store)
+    _, _, duration, _ = _get_store_config(store)
 
     old_start_h = old_values.get('start_hour', assignment.start_hour)
     old_end_h = old_values.get('end_hour', assignment.end_hour)

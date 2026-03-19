@@ -26,8 +26,16 @@ YELLOW='\033[1;33m'
 RED='\033[0;31m'
 NC='\033[0m'
 
-# SSH コマンド
-SSH_CMD="ssh -i $SSH_KEY -o StrictHostKeyChecking=no $EC2_USER@$EC2_HOST"
+# SSH鍵の存在チェック
+if [ ! -f "$SSH_KEY" ]; then
+    echo -e "${RED}  SSH鍵が見つかりません: $SSH_KEY${NC}"
+    echo -e "  初回の場合: ssh-keyscan -H $EC2_HOST >> ~/.ssh/known_hosts"
+    exit 1
+fi
+
+# SSH コマンド（StrictHostKeyChecking=yes でMITM攻撃を防止）
+# 初回接続時: ssh-keyscan -H $EC2_HOST >> ~/.ssh/known_hosts
+SSH_CMD="ssh -i $SSH_KEY $EC2_USER@$EC2_HOST"
 
 echo ""
 echo "========================================"
@@ -60,33 +68,52 @@ echo ""
 
 # ========== Step 2: EC2 で git pull ==========
 echo -e "${GREEN}[2/5] EC2 で git pull...${NC}"
-$SSH_CMD "cd $REMOTE_PATH && git fetch origin && git reset --hard origin/$BRANCH"
+$SSH_CMD "cd '$REMOTE_PATH' && git fetch origin && git reset --hard 'origin/$BRANCH'"
 echo -e "${GREEN}  pull 完了${NC}"
 echo ""
 
 # ========== Step 3: 依存関係インストール & マイグレーション ==========
-echo -e "${GREEN}[3/5] 依存関係 & マイグレーション...${NC}"
-$SSH_CMD "cd $REMOTE_PATH && \
+echo -e "${GREEN}[3/6] 依存関係 & マイグレーション...${NC}"
+
+# マイグレーション前にDBバックアップ
+echo -e "${YELLOW}  DBバックアップ中...${NC}"
+BACKUP_FILE="$REMOTE_PATH/backups/pre_deploy_$(date +%Y%m%d_%H%M%S).json"
+$SSH_CMD "mkdir -p '$REMOTE_PATH/backups' && cd '$REMOTE_PATH' && \
+    source .venv/bin/activate && \
+    DJANGO_SETTINGS_MODULE=project.settings.production python manage.py dumpdata \
+        --natural-foreign --natural-primary --exclude=contenttypes --exclude=auth.permission \
+        -o '$BACKUP_FILE' 2>/dev/null && \
+    echo '  バックアップ完了: $BACKUP_FILE' || echo '  バックアップスキップ（初回デプロイ）'"
+
+# SQLiteファイルもコピー
+$SSH_CMD "cp '$REMOTE_PATH/db.sqlite3' '$REMOTE_PATH/backups/db_pre_deploy_$(date +%Y%m%d_%H%M%S).sqlite3' 2>/dev/null || true"
+
+$SSH_CMD "cd '$REMOTE_PATH' && \
     source .venv/bin/activate && \
     pip install -q -r requirements.txt && \
-    DJANGO_SETTINGS_MODULE=project.settings python manage.py migrate --noinput && \
-    DJANGO_SETTINGS_MODULE=project.settings python manage.py collectstatic --noinput && \
-    DJANGO_SETTINGS_MODULE=project.settings python manage.py sync_menu_config"
+    DJANGO_SETTINGS_MODULE=project.settings.production python manage.py migrate --noinput && \
+    DJANGO_SETTINGS_MODULE=project.settings.production python manage.py collectstatic --noinput && \
+    DJANGO_SETTINGS_MODULE=project.settings.production python manage.py sync_menu_config"
 echo -e "${GREEN}  完了${NC}"
 echo ""
 
 # ========== Step 4: アプリケーション再起動 (Gunicorn + Celery) ==========
-echo -e "${GREEN}[4/5] アプリケーション再起動...${NC}"
+echo -e "${GREEN}[4/6] アプリケーション再起動...${NC}"
 $SSH_CMD "sudo systemctl restart newfuhi newfuhi-celery newfuhi-celerybeat 2>/dev/null || \
     (echo 'systemd サービス未設定。Gunicorn を直接再起動します...' && \
      sudo pkill -f 'gunicorn project' 2>/dev/null; sleep 1; \
-     cd $REMOTE_PATH && source .venv/bin/activate && \
+     cd '$REMOTE_PATH' && source .venv/bin/activate && \
      nohup gunicorn project.wsgi:application --bind 127.0.0.1:8000 --workers 2 --daemon)"
 echo -e "${GREEN}  再起動完了${NC}"
 echo ""
 
-# ========== Step 5: ヘルスチェック ==========
-echo -e "${GREEN}[5/5] ヘルスチェック...${NC}"
+# ========== Step 5: Nginx設定リロード ==========
+echo -e "${GREEN}[5/6] Nginx設定リロード...${NC}"
+$SSH_CMD "sudo nginx -t 2>/dev/null && sudo systemctl reload nginx 2>/dev/null && echo '  Nginx リロード完了' || echo '  Nginx スキップ（未インストール or 設定エラー）'"
+echo ""
+
+# ========== Step 6: ヘルスチェック ==========
+echo -e "${GREEN}[6/6] ヘルスチェック...${NC}"
 sleep 3
 HTTP_CODE=$($SSH_CMD "curl -s -o /dev/null -w '%{http_code}' https://timebaibai.com/booking/" 2>/dev/null || echo "000")
 # HTTPS失敗時はローカルへフォールバック
@@ -98,7 +125,7 @@ if [ "$HTTP_CODE" = "200" ] || [ "$HTTP_CODE" = "301" ] || [ "$HTTP_CODE" = "302
     echo -e "${GREEN}  HTTP $HTTP_CODE - 正常${NC}"
 else
     echo -e "${RED}  HTTP $HTTP_CODE - 問題あり。ログを確認してください:${NC}"
-    echo -e "  $SSH_CMD \"tail -20 $REMOTE_PATH/debug.log\""
+    echo -e "  $SSH_CMD \"tail -20 /var/log/newfuhi/django.log\""
 fi
 
 echo ""

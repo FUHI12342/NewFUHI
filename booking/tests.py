@@ -753,23 +753,12 @@ class IoTAPISensorFieldAcceptanceTest(HypothesisTestCase):
         # Verify the event was created with correct mq9_value
         event = IoTEvent.objects.get(id=response.data['id'])
         
-        # Debug information for troubleshooting
+        # Fail with diagnostic info if mq9_value not extracted
         if event.mq9_value is None:
-            import json
-            print(f"DEBUG: sensor_data = {sensor_data}")
-            print(f"DEBUG: request data = {data}")
-            print(f"DEBUG: response = {response.data}")
-            print(f"DEBUG: event.mq9_value = {event.mq9_value}")
-            print(f"DEBUG: event.payload = {event.payload}")
-            
-            # Try to understand why mq9_value is None
-            try:
-                payload = json.loads(event.payload)
-                print(f"DEBUG: parsed payload = {payload}")
-            except Exception as e:
-                print(f"DEBUG: payload parsing error = {e}")
-            
-            self.fail(f"mq9_value is None when it should be {sensor_data['mq9']}")
+            self.fail(
+                f"mq9_value is None when it should be {sensor_data['mq9']}. "
+                f"payload={event.payload}"
+            )
         
         # The API should extract mq9 from nested sensors and store it as mq9_value
         self.assertIsNotNone(event.mq9_value, f"mq9_value should not be None for input {sensor_data['mq9']}")
@@ -1316,9 +1305,7 @@ class IoTNestedSensorsPayloadTest(TestCase):
         # Verify the event was created with correct mq9_value
         event = IoTEvent.objects.get(id=response.data['id'])
         
-        # Debug: Print the actual values
-        print(f"DEBUG: event.mq9_value = {event.mq9_value} (type: {type(event.mq9_value)})")
-        print(f"DEBUG: event.payload = {event.payload}")
+        # Diagnostic assertion instead of debug prints
         
         # The API should extract mq9 from nested sensors and store it as mq9_value
         self.assertIsNotNone(event.mq9_value, "mq9_value should not be None for 0.0 input")

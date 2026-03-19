@@ -29,9 +29,10 @@ ALLOWED_HOSTS = env_list("ALLOWED_HOSTS", ["127.0.0.1", "localhost", "testserver
 
 # Test environment additional hosts
 import sys
-if 'test' in sys.argv or 'shell' in sys.argv:
+if 'test' in sys.argv or 'pytest' in sys.modules:
     if 'testserver' not in ALLOWED_HOSTS:
         ALLOWED_HOSTS.append('testserver')
+    TESTING = True
 
 # Database
 DB_ENGINE = os.getenv("DB_ENGINE", "django.db.backends.sqlite3")

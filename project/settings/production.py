@@ -43,9 +43,10 @@ SESSION_COOKIE_SECURE = True
 CSRF_COOKIE_SECURE = True
 SECURE_BROWSER_XSS_FILTER = True
 SECURE_CONTENT_TYPE_NOSNIFF = True
-SECURE_HSTS_SECONDS = 31536000  # 1 year
-SECURE_HSTS_INCLUDE_SUBDOMAINS = True
-SECURE_HSTS_PRELOAD = True
+# HSTS is set by Nginx to avoid duplicate headers
+# SECURE_HSTS_SECONDS = 31536000
+# SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+# SECURE_HSTS_PRELOAD = True
 X_FRAME_OPTIONS = "DENY"
 
 # Production logging
@@ -132,7 +133,37 @@ IOT_ENCRYPTION_KEY = os.getenv("IOT_ENCRYPTION_KEY", "")
 # Webhook secret
 COINEY_WEBHOOK_SECRET = os.getenv("COINEY_WEBHOOK_SECRET", "")
 
-# Log production settings loaded
+# ── Startup validation ──
+# Fail fast if critical secrets are missing
 import logging
 logger = logging.getLogger(__name__)
+
+_REQUIRED_SECRETS = [
+    "SECRET_KEY",
+    "LINE_CHANNEL_ID",
+    "LINE_CHANNEL_SECRET",
+    "LINE_USER_ID_ENCRYPTION_KEY",
+    "LINE_USER_ID_HASH_PEPPER",
+]
+_missing = [k for k in _REQUIRED_SECRETS if not os.getenv(k)]
+if _missing:
+    logger.critical("Missing required env vars: %s", ", ".join(_missing))
+    raise RuntimeError(
+        f"Production startup aborted — missing env vars: {', '.join(_missing)}"
+    )
+
+_WARN_SECRETS = [
+    "PAYMENT_API_KEY",
+    "COINEY_WEBHOOK_SECRET",
+    "GEMINI_API_KEY",
+    "IOT_ENCRYPTION_KEY",
+]
+_warn_missing = [k for k in _WARN_SECRETS if not os.getenv(k)]
+if _warn_missing:
+    logger.warning("Optional env vars not set (features may be limited): %s", ", ".join(_warn_missing))
+
+# Ensure rate limiter bypass is never active in production
+if os.getenv("TESTING"):
+    raise RuntimeError("TESTING env var must never be set in production")
+
 logger.info("Production settings loaded (DEBUG=%s)", DEBUG)

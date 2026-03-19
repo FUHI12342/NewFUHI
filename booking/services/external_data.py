@@ -61,7 +61,7 @@ def get_weather_forecast(lat=None, lng=None, days=7):
     Returns:
         dict with forecast data
 
-    TODO: OpenWeatherMap API実装
+    NOTE: OpenWeatherMap API未実装（モックデータ返却中）
         - API Key: settings.OPENWEATHERMAP_API_KEY
         - Endpoint: https://api.openweathermap.org/data/2.5/forecast
         - パラメータ: lat, lon, cnt, appid, units=metric, lang=ja
@@ -125,7 +125,7 @@ def get_google_reviews(place_id=None):
     Returns:
         dict with review data
 
-    TODO: Google Business Profile API実装
+    NOTE: Google Business Profile API未実装（モックデータ返却中）
         - API Key: settings.GOOGLE_BUSINESS_API_KEY
         - Endpoint: https://mybusiness.googleapis.com/v4/accounts/{account_id}/locations/{location_id}/reviews
         - OAuth 2.0認証が必要

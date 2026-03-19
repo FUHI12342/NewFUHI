@@ -2,6 +2,8 @@
 import logging
 from collections import defaultdict
 
+from django.db import transaction
+
 from booking.models import ShiftVacancy
 
 logger = logging.getLogger(__name__)
@@ -61,6 +63,7 @@ def count_coverage_hours(coverage_map, req_map, date, staff_type, start_h, end_h
     return needed_hours
 
 
+@transaction.atomic
 def generate_vacancies(period, store, req_map, coverage_map, open_h, close_h):
     """カバレッジ不足の時間帯を ShiftVacancy として保存（連続時間をマージ）
 

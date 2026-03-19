@@ -705,9 +705,11 @@ class TestShiftVacancyAPIView(TestCase):
         self._create_vacancy(datetime.date(2026, 1, 5))
         resp = self.client.get(self.vacancy_url)
         self.assertEqual(resp.status_code, 200)
-        data = json.loads(resp.content)
+        body = json.loads(resp.content)
+        data = body['results']
         self.assertEqual(len(data), 1)
         self.assertEqual(data[0]['status'], 'open')
+        self.assertEqual(body['total'], 1)
 
     def test_get_filters_by_period_id(self):
         """period_id フィルターが機能する"""
@@ -727,7 +729,7 @@ class TestShiftVacancyAPIView(TestCase):
 
         resp = self.client.get(self.vacancy_url, {'period_id': self.period.id})
         self.assertEqual(resp.status_code, 200)
-        data = json.loads(resp.content)
+        data = json.loads(resp.content)['results']
         self.assertEqual(len(data), 1)
         self.assertEqual(data[0]['period_id'], self.period.id)
 
@@ -738,7 +740,7 @@ class TestShiftVacancyAPIView(TestCase):
 
         resp = self.client.get(self.vacancy_url, {'staff_type': 'fortune_teller'})
         self.assertEqual(resp.status_code, 200)
-        data = json.loads(resp.content)
+        data = json.loads(resp.content)['results']
         self.assertTrue(all(v['staff_type'] == 'fortune_teller' for v in data))
 
     def test_shortage_property_in_response(self):
@@ -746,7 +748,7 @@ class TestShiftVacancyAPIView(TestCase):
         self._create_vacancy(datetime.date(2026, 1, 5), required=3, assigned=1)
         resp = self.client.get(self.vacancy_url)
         self.assertEqual(resp.status_code, 200)
-        data = json.loads(resp.content)
+        data = json.loads(resp.content)['results']
         self.assertEqual(data[0]['shortage'], 2)
 
 
@@ -1058,7 +1060,7 @@ class TestShiftSwapRequestAPIView(TestCase):
         self.assertEqual(resp.status_code, 400)
 
     def test_get_swap_requests_returns_list(self):
-        """GET で申請一覧が返される"""
+        """GET で申請一覧が返される（マネージャーは全件閲覧可）"""
         ShiftSwapRequest.objects.create(
             assignment=self.assignment,
             request_type='absence',
@@ -1068,8 +1070,9 @@ class TestShiftSwapRequestAPIView(TestCase):
         self.client.force_login(self.manager_user)
         resp = self.client.get(self.create_url)
         self.assertEqual(resp.status_code, 200)
-        data = json.loads(resp.content)
-        self.assertEqual(len(data), 1)
+        body = json.loads(resp.content)
+        self.assertEqual(body['total'], 1)
+        self.assertEqual(len(body['results']), 1)
 
 
 # ===========================================================================

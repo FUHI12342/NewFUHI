@@ -157,6 +157,9 @@ class TestSensorDashboardAPI(TestCase):
     def setUp(self):
         self.store = _create_store()
         self.device = _create_device(self.store)
+        from django.contrib.auth.models import User
+        self.user = User.objects.create_user(username='dashtest', password='testpass123')
+        self.client.login(username='dashtest', password='testpass123')
 
     def test_sensor_dashboard_api(self):
         """GET /api/iot/sensors/data/ returns time-series sensor data."""

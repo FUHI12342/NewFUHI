@@ -2,7 +2,7 @@
 import time
 import pytest
 from unittest.mock import MagicMock, patch
-from django.test import RequestFactory
+from django.test import RequestFactory, override_settings
 from django.contrib.auth.models import User, AnonymousUser
 from django.http import HttpResponse
 
@@ -119,6 +119,7 @@ class TestSecurityAuditMiddleware:
         assert log is not None
 
     @pytest.mark.django_db
+    @override_settings(TESTING=False)
     def test_rate_limit_suspicious_request(self, rf):
         """Logs suspicious_request when >100 requests from same IP in 60s."""
         def get_response(request):
@@ -139,12 +140,12 @@ class TestSecurityAuditMiddleware:
 
     @pytest.mark.django_db
     def test_get_client_ip_x_forwarded_for(self, rf, middleware):
-        """_get_client_ip reads X-Forwarded-For header."""
+        """_get_client_ip reads rightmost (Nginx-appended) IP from X-Forwarded-For."""
         request = rf.get('/')
         request.META['HTTP_X_FORWARDED_FOR'] = '203.0.113.50, 70.41.3.18'
         request.META['REMOTE_ADDR'] = '127.0.0.1'
         ip = middleware._get_client_ip(request)
-        assert ip == '203.0.113.50'
+        assert ip == '70.41.3.18'
 
     @pytest.mark.django_db
     def test_get_client_ip_remote_addr_fallback(self, rf, middleware):

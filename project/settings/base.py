@@ -16,6 +16,8 @@ def env_required(key: str) -> str:
     val = os.getenv(key)
     if val is None or str(val).strip() == "":
         raise RuntimeError(f"Missing required env var: {key}")
+    if val.startswith("CHANGE_ME"):
+        raise RuntimeError(f"Env var {key} still has placeholder value — set a real value")
     return val
 
 def env_bool(key: str, default: bool = False) -> bool:
@@ -272,10 +274,10 @@ SECURE_REFERRER_POLICY = "strict-origin-when-cross-origin"
 # Argon2/BCrypt preferred when libraries are installed.
 # PBKDF2 is always available as fallback.
 PASSWORD_HASHERS = [
-    "django.contrib.auth.hashers.PBKDF2PasswordHasher",
-    "django.contrib.auth.hashers.PBKDF2SHA1PasswordHasher",
     "django.contrib.auth.hashers.Argon2PasswordHasher",
     "django.contrib.auth.hashers.BCryptSHA256PasswordHasher",
+    "django.contrib.auth.hashers.PBKDF2PasswordHasher",
+    "django.contrib.auth.hashers.PBKDF2SHA1PasswordHasher",
 ]
 
 JAZZMIN_UI_TWEAKS = {
@@ -299,7 +301,7 @@ JAZZMIN_UI_TWEAKS = {
     "sidebar_nav_legacy_style": False,
     "sidebar_nav_flat_style": False,
     "theme": "default",
-    "dark_mode_theme": None,
+    "default_theme_mode": "auto",
     "button_classes": {
         "primary": "btn-outline-primary",
         "secondary": "btn-outline-secondary",

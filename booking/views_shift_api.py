@@ -1,6 +1,7 @@
 """シフト管理 API View"""
 import json
 import logging
+import re
 from datetime import date, datetime
 
 from django.db import transaction
@@ -14,12 +15,51 @@ from django.template.loader import render_to_string
 
 from booking.models import (
     Store, Staff, ShiftPeriod, ShiftRequest, ShiftAssignment,
-    ShiftTemplate, ShiftPublishHistory, ShiftChangeLog, StoreClosedDate,
-    ShiftVacancy, ShiftSwapRequest,
+    ShiftTemplate, ShiftPublishHistory, ShiftChangeLog,
 )
-from booking.views_shift_manager import _get_user_store, _render_week_grid, _render_calendar_section
+from booking.views_shift_manager import _get_user_store, _render_calendar_section
 
 logger = logging.getLogger(__name__)
+
+
+_COLOR_RE = re.compile(r'^#[0-9A-Fa-f]{6}$')
+
+
+_TIME_RE = re.compile(r'^\d{1,2}:\d{2}(:\d{2})?$')
+_MAX_NOTE_LENGTH = 500
+
+
+def _validate_color(color):
+    """色コードのバリデーション（XSS防止）。不正ならNone、正常なら値を返す。"""
+    if color and _COLOR_RE.match(color):
+        return color
+    return None
+
+
+def _validate_hour_range(data):
+    """start_hour/end_hour のレンジバリデーション。エラーがあれば JsonResponse を返す。"""
+    try:
+        start_h = int(data.get('start_hour', 9))
+        end_h = int(data.get('end_hour', 17))
+    except (ValueError, TypeError):
+        return None, None, JsonResponse({'error': 'Invalid hour value'}, status=400)
+    if not (0 <= start_h <= 23 and 0 <= end_h <= 24 and start_h < end_h):
+        return None, None, JsonResponse({'error': 'Invalid hour range (0-24, start < end)'}, status=400)
+    return start_h, end_h, None
+
+
+def _validate_time_str(val):
+    """HH:MM 形式の文字列バリデーション。不正ならNone。"""
+    if val and _TIME_RE.match(str(val)):
+        return str(val)
+    return None
+
+
+def _truncate_note(note):
+    """noteフィールドの長さを制限。"""
+    if note and len(str(note)) > _MAX_NOTE_LENGTH:
+        return str(note)[:_MAX_NOTE_LENGTH]
+    return str(note) if note else ''
 
 
 def _parse_body(request):
@@ -104,12 +144,14 @@ class ShiftAssignmentAPIView(View):
         period_id = data.get('period_id')
         staff_id = data.get('staff_id')
         date_str = data.get('date')
-        start_hour = data.get('start_hour', 9)
-        end_hour = data.get('end_hour', 17)
         template_id = data.get('template_id')
 
         if not all([period_id, staff_id, date_str]):
             return JsonResponse({'error': 'Missing required fields'}, status=400)
+
+        start_h, end_h, err = _validate_hour_range(data)
+        if err:
+            return err
 
         period = get_object_or_404(ShiftPeriod, pk=period_id, store=store)
         staff = get_object_or_404(Staff, pk=staff_id, store=store)
@@ -118,8 +160,8 @@ class ShiftAssignmentAPIView(View):
             'period': period,
             'staff': staff,
             'date': date_str,
-            'start_hour': int(start_hour),
-            'end_hour': int(end_hour),
+            'start_hour': start_h,
+            'end_hour': end_h,
         }
 
         if template_id:
@@ -127,13 +169,19 @@ class ShiftAssignmentAPIView(View):
             _apply_template_to_kwargs(kwargs, template)
 
         if data.get('start_time'):
-            kwargs['start_time'] = data['start_time']
+            validated_time = _validate_time_str(data['start_time'])
+            if validated_time:
+                kwargs['start_time'] = validated_time
         if data.get('end_time'):
-            kwargs['end_time'] = data['end_time']
+            validated_time = _validate_time_str(data['end_time'])
+            if validated_time:
+                kwargs['end_time'] = validated_time
         if data.get('color'):
-            kwargs['color'] = data['color']
+            validated_color = _validate_color(data['color'])
+            if validated_color:
+                kwargs['color'] = validated_color
         if data.get('note'):
-            kwargs['note'] = data['note']
+            kwargs['note'] = _truncate_note(data['note'])
 
         assignment = ShiftAssignment.objects.create(**kwargs)
 
@@ -175,9 +223,13 @@ class ShiftAssignmentAPIView(View):
                 new_data['start_hour'] = template.start_time.hour
                 new_data['end_hour'] = template.end_time.hour
             else:
-                for field in ['start_hour', 'end_hour', 'color', 'note', 'start_time', 'end_time']:
+                for field in ['start_hour', 'end_hour', 'note', 'start_time', 'end_time']:
                     if field in data:
                         new_data[field] = data[field]
+                if 'color' in data:
+                    validated_color = _validate_color(data['color'])
+                    if validated_color:
+                        new_data['color'] = validated_color
 
             revised_by = None
             try:
@@ -201,13 +253,30 @@ class ShiftAssignmentAPIView(View):
                 logger.warning("Failed to send shift revision notification: %s", e)
         else:
             # 通常の更新（変更ログなし）
-            for field in ['start_hour', 'end_hour', 'color', 'note']:
-                if field in data:
-                    setattr(assignment, field, data[field])
+            if 'start_hour' in data or 'end_hour' in data:
+                merged = {
+                    'start_hour': data.get('start_hour', assignment.start_hour),
+                    'end_hour': data.get('end_hour', assignment.end_hour),
+                }
+                s_h, e_h, err = _validate_hour_range(merged)
+                if err:
+                    return err
+                assignment.start_hour = s_h
+                assignment.end_hour = e_h
+            if 'note' in data:
+                assignment.note = _truncate_note(data['note'])
+            if 'color' in data:
+                validated_color = _validate_color(data['color'])
+                if validated_color:
+                    assignment.color = validated_color
             if 'start_time' in data:
-                assignment.start_time = data['start_time']
+                validated_time = _validate_time_str(data['start_time'])
+                if validated_time:
+                    assignment.start_time = validated_time
             if 'end_time' in data:
-                assignment.end_time = data['end_time']
+                validated_time = _validate_time_str(data['end_time'])
+                if validated_time:
+                    assignment.end_time = validated_time
             if 'template_id' in data:
                 template = get_object_or_404(ShiftTemplate, pk=data['template_id'], store=store)
                 assignment.start_time = template.start_time
@@ -326,12 +395,13 @@ class ShiftTemplateAPIView(View):
         except json.JSONDecodeError:
             return JsonResponse({'error': 'Invalid JSON'}, status=400)
 
+        color = _validate_color(data.get('color', '')) or '#3B82F6'
         template = ShiftTemplate.objects.create(
             store=store,
             name=data.get('name', ''),
             start_time=data.get('start_time', '09:00'),
             end_time=data.get('end_time', '17:00'),
-            color=data.get('color', '#3B82F6'),
+            color=color,
         )
         return JsonResponse({'id': template.id, 'name': template.name}, status=201)
 
@@ -350,9 +420,13 @@ class ShiftTemplateAPIView(View):
         except json.JSONDecodeError:
             return JsonResponse({'error': 'Invalid JSON'}, status=400)
 
-        for f in ['name', 'start_time', 'end_time', 'color']:
+        for f in ['name', 'start_time', 'end_time']:
             if f in data:
                 setattr(template, f, data[f])
+        if 'color' in data:
+            validated_color = _validate_color(data['color'])
+            if validated_color:
+                template.color = validated_color
         template.save()
         return JsonResponse({'id': template.id, 'name': template.name})
 
@@ -448,6 +522,12 @@ class ShiftAutoScheduleAPIView(View):
                 return HttpResponse('<p style="color:#EF4444;padding:16px;">シフト期間が見つかりません</p>')
             return JsonResponse({'error': 'No shift period found'}, status=404)
 
+        if period.status == 'approved':
+            return JsonResponse(
+                {'error': '承認済みの期間は自動スケジューリングできません。先に取消してください。'},
+                status=400,
+            )
+
         from booking.services.shift_scheduler import auto_schedule
         count = auto_schedule(period)
 
@@ -476,7 +556,7 @@ class ShiftPublishAPIView(View):
         data = _parse_body(request)
 
         period_id = data.get('period_id')
-        note = data.get('note', '')
+        note = _truncate_note(data.get('note', ''))
 
         if period_id:
             period = get_object_or_404(ShiftPeriod, pk=period_id, store=store)
@@ -524,544 +604,18 @@ class ShiftPublishAPIView(View):
         })
 
 
-@method_decorator(staff_member_required, name='dispatch')
-class ShiftPeriodAPIView(View):
-    """シフト期間 作成・ステータス変更API"""
-
-    def post(self, request):
-        """新規シフト期間を作成し、募集を開始"""
-        store, err = _require_store(request)
-        if err:
-            return err
-
-        try:
-            data = json.loads(request.body)
-        except json.JSONDecodeError:
-            return JsonResponse({'error': 'Invalid JSON'}, status=400)
-
-        year_month = data.get('year_month')
-        deadline = data.get('deadline')
-
-        if not year_month:
-            return JsonResponse({'error': 'year_month is required'}, status=400)
-
-        existing = ShiftPeriod.objects.filter(store=store, year_month=year_month).first()
-        if existing:
-            return JsonResponse({'error': f'{year_month} の期間は既に存在します', 'period_id': existing.id}, status=409)
-
-        created_by = None
-        try:
-            created_by = request.user.staff
-        except (Staff.DoesNotExist, AttributeError):
-            pass
-
-        period = ShiftPeriod.objects.create(
-            store=store,
-            year_month=year_month,
-            deadline=deadline or None,
-            status='open',
-            created_by=created_by,
-        )
-
-        try:
-            from booking.services.shift_notifications import notify_shift_period_open
-            notify_shift_period_open(period)
-        except Exception as e:
-            logger.warning("Failed to send period open notification: %s", e)
-
-        if request.headers.get('HX-Request'):
-            html = render_to_string(
-                'admin/booking/partials/period_created_alert.html',
-                {'period': period}, request=request,
-            )
-            return HttpResponse(html, headers={'HX-Trigger': 'periodCreated'})
-        return JsonResponse({'id': period.id, 'status': period.status}, status=201)
-
-    def put(self, request, pk=None):
-        """シフト期間のステータスを更新"""
-        store, err = _require_store(request)
-        if err:
-            return err
-
-        period = get_object_or_404(ShiftPeriod, pk=pk, store=store)
-
-        try:
-            data = json.loads(request.body)
-        except json.JSONDecodeError:
-            return JsonResponse({'error': 'Invalid JSON'}, status=400)
-
-        new_status = data.get('status')
-        valid_transitions = {
-            'open': ['closed'],
-            'closed': ['open', 'scheduled'],
-            'scheduled': ['open', 'approved'],
-            'approved': ['scheduled'],
-        }
-        if new_status not in valid_transitions.get(period.status, []):
-            return JsonResponse({
-                'error': f'{period.get_status_display()} → {new_status} への遷移は無効です',
-            }, status=400)
-
-        period.status = new_status
-        if data.get('deadline'):
-            period.deadline = data['deadline']
-        period.save()
-
-        return JsonResponse({'id': period.id, 'status': period.status})
-
-
-@method_decorator(staff_member_required, name='dispatch')
-class ShiftRevokeAPIView(View):
-    """シフトの撤回（approved → scheduled, scheduled → open）"""
-
-    def post(self, request):
-        store, err = _require_store(request)
-        if err:
-            return err
-
-        data = _parse_body(request)
-
-        period_id = data.get('period_id')
-        reason = data.get('reason', '')
-
-        if not period_id:
-            return JsonResponse({'error': 'period_id is required'}, status=400)
-
-        period = get_object_or_404(ShiftPeriod, pk=period_id, store=store)
-
-        if period.status not in ('approved', 'scheduled'):
-            return JsonResponse({
-                'error': '撤回は公開済み(approved)またはスケジュール済み(scheduled)状態でのみ可能です',
-            }, status=400)
-
-        revoked_by = None
-        try:
-            revoked_by = request.user.staff
-        except (Staff.DoesNotExist, AttributeError):
-            pass
-
-        if period.status == 'approved':
-            from booking.services.shift_scheduler import revoke_published_shifts
-            cancelled = revoke_published_shifts(
-                period, reason=reason, revoked_by=revoked_by,
-            )
-            try:
-                from booking.services.shift_notifications import notify_shift_revoked
-                notify_shift_revoked(period, reason=reason)
-            except Exception as e:
-                logger.warning("Failed to send revoke notification: %s", e)
-        else:
-            # scheduled → open: アサインメント削除してopen に戻す
-            from booking.services.shift_scheduler import revert_scheduled
-            cancelled = revert_scheduled(
-                period, reason=reason, reverted_by=revoked_by,
-            )
-
-        if request.headers.get('HX-Request'):
-            return HttpResponse(
-                '', headers={'HX-Redirect': f'/admin/shift/calendar/?period_id={period.id}'},
-            )
-        return JsonResponse({
-            'cancelled': cancelled,
-            'period_id': period.id,
-            'status': period.status,
-        })
-
-
-@method_decorator(staff_member_required, name='dispatch')
-class ShiftReopenAPIView(View):
-    """スケジュール済みシフトの再募集（アサインメント保持のままopenに戻す）"""
-
-    def post(self, request):
-        store, err = _require_store(request)
-        if err:
-            return err
-
-        data = _parse_body(request)
-        period_id = data.get('period_id')
-        reason = data.get('reason', '')
-
-        if not period_id:
-            return JsonResponse({'error': 'period_id is required'}, status=400)
-
-        period = get_object_or_404(ShiftPeriod, pk=period_id, store=store)
-
-        if period.status != 'scheduled':
-            return JsonResponse({
-                'error': '再募集はスケジュール済み(scheduled)状態でのみ可能です',
-            }, status=400)
-
-        reopened_by = None
-        try:
-            reopened_by = request.user.staff
-        except (Staff.DoesNotExist, AttributeError):
-            pass
-
-        from booking.services.shift_scheduler import reopen_for_recruitment
-        kept = reopen_for_recruitment(
-            period, reason=reason, reopened_by=reopened_by,
-        )
-
-        if request.headers.get('HX-Request'):
-            return HttpResponse(
-                '', headers={'HX-Redirect': f'/admin/shift/calendar/?period_id={period.id}'},
-            )
-        return JsonResponse({
-            'kept_assignments': kept,
-            'period_id': period.id,
-            'status': period.status,
-        })
-
-
-@method_decorator(staff_member_required, name='dispatch')
-class StoreClosedDateAPIView(View):
-    """休業日トグルAPI: GET で月別一覧、POST で追加/削除トグル"""
-
-    def get(self, request):
-        store = _get_user_store(request)
-        if not store:
-            return JsonResponse([], safe=False)
-
-        year = request.GET.get('year', str(date.today().year))
-        month = request.GET.get('month', str(date.today().month))
-        try:
-            y, m = int(year), int(month)
-        except (ValueError, TypeError):
-            return JsonResponse({'error': 'Invalid year/month'}, status=400)
-
-        from calendar import monthrange
-        start = date(y, m, 1)
-        end = date(y, m, monthrange(y, m)[1])
-
-        closed = StoreClosedDate.objects.filter(
-            store=store, date__gte=start, date__lte=end,
-        ).order_by('date')
-
-        data = [
-            {'id': c.id, 'date': c.date.isoformat(), 'reason': c.reason}
-            for c in closed
-        ]
-        return JsonResponse(data, safe=False)
-
-    def post(self, request):
-        store, err = _require_store(request)
-        if err:
-            return err
-
-        try:
-            data = json.loads(request.body)
-        except json.JSONDecodeError:
-            return JsonResponse({'error': 'Invalid JSON'}, status=400)
-
-        date_str = data.get('date')
-        if not date_str:
-            return JsonResponse({'error': 'date is required'}, status=400)
-
-        try:
-            target_date = datetime.strptime(date_str, '%Y-%m-%d').date()
-        except ValueError:
-            return JsonResponse({'error': 'Invalid date format'}, status=400)
-
-        reason = data.get('reason', '')
-
-        existing = StoreClosedDate.objects.filter(store=store, date=target_date).first()
-        if existing:
-            existing.delete()
-            return JsonResponse({'action': 'removed', 'date': date_str})
-
-        StoreClosedDate.objects.create(store=store, date=target_date, reason=reason)
-        return JsonResponse({'action': 'added', 'date': date_str}, status=201)
-
 
 # ==============================
-# 不足枠 (Vacancy) API
+# Re-exports from split modules
 # ==============================
-
-@method_decorator(staff_member_required, name='dispatch')
-class ShiftVacancyAPIView(View):
-    """不足枠一覧（管理者・スタッフ共通）"""
-
-    def get(self, request):
-        store = _get_user_store(request)
-        if not store:
-            return JsonResponse([], safe=False)
-
-        qs = ShiftVacancy.objects.filter(store=store, status='open')
-
-        period_id = request.GET.get('period_id')
-        if period_id:
-            qs = qs.filter(period_id=period_id)
-
-        staff_type = request.GET.get('staff_type')
-        if staff_type:
-            qs = qs.filter(staff_type=staff_type)
-
-        data = [{
-            'id': v.id,
-            'period_id': v.period_id,
-            'date': v.date.isoformat(),
-            'start_hour': v.start_hour,
-            'end_hour': v.end_hour,
-            'staff_type': v.staff_type,
-            'required_count': v.required_count,
-            'assigned_count': v.assigned_count,
-            'shortage': v.shortage,
-            'status': v.status,
-        } for v in qs.order_by('date', 'start_hour')]
-        return JsonResponse(data, safe=False)
-
-
-@method_decorator(staff_member_required, name='dispatch')
-class ShiftVacancyApplyAPIView(View):
-    """不足枠への応募（スタッフがShiftRequestを作成）"""
-
-    def post(self, request, pk):
-        try:
-            staff = request.user.staff
-        except (Staff.DoesNotExist, AttributeError):
-            return JsonResponse({'error': 'Staff not found'}, status=403)
-
-        with transaction.atomic():
-            vacancy = get_object_or_404(
-                ShiftVacancy.objects.select_for_update(), pk=pk,
-            )
-
-            if vacancy.store_id != staff.store_id:
-                return JsonResponse({'error': 'Permission denied'}, status=403)
-
-            if vacancy.status != 'open':
-                return JsonResponse({'error': 'この不足枠は既に締切済みです'}, status=400)
-
-            if staff.staff_type != vacancy.staff_type:
-                return JsonResponse({'error': 'スタッフ種別が一致しません'}, status=400)
-
-            existing = ShiftRequest.objects.filter(
-                period=vacancy.period,
-                staff=staff,
-                date=vacancy.date,
-                start_hour=vacancy.start_hour,
-            ).exists()
-            if existing:
-                return JsonResponse({'error': 'この日時は既に応募済みです'}, status=409)
-
-            shift_req = ShiftRequest.objects.create(
-                period=vacancy.period,
-                staff=staff,
-                date=vacancy.date,
-                start_hour=vacancy.start_hour,
-                end_hour=vacancy.end_hour,
-                preference='preferred',
-                note=f'不足枠応募 (vacancy #{vacancy.id})',
-            )
-
-        return JsonResponse({
-            'id': shift_req.id,
-            'date': shift_req.date.isoformat(),
-            'start_hour': shift_req.start_hour,
-            'end_hour': shift_req.end_hour,
-        }, status=201)
-
-
-# ==============================
-# 交代・欠勤申請 (SwapRequest) API
-# ==============================
-
-@method_decorator(staff_member_required, name='dispatch')
-class ShiftSwapRequestAPIView(View):
-    """交代・欠勤申請の一覧取得・作成・承認/却下"""
-
-    def get(self, request):
-        store = _get_user_store(request)
-        if not store:
-            return JsonResponse([], safe=False)
-
-        qs = ShiftSwapRequest.objects.filter(
-            assignment__period__store=store,
-        ).select_related('assignment', 'requested_by', 'cover_staff')
-
-        status_filter = request.GET.get('status')
-        if status_filter:
-            qs = qs.filter(status=status_filter)
-
-        period_id = request.GET.get('period_id')
-        if period_id:
-            qs = qs.filter(assignment__period_id=period_id)
-
-        data = [{
-            'id': sr.id,
-            'assignment_id': sr.assignment_id,
-            'assignment_date': sr.assignment.date.isoformat(),
-            'assignment_start': sr.assignment.start_hour,
-            'assignment_end': sr.assignment.end_hour,
-            'request_type': sr.request_type,
-            'requested_by': sr.requested_by.name,
-            'cover_staff': sr.cover_staff.name if sr.cover_staff else None,
-            'reason': sr.reason,
-            'status': sr.status,
-            'created_at': sr.created_at.isoformat(),
-        } for sr in qs[:50]]
-        return JsonResponse(data, safe=False)
-
-    def post(self, request):
-        """新規申請作成"""
-        try:
-            staff = request.user.staff
-        except (Staff.DoesNotExist, AttributeError):
-            return JsonResponse({'error': 'Staff not found'}, status=403)
-
-        try:
-            data = json.loads(request.body)
-        except json.JSONDecodeError:
-            return JsonResponse({'error': 'Invalid JSON'}, status=400)
-
-        assignment_id = data.get('assignment_id')
-        request_type = data.get('request_type')
-        reason = data.get('reason', '')
-        cover_staff_id = data.get('cover_staff_id')
-
-        if not assignment_id or not request_type:
-            return JsonResponse({'error': 'assignment_id and request_type are required'}, status=400)
-
-        if request_type not in ('swap', 'cover', 'absence'):
-            return JsonResponse({'error': 'Invalid request_type'}, status=400)
-
-        assignment = get_object_or_404(
-            ShiftAssignment.objects.select_related('period'),
-            pk=assignment_id,
-        )
-        if assignment.period.store_id != staff.store_id:
-            return JsonResponse({'error': 'Permission denied'}, status=403)
-        if assignment.staff_id != staff.id and not staff.is_store_manager:
-            return JsonResponse({'error': 'Permission denied'}, status=403)
-
-        cover_staff = None
-        if cover_staff_id:
-            cover_staff = get_object_or_404(Staff, pk=cover_staff_id, store=staff.store)
-
-        swap_req = ShiftSwapRequest.objects.create(
-            assignment=assignment,
-            request_type=request_type,
-            requested_by=staff,
-            cover_staff=cover_staff,
-            reason=reason,
-        )
-
-        try:
-            from booking.services.shift_notifications import notify_swap_request
-            notify_swap_request(swap_req)
-        except Exception as e:
-            logger.warning("Failed to send swap request notification: %s", e)
-
-        return JsonResponse({
-            'id': swap_req.id,
-            'status': swap_req.status,
-        }, status=201)
-
-    def put(self, request, pk=None):
-        """管理者による承認/却下"""
-        store, err = _require_store(request)
-        if err:
-            return err
-
-        try:
-            data = json.loads(request.body)
-        except json.JSONDecodeError:
-            return JsonResponse({'error': 'Invalid JSON'}, status=400)
-
-        new_status = data.get('status')
-        if new_status not in ('approved', 'rejected', 'cancelled'):
-            return JsonResponse({'error': 'Invalid status'}, status=400)
-
-        reviewer = None
-        try:
-            reviewer = request.user.staff
-        except (Staff.DoesNotExist, AttributeError):
-            pass
-
-        with transaction.atomic():
-            swap_req = get_object_or_404(
-                ShiftSwapRequest.objects.select_for_update()
-                .select_related('assignment__period__store'),
-                pk=pk,
-            )
-
-            if swap_req.assignment.period.store_id != store.id:
-                return JsonResponse({'error': 'Permission denied'}, status=403)
-
-            if swap_req.status != 'pending':
-                return JsonResponse({'error': '既に処理済みです'}, status=400)
-
-            swap_req.status = new_status
-            swap_req.reviewed_by = reviewer
-            swap_req.reviewed_at = timezone.now()
-            swap_req.save(update_fields=['status', 'reviewed_by', 'reviewed_at'])
-
-            if new_status == 'approved':
-                _process_approved_swap(swap_req)
-
-        try:
-            from booking.services.shift_notifications import notify_swap_approved
-            notify_swap_approved(swap_req)
-        except Exception as e:
-            logger.warning("Failed to send swap approval notification: %s", e)
-
-        return JsonResponse({
-            'id': swap_req.id,
-            'status': swap_req.status,
-        })
-
-
-def _process_approved_swap(swap_req):
-    """承認されたSwapRequestの後処理"""
-    assignment = swap_req.assignment
-
-    if swap_req.request_type == 'absence':
-        # 欠勤: アサインメント削除 + 不足枠生成 + カバー募集通知
-        vacancy = ShiftVacancy.objects.create(
-            period=assignment.period,
-            store=assignment.period.store,
-            date=assignment.date,
-            start_hour=assignment.start_hour,
-            end_hour=assignment.end_hour,
-            staff_type=assignment.staff.staff_type,
-            required_count=1,
-            assigned_count=0,
-            status='open',
-        )
-        assignment.delete()
-
-        try:
-            from booking.services.shift_notifications import notify_emergency_cover
-            notify_emergency_cover(vacancy)
-        except Exception as e:
-            logger.warning("Failed to send emergency cover notification: %s", e)
-
-    elif swap_req.request_type in ('swap', 'cover') and swap_req.cover_staff:
-        # 交代/カバー: 元のアサインメント削除 + 新アサインメント作成
-        new_assignment = ShiftAssignment.objects.create(
-            period=assignment.period,
-            staff=swap_req.cover_staff,
-            date=assignment.date,
-            start_hour=assignment.start_hour,
-            end_hour=assignment.end_hour,
-            start_time=assignment.start_time,
-            end_time=assignment.end_time,
-            color=assignment.color,
-            note=f'交代: {swap_req.requested_by.name} → {swap_req.cover_staff.name}',
-        )
-
-        ShiftChangeLog.objects.create(
-            assignment=new_assignment,
-            changed_by=swap_req.reviewed_by,
-            change_type='revised',
-            old_values={
-                'staff': swap_req.requested_by.name,
-                'staff_id': swap_req.requested_by.id,
-            },
-            new_values={
-                'staff': swap_req.cover_staff.name,
-                'staff_id': swap_req.cover_staff.id,
-            },
-            reason=f'{swap_req.get_request_type_display()}: {swap_req.reason}',
-        )
-        assignment.delete()
+from .views_shift_period_api import (  # noqa: F401, E402
+    ShiftPeriodAPIView,
+    ShiftRevokeAPIView,
+    ShiftReopenAPIView,
+    StoreClosedDateAPIView,
+)
+from .views_shift_vacancy_api import (  # noqa: F401, E402
+    ShiftVacancyAPIView,
+    ShiftVacancyApplyAPIView,
+    ShiftSwapRequestAPIView,
+)

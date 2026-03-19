@@ -4,6 +4,9 @@ import time
 import logging
 from collections import defaultdict
 
+from django.conf import settings
+from django.http import JsonResponse
+
 logger = logging.getLogger(__name__)
 
 
@@ -30,8 +33,10 @@ class SecurityAuditMiddleware:
     def __call__(self, request):
         ip = self._get_client_ip(request)
 
-        # レートリミットチェック（リクエスト前）
-        self._check_rate_limit(request, ip)
+        # レートリミットチェック（リクエスト前）— 超過時は429で即ブロック
+        blocked = self._check_rate_limit(request, ip)
+        if blocked:
+            return blocked
 
         response = self.get_response(request)
 
@@ -64,10 +69,13 @@ class SecurityAuditMiddleware:
     def _get_client_ip(self, request):
         x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
         if x_forwarded_for:
-            return x_forwarded_for.split(',')[0].strip()
+            # Nginx appends real client IP as the last entry
+            return x_forwarded_for.split(',')[-1].strip()
         return request.META.get('REMOTE_ADDR')
 
     def _check_rate_limit(self, request, ip):
+        if getattr(settings, 'TESTING', False):
+            return None
         now = time.time()
 
         with self._rate_lock:
@@ -89,6 +97,13 @@ class SecurityAuditMiddleware:
                 ip=ip,
                 detail=f'レートリミット超過: {ip} から60秒以内に{count}リクエスト',
             )
+            retry_after = self._RATE_WINDOW
+            return JsonResponse(
+                {'error': 'Too many requests. Please try again later.'},
+                status=429,
+                headers={'Retry-After': str(retry_after)},
+            )
+        return None
 
     def _handle_login_result(self, request, response, ip):
         if response.status_code in (200, 302):
@@ -133,11 +148,15 @@ class SecurityAuditMiddleware:
             if user and not user.is_authenticated:
                 user = None
 
+            # Truncate POST username to limit exposure if user typed password in username field
+            raw_username = getattr(user, 'username', '') if user else request.POST.get('username', '')
+            safe_username = (raw_username or '')[:100]
+
             SecurityLog.objects.create(
                 event_type=event_type,
                 severity=severity,
                 user=user,
-                username=getattr(user, 'username', '') if user else request.POST.get('username', ''),
+                username=safe_username,
                 ip_address=ip,
                 user_agent=request.META.get('HTTP_USER_AGENT', '')[:500],
                 path=request.path[:500],

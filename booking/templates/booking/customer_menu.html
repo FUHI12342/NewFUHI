@@ -1,0 +1,83 @@
+{% extends 'booking/base.html' %}
+{% load i18n %}
+{% load static %}
+
+{% block title %}{% trans "メニュー" %} - {{ store.name }}{% endblock %}
+
+{% block content %}
+<h2 class="text-2xl md:text-3xl font-bold text-salon-dark mb-6 border-b-2 border-salon-brown pb-3">
+    {{ store.name }} — {% trans "メニュー" %}
+</h2>
+
+<!-- Category Filter -->
+{% if categories %}
+<div class="flex flex-wrap gap-2 mb-6">
+    <a href="{% url 'booking:customer_menu' store_id=store.id %}"
+       class="px-3 py-1.5 rounded-full text-sm border transition bg-salon-brown text-white border-salon-brown"
+       id="tab-all">{% trans "すべて" %}</a>
+    {% for cat in categories %}
+    <a href="{% url 'booking:customer_menu' store_id=store.id %}?category={{ cat.id }}"
+       class="cat-tab px-3 py-1.5 rounded-full text-sm border transition bg-white text-gray-600 border-gray-300 hover:border-salon-brown"
+       data-cat="{{ cat.id }}">{{ cat.name }}</a>
+    {% endfor %}
+</div>
+{% endif %}
+
+<!-- Product Grid -->
+<div id="product-grid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+    {% for product in products %}
+    <div class="product-card bg-white rounded-xl shadow-sm overflow-hidden border border-gray-200"
+         data-category="{{ product.category_id }}">
+        {% if product.image_url %}
+        <img src="{{ product.image_url }}" alt="{{ product.name }}" class="w-full h-40 object-cover">
+        {% else %}
+        <div class="w-full h-40 bg-gray-100 flex items-center justify-center">
+            <svg class="w-12 h-12 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1"
+                      d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+            </svg>
+        </div>
+        {% endif %}
+        <div class="p-4">
+            <h3 class="text-base font-bold leading-tight mb-1">{{ product.name }}</h3>
+            {% if product.description %}
+            <p class="text-xs text-gray-500 mb-2 line-clamp-2">{{ product.description }}</p>
+            {% endif %}
+            <div class="flex items-center justify-between mt-2">
+                <span class="text-lg font-bold text-salon-brown">
+                    ¥{{ product.price|stringformat:",.0f" }}
+                </span>
+                {% if product.is_sold_out %}
+                <span class="text-xs text-red-500 font-bold">{% trans "売切れ" %}</span>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    {% empty %}
+    <div class="col-span-full text-center py-12 text-gray-400">
+        <p class="text-lg">{% trans "メニューはまだ登録されていません。" %}</p>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+(function() {
+    var params = new URLSearchParams(window.location.search);
+    var catId = params.get('category');
+    if (catId) {
+        document.getElementById('tab-all').className =
+            'px-3 py-1.5 rounded-full text-sm border transition bg-white text-gray-600 border-gray-300 hover:border-salon-brown';
+        document.querySelectorAll('.cat-tab').forEach(function(tab) {
+            if (tab.dataset.cat === catId) {
+                tab.className = 'cat-tab px-3 py-1.5 rounded-full text-sm border transition bg-salon-brown text-white border-salon-brown';
+            }
+        });
+        document.querySelectorAll('.product-card').forEach(function(card) {
+            card.style.display = (card.dataset.category === catId) ? '' : 'none';
+        });
+    }
+})();
+</script>
+{% endblock %}

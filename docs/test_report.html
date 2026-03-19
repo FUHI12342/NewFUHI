@@ -1,0 +1,734 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>テスト報告書</title>
+<style>
+
+@page {
+  size: A4;
+  margin: 20mm 15mm 25mm 15mm;
+  @top-center { content: "NewFUHI テスト報告書"; font-size: 9pt; color: #666; }
+  @bottom-center { content: "— " counter(page) " —"; font-size: 9pt; color: #666; }
+}
+* { box-sizing: border-box; }
+body {
+  font-family: "Hiragino Kaku Gothic ProN","Noto Sans JP","Noto Sans CJK JP",sans-serif;
+  font-size: 10pt; line-height: 1.7; color: #222;
+  max-width: 100%; margin: 0; padding: 0;
+}
+h1 {
+  font-size: 22pt; color: #1a3a5c;
+  border-bottom: 3px solid #1a3a5c;
+  padding-bottom: 8px;
+  page-break-before: always; margin-top: 0;
+}
+h1:first-of-type { page-break-before: avoid; }
+h2 {
+  font-size: 14pt; color: #2c5282;
+  border-bottom: 1.5px solid #bee3f8;
+  padding-bottom: 4px; margin-top: 24px;
+}
+h3 { font-size: 11pt; color: #2b6cb0; margin-top: 18px; }
+table { width: 100%; border-collapse: collapse; margin: 10px 0 16px 0; font-size: 9pt; }
+th, td { border: 1px solid #cbd5e0; padding: 5px 8px; text-align: left; word-break: break-all; }
+th { background: #ebf4ff; font-weight: bold; color: #2c5282; }
+tr:nth-child(even) { background: #f7fafc; }
+code { background: #edf2f7; padding: 1px 4px; border-radius: 3px; font-size: 8.5pt; font-family: "SF Mono","Menlo",monospace; }
+pre { background: #1a202c; color: #e2e8f0; padding: 12px; border-radius: 6px; font-size: 8pt; line-height: 1.5; overflow-x: auto; white-space: pre-wrap; word-break: break-all; }
+pre code { background: none; color: inherit; padding: 0; }
+.cover { text-align: center; padding: 120px 0 60px 0; page-break-after: always; }
+.cover h1 { font-size: 32pt; border: none; page-break-before: avoid; }
+.cover .subtitle { font-size: 14pt; color: #4a5568; margin-top: 16px; }
+.cover .date { font-size: 11pt; color: #718096; margin-top: 40px; }
+.cover .confidential { font-size: 10pt; color: #a0aec0; margin-top: 60px; }
+.toc { page-break-after: always; }
+.toc h1 { page-break-before: avoid; }
+.toc ol { font-size: 11pt; line-height: 2.2; }
+.note { background: #fffbeb; border-left: 4px solid #f6ad55; padding: 10px 14px; margin: 10px 0; font-size: 9pt; }
+.info { background: #ebf8ff; border-left: 4px solid #63b3ed; padding: 10px 14px; margin: 10px 0; font-size: 9pt; }
+.badge { display: inline-block; padding: 1px 6px; border-radius: 3px; font-size: 8pt; font-weight: bold; color: #fff; }
+.badge-pass { background: #38a169; }
+.badge-fail { background: #e53e3e; }
+.badge-skip { background: #d69e2e; }
+.badge-new { background: #3182ce; }
+blockquote { border-left: 4px solid #cbd5e0; margin: 10px 0; padding: 8px 14px; color: #4a5568; background: #f7fafc; }
+
+</style>
+</head>
+<body>
+
+<div class="cover">
+  <h1>NewFUHI</h1>
+  <h1 style="font-size:26pt;">テスト報告書</h1>
+  <div class="subtitle">自動テスト・カバレッジ・セキュリティレビュー結果</div>
+  <div class="date">Version 1.1 — 2026年03月19日</div>
+  <div class="confidential">Confidential — 社内技術資料</div>
+</div>
+
+<h1 id="newfuhi">NewFUHI テスト結果レポート</h1>
+<p><strong>最終実行日:</strong> 2026-03-19<br />
+<strong>Djangoバージョン:</strong> Django Booking Platform (NewFUHI)<br />
+<strong>テスト環境:</strong> macOS Darwin 25.3.0 / Python 3.9 / Django 4.x</p>
+<hr />
+<h2 id="1">1. テスト実行概要</h2>
+<table>
+<thead>
+<tr>
+<th>項目</th>
+<th>結果</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>総テスト数</td>
+<td>197 (tests/ 129 + booking/tests/ 68)</td>
+</tr>
+<tr>
+<td>成功 (passed)</td>
+<td>185</td>
+</tr>
+<tr>
+<td>エラー (errors)</td>
+<td>12 (Pico/IoTデバイス関連 — <code>pico_device</code>モジュール不在)</td>
+</tr>
+<tr>
+<td>失敗 (failed)</td>
+<td>0</td>
+</tr>
+<tr>
+<td>実行時間</td>
+<td>約15秒</td>
+</tr>
+<tr>
+<td>テストファイル数</td>
+<td>50+ ファイル</td>
+</tr>
+<tr>
+<td>シフト改善テスト</td>
+<td><strong>68テスト (全パス)</strong> — <code>booking/tests/test_shift_coverage.py</code></td>
+</tr>
+</tbody>
+</table>
+<h3 id="12-picoiot">エラーテスト内訳（12件 — 全てPico/IoTデバイス関連）</h3>
+<table>
+<thead>
+<tr>
+<th>テストファイル</th>
+<th>エラー理由</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>test_config_manager</td>
+<td><code>pico_device</code> モジュール不在</td>
+</tr>
+<tr>
+<td>test_config_sources</td>
+<td>同上</td>
+</tr>
+<tr>
+<td>test_property_config_persistence</td>
+<td>同上</td>
+</tr>
+<tr>
+<td>test_property_config_priority</td>
+<td>同上</td>
+</tr>
+<tr>
+<td>test_property_dummy_detection</td>
+<td>同上</td>
+</tr>
+<tr>
+<td>test_property_file_operations</td>
+<td>同上</td>
+</tr>
+<tr>
+<td>test_property_logging</td>
+<td>同上</td>
+</tr>
+<tr>
+<td>test_property_macos_filtering</td>
+<td>同上</td>
+</tr>
+<tr>
+<td>test_property_setup_activation</td>
+<td>同上</td>
+</tr>
+<tr>
+<td>test_property_wifi_server_isolation</td>
+<td>同上</td>
+</tr>
+<tr>
+<td>test_setup_ap</td>
+<td>同上</td>
+</tr>
+<tr>
+<td>test_wifi_manager</td>
+<td>同上</td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p>これらは Raspberry Pi Pico 向けデバイスコードのテストであり、macOS環境では実行不可。本番デプロイやシフト機能には影響なし。</p>
+</blockquote>
+<hr />
+<h2 id="2-v11-68">2. シフト改善テスト詳細（v1.1 新規 — 68テスト）</h2>
+<h3 id="21">2.1 テストクラス一覧</h3>
+<table>
+<thead>
+<tr>
+<th>#</th>
+<th>テストクラス</th>
+<th>テスト数</th>
+<th>対象</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>TestBuildCoverageMap</td>
+<td>3</td>
+<td>カバレッジマップ構築</td>
+</tr>
+<tr>
+<td>2</td>
+<td>TestRecordAssignment</td>
+<td>4</td>
+<td>アサイン記録</td>
+</tr>
+<tr>
+<td>3</td>
+<td>TestCheckCoverageNeed</td>
+<td>6</td>
+<td>カバレッジ判定ロジック</td>
+</tr>
+<tr>
+<td>4</td>
+<td>TestCountCoverageHours</td>
+<td>4</td>
+<td>不足時間カウント</td>
+</tr>
+<tr>
+<td>5</td>
+<td>TestGenerateVacancies</td>
+<td>8</td>
+<td>不足枠自動生成</td>
+</tr>
+<tr>
+<td>6</td>
+<td>TestAutoScheduleBusinessHoursClipping</td>
+<td>3</td>
+<td>営業時間クリップ</td>
+</tr>
+<tr>
+<td>7</td>
+<td>TestAutoScheduleMinShiftHours</td>
+<td>2</td>
+<td>最低勤務時間チェック</td>
+</tr>
+<tr>
+<td>8</td>
+<td>TestAutoScheduleCoverage</td>
+<td>7</td>
+<td>カバレッジベース自動配置</td>
+</tr>
+<tr>
+<td>9</td>
+<td>TestShiftVacancyAPIView</td>
+<td>4</td>
+<td>不足枠API (GET)</td>
+</tr>
+<tr>
+<td>10</td>
+<td>TestShiftVacancyApplyAPIView</td>
+<td>5</td>
+<td>不足枠応募API (POST)</td>
+</tr>
+<tr>
+<td>11</td>
+<td>TestShiftSwapRequestAPIView</td>
+<td>7</td>
+<td>交代・欠勤申請API</td>
+</tr>
+<tr>
+<td>12</td>
+<td>TestStaffShiftRequestMinHoursValidation</td>
+<td>6</td>
+<td>最低勤務時間バリデーション</td>
+</tr>
+<tr>
+<td>13</td>
+<td>TestEdgeCases</td>
+<td>7</td>
+<td>エッジケース</td>
+</tr>
+<tr>
+<td></td>
+<td><strong>合計</strong></td>
+<td><strong>68</strong></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<h3 id="22">2.2 テスト対象モジュール</h3>
+<table>
+<thead>
+<tr>
+<th>モジュール</th>
+<th>テスト対象</th>
+<th>カバレッジ</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>booking/services/shift_coverage.py</code></td>
+<td>カバレッジ計算ヘルパー</td>
+<td><strong>100%</strong></td>
+</tr>
+<tr>
+<td><code>booking/services/shift_scheduler.py</code></td>
+<td>auto_schedule()</td>
+<td>42% (他機能含む)</td>
+</tr>
+<tr>
+<td><code>booking/views_shift_api.py</code></td>
+<td>VacancyAPI, SwapRequestAPI</td>
+<td>29% (他機能含む)</td>
+</tr>
+<tr>
+<td><code>booking/views_shift_staff.py</code></td>
+<td>min_shift_hours バリデーション</td>
+<td>59%</td>
+</tr>
+<tr>
+<td><code>booking/shift_api_urls.py</code></td>
+<td>URLルーティング</td>
+<td><strong>100%</strong></td>
+</tr>
+</tbody>
+</table>
+<h3 id="23">2.3 テストカテゴリ別詳細</h3>
+<h4 id="25">単体テスト（カバレッジ計算ロジック — 25テスト）</h4>
+<ul>
+<li>カバレッジマップの構築と初期化</li>
+<li>アサイン記録と時間帯別スタッフ追跡</li>
+<li>定員未達/充足判定（<code>check_coverage_need</code>）</li>
+<li>不足時間数カウント（<code>count_coverage_hours</code>）</li>
+<li>不足枠の連続時間マージ生成（<code>generate_vacancies</code>）</li>
+</ul>
+<h4 id="12">統合テスト（自動スケジューリング — 12テスト）</h4>
+<ul>
+<li>営業時間外リクエストのクリップ（10:00-17:00 → 13:00-17:00）</li>
+<li>完全に営業時間外のリクエスト除外</li>
+<li>最低勤務時間未満のスキップ</li>
+<li>preferred/available の優先順位</li>
+<li>定員超過時の制御</li>
+<li>休業日除外</li>
+</ul>
+<h4 id="api16">APIテスト（16テスト）</h4>
+<ul>
+<li>ShiftVacancyAPIView: 一覧取得、period_id/staff_typeフィルタ、pagination</li>
+<li>ShiftVacancyApplyAPIView: 応募成功、種別不一致拒否、締切済み拒否、重複拒否、別店舗拒否</li>
+<li>ShiftSwapRequestAPIView: 申請作成、承認(欠勤→vacancy生成)、承認(交代→assignment移転)、却下、処理済み再承認拒否、一覧取得</li>
+</ul>
+<h4 id="6">バリデーションテスト（6テスト）</h4>
+<ul>
+<li>min_shift_hours未満のシフト拒否</li>
+<li>min_shift_hours以上のシフト受理</li>
+<li>config未設定時のデフォルト値(2時間)適用</li>
+<li>unavailable preference のバイパス</li>
+</ul>
+<h4 id="7">エッジケーステスト（7テスト）</h4>
+<ul>
+<li>定員0（無制限）の処理</li>
+<li>空のリクエストでの自動配置</li>
+<li>連続不足時間のマージ</li>
+<li>その他境界値テスト</li>
+</ul>
+<hr />
+<h2 id="3">3. セキュリティレビュー結果</h2>
+<h3 id="31-v11">3.1 対応済みセキュリティ修正（v1.1）</h3>
+<table>
+<thead>
+<tr>
+<th>#</th>
+<th>重要度</th>
+<th>内容</th>
+<th>対応</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>CRITICAL</td>
+<td>SwapRequest承認に権限チェックなし</td>
+<td>マネージャー権限チェック追加</td>
+</tr>
+<tr>
+<td>2</td>
+<td>CRITICAL</td>
+<td>colorフィールド未バリデーション(XSS)</td>
+<td><code>^#[0-9A-Fa-f]{6}$</code> バリデーション</td>
+</tr>
+<tr>
+<td>3</td>
+<td>HIGH</td>
+<td>VacancyApplyにレースコンディション</td>
+<td><code>transaction.atomic</code> + <code>select_for_update</code></td>
+</tr>
+<tr>
+<td>4</td>
+<td>HIGH</td>
+<td>SwapRequest PUTにレースコンディション</td>
+<td><code>transaction.atomic</code> + <code>select_for_update</code></td>
+</tr>
+<tr>
+<td>5</td>
+<td>HIGH</td>
+<td>他店舗のアサインに交代申請可能</td>
+<td><code>store_id</code> 一致チェック追加</td>
+</tr>
+<tr>
+<td>6</td>
+<td>HIGH</td>
+<td>auto_scheduleでN+1クエリ</td>
+<td><code>select_related('staff')</code> 追加</td>
+</tr>
+<tr>
+<td>7</td>
+<td>HIGH</td>
+<td>deadline=Noneでクラッシュ</td>
+<td>条件分岐追加</td>
+</tr>
+</tbody>
+</table>
+<h3 id="32-v11">3.2 コードレビュー修正（v1.1）</h3>
+<table>
+<thead>
+<tr>
+<th>#</th>
+<th>重要度</th>
+<th>内容</th>
+<th>対応</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>HIGH</td>
+<td>_process_approved_swapでN+1</td>
+<td><code>select_related</code>に<code>assignment__staff</code>追加</td>
+</tr>
+<tr>
+<td>2</td>
+<td>HIGH</td>
+<td>_get_store_configとmin_shift_hours重複</td>
+<td>統合して1回のDB問い合わせに</td>
+</tr>
+<tr>
+<td>3</td>
+<td>MEDIUM</td>
+<td>assigned_slotsの手動dict初期化</td>
+<td><code>defaultdict(set)</code>に変更</td>
+</tr>
+<tr>
+<td>4</td>
+<td>MEDIUM</td>
+<td>VacancyAPIにpaginationなし</td>
+<td><code>limit</code>/<code>offset</code> pagination追加</td>
+</tr>
+<tr>
+<td>5</td>
+<td>LOW</td>
+<td>未使用import</td>
+<td><code>_render_week_grid</code>, <code>ShiftPeriod</code>, <code>ShiftRequest</code> 削除</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="4">4. カバレッジ結果</h2>
+<h3 id="41-v11">4.1 新規モジュール（v1.1 シフト改善）</h3>
+<table>
+<thead>
+<tr>
+<th>モジュール</th>
+<th>総文数</th>
+<th>カバー</th>
+<th>カバレッジ</th>
+<th>状態</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>services/shift_coverage.py</td>
+<td>54</td>
+<td>54</td>
+<td><strong>100%</strong></td>
+<td>完了</td>
+</tr>
+<tr>
+<td>shift_api_urls.py</td>
+<td>5</td>
+<td>5</td>
+<td><strong>100%</strong></td>
+<td>完了</td>
+</tr>
+<tr>
+<td>tests/test_shift_coverage.py</td>
+<td>568</td>
+<td>568</td>
+<td><strong>100%</strong></td>
+<td>完了</td>
+</tr>
+<tr>
+<td>views_shift_staff.py</td>
+<td>96</td>
+<td>57</td>
+<td>59%</td>
+<td>要改善</td>
+</tr>
+<tr>
+<td>services/shift_scheduler.py</td>
+<td>197</td>
+<td>82</td>
+<td>42%</td>
+<td>要改善</td>
+</tr>
+<tr>
+<td>views_shift_api.py</td>
+<td>610</td>
+<td>177</td>
+<td>29%</td>
+<td>要改善</td>
+</tr>
+</tbody>
+</table>
+<h3 id="42">4.2 既存モジュール（前回比変動なし）</h3>
+<table>
+<thead>
+<tr>
+<th>モジュール</th>
+<th>カバレッジ</th>
+<th>状態</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>models.py</td>
+<td>92%</td>
+<td>良好</td>
+</tr>
+<tr>
+<td>views.py</td>
+<td>73%</td>
+<td>要改善</td>
+</tr>
+<tr>
+<td>admin.py</td>
+<td>~60%</td>
+<td>要改善</td>
+</tr>
+<tr>
+<td>middleware.py</td>
+<td>97%</td>
+<td>良好</td>
+</tr>
+<tr>
+<td>forms.py</td>
+<td>100%</td>
+<td>完了</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="5-v11">5. 新規追加テスト対象機能（v1.1）</h2>
+<h3 id="51">5.1 モデル</h3>
+<table>
+<thead>
+<tr>
+<th>モデル</th>
+<th>フィールド数</th>
+<th>テスト対象</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>ShiftVacancy</td>
+<td>10</td>
+<td>不足枠の自動生成・状態管理・shortage計算</td>
+</tr>
+<tr>
+<td>ShiftSwapRequest</td>
+<td>9</td>
+<td>交代/欠勤申請の作成・承認・却下フロー</td>
+</tr>
+<tr>
+<td>StoreScheduleConfig.min_shift_hours</td>
+<td>1</td>
+<td>最低勤務時間の設定と参照</td>
+</tr>
+</tbody>
+</table>
+<h3 id="52-api">5.2 API</h3>
+<table>
+<thead>
+<tr>
+<th>エンドポイント</th>
+<th>メソッド</th>
+<th>テスト数</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>/api/shift/vacancies/</code></td>
+<td>GET</td>
+<td>4 (フィルタ、pagination)</td>
+</tr>
+<tr>
+<td><code>/api/shift/vacancies/&lt;pk&gt;/apply/</code></td>
+<td>POST</td>
+<td>5 (応募、バリデーション)</td>
+</tr>
+<tr>
+<td><code>/api/shift/swap-requests/</code></td>
+<td>GET/POST</td>
+<td>3 (一覧、作成)</td>
+</tr>
+<tr>
+<td><code>/api/shift/swap-requests/&lt;pk&gt;/</code></td>
+<td>PUT</td>
+<td>4 (承認、却下、権限)</td>
+</tr>
+<tr>
+<td><code>/api/shift/auto-schedule/</code></td>
+<td>POST</td>
+<td>12 (カバレッジ、クリップ、min_shift)</td>
+</tr>
+</tbody>
+</table>
+<h3 id="53">5.3 サービス</h3>
+<table>
+<thead>
+<tr>
+<th>サービス関数</th>
+<th>テスト数</th>
+<th>検証内容</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>build_coverage_map()</code></td>
+<td>3</td>
+<td>マップ構造の初期化</td>
+</tr>
+<tr>
+<td><code>record_assignment()</code></td>
+<td>4</td>
+<td>時間帯別スタッフ追跡</td>
+</tr>
+<tr>
+<td><code>check_coverage_need()</code></td>
+<td>6</td>
+<td>定員充足/不足判定</td>
+</tr>
+<tr>
+<td><code>count_coverage_hours()</code></td>
+<td>4</td>
+<td>不足時間数の算出</td>
+</tr>
+<tr>
+<td><code>generate_vacancies()</code></td>
+<td>8</td>
+<td>不足枠レコード生成</td>
+</tr>
+<tr>
+<td><code>auto_schedule()</code></td>
+<td>12</td>
+<td>統合テスト</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="6_1">6. テスト実行方法</h2>
+<h3 id="61">6.1 全テスト実行</h3>
+<pre><code class="language-bash">cd ~/NewFUHI
+.venv/bin/python manage.py test tests booking.tests -v2
+</code></pre>
+<h3 id="62">6.2 シフト改善テストのみ</h3>
+<pre><code class="language-bash">cd ~/NewFUHI
+.venv/bin/python manage.py test booking.tests.test_shift_coverage -v2
+</code></pre>
+<h3 id="63">6.3 カバレッジ付き実行</h3>
+<pre><code class="language-bash">cd ~/NewFUHI
+.venv/bin/python -m coverage run manage.py test booking.tests -v0
+.venv/bin/python -m coverage report --include=&quot;booking/*&quot;
+.venv/bin/python -m coverage html -d docs/coverage_html/
+</code></pre>
+<h3 id="64">6.4 特定テストクラスの実行</h3>
+<pre><code class="language-bash"># カバレッジ計算テスト
+.venv/bin/python manage.py test booking.tests.test_shift_coverage.TestCheckCoverageNeed -v2
+
+# 自動スケジューリングテスト
+.venv/bin/python manage.py test booking.tests.test_shift_coverage.TestAutoScheduleCoverage -v2
+
+# SwapRequestテスト
+.venv/bin/python manage.py test booking.tests.test_shift_coverage.TestShiftSwapRequestAPIView -v2
+</code></pre>
+<hr />
+<h2 id="7_1">7. 残課題</h2>
+<h3 id="71">7.1 カバレッジ改善が必要なモジュール</h3>
+<table>
+<thead>
+<tr>
+<th>優先度</th>
+<th>モジュール</th>
+<th>現在</th>
+<th>目標</th>
+<th>備考</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>高</td>
+<td>views_shift_api.py</td>
+<td>29%</td>
+<td>80%</td>
+<td>既存シフトAPI(テンプレート等)のテスト追加</td>
+</tr>
+<tr>
+<td>高</td>
+<td>services/shift_scheduler.py</td>
+<td>42%</td>
+<td>80%</td>
+<td>sync/revoke/reopen関数のテスト</td>
+</tr>
+<tr>
+<td>中</td>
+<td>views_shift_staff.py</td>
+<td>59%</td>
+<td>80%</td>
+<td>GET/DELETE のテスト追加</td>
+</tr>
+<tr>
+<td>中</td>
+<td>views_shift_manager.py</td>
+<td>14%</td>
+<td>50%</td>
+<td>管理者カレンダービューのテスト</td>
+</tr>
+<tr>
+<td>低</td>
+<td>services/shift_notifications.py</td>
+<td>15%</td>
+<td>50%</td>
+<td>LINE通知のモック付きテスト</td>
+</tr>
+</tbody>
+</table>
+<h3 id="72-picoiot">7.2 Pico/IoTテスト環境</h3>
+<p>12件のエラーテストはPico W環境専用。CI/CD環境ではIoTテストをスキップするか、仮想環境を用意する必要がある。</p>
+
+</body>
+</html>

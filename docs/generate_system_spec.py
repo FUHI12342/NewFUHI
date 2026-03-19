@@ -11,8 +11,17 @@ Usage:
     docs/system_specification.pdf   — WeasyPrint PDF
 """
 import os
+import subprocess
 import sys
 import datetime
+
+# macOS Homebrew: WeasyPrint が libgobject を見つけるために DYLD_LIBRARY_PATH を設定
+_brew_prefix = subprocess.run(
+    ['brew', '--prefix'], capture_output=True, text=True,
+).stdout.strip() if sys.platform == 'darwin' else ''
+if _brew_prefix:
+    lib_path = os.path.join(_brew_prefix, 'lib')
+    os.environ['DYLD_LIBRARY_PATH'] = lib_path + ':' + os.environ.get('DYLD_LIBRARY_PATH', '')
 
 # Django セットアップ
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -131,8 +140,9 @@ def generate_html():
     services = [
         ('payroll_calculator.py', '給与計算エンジン', '源泉徴収税テーブル参照、社会保険料計算、基本給・割増・手当計算、PayrollEntry/Deduction生成'),
         ('attendance_service.py', '勤怠導出サービス', 'ShiftAssignment→WorkAttendance変換、法定休憩計算、労働時間分類(通常/残業/深夜/休日)'),
-        ('shift_scheduler.py', '自動スケジューリング', 'ShiftRequest→ShiftAssignment変換(preferred優先)、Schedule同期、slot_duration分割'),
-        ('shift_notifications.py', 'シフト通知サービス', 'LINE/メール通知: 募集開始、承認完了、予約確定'),
+        ('shift_scheduler.py', '自動スケジューリング', 'カバレッジベースShiftRequest→ShiftAssignment変換(定員/preferred優先)、最低勤務時間チェック、不足枠自動生成、Schedule同期'),
+        ('shift_coverage.py', 'カバレッジ計算ヘルパー', 'カバレッジマップ構築、定員充足判定、不足時間カウント、不足枠(ShiftVacancy)生成'),
+        ('shift_notifications.py', 'シフト通知サービス', 'LINE/メール通知: 募集開始、承認完了、欠勤申請、カバー募集、交代依頼'),
         ('zengin_export.py', '全銀フォーマットCSV生成', 'PayrollPeriod→全銀CSV(ヘッダー/データ/トレーラー/エンド)'),
         ('ai_chat.py', 'AIチャットサービス', 'Gemini API + RAGナレッジベース(管理画面ガイド/予約ガイド)'),
         ('qr_service.py', 'QRコード生成', '予約チェックインQR、テーブル注文QR'),
@@ -215,7 +225,7 @@ li {{ margin: 2px 0; }}
 <div class="cover">
 <h1>NewFUHI<br>システム仕様書</h1>
 <p class="subtitle">占いサロン管理プラットフォーム — Django + IoT + AWS</p>
-<p class="date">Version 1.0 — {today}</p>
+<p class="date">Version 1.1 — {today}</p>
 <p style="margin-top:60px;color:#a0aec0;font-size:10pt;">Confidential — 社内技術資料</p>
 </div>
 
@@ -243,7 +253,7 @@ li {{ margin: 2px 0; }}
 <table>
 <tr><th>項目</th><th>内容</th></tr>
 <tr><td>文書名</td><td>NewFUHI システム仕様書</td></tr>
-<tr><td>バージョン</td><td>1.0</td></tr>
+<tr><td>バージョン</td><td>1.1</td></tr>
 <tr><td>最終更新日</td><td>{today}</td></tr>
 <tr><td>作成者</td><td>開発チーム</td></tr>
 <tr><td>機密区分</td><td>社内限定</td></tr>
@@ -252,7 +262,8 @@ li {{ margin: 2px 0; }}
 <h2>改訂履歴</h2>
 <table>
 <tr><th>バージョン</th><th>日付</th><th>変更内容</th></tr>
-<tr><td>1.0</td><td>{today}</td><td>初版作成</td></tr>
+<tr><td>1.0</td><td>2026-03-18</td><td>初版作成</td></tr>
+<tr><td>1.1</td><td>{today}</td><td>シフト改善: カバレッジベース自動配置、不足枠(ShiftVacancy)、交代・欠勤申請(ShiftSwapRequest)、最低勤務時間追加</td></tr>
 </table>
 
 <!-- 2. エグゼクティブサマリ -->
@@ -372,8 +383,8 @@ Customer ──▶ BookingTopPage ──▶ StaffCalendar ──▶ PreBooking
 <p>booking アプリには <strong>{len(models)} モデル</strong>が定義されています。</p>
 '''
 
-    for model in models:
-        html += f'\n<h2>4.{models.index(model)+1} {model["name"]}</h2>\n'
+    for i, model in enumerate(models, start=1):
+        html += f'\n<h2>4.{i} {model["name"]}</h2>\n'
         html += f'<p><strong>テーブル名</strong>: <code>{model["db_table"]}</code> | <strong>表示名</strong>: {model["verbose_name"]}</p>\n'
 
         if model['fields']:
@@ -449,13 +460,25 @@ Customer ──▶ BookingTopPage ──▶ StaffCalendar ──▶ PreBooking
 <li>休日: 日曜日（weekday==6）</li>
 </ul>
 
-<h2>7.3 自動スケジューリング (shift_scheduler.py)</h2>
+<h2>7.3 自動スケジューリング (shift_scheduler.py) — v1.1 カバレッジベース</h2>
 <ul>
-<li>ShiftRequest(preferred) → 最優先割り当て</li>
-<li>ShiftRequest(available) → 残りスロットに割り当て</li>
+<li>ShiftStaffRequirement（定員）を時間帯ごとに適用</li>
+<li>ShiftRequest(preferred) → 最優先割り当て（定員超過でも緩和判定）</li>
+<li>ShiftRequest(available) → カバレッジ不足時のみ割り当て</li>
 <li>ShiftRequest(unavailable) → 除外</li>
-<li>営業時間外チェック</li>
+<li>営業時間外リクエストのクリッピング（営業時間内に自動調整）</li>
+<li>最低連続勤務時間チェック（StoreScheduleConfig.min_shift_hours）</li>
+<li>不足枠(ShiftVacancy)自動生成: 定員未達の連続時間帯をマージ</li>
 <li>Schedule同期: slot_durationに応じてShiftAssignment→Schedule分割</li>
+</ul>
+
+<h2>7.4 カバレッジ計算ヘルパー (shift_coverage.py) — v1.1 新規</h2>
+<ul>
+<li><code>build_coverage_map()</code>: {date → {staff_type → {hour → [staff_ids]}}} マップ構築</li>
+<li><code>record_assignment()</code>: アサインをマップに記録</li>
+<li><code>check_coverage_need()</code>: リクエスト時間帯に定員未達の時間があるか判定</li>
+<li><code>count_coverage_hours()</code>: 不足時間数のカウント</li>
+<li><code>generate_vacancies()</code>: 不足枠レコード生成（連続時間マージ）</li>
 </ul>
 '''
 
@@ -696,8 +719,9 @@ S3バケット: <code>s3://mee-newfuhi-backups/</code> (db/, media/)<br>
 <tr><td><code>booking/middleware.py</code></td><td>~146</td><td>セキュリティ監視</td></tr>
 <tr><td><code>booking/services/payroll_calculator.py</code></td><td>~423</td><td>給与計算エンジン</td></tr>
 <tr><td><code>booking/services/attendance_service.py</code></td><td>~160</td><td>勤怠導出</td></tr>
-<tr><td><code>booking/services/shift_scheduler.py</code></td><td>~154</td><td>自動スケジューリング</td></tr>
-<tr><td><code>booking/services/shift_notifications.py</code></td><td>~105</td><td>シフト通知</td></tr>
+<tr><td><code>booking/services/shift_scheduler.py</code></td><td>~197</td><td>カバレッジベース自動スケジューリング</td></tr>
+<tr><td><code>booking/services/shift_coverage.py</code></td><td>~54</td><td>カバレッジ計算ヘルパー</td></tr>
+<tr><td><code>booking/services/shift_notifications.py</code></td><td>~105</td><td>シフト通知(欠勤/交代/カバー)</td></tr>
 <tr><td><code>booking/services/zengin_export.py</code></td><td>~131</td><td>全銀CSV生成</td></tr>
 <tr><td><code>booking/services/ai_chat.py</code></td><td>~131</td><td>AIチャット</td></tr>
 <tr><td><code>booking/services/qr_service.py</code></td><td>~29</td><td>QRコード生成</td></tr>
@@ -723,6 +747,9 @@ python -m pytest tests/ --cov=booking --cov-report=html</code></pre>
 <tr><td>ShiftPeriod</td><td>シフト募集期間（月単位）</td></tr>
 <tr><td>ShiftRequest</td><td>スタッフのシフト希望（preferred/available/unavailable）</td></tr>
 <tr><td>ShiftAssignment</td><td>確定シフト（auto_schedule で生成）</td></tr>
+<tr><td>ShiftVacancy</td><td>不足枠（定員未達の時間帯。auto_scheduleで自動生成、スタッフが応募可能）</td></tr>
+<tr><td>ShiftSwapRequest</td><td>交代・欠勤申請（swap/cover/absence。マネージャー承認フロー）</td></tr>
+<tr><td>StoreScheduleConfig.min_shift_hours</td><td>最低連続勤務時間（デフォルト2時間）</td></tr>
 <tr><td>WorkAttendance</td><td>勤怠記録（シフトから自動生成 or 手動入力）</td></tr>
 <tr><td>PayrollPeriod</td><td>給与計算期間（月単位）</td></tr>
 <tr><td>PayrollEntry</td><td>個人別給与明細</td></tr>

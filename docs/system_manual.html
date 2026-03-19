@@ -3,9 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>NewFUHI システム取扱説明書</title>
-
+<title>システム取扱説明書</title>
 <style>
+
 @page {
   size: A4;
   margin: 20mm 15mm 25mm 15mm;
@@ -13,10 +13,23 @@
   @bottom-center { content: "— " counter(page) " —"; font-size: 9pt; color: #666; }
 }
 * { box-sizing: border-box; }
-body { font-family: "Hiragino Kaku Gothic ProN","Noto Sans JP","Noto Sans CJK JP",sans-serif; font-size: 10pt; line-height: 1.7; color: #222; max-width: 100%; margin: 0; padding: 0; }
-h1 { font-size: 22pt; color: #1a3a5c; border-bottom: 3px solid #1a3a5c; padding-bottom: 8px; page-break-before: always; margin-top: 0; }
+body {
+  font-family: "Hiragino Kaku Gothic ProN","Noto Sans JP","Noto Sans CJK JP",sans-serif;
+  font-size: 10pt; line-height: 1.7; color: #222;
+  max-width: 100%; margin: 0; padding: 0;
+}
+h1 {
+  font-size: 22pt; color: #1a3a5c;
+  border-bottom: 3px solid #1a3a5c;
+  padding-bottom: 8px;
+  page-break-before: always; margin-top: 0;
+}
 h1:first-of-type { page-break-before: avoid; }
-h2 { font-size: 14pt; color: #2c5282; border-bottom: 1.5px solid #bee3f8; padding-bottom: 4px; margin-top: 24px; }
+h2 {
+  font-size: 14pt; color: #2c5282;
+  border-bottom: 1.5px solid #bee3f8;
+  padding-bottom: 4px; margin-top: 24px;
+}
 h3 { font-size: 11pt; color: #2b6cb0; margin-top: 18px; }
 table { width: 100%; border-collapse: collapse; margin: 10px 0 16px 0; font-size: 9pt; }
 th, td { border: 1px solid #cbd5e0; padding: 5px 8px; text-align: left; word-break: break-all; }
@@ -29,1181 +42,4162 @@ pre code { background: none; color: inherit; padding: 0; }
 .cover h1 { font-size: 32pt; border: none; page-break-before: avoid; }
 .cover .subtitle { font-size: 14pt; color: #4a5568; margin-top: 16px; }
 .cover .date { font-size: 11pt; color: #718096; margin-top: 40px; }
+.cover .confidential { font-size: 10pt; color: #a0aec0; margin-top: 60px; }
 .toc { page-break-after: always; }
 .toc h1 { page-break-before: avoid; }
 .toc ol { font-size: 11pt; line-height: 2.2; }
 .note { background: #fffbeb; border-left: 4px solid #f6ad55; padding: 10px 14px; margin: 10px 0; font-size: 9pt; }
 .info { background: #ebf8ff; border-left: 4px solid #63b3ed; padding: 10px 14px; margin: 10px 0; font-size: 9pt; }
-ul, ol { margin: 6px 0; padding-left: 24px; }
-li { margin: 2px 0; }
 .badge { display: inline-block; padding: 1px 6px; border-radius: 3px; font-size: 8pt; font-weight: bold; color: #fff; }
-.badge-pk { background: #e53e3e; }
-.badge-fk { background: #3182ce; }
-.badge-bool { background: #38a169; }
-.badge-char { background: #805ad5; }
-.badge-int { background: #d69e2e; }
-.badge-dt { background: #dd6b20; }
-@media print {
-  h1, h2, h3 { page-break-after: avoid; }
-  table, pre { page-break-inside: avoid; }
-}
+.badge-pass { background: #38a169; }
+.badge-fail { background: #e53e3e; }
+.badge-skip { background: #d69e2e; }
+.badge-new { background: #3182ce; }
+blockquote { border-left: 4px solid #cbd5e0; margin: 10px 0; padding: 8px 14px; color: #4a5568; background: #f7fafc; }
+
 </style>
 </head>
 <body>
 
 <div class="cover">
-<h1>NewFUHI<br>システム取扱説明書</h1>
-<p class="subtitle">予約・店舗・IoT・決済・在庫・給与 統合管理プラットフォーム</p>
-<p class="date">Version 1.0 — 2026年3月</p>
-<p style="margin-top:60px;color:#a0aec0;font-size:10pt;">Confidential — 社内用資料</p>
+  <h1>NewFUHI</h1>
+  <h1 style="font-size:26pt;">システム取扱説明書</h1>
+  <div class="subtitle">予約・店舗・IoT・決済・在庫・給与 統合管理プラットフォーム</div>
+  <div class="date">Version 1.1 — 2026年03月19日</div>
+  <div class="confidential">Confidential — 社内用資料</div>
 </div>
-<div class="toc"><h1>目次</h1><ol><li>システム概要</li>
-<li>システム構成</li>
-<li>データベースモデル一覧</li>
-<li>画面一覧・URLマップ</li>
-<li>APIリファレンス</li>
-<li>管理画面の操作手順</li>
-<li>予約フロー</li>
-<li>決済連携</li>
-<li>QRテーブル注文</li>
-<li>IoTデバイス管理</li>
-<li>物件管理・監視</li>
-<li>シフト・勤怠・給与管理</li>
-<li>在庫管理</li>
-<li>ECショップ</li>
-<li>セキュリティ機能</li>
-<li>AWSコスト監視</li>
-<li>定期タスク（Celery）</li>
-<li>管理コマンドリファレンス</li>
-<li>デプロイ手順</li>
-<li>多言語対応</li>
-<li>トラブルシューティング</li></ol></div>
-<h1>1. システム概要</h1>
-<h2>1.1 NewFUHI とは</h2>
-<p>NewFUHI は、占いサロン・飲食店・宿泊施設などの店舗運営を統合的に管理する Django ベースの Web プラットフォームです。予約管理、決済、IoT デバイス制御、在庫管理、シフト・給与管理、EC ショップ、物件監視など幅広い業務をカバーします。</p>
 
-<h2>1.2 技術スタック</h2>
-<table>
-<tr><th>レイヤー</th><th>技術</th></tr>
-<tr><td>バックエンド</td><td>Django / Django REST Framework / Python 3</td></tr>
-<tr><td>タスクキュー</td><td>Celery + Redis</td></tr>
-<tr><td>データベース</td><td>SQLite（開発）/ PostgreSQL・RDS（本番）</td></tr>
-<tr><td>認証</td><td>Django Auth + LINE OAuth2（python-social-auth）</td></tr>
-<tr><td>暗号化</td><td>cryptography（Fernet）</td></tr>
-<tr><td>QRコード</td><td>qrcode[pil]</td></tr>
-<tr><td>AWS連携</td><td>boto3</td></tr>
-<tr><td>Web サーバー</td><td>Nginx + Gunicorn</td></tr>
-<tr><td>CI/CD</td><td>GitHub Actions</td></tr>
-<tr><td>プロセス管理</td><td>systemd</td></tr>
-</table>
-
-<h2>1.3 対応言語（7言語）</h2>
-<table>
-<tr><th>コード</th><th>言語</th><th>備考</th></tr>
-<tr><td>ja</td><td>日本語</td><td>デフォルト言語</td></tr>
-<tr><td>en</td><td>English</td><td></td></tr>
-<tr><td>zh-hant</td><td>繁體中文</td><td>台湾・香港向け</td></tr>
-<tr><td>zh-hans</td><td>简体中文</td><td>中国大陸向け</td></tr>
-<tr><td>ko</td><td>한국어</td><td></td></tr>
-<tr><td>es</td><td>Español</td><td></td></tr>
-<tr><td>pt</td><td>Português</td><td></td></tr>
-</table>
-
-<h1>2. システム構成</h1>
-<h2>2.1 ディレクトリ構造</h2>
-<pre><code>NewFUHI/
-├── manage.py
-├── project/                    # Django プロジェクト設定
-│   ├── urls.py                # メイン URL ルーティング
-│   └── settings/
-│       ├── base.py            # 共通設定
-│       ├── local.py           # 開発用設定
-│       ├── production.py      # 本番設定
-│       └── staging.py         # ステージング設定
-├── booking/                    # メインアプリ
-│   ├── models.py              # 全データベースモデル（1638行）
-│   ├── views.py               # メインビュー（2806行）
-│   ├── views_debug.py         # デバッグパネル
-│   ├── views_dashboard.py     # センサーダッシュボード
-│   ├── views_restaurant_dashboard.py  # 売上ダッシュボード
-│   ├── views_property.py      # 物件管理ビュー
-│   ├── views_chat.py          # AIチャットビュー
-│   ├── urls.py                # ページ URL（151行）
-│   ├── api_urls.py            # API エンドポイント（87行）
-│   ├── table_urls.py          # テーブル注文 URL
-│   ├── admin.py               # 管理画面カスタマイズ（1215行）
-│   ├── admin_site.py          # ロールベース管理サイト
-│   ├── forms.py               # フォーム定義
-│   ├── tasks.py               # Celery タスク
-│   ├── middleware.py          # セキュリティ監査ミドルウェア
-│   ├── management/commands/   # 管理コマンド（5個）
-│   └── templates/booking/     # テンプレート（30+）
-├── config/                     # デプロイ設定
-│   ├── nginx/                 # Nginx設定
-│   ├── gunicorn/              # Gunicorn設定
-│   ├── systemd/               # サービス定義
-│   └── logrotate/             # ログローテーション
-├── locale/                     # 翻訳ファイル（7言語）
-├── static/                     # 静的ファイル
-├── media/                      # アップロードファイル
-├── celery_config.py           # Celery設定
-└── requirements.txt           # 依存パッケージ
+<h1 id="newfuhi">NewFUHI システム取り扱いマニュアル</h1>
+<p><strong>システム名:</strong> NewFUHI（占いサロン予約＋IoTモニタリングシステム）<br />
+<strong>本番URL:</strong> https://timebaibai.com<br />
+<strong>バージョン:</strong> 2026-03-18</p>
+<hr />
+<h2 id="_1">目次</h2>
+<p><strong>基本編（セクション1〜8）</strong></p>
+<ol>
+<li><a href="#1-システム概要">システム概要</a></li>
+<li><a href="#2-iotデバイスpico-2w">IoTデバイス（Pico 2W）</a></li>
+<li><a href="#3-web管理画面">Web管理画面</a></li>
+<li><a href="#4-センサーダッシュボード">センサーダッシュボード</a></li>
+<li><a href="#5-サーバー管理">サーバー管理</a></li>
+<li><a href="#6-バックアップ">バックアップ</a></li>
+<li><a href="#7-トラブルシューティング">トラブルシューティング</a></li>
+<li><a href="#8-api仕様">API仕様</a></li>
+</ol>
+<p><strong>機能編（セクション9〜24）</strong></p>
+<ol>
+<li><a href="#9-予約フローお客様向け">予約フロー（お客様向け）</a></li>
+<li><a href="#10-マイページ">マイページ</a></li>
+<li><a href="#11-ecショップ">ECショップ</a></li>
+<li><a href="#12-テーブル注文">テーブル注文</a></li>
+<li><a href="#13-posレジ">POS（レジ）</a></li>
+<li><a href="#14-シフト管理">シフト管理</a></li>
+<li><a href="#15-勤怠管理">勤怠管理</a></li>
+<li><a href="#16-売上ダッシュボード">売上ダッシュボード</a></li>
+<li><a href="#17-来客分析">来客分析</a></li>
+<li><a href="#18-スタッフ評価">スタッフ評価</a></li>
+<li><a href="#19-ec注文管理">EC注文管理</a></li>
+<li><a href="#20-在庫管理">在庫管理</a></li>
+<li><a href="#21-aiレコメンド">AIレコメンド</a></li>
+<li><a href="#22-お知らせ管理">お知らせ管理</a></li>
+<li><a href="#23-物件モニタリング">物件モニタリング</a></li>
+<li><a href="#24-システム管理debug">システム管理（Debug）</a></li>
+</ol>
+<p><strong>付録</strong></p>
+<ul>
+<li><a href="#付録a-全url一覧">付録A: 全URL一覧</a></li>
+<li><a href="#付録b-api一覧">付録B: API一覧</a></li>
+<li><a href="#付録c-権限マトリクス">付録C: 権限マトリクス</a></li>
+</ul>
+<hr />
+<h2 id="1">1. システム概要</h2>
+<h3 id="_2">構成図</h3>
+<pre><code>┌──────────────┐     WiFi      ┌──────────────────┐     HTTPS     ┌─────────────────┐
+│  Pico 2W     │──────────────▶│  WiFiルーター     │──────────────▶│  AWS EC2        │
+│  IoTデバイス  │  センサーデータ │  (aterm/KEMURIBA) │              │  52.198.72.13   │
+│              │  10秒間隔     │                  │              │  timebaibai.com │
+└──────────────┘              └──────────────────┘              └─────────────────┘
+   MQ-9 (CO)                                                      │ Nginx + SSL
+   Sound                                                          │ Gunicorn
+   PIR (人感)                                                      │ Django
+   Button                                                         │ Celery + Redis
+   IR TX/RX                                                       │ SQLite
+                                                                  │
+                                              ┌───────────────────┘
+                                              ▼
+                                    ┌──────────────────┐
+                                    │  S3バックアップ    │
+                                    │  mee-newfuhi-    │
+                                    │  backups         │
+                                    └──────────────────┘
 </code></pre>
-
-<h2>2.2 設定ファイル</h2>
+<h3 id="_3">主要機能</h3>
 <table>
-<tr><th>ファイル</th><th>内容</th></tr>
-<tr><td><code>project/settings/base.py</code></td><td>共通設定（INSTALLED_APPS, MIDDLEWARE, AUTH, i18n）</td></tr>
-<tr><td><code>project/settings/local.py</code></td><td>開発環境（DEBUG=True, SQLite, ローカルメール）</td></tr>
-<tr><td><code>project/settings/production.py</code></td><td>本番環境（SSL, HSTS, セキュアクッキー）</td></tr>
-<tr><td><code>project/settings/staging.py</code></td><td>ステージング環境</td></tr>
-<tr><td><code>celery_config.py</code></td><td>Celery Beat スケジュール定義</td></tr>
+<thead>
+<tr>
+<th>機能</th>
+<th>説明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>予約管理</td>
+<td>占い師のスケジュール・予約受付（LINE/メール）</td>
+</tr>
+<tr>
+<td>IoTモニタリング</td>
+<td>ガス濃度・音・人感センサーのリアルタイム監視</td>
+</tr>
+<tr>
+<td>ガス警報</td>
+<td>MQ-9センサーがCO閾値超過でアラーム＋LINE通知</td>
+</tr>
+<tr>
+<td>IR学習/送信</td>
+<td>赤外線リモコンの学習・再生（エアコン等）</td>
+</tr>
+<tr>
+<td>EC決済</td>
+<td>Coiney連携によるオンライン決済</td>
+</tr>
+<tr>
+<td>QRチェックイン</td>
+<td>予約QRコード生成＋店頭読取</td>
+</tr>
+<tr>
+<td>シフト管理</td>
+<td>スタッフのシフト希望提出・管理</td>
+</tr>
+</tbody>
 </table>
-
-<h2>2.3 環境変数一覧</h2>
-<h3>必須</h3>
+<hr />
+<h2 id="2-iotpico-2w">2. IoTデバイス（Pico 2W）</h2>
+<h3 id="21">2.1 ハードウェア構成</h3>
 <table>
-<tr><th>変数名</th><th>説明</th></tr>
-<tr><td><code>SECRET_KEY</code></td><td>Django シークレットキー</td></tr>
-<tr><td><code>LINE_CHANNEL_ID</code></td><td>LINE Bot チャネル ID</td></tr>
-<tr><td><code>LINE_CHANNEL_SECRET</code></td><td>LINE Bot チャネルシークレット</td></tr>
-<tr><td><code>LINE_REDIRECT_URL</code></td><td>LINE OAuth リダイレクト URL</td></tr>
-<tr><td><code>LINE_ACCESS_TOKEN</code></td><td>LINE アクセストークン</td></tr>
-<tr><td><code>PAYMENT_API_KEY</code></td><td>決済 API キー</td></tr>
-<tr><td><code>PAYMENT_API_URL</code></td><td>決済 API URL</td></tr>
-<tr><td><code>WEBHOOK_URL_BASE</code></td><td>Webhook ベース URL</td></tr>
-<tr><td><code>CANCEL_URL</code></td><td>キャンセル URL</td></tr>
-<tr><td><code>LINE_USER_ID_ENCRYPTION_KEY</code></td><td>LINE ID Fernet 暗号化キー</td></tr>
-<tr><td><code>LINE_USER_ID_HASH_PEPPER</code></td><td>LINE ID ハッシュペッパー</td></tr>
-<tr><td><code>IOT_ENCRYPTION_KEY</code></td><td>IoT 資格情報暗号化キー</td></tr>
+<thead>
+<tr>
+<th>部品</th>
+<th>ピン</th>
+<th>機能</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>MQ-9 ガスセンサー</td>
+<td>GP26 (A0)</td>
+<td>CO（一酸化炭素）濃度測定</td>
+</tr>
+<tr>
+<td>マイク（Sound）</td>
+<td>GP28 (A2)</td>
+<td>環境音レベル測定</td>
+</tr>
+<tr>
+<td>PIR 人感センサー</td>
+<td>GP18 (D18)</td>
+<td>動体検知</td>
+</tr>
+<tr>
+<td>ボタン</td>
+<td>GP16 (D16)</td>
+<td>手動操作（長押しでIR学習モード）</td>
+</tr>
+<tr>
+<td>ブザー</td>
+<td>GP20 (D20)</td>
+<td>ガス警報音</td>
+</tr>
+<tr>
+<td>IR送信</td>
+<td>GP0 (UART0 TX)</td>
+<td>赤外線送信</td>
+</tr>
+<tr>
+<td>IR受信</td>
+<td>GP5 (UART1 RX)</td>
+<td>赤外線受信（学習用）</td>
+</tr>
+<tr>
+<td>LED</td>
+<td>内蔵LED</td>
+<td>状態表示</td>
+</tr>
+</tbody>
 </table>
-<h3>オプション</h3>
-<table>
-<tr><th>変数名</th><th>説明</th><th>デフォルト</th></tr>
-<tr><td><code>DEBUG</code></td><td>デバッグモード</td><td>True（開発）</td></tr>
-<tr><td><code>ALLOWED_HOSTS</code></td><td>許可ホスト</td><td>localhost,127.0.0.1</td></tr>
-<tr><td><code>DB_ENGINE</code></td><td>DB エンジン</td><td>sqlite3</td></tr>
-<tr><td><code>DB_NAME</code></td><td>DB 名</td><td>db.sqlite3</td></tr>
-<tr><td><code>DATABASE_URL</code></td><td>DB 接続 URL</td><td>—</td></tr>
-<tr><td><code>CELERY_BROKER_URL</code></td><td>Redis ブローカー</td><td>redis://localhost:6379/0</td></tr>
-<tr><td><code>EMAIL_HOST</code></td><td>SMTP ホスト</td><td>—</td></tr>
-<tr><td><code>GEMINI_API_KEY</code></td><td>Google Gemini API</td><td>—</td></tr>
-<tr><td><code>LOG_LEVEL</code></td><td>ログレベル</td><td>DEBUG</td></tr>
-</table>
-
-<h2>2.4 INSTALLED_APPS</h2>
-<table>
-<tr><th>アプリ</th><th>用途</th></tr>
-<tr><td><code>booking</code></td><td>メインアプリ（全ビジネスロジック）</td></tr>
-<tr><td><code>rest_framework</code></td><td>REST API フレームワーク</td></tr>
-<tr><td><code>social_django</code></td><td>LINE OAuth2 ソーシャル認証</td></tr>
-<tr><td><code>booking.custom_auth</code></td><td>カスタム認証（管理画面表示名変更）</td></tr>
-</table>
-
-<h2>2.5 ミドルウェア</h2>
-<table>
-<tr><th>#</th><th>ミドルウェア</th><th>役割</th></tr>
-<tr><td>1</td><td>SecurityMiddleware</td><td>HTTPS リダイレクト、HSTS</td></tr>
-<tr><td>2</td><td>SessionMiddleware</td><td>セッション管理</td></tr>
-<tr><td>3</td><td>LocaleMiddleware</td><td>多言語切替</td></tr>
-<tr><td>4</td><td>CommonMiddleware</td><td>URL 正規化</td></tr>
-<tr><td>5</td><td>CsrfViewMiddleware</td><td>CSRF 保護</td></tr>
-<tr><td>6</td><td>AuthenticationMiddleware</td><td>ユーザー認証</td></tr>
-<tr><td>7</td><td>MessageMiddleware</td><td>メッセージフレームワーク</td></tr>
-<tr><td>8</td><td>XFrameOptionsMiddleware</td><td>クリックジャッキング防止</td></tr>
-<tr><td>9</td><td>SecurityAuditMiddleware</td><td>セキュリティイベント記録</td></tr>
-</table>
-
-<h1>3. データベースモデル一覧</h1>
-<p>全モデルは <code>booking/models.py</code>（1638行）に定義されています。</p>
-
-<h2>3.1 認証・ユーザー管理</h2>
-<h3>Timer</h3>
-<table>
-<tr><th>フィールド</th><th>型</th><th>説明</th></tr>
-<tr><td>user_id</td><td>CharField(255, unique)</td><td>ユーザー識別子</td></tr>
-<tr><td>start_time</td><td>DateTimeField(auto_now_add)</td><td>開始時刻</td></tr>
-<tr><td>end_time</td><td>DateTimeField(null)</td><td>終了時刻</td></tr>
-</table>
-
-<h2>3.2 店舗管理</h2>
-<h3>Store（店舗）</h3>
-<table>
-<tr><th>フィールド</th><th>型</th><th>説明</th></tr>
-<tr><td>name</td><td>CharField(255)</td><td>店舗名</td></tr>
-<tr><td>thumbnail</td><td>ImageField</td><td>サムネイル画像</td></tr>
-<tr><td>address</td><td>CharField(255)</td><td>住所</td></tr>
-<tr><td>business_hours</td><td>CharField(255)</td><td>営業時間</td></tr>
-<tr><td>nearest_station</td><td>CharField(255)</td><td>最寄り駅</td></tr>
-<tr><td>regular_holiday</td><td>CharField(255)</td><td>定休日</td></tr>
-<tr><td>description</td><td>TextField</td><td>説明文</td></tr>
-<tr><td>is_recommended</td><td>BooleanField</td><td>おすすめフラグ</td></tr>
-<tr><td>default_language</td><td>CharField(10)</td><td>デフォルト言語</td></tr>
-</table>
-
-<h3>Staff（スタッフ）</h3>
-<table>
-<tr><th>フィールド</th><th>型</th><th>説明</th></tr>
-<tr><td>name</td><td>CharField(50)</td><td>名前</td></tr>
-<tr><td>user</td><td>OneToOneField → User</td><td>Django ユーザー</td></tr>
-<tr><td>store</td><td>ForeignKey → Store</td><td>所属店舗</td></tr>
-<tr><td>line_id</td><td>CharField(50, null)</td><td>LINE ID</td></tr>
-<tr><td>staff_type</td><td>CharField(choices)</td><td>fortune_teller / store_staff</td></tr>
-<tr><td>is_recommended</td><td>BooleanField</td><td>おすすめフラグ</td></tr>
-<tr><td>is_store_manager</td><td>BooleanField</td><td>店長フラグ</td></tr>
-<tr><td>is_owner</td><td>BooleanField</td><td>オーナーフラグ</td></tr>
-<tr><td>is_developer</td><td>BooleanField</td><td>開発者フラグ</td></tr>
-<tr><td>thumbnail</td><td>ImageField</td><td>プロフィール画像</td></tr>
-<tr><td>introduction</td><td>TextField</td><td>自己紹介</td></tr>
-<tr><td>price</td><td>IntegerField</td><td>料金</td></tr>
-</table>
-
-<h3>StoreScheduleConfig（営業時間設定）</h3>
-<table>
-<tr><th>フィールド</th><th>型</th><th>説明</th></tr>
-<tr><td>store</td><td>OneToOneField → Store</td><td>対象店舗</td></tr>
-<tr><td>open_hour</td><td>IntegerField(0-23)</td><td>開店時刻</td></tr>
-<tr><td>close_hour</td><td>IntegerField(0-23)</td><td>閉店時刻</td></tr>
-<tr><td>slot_duration</td><td>IntegerField</td><td>予約枠（15/30/45/60分）</td></tr>
-</table>
-
-<h2>3.3 予約管理</h2>
-<h3>Schedule（予約）</h3>
-<table>
-<tr><th>フィールド</th><th>型</th><th>説明</th></tr>
-<tr><td>reservation_number</td><td>CharField(255, unique)</td><td>予約番号（UUID）</td></tr>
-<tr><td>start</td><td>DateTimeField</td><td>開始日時</td></tr>
-<tr><td>end</td><td>DateTimeField</td><td>終了日時</td></tr>
-<tr><td>staff</td><td>ForeignKey → Staff</td><td>担当スタッフ</td></tr>
-<tr><td>customer_name</td><td>CharField(255, null)</td><td>顧客名</td></tr>
-<tr><td>hashed_id</td><td>CharField(255, null)</td><td>ハッシュ済 ID</td></tr>
-<tr><td>line_user_hash</td><td>CharField(64, null)</td><td>LINE ID ハッシュ</td></tr>
-<tr><td>line_user_enc</td><td>TextField(null)</td><td>LINE ID 暗号化</td></tr>
-<tr><td>is_temporary</td><td>BooleanField</td><td>仮予約フラグ</td></tr>
-<tr><td>is_cancelled</td><td>BooleanField</td><td>キャンセルフラグ</td></tr>
-<tr><td>price</td><td>IntegerField</td><td>料金</td></tr>
-<tr><td>memo</td><td>TextField</td><td>メモ</td></tr>
-<tr><td>temporary_booked_at</td><td>DateTimeField(null)</td><td>仮予約日時</td></tr>
-<tr><td>booking_channel</td><td>CharField(choices)</td><td>line / email</td></tr>
-<tr><td>customer_email</td><td>EmailField(null)</td><td>メールアドレス</td></tr>
-<tr><td>email_otp_hash</td><td>CharField(64, null)</td><td>OTP ハッシュ</td></tr>
-<tr><td>email_otp_expires</td><td>DateTimeField(null)</td><td>OTP 有効期限</td></tr>
-<tr><td>email_verified</td><td>BooleanField</td><td>メール認証済</td></tr>
-<tr><td>payment_url</td><td>URLField(null)</td><td>決済 URL</td></tr>
-<tr><td>checkin_qr</td><td>ImageField</td><td>チェックイン QR</td></tr>
-<tr><td>is_checked_in</td><td>BooleanField</td><td>チェックイン済</td></tr>
-<tr><td>checked_in_at</td><td>DateTimeField(null)</td><td>チェックイン日時</td></tr>
-</table>
-
-<h2>3.4 IoT デバイス</h2>
-<h3>IoTDevice</h3>
-<table>
-<tr><th>フィールド</th><th>型</th><th>説明</th></tr>
-<tr><td>name</td><td>CharField(100)</td><td>デバイス名</td></tr>
-<tr><td>store</td><td>ForeignKey → Store</td><td>設置店舗</td></tr>
-<tr><td>device_type</td><td>CharField(choices)</td><td>multi / door / other</td></tr>
-<tr><td>external_id</td><td>CharField(255, unique)</td><td>AWS デバイス ID</td></tr>
-<tr><td>api_key_hash</td><td>CharField(64)</td><td>API キー SHA-256 ハッシュ</td></tr>
-<tr><td>api_key_prefix</td><td>CharField(8)</td><td>表示用プレフィックス</td></tr>
-<tr><td>mq9_threshold</td><td>FloatField(null)</td><td>MQ-9 ガスセンサー閾値</td></tr>
-<tr><td>alert_enabled</td><td>BooleanField</td><td>アラート有効</td></tr>
-<tr><td>alert_email</td><td>EmailField</td><td>アラート送信先メール</td></tr>
-<tr><td>alert_line_user_id</td><td>CharField(255)</td><td>アラート送信先 LINE</td></tr>
-<tr><td>wifi_ssid</td><td>CharField(64)</td><td>Wi-Fi SSID</td></tr>
-<tr><td>wifi_password_enc</td><td>CharField(512)</td><td>Wi-Fi パスワード（暗号化）</td></tr>
-<tr><td>pending_ir_command</td><td>TextField</td><td>保留中 IR コマンド（JSON）</td></tr>
-<tr><td>is_active</td><td>BooleanField</td><td>有効フラグ</td></tr>
-<tr><td>last_seen_at</td><td>DateTimeField(null)</td><td>最終通信日時</td></tr>
-</table>
-
-<h3>IoTEvent（センサーイベント）</h3>
-<table>
-<tr><th>フィールド</th><th>型</th><th>説明</th></tr>
-<tr><td>device</td><td>ForeignKey → IoTDevice</td><td>デバイス</td></tr>
-<tr><td>created_at</td><td>DateTimeField(auto)</td><td>記録日時</td></tr>
-<tr><td>event_type</td><td>CharField(50)</td><td>イベント種別</td></tr>
-<tr><td>payload</td><td>TextField</td><td>JSON ペイロード</td></tr>
-<tr><td>mq9_value</td><td>FloatField(null)</td><td>ガスセンサー値</td></tr>
-<tr><td>light_value</td><td>FloatField(null)</td><td>照度センサー値</td></tr>
-<tr><td>sound_value</td><td>FloatField(null)</td><td>音センサー値</td></tr>
-<tr><td>pir_triggered</td><td>BooleanField(null)</td><td>人感センサー検知</td></tr>
-</table>
-
-<h3>IRCode（赤外線リモコンコード）</h3>
-<table>
-<tr><th>フィールド</th><th>型</th><th>説明</th></tr>
-<tr><td>device</td><td>ForeignKey → IoTDevice</td><td>デバイス</td></tr>
-<tr><td>name</td><td>CharField(100)</td><td>コード名</td></tr>
-<tr><td>protocol</td><td>CharField(20)</td><td>プロトコル（NEC等）</td></tr>
-<tr><td>code</td><td>CharField(20)</td><td>IRコード値</td></tr>
-<tr><td>raw_data</td><td>TextField</td><td>生データ</td></tr>
-</table>
-
-<h2>3.5 商品・注文・在庫</h2>
-<h3>Category（カテゴリ）</h3>
-<table>
-<tr><th>フィールド</th><th>型</th><th>説明</th></tr>
-<tr><td>store</td><td>ForeignKey → Store</td><td>店舗</td></tr>
-<tr><td>name</td><td>CharField(100)</td><td>カテゴリ名</td></tr>
-<tr><td>sort_order</td><td>IntegerField</td><td>表示順</td></tr>
-</table>
-
-<h3>Product（商品）</h3>
-<table>
-<tr><th>フィールド</th><th>型</th><th>説明</th></tr>
-<tr><td>store</td><td>ForeignKey → Store</td><td>店舗</td></tr>
-<tr><td>category</td><td>ForeignKey → Category(null)</td><td>カテゴリ</td></tr>
-<tr><td>sku</td><td>CharField(64)</td><td>商品コード</td></tr>
-<tr><td>name</td><td>CharField(200)</td><td>商品名</td></tr>
-<tr><td>description</td><td>TextField</td><td>商品説明</td></tr>
-<tr><td>price</td><td>IntegerField</td><td>価格</td></tr>
-<tr><td>stock</td><td>IntegerField</td><td>在庫数</td></tr>
-<tr><td>low_stock_threshold</td><td>IntegerField</td><td>低在庫閾値</td></tr>
-<tr><td>is_active</td><td>BooleanField</td><td>有効フラグ</td></tr>
-<tr><td>is_ec_visible</td><td>BooleanField</td><td>EC ショップ表示</td></tr>
-<tr><td>image</td><td>ImageField</td><td>商品画像</td></tr>
-<tr><td>popularity</td><td>IntegerField</td><td>人気スコア</td></tr>
-<tr><td>margin_rate</td><td>FloatField</td><td>利益率</td></tr>
-</table>
-
-<h3>ProductTranslation（商品翻訳）</h3>
-<table>
-<tr><th>フィールド</th><th>型</th><th>説明</th></tr>
-<tr><td>product</td><td>ForeignKey → Product</td><td>商品</td></tr>
-<tr><td>lang</td><td>CharField(10)</td><td>言語コード</td></tr>
-<tr><td>name</td><td>CharField(200)</td><td>翻訳名</td></tr>
-<tr><td>description</td><td>TextField</td><td>翻訳説明</td></tr>
-</table>
-<p class="info">unique_together: (product, lang) — 1商品につき各言語1翻訳</p>
-
-<h3>Order（注文）</h3>
-<table>
-<tr><th>フィールド</th><th>型</th><th>説明</th></tr>
-<tr><td>store</td><td>ForeignKey → Store</td><td>店舗</td></tr>
-<tr><td>schedule</td><td>ForeignKey → Schedule(null)</td><td>関連予約</td></tr>
-<tr><td>table_label</td><td>CharField(50)</td><td>テーブル番号</td></tr>
-<tr><td>table_seat</td><td>ForeignKey → TableSeat(null)</td><td>テーブル席</td></tr>
-<tr><td>status</td><td>CharField(choices)</td><td>OPEN / CLOSED</td></tr>
-<tr><td>created_at</td><td>DateTimeField(auto)</td><td>作成日時</td></tr>
-</table>
-
-<h3>OrderItem（注文明細）</h3>
-<table>
-<tr><th>フィールド</th><th>型</th><th>説明</th></tr>
-<tr><td>order</td><td>ForeignKey → Order</td><td>注文</td></tr>
-<tr><td>product</td><td>ForeignKey → Product</td><td>商品</td></tr>
-<tr><td>qty</td><td>IntegerField</td><td>数量</td></tr>
-<tr><td>unit_price</td><td>IntegerField</td><td>単価</td></tr>
-<tr><td>status</td><td>CharField(choices)</td><td>ORDERED → PREPARING → SERVED → CLOSED</td></tr>
-<tr><td>note</td><td>CharField(255)</td><td>備考</td></tr>
-</table>
-
-<h3>StockMovement（在庫移動）</h3>
-<table>
-<tr><th>フィールド</th><th>型</th><th>説明</th></tr>
-<tr><td>store</td><td>ForeignKey → Store</td><td>店舗</td></tr>
-<tr><td>product</td><td>ForeignKey → Product</td><td>商品</td></tr>
-<tr><td>movement_type</td><td>CharField(choices)</td><td>IN / OUT / ADJUST</td></tr>
-<tr><td>qty</td><td>IntegerField</td><td>数量</td></tr>
-<tr><td>by_staff</td><td>ForeignKey → Staff(null)</td><td>操作者</td></tr>
-<tr><td>note</td><td>CharField(255)</td><td>備考</td></tr>
-</table>
-
-<h2>3.6 物件管理</h2>
-<h3>Property（物件）</h3>
-<table>
-<tr><th>フィールド</th><th>型</th><th>説明</th></tr>
-<tr><td>name</td><td>CharField(200)</td><td>物件名</td></tr>
-<tr><td>address</td><td>CharField(300)</td><td>住所</td></tr>
-<tr><td>property_type</td><td>CharField(choices)</td><td>apartment / house / office / store</td></tr>
-<tr><td>owner_name</td><td>CharField(100)</td><td>オーナー名</td></tr>
-<tr><td>owner_contact</td><td>CharField(200)</td><td>オーナー連絡先</td></tr>
-<tr><td>store</td><td>ForeignKey → Store(null)</td><td>関連店舗</td></tr>
-<tr><td>is_active</td><td>BooleanField</td><td>有効フラグ</td></tr>
-</table>
-
-<h3>PropertyDevice / PropertyAlert</h3>
-<p>PropertyDevice: 物件とIoTデバイスの紐付け（location_label で設置場所を記録）。<br>
-PropertyAlert: ガス漏れ（gas_leak）、動体未検知（no_motion）、デバイスオフライン（device_offline）のアラート。severity は critical / warning / info。</p>
-
-<h2>3.7 シフト管理</h2>
-<h3>ShiftPeriod（シフト期間）</h3>
-<table>
-<tr><th>フィールド</th><th>型</th><th>説明</th></tr>
-<tr><td>store</td><td>ForeignKey → Store</td><td>店舗</td></tr>
-<tr><td>year_month</td><td>DateField</td><td>対象月</td></tr>
-<tr><td>deadline</td><td>DateTimeField</td><td>申請締切</td></tr>
-<tr><td>status</td><td>CharField(choices)</td><td>open → closed → scheduled → approved</td></tr>
-</table>
-
-<h3>ShiftRequest / ShiftAssignment</h3>
-<p>ShiftRequest: スタッフの希望シフト（preference: available / preferred / unavailable）。<br>
-ShiftAssignment: 確定シフト（is_synced で Schedule への同期状態を管理）。</p>
-
-<h2>3.8 テーブル・決済</h2>
-<h3>TableSeat（テーブル席）</h3>
-<table>
-<tr><th>フィールド</th><th>型</th><th>説明</th></tr>
-<tr><td>id</td><td>UUIDField(PK)</td><td>UUID 主キー</td></tr>
-<tr><td>store</td><td>ForeignKey → Store</td><td>店舗</td></tr>
-<tr><td>label</td><td>CharField(50)</td><td>テーブル名（例: A1）</td></tr>
-<tr><td>is_active</td><td>BooleanField</td><td>有効フラグ</td></tr>
-<tr><td>qr_code</td><td>ImageField</td><td>QR コード画像</td></tr>
-</table>
-
-<h3>PaymentMethod（決済方法）</h3>
-<table>
-<tr><th>フィールド</th><th>型</th><th>説明</th></tr>
-<tr><td>store</td><td>ForeignKey → Store</td><td>店舗</td></tr>
-<tr><td>method_type</td><td>CharField(choices)</td><td>cash / coiney / paypay / ic / other</td></tr>
-<tr><td>display_name</td><td>CharField(100)</td><td>表示名</td></tr>
-<tr><td>is_enabled</td><td>BooleanField</td><td>有効フラグ</td></tr>
-<tr><td>api_key / api_secret</td><td>CharField</td><td>API 認証情報</td></tr>
-<tr><td>extra_config</td><td>JSONField</td><td>追加設定</td></tr>
-</table>
-
-<h2>3.9 給与管理</h2>
-<h3>EmploymentContract（雇用契約）</h3>
-<table>
-<tr><th>フィールド</th><th>型</th><th>説明</th></tr>
-<tr><td>staff</td><td>OneToOneField → Staff</td><td>スタッフ</td></tr>
-<tr><td>employment_type</td><td>CharField</td><td>full_time / part_time / contract</td></tr>
-<tr><td>pay_type</td><td>CharField</td><td>hourly / monthly</td></tr>
-<tr><td>hourly_rate</td><td>IntegerField</td><td>時給</td></tr>
-<tr><td>monthly_salary</td><td>IntegerField</td><td>月給</td></tr>
-<tr><td>通勤・住宅・家族手当</td><td>IntegerField × 3</td><td>各種手当</td></tr>
-<tr><td>standard_monthly_remuneration</td><td>IntegerField</td><td>標準報酬月額（社保基準）</td></tr>
-<tr><td>resident_tax_monthly</td><td>IntegerField</td><td>住民税月額</td></tr>
-<tr><td>birth_date</td><td>DateField(null)</td><td>生年月日（介護保険判定用）</td></tr>
-</table>
-
-<h3>PayrollPeriod / PayrollEntry / PayrollDeduction</h3>
-<p>PayrollPeriod: 給与計算期間（status: draft → calculating → confirmed → paid）。<br>
-PayrollEntry: 個人別給与明細（労働時間・基本給・残業代・控除・手取り）。<br>
-PayrollDeduction: 控除項目（所得税・住民税・厚生年金・健保・雇用保険・介護保険・労災）。</p>
-
-<h3>SalaryStructure（給与計算設定）</h3>
-<table>
-<tr><th>フィールド</th><th>型</th><th>説明</th></tr>
-<tr><td>pension_rate</td><td>Decimal(5,3)</td><td>厚生年金率 %（デフォルト 9.150）</td></tr>
-<tr><td>health_insurance_rate</td><td>Decimal(5,3)</td><td>健康保険率 %（デフォルト 5.000）</td></tr>
-<tr><td>employment_insurance_rate</td><td>Decimal(5,3)</td><td>雇用保険率 %（デフォルト 0.600）</td></tr>
-<tr><td>long_term_care_rate</td><td>Decimal(5,3)</td><td>介護保険率 %（40歳以上, デフォルト 0.820）</td></tr>
-<tr><td>workers_comp_rate</td><td>Decimal(5,3)</td><td>労災保険率 %（デフォルト 0.300）</td></tr>
-<tr><td>overtime_multiplier</td><td>Decimal(4,2)</td><td>残業倍率（デフォルト 1.25）</td></tr>
-<tr><td>late_night_multiplier</td><td>Decimal(4,2)</td><td>深夜倍率（デフォルト 1.35）</td></tr>
-<tr><td>holiday_multiplier</td><td>Decimal(4,2)</td><td>休日倍率（デフォルト 1.50）</td></tr>
-</table>
-
-<h2>3.10 CMS・ホームページ</h2>
-<h3>SiteSettings（サイト設定・シングルトン）</h3>
-<p>サイト名、表示セクション制御（カード・サイドバー・ランキング等のON/OFF）、SNS連携URL、スタッフ呼称（デフォルト：キャスト）、プライバシーポリシー・特商法HTMLなど。</p>
-
-<h3>HomepageCustomBlock / HeroBanner / BannerAd / ExternalLink</h3>
-<p>ホームページのカスタムHTMLブロック、ヒーローバナー（画像+リンク先設定）、バナー広告（5つの配置位置）、外部リンク。いずれも sort_order / is_active で表示制御。</p>
-
-<h2>3.11 管理画面カスタマイズ</h2>
-<h3>AdminTheme / DashboardLayout / AdminMenuConfig</h3>
-<p>AdminTheme: 店舗ごとの管理画面テーマカラー。DashboardLayout: ユーザーごとのダッシュボードレイアウト（JSON）+ダークモード。AdminMenuConfig: ロール別管理画面メニュー許可設定。</p>
-
-<h2>3.12 セキュリティ・監視</h2>
-<h3>SecurityAudit / SecurityLog / CostReport / SystemConfig</h3>
-<p>SecurityAudit: セキュリティ監査結果（category: django_settings / credentials / endpoints / infrastructure / dependencies）。SecurityLog: ログイン・認証失敗・レート制限イベント。CostReport: AWS コストレポート。SystemConfig: Key-Value 設定ストア（シングルトンパターン）。</p>
-
-<h2>3.13 会社情報・お知らせ</h2>
-<h3>Company / Notice / Media</h3>
-<p>Company: 会社名・住所・電話番号。Notice: お知らせ（タイトル・リンク・本文）。Media: メディア掲載情報（URLからサムネイル自動取得、内部ネットワークアクセス防止セキュリティチェック付き）。</p>
-
-<h1>4. 画面一覧・URLマップ</h1>
-<h2>4.1 顧客向けページ（booking/urls.py）</h2>
-<table>
-<tr><th>URL</th><th>ビュー</th><th>name</th><th>説明</th></tr>
-<tr><td><code>/</code></td><td>BookingTopPage</td><td>booking_top</td><td>トップページ</td></tr>
-<tr><td><code>/stores/</code></td><td>StoreList</td><td>store_list</td><td>店舗一覧</td></tr>
-<tr><td><code>/fortune-tellers/</code></td><td>AllFortuneTellerList</td><td>all_fortune_tellers</td><td>キャスト一覧</td></tr>
-<tr><td><code>/date-calendar/</code></td><td>DateFirstCalendar</td><td>date_first_calendar</td><td>日付優先カレンダー</td></tr>
-<tr><td><code>/store/&lt;id&gt;/staffs/</code></td><td>StaffList</td><td>staff_list</td><td>店舗スタッフ一覧</td></tr>
-<tr><td><code>/staff/&lt;id&gt;/calendar/</code></td><td>StaffCalendar</td><td>staff_calendar</td><td>スタッフカレンダー</td></tr>
-<tr><td><code>/staff/&lt;id&gt;/prebooking/...</code></td><td>PreBooking</td><td>prebooking</td><td>予約フォーム</td></tr>
-<tr><td><code>/booking/channel-choice/</code></td><td>BookingChannelChoice</td><td>channel_choice</td><td>LINE/メール選択</td></tr>
-<tr><td><code>/booking/email/</code></td><td>EmailBookingView</td><td>email_booking</td><td>メール予約フォーム</td></tr>
-<tr><td><code>/booking/email/verify/</code></td><td>EmailVerifyView</td><td>email_verify</td><td>メール OTP 認証</td></tr>
-<tr><td><code>/line_enter/</code></td><td>LineEnterView</td><td>line_enter</td><td>LINE ログイン開始</td></tr>
-<tr><td><code>/booking/login/line/success/</code></td><td>LineCallbackView</td><td>line_success</td><td>LINE OAuth コールバック</td></tr>
-<tr><td><code>/cancel_reservation/&lt;id&gt;/</code></td><td>CancelReservationView</td><td>cancel_reservation</td><td>予約キャンセル</td></tr>
-<tr><td><code>/reservation/&lt;no&gt;/qr/</code></td><td>ReservationQRView</td><td>reservation_qr</td><td>予約 QR コード</td></tr>
-<tr><td><code>/checkin/</code></td><td>CheckinScanView</td><td>checkin_scan</td><td>QR チェックインスキャン</td></tr>
-<tr><td><code>/privacy/</code></td><td>PrivacyPolicyView</td><td>privacy_policy</td><td>プライバシーポリシー</td></tr>
-<tr><td><code>/tokushoho/</code></td><td>TokushohoView</td><td>tokushoho</td><td>特定商取引法に基づく表記</td></tr>
-<tr><td><code>/help/</code></td><td>HelpView</td><td>help</td><td>ヘルプページ</td></tr>
-</table>
-
-<h2>4.2 スタッフ向けページ</h2>
-<table>
-<tr><th>URL</th><th>ビュー</th><th>name</th><th>説明</th></tr>
-<tr><td><code>/mypage/</code></td><td>MyPage</td><td>my_page</td><td>マイページ</td></tr>
-<tr><td><code>/mypage/&lt;id&gt;/</code></td><td>MyPageWithPk</td><td>my_page_with_pk</td><td>マイページ（ID指定）</td></tr>
-<tr><td><code>/mypage/&lt;id&gt;/calendar/</code></td><td>MyPageCalendar</td><td>my_page_calendar</td><td>スケジュールカレンダー</td></tr>
-<tr><td><code>/mypage/&lt;id&gt;/config/.../</code></td><td>MyPageDayDetail</td><td>my_page_day_detail</td><td>日別設定</td></tr>
-<tr><td><code>/mypage/schedule/&lt;id&gt;/</code></td><td>MyPageSchedule</td><td>my_page_schedule</td><td>予約編集</td></tr>
-<tr><td><code>/shift/</code></td><td>StaffShiftCalendarView</td><td>staff_shift_calendar</td><td>シフトカレンダー</td></tr>
-<tr><td><code>/shift/&lt;id&gt;/submit/</code></td><td>StaffShiftSubmitView</td><td>staff_shift_submit</td><td>シフト希望提出</td></tr>
-</table>
-
-<h2>4.3 飲食・注文ページ</h2>
-<table>
-<tr><th>URL</th><th>ビュー</th><th>name</th><th>説明</th></tr>
-<tr><td><code>/menu/&lt;store_id&gt;/</code></td><td>CustomerMenuView</td><td>customer_menu</td><td>メニュー一覧</td></tr>
-<tr><td><code>/stock/inbound/</code></td><td>InboundQRView</td><td>inbound_qr</td><td>QR 入庫</td></tr>
-<tr><td><code>/shop/</code></td><td>ShopView</td><td>shop</td><td>EC ショップ</td></tr>
-<tr><td><code>/shop/cart/</code></td><td>CartView</td><td>shop_cart</td><td>カート</td></tr>
-<tr><td><code>/shop/checkout/</code></td><td>ShopCheckoutView</td><td>shop_checkout</td><td>チェックアウト</td></tr>
-</table>
-
-<h2>4.4 テーブル注文（table_urls.py）</h2>
-<table>
-<tr><th>URL</th><th>ビュー</th><th>name</th><th>説明</th></tr>
-<tr><td><code>/table/&lt;uuid&gt;/</code></td><td>TableMenuView</td><td>table_menu</td><td>テーブルメニュー</td></tr>
-<tr><td><code>/table/&lt;uuid&gt;/cart/</code></td><td>TableCartView</td><td>table_cart</td><td>テーブルカート</td></tr>
-<tr><td><code>/table/&lt;uuid&gt;/order/</code></td><td>TableOrderView</td><td>table_order</td><td>テーブル注文確認</td></tr>
-<tr><td><code>/table/&lt;uuid&gt;/history/</code></td><td>TableOrderHistoryView</td><td>table_history</td><td>注文履歴</td></tr>
-<tr><td><code>/table/&lt;uuid&gt;/checkout/</code></td><td>TableCheckoutView</td><td>table_checkout</td><td>テーブル会計</td></tr>
-</table>
-
-<h2>4.5 IoT・物件ページ</h2>
-<table>
-<tr><th>URL</th><th>ビュー</th><th>name</th><th>説明</th></tr>
-<tr><td><code>/dashboard/sensors/</code></td><td>IoTSensorDashboardView</td><td>iot_sensor_dashboard</td><td>センサーダッシュボード</td></tr>
-<tr><td><code>/properties/</code></td><td>PropertyListView</td><td>property_list</td><td>物件一覧</td></tr>
-<tr><td><code>/properties/&lt;id&gt;/</code></td><td>PropertyDetailView</td><td>property_detail</td><td>物件詳細</td></tr>
-</table>
-
-<h1>5. APIリファレンス</h1>
-<p>全 API エンドポイントは <code>booking/api_urls.py</code> で定義されています（prefix: <code>/api/</code>）。</p>
-
-<h2>5.1 IoT API</h2>
-<table>
-<tr><th>メソッド</th><th>エンドポイント</th><th>認証</th><th>説明</th></tr>
-<tr><td>POST</td><td><code>/api/iot/events/</code></td><td>API Key (X-API-Key ヘッダー)</td><td>センサーデータ送信</td></tr>
-<tr><td>GET</td><td><code>/api/iot/config/</code></td><td>API Key</td><td>デバイス設定取得（pending_ir_command含む）</td></tr>
-<tr><td>GET</td><td><code>/api/iot/sensors/data/</code></td><td>ログイン</td><td>センサーデータ取得（グラフ用）</td></tr>
-<tr><td>GET</td><td><code>/api/iot/sensors/pir-events/</code></td><td>ログイン</td><td>人感センサーイベント</td></tr>
-<tr><td>GET</td><td><code>/api/iot/sensors/pir-status/</code></td><td>ログイン</td><td>人感センサー状態</td></tr>
-<tr><td>POST</td><td><code>/api/iot/ir/send/</code></td><td>ログイン</td><td>IR コマンド送信</td></tr>
-</table>
-
-<h2>5.2 注文 API</h2>
-<table>
-<tr><th>メソッド</th><th>エンドポイント</th><th>説明</th></tr>
-<tr><td>GET</td><td><code>/api/menu</code></td><td>メニュー JSON 取得（store_id パラメータ）</td></tr>
-<tr><td>GET</td><td><code>/api/products/alternatives/</code></td><td>代替商品提案</td></tr>
-<tr><td>POST</td><td><code>/api/orders/create/</code></td><td>注文作成</td></tr>
-<tr><td>GET</td><td><code>/api/orders/status/</code></td><td>注文ステータス取得</td></tr>
-<tr><td>POST</td><td><code>/api/staff/orders/served/</code></td><td>提供済みマーク</td></tr>
-<tr><td>PATCH</td><td><code>/api/staff/orders/items/&lt;id&gt;/status/</code></td><td>注文品ステータス更新</td></tr>
-</table>
-
-<h2>5.3 テーブル注文 API</h2>
-<table>
-<tr><th>メソッド</th><th>エンドポイント</th><th>説明</th></tr>
-<tr><td>POST</td><td><code>/api/table/&lt;uuid&gt;/cart/add/</code></td><td>テーブルカートに追加</td></tr>
-<tr><td>POST</td><td><code>/api/table/&lt;uuid&gt;/cart/update/</code></td><td>テーブルカート更新</td></tr>
-<tr><td>POST</td><td><code>/api/table/&lt;uuid&gt;/cart/remove/</code></td><td>テーブルカートから削除</td></tr>
-<tr><td>POST</td><td><code>/api/table/&lt;uuid&gt;/order/create/</code></td><td>テーブル注文作成</td></tr>
-<tr><td>GET</td><td><code>/api/table/&lt;uuid&gt;/orders/status/</code></td><td>テーブル注文ステータス</td></tr>
-</table>
-
-<h2>5.4 在庫 API</h2>
-<table>
-<tr><th>メソッド</th><th>エンドポイント</th><th>説明</th></tr>
-<tr><td>POST</td><td><code>/api/stock/inbound/apply/</code></td><td>入庫処理適用</td></tr>
-</table>
-
-<h2>5.5 EC ショップ API</h2>
-<table>
-<tr><th>メソッド</th><th>エンドポイント</th><th>説明</th></tr>
-<tr><td>POST</td><td><code>/api/shop/cart/add/</code></td><td>カートに追加</td></tr>
-<tr><td>POST</td><td><code>/api/shop/cart/update/</code></td><td>カート更新</td></tr>
-<tr><td>POST</td><td><code>/api/shop/cart/remove/</code></td><td>カートから削除</td></tr>
-</table>
-
-<h2>5.6 ダッシュボード API</h2>
-<table>
-<tr><th>メソッド</th><th>エンドポイント</th><th>説明</th></tr>
-<tr><td>GET/POST</td><td><code>/api/dashboard/layout/</code></td><td>ダッシュボードレイアウト取得・保存</td></tr>
-<tr><td>GET</td><td><code>/api/dashboard/reservations/</code></td><td>予約統計</td></tr>
-<tr><td>GET</td><td><code>/api/dashboard/sales/</code></td><td>売上統計</td></tr>
-<tr><td>GET</td><td><code>/api/dashboard/staff-performance/</code></td><td>スタッフ実績</td></tr>
-<tr><td>GET</td><td><code>/api/dashboard/shift-summary/</code></td><td>シフトサマリー</td></tr>
-</table>
-
-<h2>5.7 物件 API</h2>
-<table>
-<tr><th>メソッド</th><th>エンドポイント</th><th>説明</th></tr>
-<tr><td>GET</td><td><code>/api/properties/&lt;id&gt;/status/</code></td><td>物件ステータス</td></tr>
-<tr><td>POST</td><td><code>/api/alerts/&lt;id&gt;/resolve/</code></td><td>アラート解決</td></tr>
-</table>
-
-<h2>5.8 チェックイン API</h2>
-<table>
-<tr><th>メソッド</th><th>エンドポイント</th><th>説明</th></tr>
-<tr><td>POST</td><td><code>/api/checkin/</code></td><td>QR チェックイン処理</td></tr>
-</table>
-
-<h2>5.9 AI チャット API</h2>
-<table>
-<tr><th>メソッド</th><th>エンドポイント</th><th>説明</th></tr>
-<tr><td>POST</td><td><code>/api/chat/admin/</code></td><td>管理者向け AI チャット</td></tr>
-<tr><td>POST</td><td><code>/api/chat/guide/</code></td><td>ガイド AI チャット</td></tr>
-</table>
-
-<h2>5.10 デバッグ API</h2>
-<table>
-<tr><th>メソッド</th><th>エンドポイント</th><th>説明</th></tr>
-<tr><td>GET</td><td><code>/api/debug/panel/</code></td><td>デバッグパネルデータ</td></tr>
-<tr><td>POST</td><td><code>/api/debug/log-level/</code></td><td>ログレベル動的変更</td></tr>
-</table>
-
-<h2>5.11 予約時刻 API</h2>
-<table>
-<tr><th>メソッド</th><th>エンドポイント</th><th>説明</th></tr>
-<tr><td>GET</td><td><code>/api/endTime</code></td><td>終了時刻 JSON</td></tr>
-<tr><td>GET</td><td><code>/api/currentTime</code></td><td>現在時刻 JSON</td></tr>
-<tr><td>GET</td><td><code>/api/reservation/&lt;id&gt;/</code></td><td>予約時刻取得</td></tr>
-<tr><td>GET</td><td><code>/api/reservation_times/&lt;id&gt;/</code></td><td>予約時刻一覧</td></tr>
-</table>
-
-<h1>6. 管理画面の操作手順</h1>
-<h2>6.1 アクセス方法</h2>
-<p>管理画面は <code>/admin/</code> でアクセスします。カスタム管理サイト <code>RoleBasedAdminSite</code> を使用しており、ユーザーのロールに応じてメニューが動的にフィルタリングされます。</p>
-
-<h2>6.2 ロールベースアクセス制御</h2>
-<table>
-<tr><th>ロール</th><th>判定条件</th><th>権限範囲</th></tr>
-<tr><td>superuser</td><td>User.is_superuser = True</td><td>全モデル表示（Django 標準権限）</td></tr>
-<tr><td>developer</td><td>Staff.is_developer = True</td><td>全モデル表示</td></tr>
-<tr><td>owner</td><td>Staff.is_owner = True</td><td>全モデル表示</td></tr>
-<tr><td>manager</td><td>Staff.is_store_manager = True</td><td>約30モデル（予約・注文・商品・シフト・給与・IoT・物件・CMS等）</td></tr>
-<tr><td>staff</td><td>上記いずれでもない Staff</td><td>7モデル（予約・注文・スタッフ・IoT・商品・シフト申請）</td></tr>
-</table>
-
-<h2>6.3 GROUP_MAP（メニューグループ定義）</h2>
-<p>管理画面のメニューは以下の15グループに整理されて表示されます：</p>
-<table>
-<tr><th>グループ名</th><th>含まれるモデル</th></tr>
-<tr><td>予約管理</td><td>Schedule</td></tr>
-<tr><td>シフト管理</td><td>ShiftPeriod, ShiftRequest, ShiftAssignment</td></tr>
-<tr><td>キャスト管理</td><td>Staff, Store, StoreScheduleConfig</td></tr>
-<tr><td>給与管理</td><td>PayrollPeriod, PayrollEntry, EmploymentContract, SalaryStructure</td></tr>
-<tr><td>勤怠管理</td><td>WorkAttendance</td></tr>
-<tr><td>在庫管理</td><td>Category, Product</td></tr>
-<tr><td>注文管理</td><td>Order</td></tr>
-<tr><td>テーブル注文</td><td>TableSeat, PaymentMethod</td></tr>
-<tr><td>IoT管理</td><td>IoTDevice</td></tr>
-<tr><td>物件管理</td><td>Property</td></tr>
-<tr><td>予約ページ情報</td><td>Company, Notice, Media</td></tr>
-<tr><td>ページ設定</td><td>SiteSettings, HomepageCustomBlock, HeroBanner, BannerAd, ExternalLink</td></tr>
-<tr><td>システム</td><td>SystemConfig, AdminTheme, DashboardLayout, AdminMenuConfig</td></tr>
-<tr><td>セキュリティ</td><td>SecurityAudit, SecurityLog, CostReport</td></tr>
-<tr><td>ユーザーアカウント管理</td><td>User, Group</td></tr>
-</table>
-
-<h2>6.4 メニュー設定のカスタマイズ</h2>
-<p><code>AdminMenuConfig</code> モデルでロールごとの表示メニューを DB から動的に変更可能です。5分間のキャッシュ TTL あり。DB に設定がない場合は <code>DEFAULT_ALLOWED_MODELS</code> にフォールバックします。</p>
-
-<h1>7. 予約フロー</h1>
-<h2>7.1 LINE 予約フロー</h2>
+<blockquote>
+<p><strong>注意:</strong> Light（照度）センサーは未接続のため無効化されています（<code>FEATURE_LIGHT = False</code>）。</p>
+</blockquote>
+<h3 id="22">2.2 電源投入と起動</h3>
 <ol>
-<li>顧客がトップページで店舗 → スタッフ → 日時を選択</li>
-<li><code>/booking/channel-choice/</code> で LINE を選択</li>
-<li><code>/line_enter/</code> → LINE OAuth2 認証開始</li>
-<li>LINE ログイン成功 → <code>/booking/login/line/success/</code> コールバック</li>
-<li>仮予約（Schedule）作成（<code>is_temporary=True</code>）</li>
-<li>LINE User ID を暗号化（Fernet）＋ハッシュ（SHA-256 + pepper）して保存</li>
-<li>決済 URL（Coiney）を生成し <code>payment_url</code> に保存</li>
-<li>顧客が決済完了 → Webhook で <code>is_temporary=False</code> に更新</li>
-<li>チェックイン QR コード生成・保存</li>
+<li><strong>USB-C電源アダプター</strong>（5V/1A以上）をPico 2Wに接続</li>
+<li>自動的に<code>code.py</code>が実行開始</li>
+<li>WiFi接続を試行（成功でLED点灯）</li>
+<li>サーバーから設定取得 → センサー読取開始</li>
 </ol>
-<div class="note">仮予約は Celery タスク（毎分実行）で 10分超過分を自動削除します。</div>
-
-<h2>7.2 メール予約フロー</h2>
-<ol>
-<li>顧客が <code>/booking/channel-choice/</code> で「メール」を選択</li>
-<li><code>/booking/email/</code> でメールアドレス入力</li>
-<li>OTP（ワンタイムパスワード）をメール送信</li>
-<li><code>/booking/email/verify/</code> で OTP 入力・認証</li>
-<li>認証成功 → 仮予約作成（<code>booking_channel='email'</code>, <code>email_verified=True</code>）</li>
-<li>以降は LINE フローと同じ（決済→確定→QR生成）</li>
-</ol>
-
-<h2>7.3 チェックイン</h2>
-<ol>
-<li>店舗スタッフが <code>/checkin/</code> で QR スキャナーを起動</li>
-<li>顧客のチェックイン QR コードを読み取り</li>
-<li><code>/api/checkin/</code> API でチェックイン処理</li>
-<li><code>is_checked_in=True</code>, <code>checked_in_at</code> 記録</li>
-</ol>
-
-<h2>7.4 予約キャンセル</h2>
-<p><code>/cancel_reservation/&lt;schedule_id&gt;/</code> で予約をキャンセル。<code>is_cancelled=True</code> に更新。</p>
-
-<h1>8. 決済連携</h1>
-<h2>8.1 Coiney 決済フロー</h2>
-<ol>
-<li>仮予約作成時に決済 API（<code>PAYMENT_API_URL</code>）に決済リクエスト送信</li>
-<li><code>PAYMENT_API_KEY</code> で API 認証</li>
-<li>決済 URL を取得 → Schedule の <code>payment_url</code> に保存</li>
-<li>顧客を決済ページにリダイレクト</li>
-<li>決済完了 → Coiney が Webhook を送信</li>
-</ol>
-
-<h2>8.2 Webhook 処理</h2>
-<pre><code># URL: /api/coiney/webhook/&lt;orderId&gt;/
-# ビュー: coiney_webhook(request, orderId)
-# 処理:
-#   1. orderId で Schedule を検索
-#   2. is_temporary = False に更新（確定）
-#   3. チェックイン QR コード生成
-#   4. LINE で確認メッセージ送信</code></pre>
-
-<h2>8.3 PaymentMethod モデル</h2>
-<p>店舗ごとに複数の決済方法を設定可能：cash / coiney / paypay / ic / other。<code>api_key</code>, <code>api_secret</code>, <code>extra_config</code>（JSON）で各決済プロバイダーの設定を管理。</p>
-
-<h1>9. QRテーブル注文</h1>
-<h2>9.1 概要</h2>
-<p>テーブルに設置した QR コードをスマートフォンで読み取り、メニュー閲覧→カート→注文→会計をセルフサービスで完結するシステム。</p>
-
-<h2>9.2 フロー</h2>
-<ol>
-<li><strong>QR 読み取り</strong> → <code>/table/&lt;uuid&gt;/</code> テーブルメニュー表示</li>
-<li><strong>商品選択</strong> → <code>/api/table/&lt;uuid&gt;/cart/add/</code> でカート追加</li>
-<li><strong>カート確認</strong> → <code>/table/&lt;uuid&gt;/cart/</code></li>
-<li><strong>注文確定</strong> → <code>/api/table/&lt;uuid&gt;/order/create/</code></li>
-<li><strong>注文状況</strong> → <code>/api/table/&lt;uuid&gt;/orders/status/</code> でリアルタイム確認</li>
-<li><strong>注文履歴</strong> → <code>/table/&lt;uuid&gt;/history/</code></li>
-<li><strong>会計</strong> → <code>/table/&lt;uuid&gt;/checkout/</code></li>
-</ol>
-
-<h2>9.3 注文ステータス遷移</h2>
-<pre><code>ORDERED → PREPARING → SERVED → CLOSED
-  注文済     調理中      提供済    会計済</code></pre>
-<p>スタッフは <code>/api/staff/orders/items/&lt;id&gt;/status/</code> で各アイテムのステータスを更新。</p>
-
-<h2>9.4 テーブル管理</h2>
-<p>管理画面の「テーブル注文」グループから <code>TableSeat</code> を登録。UUID ベースの QR コード画像が自動生成されます。</p>
-
-<h1>10. IoTデバイス管理</h1>
-<h2>10.1 デバイス登録</h2>
-<p>管理画面の「IoT管理」から <code>IoTDevice</code> を登録。デバイスタイプ：multi（マルチセンサー）/ door（ドアセンサー）/ other。</p>
-
-<h2>10.2 API 認証</h2>
-<p>デバイスは <code>X-API-Key</code> ヘッダーで認証。API キーは SHA-256 ハッシュで保存（平文は保存しない）。登録時にのみ平文表示。</p>
-
-<h2>10.3 センサーデータ送信</h2>
-<pre><code>POST /api/iot/events/
-Headers: X-API-Key: &lt;api_key&gt;
-Body: {
-  "event_type": "sensor_reading",
-  "mq9_value": 150.5,    // ガスセンサー値
-  "light_value": 450.0,  // 照度値
-  "sound_value": 35.2,   // 音量値
-  "pir_triggered": false  // 人感センサー
-}</code></pre>
-
-<h2>10.4 ガスアラート</h2>
-<p><code>mq9_value</code> が <code>mq9_threshold</code> を超えた場合、Celery タスク <code>trigger_gas_alert</code> が発火。メール＋LINE で緊急通知。</p>
-
-<h2>10.5 IR スマートハブ</h2>
-<ol>
-<li>管理画面で <code>IRCode</code>（学習済み赤外線コード）を登録</li>
-<li><code>POST /api/iot/ir/send/</code> でコマンド送信</li>
-<li>デバイスが <code>GET /api/iot/config/</code> で <code>pending_ir_command</code> を取得して実行</li>
-</ol>
-
-<h2>10.6 Wi-Fi パスワード管理</h2>
-<p>デバイスの Wi-Fi パスワードは Fernet 暗号化して保存。<code>set_wifi_password()</code> / <code>get_wifi_password()</code> メソッドで暗号化・復号。</p>
-
-<h2>10.7 センサーダッシュボード</h2>
-<p><code>/dashboard/sensors/</code> でリアルタイムセンサーデータを可視化。API: <code>/api/iot/sensors/data/</code>, <code>/api/iot/sensors/pir-events/</code>, <code>/api/iot/sensors/pir-status/</code>。</p>
-
-<h1>11. 物件管理・監視</h1>
-<h2>11.1 物件登録</h2>
-<p>管理画面「物件管理」から <code>Property</code> を登録。property_type: apartment / house / office / store。IoTDevice を <code>PropertyDevice</code> で紐付け、設置場所（location_label）を記録。</p>
-
-<h2>11.2 アラート機能</h2>
+<h3 id="23-led">2.3 LED状態表示</h3>
 <table>
-<tr><th>アラートタイプ</th><th>トリガー条件</th><th>severity</th></tr>
-<tr><td>gas_leak</td><td>MQ-9 値が閾値を超過</td><td>critical</td></tr>
-<tr><td>no_motion</td><td>一定期間 PIR 検知なし</td><td>warning</td></tr>
-<tr><td>device_offline</td><td>デバイスが一定期間通信なし</td><td>warning</td></tr>
-<tr><td>custom</td><td>カスタム条件</td><td>設定による</td></tr>
+<thead>
+<tr>
+<th>LED状態</th>
+<th>意味</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>常時点灯</td>
+<td>WiFi接続済み・正常動作中</td>
+</tr>
+<tr>
+<td>0.5秒間隔で点滅</td>
+<td>セットアップモード（AP起動中）</td>
+</tr>
+<tr>
+<td>ゆっくり点滅</td>
+<td>WiFi切断・再接続試行中</td>
+</tr>
+<tr>
+<td>消灯</td>
+<td>初期化中またはエラー</td>
+</tr>
+</tbody>
 </table>
-
-<h2>11.3 定期チェック</h2>
-<p>Celery Beat で5分間隔で <code>check_property_alerts</code> タスクを実行。アラート発生時は <code>PropertyAlert</code> レコードを作成。</p>
-
-<h2>11.4 アラート解決</h2>
-<p><code>POST /api/alerts/&lt;id&gt;/resolve/</code> で <code>is_resolved=True</code>, <code>resolved_at</code> を記録。</p>
-
-<h1>12. シフト・勤怠・給与管理</h1>
-<h2>12.1 シフト管理フロー</h2>
+<h3 id="24">2.4 動作サイクル</h3>
+<pre><code>起動
+  ↓
+WiFi接続 (secrets.pyの認証情報使用)
+  ↓
+サーバーから設定取得 (閾値・アラート設定)
+  ↓
+┌─────── メインループ ───────┐
+│                            │
+│  10秒ごと:                  │
+│    MQ-9読取 → 閾値比較      │
+│    Sound読取                │
+│    → Django APIへPOST       │
+│                            │
+│  5秒ごと:                   │
+│    PIR状態チェック           │
+│    → 変化時にイベントPOST    │
+│                            │
+│  0.2秒ごと:                 │
+│    IR受信チェック            │
+│                            │
+│  30秒ごと:                  │
+│    WiFi健全性チェック        │
+│    サーバー設定同期          │
+│                            │
+└────────────────────────────┘
+</code></pre>
+<h3 id="25">2.5 ガス警報</h3>
+<p>MQ-9センサー値が閾値（デフォルト: <strong>500</strong>）を超えた場合:</p>
 <ol>
-<li><strong>シフト期間作成</strong>：管理画面で <code>ShiftPeriod</code> 作成（対象月・締切設定、status=open）</li>
-<li><strong>シフト希望提出</strong>：スタッフが <code>/shift/&lt;period_id&gt;/submit/</code> で希望提出（available / preferred / unavailable）</li>
-<li><strong>シフト確定</strong>：管理者が <code>ShiftAssignment</code> を作成（日付・開始時刻・終了時刻）</li>
-<li><strong>Schedule 同期</strong>：<code>is_synced</code> フラグで予約カレンダーへの同期状態を管理</li>
+<li>ブザーが警報メロディを再生</li>
+<li><code>mq9_alarm</code>イベントをサーバーに送信</li>
+<li>サーバー側でLINE/メール通知（設定済みの場合）</li>
 </ol>
-
-<h2>12.2 勤怠管理</h2>
-<p><code>WorkAttendance</code> で日次の勤怠記録。シフトからの自動生成（source=shift）、手動入力（manual）、修正（corrected）の3ソース。</p>
-<table>
-<tr><th>フィールド</th><th>説明</th></tr>
-<tr><td>regular_minutes</td><td>通常勤務時間（分）</td></tr>
-<tr><td>overtime_minutes</td><td>残業時間（分）</td></tr>
-<tr><td>late_night_minutes</td><td>深夜勤務時間（分）</td></tr>
-<tr><td>holiday_minutes</td><td>休日勤務時間（分）</td></tr>
-<tr><td>break_minutes</td><td>休憩時間（分）</td></tr>
-</table>
-
-<h2>12.3 給与計算</h2>
+<blockquote>
+<p><strong>通常値:</strong> 120〜300（空気清浄時）。調理時等は一時的に上昇します。</p>
+</blockquote>
+<h3 id="26-ir">2.6 IR学習モード</h3>
 <ol>
-<li><code>PayrollPeriod</code> 作成（status=draft）</li>
-<li>計算実行（status=calculating）→ <code>PayrollEntry</code> 自動生成</li>
-<li><code>EmploymentContract</code> に基づき基本給計算（時給制 or 月給制）</li>
-<li><code>SalaryStructure</code> の倍率で残業代・深夜手当・休日手当を計算</li>
-<li><code>PayrollDeduction</code> で社会保険料・税金を自動控除</li>
-<li>確定（status=confirmed）→ 支給（status=paid）</li>
+<li>デバイスのボタンを<strong>10秒以上長押し</strong></li>
+<li>LEDが高速点滅 → 学習モード突入</li>
+<li>リモコンをIR受信部に向けてボタンを押す</li>
+<li>学習完了 → <code>ir_learned</code>イベントがサーバーに送信</li>
+<li>管理画面から学習したIRコードを確認・送信可能</li>
 </ol>
-
-<h2>12.4 社会保険控除項目</h2>
+<h3 id="27">2.7 セットアップモード</h3>
+<p>WiFi接続に3回連続失敗すると自動でセットアップモードに入ります。</p>
+<p><strong>手動でセットアップモードに入る方法:</strong><br />
+- ボタン長押し（WiFi切断時）<br />
+- CIRCUITPY上に <code>force_setup.txt</code>（内容: <code>FORCE_SETUP</code>）を作成</p>
+<p><strong>セットアップモードでの操作:</strong><br />
+1. デバイスがAPを起動（SSID: <code>PICO-SETUP-*</code>）<br />
+2. スマホ/PCからそのSSIDに接続<br />
+3. ブラウザで<code>http://192.168.4.1</code>にアクセス<br />
+4. WiFi SSID/パスワード、サーバーURL等を入力<br />
+5. 保存後、デバイスが再起動</p>
+<h3 id="28">2.8 デバイス認証情報</h3>
+<p>デバイスの認証情報は <code>/Volumes/CIRCUITPY/secrets.py</code> に保存:</p>
+<pre><code class="language-python">secrets = {
+    &quot;ssid&quot;: &quot;WiFi名&quot;,
+    &quot;password&quot;: &quot;WiFiパスワード&quot;,
+    &quot;api_key&quot;: &quot;APIキー&quot;,
+    &quot;device&quot;: &quot;デバイスID (例: pico2w_001)&quot;,
+    &quot;server_base&quot;: &quot;https://timebaibai.com&quot;,
+    &quot;events_endpoint&quot;: &quot;/api/iot/events/&quot;,
+    &quot;config_endpoint&quot;: &quot;/api/iot/config/&quot;,
+}
+</code></pre>
+<blockquote>
+<p><strong>変更時:</strong> PCにUSB接続 → CIRCUITPYドライブが表示 → <code>secrets.py</code>を編集 → 保存後自動再起動</p>
+</blockquote>
+<h3 id="29">2.9 デバイスのファームウェア更新</h3>
+<ol>
+<li>PCにUSB接続</li>
+<li><code>/Volumes/CIRCUITPY/</code>に表示されるファイルを編集</li>
+<li>保存すると自動的に再起動・反映</li>
+</ol>
+<p>主要ファイル:<br />
+| ファイル | 用途 |<br />
+|----------|------|<br />
+| <code>code.py</code> | メインプログラム |<br />
+| <code>secrets.py</code> | WiFi・API認証情報 |<br />
+| <code>config.py</code> | GPIO設定・タイミング |<br />
+| <code>django_api.py</code> | サーバー通信モジュール |</p>
+<hr />
+<h2 id="3-web">3. Web管理画面</h2>
+<h3 id="31">3.1 アクセス方法</h3>
 <table>
-<tr><th>項目</th><th>デフォルト率</th><th>備考</th></tr>
-<tr><td>厚生年金</td><td>9.150%</td><td>標準報酬月額ベース</td></tr>
-<tr><td>健康保険</td><td>5.000%</td><td>標準報酬月額ベース</td></tr>
-<tr><td>雇用保険</td><td>0.600%</td><td>総支給額ベース</td></tr>
-<tr><td>介護保険</td><td>0.820%</td><td>40歳以上のみ（birth_date で判定）</td></tr>
-<tr><td>労災保険</td><td>0.300%</td><td>事業主負担（is_employer_only）</td></tr>
-<tr><td>所得税</td><td>—</td><td>源泉徴収税額表に基づく</td></tr>
-<tr><td>住民税</td><td>—</td><td>resident_tax_monthly（定額）</td></tr>
+<thead>
+<tr>
+<th>画面</th>
+<th>URL</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>管理者ログイン</td>
+<td>https://timebaibai.com/admin/</td>
+</tr>
+<tr>
+<td>予約トップ</td>
+<td>https://timebaibai.com/booking/</td>
+</tr>
+<tr>
+<td>LINEログイン</td>
+<td>https://timebaibai.com/booking/line_enter/</td>
+</tr>
+</tbody>
 </table>
-
-<h1>13. 在庫管理</h1>
-<h2>13.1 在庫の基本操作</h2>
+<h3 id="32-djangoadmin">3.2 Django管理画面（/admin/）</h3>
+<p>管理者アカウントでログイン後、以下の操作が可能:</p>
+<p><strong>IoT関連:</strong><br />
+- <strong>IoT Devices</strong> — デバイスの追加・編集・API キー管理<br />
+- <strong>IoT Events</strong> — 全センサーイベントの閲覧・検索<br />
+- <strong>IR Codes</strong> — 学習済みIRコードの管理<br />
+- <strong>Properties</strong> — 物件・設置場所の管理<br />
+- <strong>Property Alerts</strong> — アラート設定（ガス漏れ・無人検知等）</p>
+<p><strong>予約関連:</strong><br />
+- <strong>Stores</strong> — 店舗情報の管理<br />
+- <strong>Staffs</strong> — 占い師（スタッフ）の管理<br />
+- <strong>Schedules</strong> — スケジュール・予約枠の管理<br />
+- <strong>Reservations</strong> — 予約一覧・キャンセル処理</p>
+<h3 id="33-iot">3.3 IoTデバイス設定（管理画面）</h3>
+<p><code>Admin &gt; IoT Devices</code> からデバイスを選択:</p>
 <table>
-<tr><th>操作</th><th>movement_type</th><th>stock への影響</th></tr>
-<tr><td>入庫</td><td>IN</td><td>+ qty</td></tr>
-<tr><td>出庫</td><td>OUT</td><td>- qty</td></tr>
-<tr><td>棚卸調整</td><td>ADJUST</td><td>指定数量に設定</td></tr>
+<thead>
+<tr>
+<th>フィールド</th>
+<th>説明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>name</td>
+<td>デバイス表示名</td>
+</tr>
+<tr>
+<td>external_id</td>
+<td>デバイスID（<code>pico2w_001</code>等）</td>
+</tr>
+<tr>
+<td>device_type</td>
+<td><code>multi</code>（マルチセンサー）/ <code>door</code> / <code>other</code></td>
+</tr>
+<tr>
+<td>mq9_threshold</td>
+<td>MQ-9警報閾値（デフォルト: 500）</td>
+</tr>
+<tr>
+<td>alert_enabled</td>
+<td>ガスアラート有効/無効</td>
+</tr>
+<tr>
+<td>alert_email</td>
+<td>警報メール送信先</td>
+</tr>
+<tr>
+<td>alert_line_user_id</td>
+<td>LINE通知先ユーザーID</td>
+</tr>
+<tr>
+<td>is_active</td>
+<td>デバイス有効/無効</td>
+</tr>
+</tbody>
 </table>
-<p>全ての在庫変動は <code>StockMovement</code> に記録され、トレーサビリティを確保。</p>
-
-<h2>13.2 低在庫通知</h2>
-<p>Celery Beat タスク <code>check_low_stock_and_notify</code>（毎日09:00）で <code>stock ≤ low_stock_threshold</code> の商品を検出し、LINE で通知。<code>last_low_stock_notified_at</code> で重複通知を防止。</p>
-
-<h2>13.3 QR 入庫</h2>
-<p><code>/stock/inbound/</code> ページで商品 QR をスキャンし、<code>/api/stock/inbound/apply/</code> API で入庫処理。</p>
-
-<h2>13.4 注文による自動出庫</h2>
-<p>注文作成時に <code>apply_stock_movement(product, 'OUT', qty)</code> が呼ばれ、在庫を自動減算。<code>allow_negative=False</code> で在庫不足時はエラー。</p>
-
-<h1>14. ECショップ</h1>
-<h2>14.1 概要</h2>
-<p>Product モデルの <code>is_ec_visible=True</code> の商品が EC ショップに表示されます。</p>
-
-<h2>14.2 ページ構成</h2>
-<table>
-<tr><th>ページ</th><th>URL</th><th>説明</th></tr>
-<tr><td>商品一覧</td><td><code>/shop/</code></td><td>EC 表示対象商品の一覧</td></tr>
-<tr><td>カート</td><td><code>/shop/cart/</code></td><td>ショッピングカート</td></tr>
-<tr><td>チェックアウト</td><td><code>/shop/checkout/</code></td><td>注文確定・決済</td></tr>
-</table>
-
-<h2>14.3 カート API</h2>
-<table>
-<tr><th>操作</th><th>API</th><th>メソッド</th></tr>
-<tr><td>追加</td><td><code>/api/shop/cart/add/</code></td><td>POST</td></tr>
-<tr><td>更新</td><td><code>/api/shop/cart/update/</code></td><td>POST</td></tr>
-<tr><td>削除</td><td><code>/api/shop/cart/remove/</code></td><td>POST</td></tr>
-</table>
-
-<h2>14.4 多言語対応</h2>
-<p><code>ProductTranslation</code> モデルで商品名・説明文を7言語に翻訳。ユーザーの言語設定に応じて自動切替。</p>
-
-<h1>15. セキュリティ機能</h1>
-<h2>15.1 暗号化</h2>
-<table>
-<tr><th>対象</th><th>方式</th><th>キー環境変数</th></tr>
-<tr><td>LINE User ID</td><td>Fernet 暗号化 + SHA-256 ハッシュ</td><td><code>LINE_USER_ID_ENCRYPTION_KEY</code>, <code>LINE_USER_ID_HASH_PEPPER</code></td></tr>
-<tr><td>IoT Wi-Fi パスワード</td><td>Fernet 暗号化</td><td><code>IOT_ENCRYPTION_KEY</code></td></tr>
-<tr><td>IoT API キー</td><td>SHA-256 ハッシュ（不可逆）</td><td>—</td></tr>
-<tr><td>Email OTP</td><td>SHA-256 ハッシュ + 有効期限</td><td>—</td></tr>
-</table>
-
-<h2>15.2 セキュリティ監査</h2>
-<p><code>python manage.py security_audit</code> または Celery タスク（毎日03:00）で自動実行。チェックカテゴリ：</p>
+<h3 id="34-url">3.4 主要URL一覧</h3>
+<p><strong>お客様向け:</strong><br />
+| 機能 | URL |<br />
+|------|-----|<br />
+| 予約カレンダー | <code>/booking/date-calendar/</code> |<br />
+| 占い師一覧 | <code>/booking/fortune-tellers/</code> |<br />
+| 店舗一覧 | <code>/booking/stores/</code> |<br />
+| マイページ | <code>/booking/mypage/</code> |<br />
+| ショップ | <code>/booking/shop/</code> |<br />
+| ヘルプ | <code>/booking/help/</code> |<br />
+| プライバシーポリシー | <code>/booking/privacy/</code> |</p>
+<p><strong>管理者向け:</strong><br />
+| 機能 | URL |<br />
+|------|-----|<br />
+| センサーダッシュボード | <code>/dashboard/sensors/</code> |<br />
+| MQ-9グラフ | <code>/dashboard/mq9/</code> |<br />
+| 物件一覧 | <code>/booking/properties/</code> |<br />
+| シフト管理 | <code>/booking/shift/</code> |<br />
+| チェックイン | <code>/booking/checkin/</code> |</p>
+<hr />
+<h2 id="4">4. センサーダッシュボード</h2>
+<h3 id="41">4.1 リアルタイムダッシュボード</h3>
+<p><strong>URL:</strong> <code>https://timebaibai.com/dashboard/sensors/</code></p>
+<p>Chart.jsベースのグラフでセンサーデータを可視化:</p>
 <ul>
-<li><strong>django_settings</strong> — DEBUG, ALLOWED_HOSTS, SECRET_KEY 等</li>
-<li><strong>credentials</strong> — API キー・パスワードの安全性</li>
-<li><strong>endpoints</strong> — エンドポイントのアクセス制御</li>
-<li><strong>infrastructure</strong> — SSL, ファイアウォール</li>
-<li><strong>dependencies</strong> — パッケージの脆弱性</li>
+<li><strong>MQ-9 (CO):</strong> 一酸化炭素濃度の時系列推移</li>
+<li><strong>Sound:</strong> 環境音レベルの時系列推移</li>
+<li><strong>PIR:</strong> 人感検知イベントの時間別集計</li>
 </ul>
+<p><strong>表示範囲:</strong> 1時間 / 6時間 / 24時間 / 7日</p>
+<h3 id="42-mq-9">4.2 MQ-9専用グラフ</h3>
+<p><strong>URL:</strong> <code>https://timebaibai.com/dashboard/mq9/</code>（要ログイン）</p>
+<p>MQ-9ガスセンサーの詳細グラフ。閾値ラインの表示付き。</p>
+<h3 id="43">4.3 センサー値の見方</h3>
+<p><strong>MQ-9 (CO):</strong><br />
+| 範囲 | 状態 |<br />
+|------|------|<br />
+| 100〜300 | 正常（清浄な空気） |<br />
+| 300〜500 | やや上昇（調理・換気不足の可能性） |<br />
+| 500以上 | 警報閾値超過（換気を確認してください） |</p>
+<p><strong>Sound（環境音）:</strong><br />
+| 範囲 | 状態 |<br />
+|------|------|<br />
+| 0〜5,000 | 静か |<br />
+| 5,000〜15,000 | 通常の室内環境音 |<br />
+| 15,000以上 | 大きな音（会話・音楽等） |</p>
+<p><strong>PIR（人感）:</strong><br />
+- <code>triggered = True</code> → センサー前で動きを検知<br />
+- <code>triggered = False</code> → 動きなし</p>
+<h3 id="44-api">4.4 API経由でのデータ取得</h3>
+<pre><code class="language-bash"># センサーデータ取得
+curl &quot;https://timebaibai.com/api/iot/sensors/data/?device_id=pico2w_001&amp;sensor=mq9&amp;range=24h&quot;
 
-<h2>15.3 監視ログ（SecurityLog）</h2>
-<p><code>SecurityAuditMiddleware</code> が全リクエストを監視し、以下のイベントを自動記録：</p>
+# PIRステータス（直近60秒の人感検知）
+curl &quot;https://timebaibai.com/api/iot/sensors/pir-status/?device_id=pico2w_001&quot;
+
+# PIRイベント集計
+curl &quot;https://timebaibai.com/api/iot/sensors/pir-events/?device_id=pico2w_001&amp;range=24h&quot;
+
+# デバイス一覧
+curl &quot;https://timebaibai.com/api/iot/sensors/data/?list_devices=1&quot;
+</code></pre>
+<hr />
+<h2 id="5">5. サーバー管理</h2>
+<h3 id="51">5.1 サーバー情報</h3>
 <table>
-<tr><th>event_type</th><th>severity</th><th>トリガー</th></tr>
-<tr><td>login_success</td><td>info</td><td>ログイン成功</td></tr>
-<tr><td>login_fail</td><td>warning</td><td>ログイン失敗</td></tr>
-<tr><td>api_auth_fail</td><td>warning</td><td>/api/ への 401/403</td></tr>
-<tr><td>permission_denied</td><td>warning</td><td>403 レスポンス</td></tr>
-<tr><td>suspicious_request</td><td>critical</td><td>レート制限超過</td></tr>
-<tr><td>admin_action</td><td>info</td><td>管理画面操作</td></tr>
+<thead>
+<tr>
+<th>項目</th>
+<th>値</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>インスタンス</td>
+<td>i-0808c1fd30b1c0437 (t3.micro)</td>
+</tr>
+<tr>
+<td>OS</td>
+<td>Ubuntu 24.04 LTS</td>
+</tr>
+<tr>
+<td>パブリックIP</td>
+<td>52.198.72.13</td>
+</tr>
+<tr>
+<td>ドメイン</td>
+<td>timebaibai.com</td>
+</tr>
+<tr>
+<td>アプリパス</td>
+<td>/home/ubuntu/NewFUHI</td>
+</tr>
+<tr>
+<td>Python仮想環境</td>
+<td>/home/ubuntu/NewFUHI/venv</td>
+</tr>
+</tbody>
 </table>
-
-<h2>15.4 レート制限</h2>
-<p>同一 IP から60秒間に100リクエスト超で <code>suspicious_request</code>（critical）を記録。カウンターは最大10,000エントリ。IP 検出は <code>X-Forwarded-For</code> ヘッダー対応。</p>
-
-<h2>15.5 本番セキュリティ設定</h2>
-<ul>
-<li><code>SECURE_SSL_REDIRECT = True</code></li>
-<li><code>SECURE_HSTS_SECONDS = 31536000</code>（1年）</li>
-<li><code>SESSION_COOKIE_SECURE = True</code></li>
-<li><code>CSRF_COOKIE_SECURE = True</code></li>
-<li><code>X_FRAME_OPTIONS = "DENY"</code></li>
-</ul>
-
-<h2>15.6 ログ保持</h2>
-<p><code>cleanup_security_logs</code> タスク（毎週日曜04:00）で90日以上前のログを自動削除。<code>--days</code> オプションで保持期間変更可能。</p>
-
-<h1>16. AWSコスト監視</h1>
-<h2>16.1 概要</h2>
-<p><code>check_aws_costs</code> 管理コマンド（Celery で毎日06:00実行）が AWS リソースのコストを監視し、<code>CostReport</code> モデルに記録。</p>
-
-<h2>16.2 チェック対象</h2>
+<h3 id="52-ssh">5.2 SSH接続</h3>
+<pre><code class="language-bash">ssh -i ~/NewFUHI/newfuhi-key.pem ubuntu@52.198.72.13
+</code></pre>
+<h3 id="53-systemd">5.3 systemdサービス</h3>
 <table>
-<tr><th>resource_type</th><th>チェック内容</th></tr>
-<tr><td>ec2</td><td>EC2 インスタンスの稼働状況・コスト</td></tr>
-<tr><td>s3</td><td>S3 バケットのストレージコスト</td></tr>
-<tr><td>ebs</td><td>EBS ボリュームの使用状況</td></tr>
-<tr><td>eip</td><td>未使用 Elastic IP</td></tr>
-<tr><td>rds</td><td>RDS インスタンスのコスト</td></tr>
-<tr><td>total</td><td>月額合計</td></tr>
+<thead>
+<tr>
+<th>サービス</th>
+<th>説明</th>
+<th>設定ファイル</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>newfuhi</td>
+<td>Gunicorn (Djangoアプリ)</td>
+<td>/etc/systemd/system/newfuhi.service</td>
+</tr>
+<tr>
+<td>newfuhi-celery</td>
+<td>Celeryワーカー</td>
+<td>/etc/systemd/system/newfuhi-celery.service</td>
+</tr>
+<tr>
+<td>newfuhi-celerybeat</td>
+<td>Celery定期タスク</td>
+<td>/etc/systemd/system/newfuhi-celerybeat.service</td>
+</tr>
+<tr>
+<td>nginx</td>
+<td>Webサーバー/リバースプロキシ</td>
+<td>/etc/nginx/</td>
+</tr>
+<tr>
+<td>redis-server</td>
+<td>メッセージブローカー</td>
+<td>systemd default</td>
+</tr>
+</tbody>
 </table>
+<p><strong>サービス管理コマンド:</strong></p>
+<pre><code class="language-bash"># 全サービスの状態確認
+sudo systemctl status newfuhi newfuhi-celery newfuhi-celerybeat nginx redis
 
-<h2>16.3 ステータス</h2>
-<table>
-<tr><th>status</th><th>意味</th></tr>
-<tr><td>ok</td><td>正常範囲内</td></tr>
-<tr><td>warn</td><td>コスト上昇の兆候</td></tr>
-<tr><td>alert</td><td>閾値超過（要対応）</td></tr>
-</table>
+# 再起動
+sudo systemctl restart newfuhi
+sudo systemctl restart newfuhi-celery newfuhi-celerybeat
 
-<h2>16.4 使用方法</h2>
-<pre><code># 手動実行
-python manage.py check_aws_costs
+# ログ確認
+sudo journalctl -u newfuhi -f              # Gunicornログ（リアルタイム）
+sudo journalctl -u newfuhi-celery -f       # Celeryログ
+tail -f /var/log/newfuhi/gunicorn-error.log # Gunicornエラーログ
+tail -f /var/log/nginx/error.log            # Nginxエラーログ
+</code></pre>
+<h3 id="54">5.4 デプロイ手順</h3>
+<p><strong>ローカルからのデプロイ（推奨）:</strong></p>
+<pre><code class="language-bash">cd ~/NewFUHI
+# 1. 変更をコミット＆プッシュ
+git add &lt;files&gt;
+git commit -m &quot;変更内容&quot;
+git push origin main
 
-# 閾値指定
-python manage.py check_aws_costs --threshold 100</code></pre>
-
-<h1>17. 定期タスク（Celery）</h1>
-<h2>17.1 Celery 設定</h2>
-<p>ブローカー: Redis（<code>CELERY_BROKER_URL</code>、デフォルト: <code>redis://localhost:6379/0</code>）</p>
-
-<h2>17.2 Beat スケジュール一覧</h2>
-<table>
-<tr><th>タスク名</th><th>関数</th><th>スケジュール</th><th>説明</th></tr>
-<tr><td>delete-every-minute</td><td>delete_temporary_schedules</td><td>毎60秒</td><td>仮予約の自動削除（10分超過）</td></tr>
-<tr><td>check-low-stock-daily</td><td>check_low_stock_and_notify</td><td>毎日 09:00</td><td>低在庫 LINE 通知</td></tr>
-<tr><td>check-property-alerts</td><td>check_property_alerts</td><td>5分間隔</td><td>物件アラート監視</td></tr>
-<tr><td>security-audit-daily</td><td>run_security_audit</td><td>毎日 03:00</td><td>セキュリティ監査</td></tr>
-<tr><td>cleanup-security-logs-weekly</td><td>cleanup_security_logs</td><td>毎週日曜 04:00</td><td>古いログの削除</td></tr>
-<tr><td>check-aws-costs-daily</td><td>check_aws_costs</td><td>毎日 06:00</td><td>AWS コスト監視</td></tr>
-</table>
-
-<h2>17.3 非同期タスク</h2>
-<table>
-<tr><th>タスク</th><th>トリガー</th><th>説明</th></tr>
-<tr><td>trigger_gas_alert</td><td>IoT イベント受信時（mq9 超過）</td><td>ガス漏れ緊急アラート送信</td></tr>
-</table>
-
-<h2>17.4 起動方法</h2>
-<pre><code># ワーカー起動
-celery -A project worker -l info
-
-# Beat スケジューラー起動
-celery -A project beat -l info
-
-# 開発環境（ワーカー + Beat 同時）
-celery -A project worker -l info -B</code></pre>
-
-<h1>18. 管理コマンドリファレンス</h1>
-<table>
-<tr><th>コマンド</th><th>説明</th><th>主なオプション</th></tr>
-<tr><td><code>bootstrap_admin_staff</code></td><td>管理者ユーザーと Staff レコード作成</td><td><code>--username</code>, <code>--store_id</code>, <code>--manager</code>, <code>--developer</code></td></tr>
-<tr><td><code>security_audit</code></td><td>セキュリティ監査の実行</td><td>なし</td></tr>
-<tr><td><code>cleanup_security_logs</code></td><td>古いセキュリティログの削除</td><td><code>--days</code>（デフォルト: 90）</td></tr>
-<tr><td><code>check_aws_costs</code></td><td>AWS コストチェック</td><td><code>--threshold</code></td></tr>
-<tr><td><code>cancel_expired_temp_bookings</code></td><td>期限切れ仮予約のキャンセル</td><td>なし</td></tr>
-</table>
-
-<h2>18.1 使用例</h2>
-<pre><code># 管理者作成
-python manage.py bootstrap_admin_staff \
-  --username admin --store_id 1 --manager --developer
-
-# セキュリティ監査
-python manage.py security_audit
-
-# 30日以上前のログ削除
-python manage.py cleanup_security_logs --days 30
-
-# AWS コストチェック（閾値 $50）
-python manage.py check_aws_costs --threshold 50
-
-# 期限切れ仮予約キャンセル
-python manage.py cancel_expired_temp_bookings</code></pre>
-
-<h1>19. デプロイ手順</h1>
-<h2>19.1 サーバー前提条件</h2>
-<ul>
-<li>OS: Ubuntu / Amazon Linux</li>
-<li>Python 3.x + venv</li>
-<li>Nginx, Gunicorn</li>
-<li>Redis（Celery ブローカー）</li>
-<li>PostgreSQL（RDS）— 本番は SQLite 使用不可</li>
-<li>SSL 証明書</li>
-</ul>
-
-<h2>19.2 本番デプロイ</h2>
-<pre><code># 1. リリースタグ作成
-git tag -a release-YYYYMMDD-HHMM -m "Release description"
-git push origin release-YYYYMMDD-HHMM
-
-# 2. GitHub Actions が自動デプロイ
-#    - deploy-production.yml が実行
-#    - "DEPLOY" 確認文字列が必要
-#    - セキュリティ監査・SECRET_KEY検証を事前実行
-
-# 3. 手動デプロイの場合
-ssh newfuhi@server
-cd /var/www/newfuhi
-git fetch && git checkout release-YYYYMMDD-HHMM
-source .venv/bin/activate
+# 2. デプロイスクリプト実行
+bash scripts/deploy_to_ec2.sh
+</code></pre>
+<p>スクリプトが自動で以下を実行:<br />
+1. EC2で<code>git pull</code><br />
+2. <code>pip install -r requirements.txt</code><br />
+3. <code>python manage.py migrate</code><br />
+4. <code>python manage.py collectstatic</code><br />
+5. <code>systemctl restart newfuhi newfuhi-celery newfuhi-celerybeat</code><br />
+6. ヘルスチェック（HTTP応答確認）</p>
+<p><strong>手動デプロイ（EC2上）:</strong></p>
+<pre><code class="language-bash">cd /home/ubuntu/NewFUHI
+git pull origin main
+source venv/bin/activate
 pip install -r requirements.txt
-python manage.py migrate --noinput
+python manage.py migrate
 python manage.py collectstatic --noinput
-sudo systemctl restart newfuhi-production</code></pre>
+sudo systemctl restart newfuhi newfuhi-celery newfuhi-celerybeat
+</code></pre>
+<h3 id="55-ssl">5.5 SSL証明書</h3>
+<p>Let's Encrypt（自動更新）:</p>
+<pre><code class="language-bash"># 証明書の状態確認
+sudo certbot certificates
 
-<h2>19.3 ステージングデプロイ</h2>
-<p><code>develop</code> / <code>staging</code> ブランチへの push で自動デプロイ。rsync でコード同期後、マイグレーション・静的ファイル収集・サービス再起動。IP 制限あり（192.168.1.0/24, 10.0.0.0/8）。</p>
+# 手動更新（通常は自動）
+sudo certbot renew
+</code></pre>
+<h3 id="56">5.6 ファイアウォール</h3>
+<pre><code class="language-bash"># UFW状態確認
+sudo ufw status
 
-<h2>19.4 設定ファイル</h2>
+# 開放ポート: 22(SSH), 80(HTTP→HTTPS redirect), 443(HTTPS)
+</code></pre>
+<h3 id="57">5.7 セキュリティ設定</h3>
 <table>
-<tr><th>ファイル</th><th>説明</th></tr>
-<tr><td><code>config/nginx/production.conf</code></td><td>Nginx 本番設定（HTTPS, TLS 1.2/1.3, HSTS）</td></tr>
-<tr><td><code>config/nginx/staging.conf</code></td><td>Nginx ステージング設定（HTTP, IP制限, BasicAuth）</td></tr>
-<tr><td><code>config/gunicorn/production.conf.py</code></td><td>Gunicorn 本番（workers=CPU*2+1, preload）</td></tr>
-<tr><td><code>config/systemd/newfuhi-production.service</code></td><td>systemd サービス（セキュリティ制限付き）</td></tr>
+<thead>
+<tr>
+<th>対策</th>
+<th>状態</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>SSL/HTTPS</td>
+<td>Let's Encrypt（自動更新）</td>
+</tr>
+<tr>
+<td>HSTS</td>
+<td>有効（1年）</td>
+</tr>
+<tr>
+<td>UFW</td>
+<td>SSH/HTTP/HTTPS のみ許可</td>
+</tr>
+<tr>
+<td>Fail2ban</td>
+<td>SSH ブルートフォース防止</td>
+</tr>
+<tr>
+<td>Django CSRF</td>
+<td>有効</td>
+</tr>
+<tr>
+<td>Secure Cookies</td>
+<td>有効</td>
+</tr>
+<tr>
+<td>X-Frame-Options</td>
+<td>DENY</td>
+</tr>
+</tbody>
 </table>
+<hr />
+<h2 id="6">6. バックアップ</h2>
+<h3 id="61-s3">6.1 自動バックアップ（S3）</h3>
+<p><strong>スケジュール:</strong> 毎日 AM 2:00（cron）</p>
+<pre><code class="language-bash"># cron設定確認
+crontab -l
+# 期待される出力:
+# 0 2 * * * /bin/bash -lc '/home/ubuntu/NewFUHI/scripts/backup_to_s3.sh'
+</code></pre>
+<p><strong>バックアップ内容:</strong><br />
+| 対象 | S3パス | 保持期間 |<br />
+|------|--------|---------|<br />
+| DB (SQLite) | s3://mee-newfuhi-backups/db/ | S3: 90日, ローカル: 30日 |<br />
+| Media | s3://mee-newfuhi-backups/media/ | 常時同期 |</p>
+<p><strong>手動バックアップ:</strong></p>
+<pre><code class="language-bash">cd /home/ubuntu/NewFUHI
+bash scripts/backup_to_s3.sh
+</code></pre>
+<h3 id="62">6.2 バックアップ確認</h3>
+<pre><code class="language-bash"># S3上のバックアップ一覧
+aws s3 ls s3://mee-newfuhi-backups/db/ | tail -5
 
-<h2>19.5 CI/CD パイプライン</h2>
+# ローカルバックアップ
+ls -la /home/ubuntu/NewFUHI/backups/
+</code></pre>
+<h3 id="63">6.3 復元手順</h3>
+<pre><code class="language-bash"># 1. S3からDBバックアップをダウンロード
+aws s3 cp s3://mee-newfuhi-backups/db/newfuhi_db_20260308_020000.sqlite3 /tmp/restore.sqlite3
+
+# 2. 現在のDBをバックアップ
+cp /home/ubuntu/NewFUHI/db.sqlite3 /home/ubuntu/NewFUHI/db.sqlite3.bak
+
+# 3. 復元
+cp /tmp/restore.sqlite3 /home/ubuntu/NewFUHI/db.sqlite3
+
+# 4. サービス再起動
+sudo systemctl restart newfuhi
+</code></pre>
+<hr />
+<h2 id="7">7. トラブルシューティング</h2>
+<h3 id="71-iot">7.1 IoTデバイスがデータを送信しない</h3>
+<p><strong>確認手順:</strong></p>
+<ol>
+<li><strong>電源確認</strong> — USB-Cケーブルが接続されているか、LEDが点灯/点滅しているか</li>
+<li><strong>WiFi確認</strong> — LEDが常時点灯（=WiFi接続済み）か</li>
+<li><strong>シリアルモニター確認:</strong><br />
+<code>bash
+   # macOSの場合
+   screen /dev/tty.usbmodem* 115200
+   # または
+   ls /dev/tty.usbmodem*</code></li>
+<li><strong>サーバー側確認:</strong><br />
+<code>bash
+   ssh -i ~/NewFUHI/newfuhi-key.pem ubuntu@52.198.72.13
+   cd /home/ubuntu/NewFUHI &amp;&amp; source venv/bin/activate
+   python manage.py shell -c "
+   from booking.models import IoTEvent
+   from django.utils import timezone
+   from datetime import timedelta
+   latest = IoTEvent.objects.order_by('-created_at')[:5]
+   for e in latest:
+       print(f'{e.created_at} | {e.event_type} | mq9={e.mq9_value}')
+   "</code></li>
+</ol>
+<p><strong>よくある原因:</strong><br />
+| 症状 | 原因 | 対処 |<br />
+|------|------|------|<br />
+| LEDが点滅 | WiFi切断 | ルーター確認、secrets.pyのSSID/パスワード確認 |<br />
+| LED消灯 | 電源断またはエラー | USB接続しシリアルログ確認 |<br />
+| LED点灯だがデータなし | API通信エラー | サーバーのNginx/Gunicornログ確認 |<br />
+| セットアップモード | WiFi 3回失敗 | 正しいWiFi情報でセットアップ |</p>
+<h3 id="72">7.2 サーバーがダウンしている</h3>
+<pre><code class="language-bash"># 1. サービス状態確認
+ssh -i ~/NewFUHI/newfuhi-key.pem ubuntu@52.198.72.13
+sudo systemctl status newfuhi nginx
+
+# 2. エラーログ確認
+sudo journalctl -u newfuhi --since &quot;1 hour ago&quot;
+tail -50 /var/log/nginx/error.log
+
+# 3. サービス再起動
+sudo systemctl restart newfuhi nginx
+
+# 4. ヘルスチェック
+curl -I https://timebaibai.com/booking/
+</code></pre>
+<h3 id="73">7.3 ダッシュボードにデータが表示されない</h3>
+<ol>
+<li>デバイスがデータを送信しているか確認（7.1参照）</li>
+<li>ブラウザのURLが正しいか確認: <code>https://timebaibai.com/dashboard/sensors/</code></li>
+<li>デバイスIDがAPIリクエストに含まれているか確認</li>
+<li>ブラウザの開発者ツール（F12）→ Networkタブでエラー確認</li>
+</ol>
+<h3 id="74-mq-9">7.4 MQ-9のアラームが鳴り続ける</h3>
+<ol>
+<li>換気を行い、CO濃度が下がるか確認</li>
+<li>センサー周辺に煙・ガス源がないか確認</li>
+<li>管理画面で閾値を一時的に上げて確認（誤報の場合）:</li>
+<li>Admin &gt; IoT Devices &gt; 対象デバイス &gt; <code>mq9_threshold</code> を調整</li>
+<li>閾値変更後、デバイスは30秒以内に新しい設定を取得</li>
+</ol>
+<h3 id="75-ssl">7.5 SSL証明書エラー</h3>
+<pre><code class="language-bash"># 証明書の有効期限確認
+sudo certbot certificates
+
+# 期限切れの場合は手動更新
+sudo certbot renew
+sudo systemctl reload nginx
+</code></pre>
+<h3 id="76">7.6 ディスク容量不足</h3>
+<pre><code class="language-bash"># 容量確認
+df -h
+
+# ログのクリーンアップ
+sudo journalctl --vacuum-time=7d
+sudo find /var/log -name &quot;*.gz&quot; -mtime +30 -delete
+
+# 古いバックアップの削除
+find /home/ubuntu/NewFUHI/backups -mtime +30 -delete
+</code></pre>
+<h3 id="77-wifi">7.7 デバイスのWiFi設定変更</h3>
+<ol>
+<li>PCにUSBで接続</li>
+<li>CIRCUITPYドライブを開く</li>
+<li><code>secrets.py</code>を編集:<br />
+<code>python
+   secrets = {
+       "ssid": "新しいSSID",
+       "password": "新しいパスワード",
+       ...
+   }</code></li>
+<li>保存 → デバイスが自動再起動</li>
+</ol>
+<hr />
+<h2 id="8-api">8. API仕様</h2>
+<h3 id="81-iot">8.1 IoTイベント受信</h3>
+<pre><code>POST /api/iot/events/
+Header: X-API-KEY: &lt;デバイスAPIキー&gt;
+Content-Type: application/json
+</code></pre>
+<p><strong>リクエストボディ:</strong></p>
+<pre><code class="language-json">{
+  &quot;device&quot;: &quot;pico2w_001&quot;,
+  &quot;event_type&quot;: &quot;sensor&quot;,
+  &quot;mq9&quot;: 245,
+  &quot;sound&quot;: 8500,
+  &quot;payload&quot;: {
+    &quot;pir&quot;: false,
+    &quot;button&quot;: false
+  }
+}
+</code></pre>
+<p><strong>イベントタイプ:</strong><br />
+| event_type | 説明 |<br />
+|------------|------|<br />
+| <code>sensor</code> | 定期センサーデータ（10秒間隔） |<br />
+| <code>pir_motion</code> | PIR状態変化（False→True） |<br />
+| <code>mq9_alarm</code> | MQ-9閾値超過アラーム |<br />
+| <code>button_press</code> | ボタン押下 |<br />
+| <code>ir_rx</code> | IR信号受信 |<br />
+| <code>ir_learned</code> | IR学習完了 |</p>
+<h3 id="82">8.2 デバイス設定取得</h3>
+<pre><code>GET /api/iot/config/?device=pico2w_001
+Header: X-API-KEY: &lt;デバイスAPIキー&gt;
+</code></pre>
+<p><strong>レスポンス:</strong></p>
+<pre><code class="language-json">{
+  &quot;mq9_threshold&quot;: 500,
+  &quot;alert_enabled&quot;: true,
+  &quot;ir_command&quot;: null
+}
+</code></pre>
+<h3 id="83">8.3 センサーデータ取得</h3>
+<pre><code>GET /api/iot/sensors/data/?device_id=pico2w_001&amp;sensor=mq9&amp;range=24h
+</code></pre>
+<p><strong>パラメータ:</strong><br />
+| パラメータ | 値 | 説明 |<br />
+|------------|-----|------|<br />
+| device_id | デバイスIDまたはDB ID | 必須 |<br />
+| sensor | <code>mq9</code> / <code>light</code> / <code>sound</code> | センサー種別（デフォルト: mq9） |<br />
+| range | <code>1h</code> / <code>6h</code> / <code>24h</code> / <code>7d</code> | 表示範囲（デフォルト: 1h） |</p>
+<hr />
+<h2 id="_4">付録</h2>
+<h3 id="envproduction">環境変数一覧（.env.production）</h3>
 <table>
-<tr><th>ワークフロー</th><th>トリガー</th><th>内容</th></tr>
-<tr><td>pr-validation.yml</td><td>PR 作成</td><td>Lint（flake8, black, isort, mypy）、テスト、カバレッジ</td></tr>
-<tr><td>deploy-staging.yml</td><td>develop/staging push</td><td>自動デプロイ + ヘルスチェック</td></tr>
-<tr><td>deploy-production.yml</td><td>release-* タグ / 手動</td><td>承認必須デプロイ</td></tr>
+<thead>
+<tr>
+<th>変数</th>
+<th>説明</th>
+<th>例</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>SECRET_KEY</td>
+<td>Djangoシークレットキー</td>
+<td>ランダム文字列</td>
+</tr>
+<tr>
+<td>ALLOWED_HOSTS</td>
+<td>許可ホスト</td>
+<td>timebaibai.com,52.198.72.13</td>
+</tr>
+<tr>
+<td>DB_NAME</td>
+<td>DBファイルパス</td>
+<td>/home/ubuntu/NewFUHI/db.sqlite3</td>
+</tr>
+<tr>
+<td>LINE_CHANNEL_ID</td>
+<td>LINE OAuth ID</td>
+<td>数字</td>
+</tr>
+<tr>
+<td>LINE_CHANNEL_SECRET</td>
+<td>LINE OAuthシークレット</td>
+<td>英数字</td>
+</tr>
+<tr>
+<td>LINE_ACCESS_TOKEN</td>
+<td>LINE Messaging Token</td>
+<td>英数字</td>
+</tr>
+<tr>
+<td>CELERY_BROKER_URL</td>
+<td>Redisブローカー</td>
+<td>redis://localhost:6379/0</td>
+</tr>
+</tbody>
 </table>
-
-<h2>19.6 ロールバック</h2>
-<pre><code>ssh newfuhi@server
-cd /var/www/newfuhi
-git checkout release-PREVIOUS-TAG
-source .venv/bin/activate
-pip install -r requirements.txt
-python manage.py migrate --noinput
-sudo systemctl restart newfuhi-production</code></pre>
-
-<h2>19.7 監視</h2>
-<pre><code># ログ確認
-sudo journalctl -u newfuhi-production -f
-
-# Nginx アクセスログ
-tail -f /var/log/nginx/access.log
-
-# ヘルスチェック
-curl -s https://example.com/healthz</code></pre>
-
-<h1>20. 多言語対応</h1>
-<h2>20.1 対応言語</h2>
-<p>7言語対応。Django の i18n フレームワーク（<code>LocaleMiddleware</code>）+ URL プレフィックス（<code>i18n_patterns</code>）で言語切替。</p>
-
-<h2>20.2 翻訳ファイル</h2>
-<pre><code>locale/
-├── ja/LC_MESSAGES/django.po    # 日本語
-├── en/LC_MESSAGES/django.po    # 英語
-├── zh_Hant/LC_MESSAGES/django.po  # 繁體中文
-├── zh_Hans/LC_MESSAGES/django.po  # 简体中文
-├── ko/LC_MESSAGES/django.po    # 한국어
-├── es/LC_MESSAGES/django.po    # Español
-└── pt/LC_MESSAGES/django.po    # Português</code></pre>
-
-<h2>20.3 翻訳コマンド</h2>
-<pre><code># メッセージ抽出
-python manage.py makemessages -l ja
-python manage.py makemessages -l en
-# ... 全言語
-
-# コンパイル
-python manage.py compilemessages</code></pre>
-
-<h2>20.4 商品翻訳（ProductTranslation）</h2>
-<p>商品名・説明文は <code>ProductTranslation</code> モデルで言語ごとに個別管理。管理画面からインラインで編集可能。翻訳がない言語では Product のデフォルト値（name, description）を表示。</p>
-
-<h1>21. トラブルシューティング</h1>
-<h2>21.1 よくある問題</h2>
+<h3 id="ec2">重要ファイルパス（EC2）</h3>
 <table>
-<tr><th>症状</th><th>原因</th><th>対処法</th></tr>
-<tr><td>仮予約が消えない</td><td>Celery ワーカー / Beat が停止</td><td><code>celery -A project worker -l info -B</code> で再起動</td></tr>
-<tr><td>LINE ログインエラー</td><td>LINE_CHANNEL_ID / SECRET の設定ミス</td><td>環境変数を確認。LINE Developers コンソールでリダイレクト URL を確認</td></tr>
-<tr><td>決済 Webhook が来ない</td><td>WEBHOOK_URL_BASE の設定ミス</td><td>本番 URL に設定されているか確認。ファイアウォール確認</td></tr>
-<tr><td>IoT デバイスが接続できない</td><td>API キーの不一致</td><td>デバイス側のキーが登録時の平文と一致するか確認</td></tr>
-<tr><td>メール送信失敗</td><td>SMTP 設定ミス</td><td>EMAIL_HOST, EMAIL_PORT, 認証情報を確認</td></tr>
-<tr><td>静的ファイルが表示されない</td><td>collectstatic 未実行</td><td><code>python manage.py collectstatic --noinput</code></td></tr>
-<tr><td>マイグレーションエラー</td><td>DB スキーマの不整合</td><td><code>python manage.py showmigrations</code> で状態確認</td></tr>
-<tr><td>管理画面のメニューが表示されない</td><td>Staff レコードなし / ロール未設定</td><td><code>bootstrap_admin_staff</code> コマンドで作成</td></tr>
-<tr><td>ガスアラートが発火しない</td><td>mq9_threshold 未設定 / alert_enabled=False</td><td>IoTDevice の閾値とアラート有効フラグを確認</td></tr>
-<tr><td>給与計算が0円</td><td>EmploymentContract 未作成</td><td>スタッフの雇用契約を管理画面で設定</td></tr>
+<thead>
+<tr>
+<th>パス</th>
+<th>用途</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>/home/ubuntu/NewFUHI/</td>
+<td>アプリケーションルート</td>
+</tr>
+<tr>
+<td>/home/ubuntu/NewFUHI/db.sqlite3</td>
+<td>データベース</td>
+</tr>
+<tr>
+<td>/home/ubuntu/NewFUHI/media/</td>
+<td>アップロードファイル</td>
+</tr>
+<tr>
+<td>/home/ubuntu/NewFUHI/staticfiles/</td>
+<td>静的ファイル</td>
+</tr>
+<tr>
+<td>/home/ubuntu/NewFUHI/.env.production</td>
+<td>環境変数</td>
+</tr>
+<tr>
+<td>/var/log/newfuhi/</td>
+<td>アプリケーションログ</td>
+</tr>
+<tr>
+<td>/var/log/nginx/</td>
+<td>Webサーバーログ</td>
+</tr>
+<tr>
+<td>/etc/nginx/sites-enabled/</td>
+<td>Nginx設定</td>
+</tr>
+<tr>
+<td>/etc/systemd/system/newfuhi*.service</td>
+<td>systemd設定</td>
+</tr>
+</tbody>
 </table>
-
-<h2>21.2 ログ確認方法</h2>
-<pre><code># Django アプリログ
-tail -f debug.log
-
-# 本番ログ（systemd）
-sudo journalctl -u newfuhi-production -f --since "1 hour ago"
-
-# Gunicorn ログ
-tail -f /var/log/newfuhi/gunicorn-error.log
-
-# Celery ログ
-celery -A project worker -l debug
-
-# セキュリティログ（DB）
-python manage.py shell -c "
-from booking.models import SecurityLog
-for log in SecurityLog.objects.order_by('-created_at')[:10]:
-    print(f'{log.created_at} [{log.severity}] {log.event_type}: {log.detail}')
-"</code></pre>
-
-<h2>21.3 緊急時の対応</h2>
+<h3 id="_5">緊急連絡先・参考情報</h3>
 <table>
-<tr><th>状況</th><th>対応</th></tr>
-<tr><td>サービス完全停止</td><td><code>sudo systemctl restart newfuhi-production</code></td></tr>
-<tr><td>DB 接続エラー（本番）</td><td>RDS の状態確認、セキュリティグループ確認</td></tr>
-<tr><td>ディスク容量不足</td><td>ログローテーション確認、<code>cleanup_security_logs</code> 実行</td></tr>
-<tr><td>セキュリティインシデント</td><td>SecurityLog 確認、該当 IP ブロック、関係者に連絡</td></tr>
-<tr><td>ロールバックが必要</td><td>前のリリースタグに checkout → サービス再起動</td></tr>
+<thead>
+<tr>
+<th>項目</th>
+<th>情報</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>AWSコンソール</td>
+<td>ap-northeast-1（東京リージョン）</td>
+</tr>
+<tr>
+<td>ドメイン管理</td>
+<td>Route 53（timebaibai.com）</td>
+</tr>
+<tr>
+<td>S3バケット</td>
+<td>mee-newfuhi-backups</td>
+</tr>
+<tr>
+<td>GitHubリポジトリ</td>
+<td>要確認</td>
+</tr>
+<tr>
+<td>SSL認証局</td>
+<td>Let's Encrypt</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="9">9. 予約フロー（お客様向け）</h2>
+<h3 id="91">9.1 概要</h3>
+<p>お客様が占い師の予約を行うまでの一連のフローです。LINE認証またはメール認証で本人確認を行い、店舗・占い師・日時を選択して予約を完了します。予約完了後はQRコードが発行され、来店時のチェックインに使用します。</p>
+<h3 id="92">9.2 予約フロー全体図</h3>
+<pre><code>┌─────────┐    ┌──────────┐    ┌──────────┐    ┌──────────┐    ┌──────────┐
+│ トップ   │───▶│ 認証選択  │───▶│ 店舗/占師 │───▶│ 日時選択  │───▶│ 予約確認  │
+│ ページ   │    │ LINE/Mail│    │ 選択     │    │ カレンダー│    │ QR発行   │
+└─────────┘    └──────────┘    └──────────┘    └──────────┘    └──────────┘
+/booking/      /line_enter/    /stores/        /date-calendar/ /reservation/
+               /booking/email/ /fortune-tellers/ /staff/&lt;pk&gt;/   &lt;number&gt;/qr/
+                                                 calendar/
+</code></pre>
+<h3 id="93">9.3 トップページ</h3>
+<p><strong>URL:</strong> <code>/booking/</code></p>
+<pre><code>┌─────────────────────────────────────────────────┐
+│            占いサロンチャンス                       │
+│         〜あなたの運命を占います〜                    │
+├─────────────────────────────────────────────────┤
+│                                                 │
+│  ┌─────────────────────────────────────────┐    │
+│  │  📅 日付から予約する                       │    │
+│  │  カレンダーで空き日程を確認                  │    │
+│  └─────────────────────────────────────────┘    │
+│                                                 │
+│  ┌─────────────────────────────────────────┐    │
+│  │  🔮 占い師から予約する                     │    │
+│  │  お気に入りの占い師を指名                   │    │
+│  └─────────────────────────────────────────┘    │
+│                                                 │
+│  ┌─────────────────────────────────────────┐    │
+│  │  🏪 店舗から予約する                       │    │
+│  │  最寄りの店舗を選択                        │    │
+│  └─────────────────────────────────────────┘    │
+│                                                 │
+│  [📢 お知らせ]  [🛒 ショップ]  [❓ ヘルプ]     │
+└─────────────────────────────────────────────────┘
+</code></pre>
+<p>3つの入口から予約フローを開始できます:<br />
+- <strong>日付から予約</strong> → 日付優先カレンダー (<code>/booking/date-calendar/</code>)<br />
+- <strong>占い師から予約</strong> → 占い師一覧 (<code>/booking/fortune-tellers/</code>)<br />
+- <strong>店舗から予約</strong> → 店舗一覧 (<code>/booking/stores/</code>)</p>
+<h3 id="94">9.4 認証方法の選択</h3>
+<p><strong>URL:</strong> <code>/booking/booking/channel-choice/</code></p>
+<p>予約手続きの途中で認証が必要になった場合、以下の選択肢が表示されます:</p>
+<table>
+<thead>
+<tr>
+<th>認証方法</th>
+<th>URL</th>
+<th>説明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>LINE認証</td>
+<td><code>/booking/line_enter/</code></td>
+<td>LINEアカウントでOAuth認証</td>
+</tr>
+<tr>
+<td>メール認証</td>
+<td><code>/booking/booking/email/</code></td>
+<td>メールアドレス入力→OTPコード送信</td>
+</tr>
+</tbody>
+</table>
+<p><strong>LINE認証フロー:</strong><br />
+1. LINEログイン画面にリダイレクト<br />
+2. ユーザーが許可<br />
+3. コールバックでLINEユーザーIDを暗号化保存<br />
+4. <code>/booking/booking/login/line/success/</code> に遷移</p>
+<p><strong>メール認証フロー:</strong><br />
+1. メールアドレス入力<br />
+2. 6桁OTPコードがメール送信<br />
+3. OTP入力・検証 (<code>/booking/booking/email/verify/</code>)<br />
+4. 認証完了</p>
+<h3 id="95">9.5 占い師一覧</h3>
+<p><strong>URL:</strong> <code>/booking/fortune-tellers/</code></p>
+<pre><code>┌─────────────────────────────────────────────────┐
+│  🔮 占い師一覧                     [🔍 検索]     │
+├─────────────────────────────────────────────────┤
+│                                                 │
+│  ┌───────────┐  ┌───────────┐  ┌───────────┐   │
+│  │  [写真]    │  │  [写真]    │  │  [写真]    │   │
+│  │           │  │           │  │           │   │
+│  │  占い師A   │  │  占い師B   │  │  占い師C   │   │
+│  │  ⭐おすすめ │  │  タロット  │  │  手相     │   │
+│  │  ¥3,000〜  │  │  ¥2,500〜  │  │  ¥2,000〜  │   │
+│  │  30分〜    │  │  30分〜    │  │  20分〜    │   │
+│  │           │  │           │  │           │   │
+│  │ [予約する] │  │ [予約する] │  │ [予約する] │   │
+│  └───────────┘  └───────────┘  └───────────┘   │
+│                                                 │
+│  ┌───────────┐  ┌───────────┐                   │
+│  │  [写真]    │  │  [写真]    │                   │
+│  │  占い師D   │  │  占い師E   │                   │
+│  │  ...       │  │  ...       │                   │
+│  └───────────┘  └───────────┘                   │
+└─────────────────────────────────────────────────┘
+</code></pre>
+<ul>
+<li>おすすめ占い師（<code>is_recommended=True</code>）が上位に表示</li>
+<li>各カードに写真・名前・ジャンル・料金・枠の長さを表示</li>
+<li>「予約する」ボタンで占い師のカレンダーへ遷移</li>
+</ul>
+<h3 id="96">9.6 店舗一覧</h3>
+<p><strong>URL:</strong> <code>/booking/stores/</code></p>
+<pre><code>┌─────────────────────────────────────────────────┐
+│  🏪 店舗一覧                                     │
+├─────────────────────────────────────────────────┤
+│                                                 │
+│  ┌─────────────────────────────────────────┐    │
+│  │  [店舗写真]                              │    │
+│  │  占いサロンチャンス 本店                    │    │
+│  │  📍 東京都渋谷区... │ 🚃 渋谷駅 徒歩5分    │    │
+│  │  🕐 10:00〜20:00  │ 定休日: 火曜         │    │
+│  │  ⭐ おすすめ                              │    │
+│  │  [この店舗で予約]                          │    │
+│  └─────────────────────────────────────────┘    │
+│                                                 │
+│  ┌─────────────────────────────────────────┐    │
+│  │  [店舗写真]                              │    │
+│  │  占いサロンチャンス 2号店                   │    │
+│  │  📍 東京都新宿区... │ 🚃 新宿駅 徒歩3分    │    │
+│  │  ...                                     │    │
+│  └─────────────────────────────────────────┘    │
+└─────────────────────────────────────────────────┘
+</code></pre>
+<p>各店舗カードの表示項目:<br />
+- 店舗名、写真、住所、最寄駅、営業時間、定休日<br />
+- Google Maps埋め込みリンク<br />
+- 「この店舗で予約」ボタン → 店舗のスタッフ一覧へ</p>
+<h3 id="97">9.7 日付優先カレンダー</h3>
+<p><strong>URL:</strong> <code>/booking/date-calendar/</code> または <code>/booking/date-calendar/&lt;year&gt;/&lt;month&gt;/&lt;day&gt;/</code></p>
+<pre><code>┌─────────────────────────────────────────────────┐
+│  📅 予約カレンダー          ◀ 2026年3月 ▶        │
+├─────────────────────────────────────────────────┤
+│  月    火    水    木    金    土    日           │
+│  ─────────────────────────────────────          │
+│       1     2     3     4     5     6           │
+│       ●     ●     ×     ●     ●     ●           │
+│  7     8     9    10    11    12    13           │
+│  ×     ●     ●     ●     ×     ●     ●           │
+│  14    15    16    17   [18]   19    20           │
+│  ●     ●     ×     ●    ■     ●     ●           │
+│  21    22    23    24    25    26    27           │
+│  ●     ●     ×     ●     ●     ●     ●           │
+│  28    29    30    31                             │
+│  ●     ●     ×     ●                             │
+├─────────────────────────────────────────────────┤
+│  ● 空きあり  ■ 本日  × 定休日/満席               │
+├─────────────────────────────────────────────────┤
+│  選択日: 3月18日（水）の空き占い師:               │
+│                                                 │
+│  10:00  占い師A [予約]  占い師C [予約]           │
+│  10:30  占い師B [予約]                           │
+│  11:00  占い師A [予約]  占い師B [予約]           │
+│  ...                                            │
+└─────────────────────────────────────────────────┘
+</code></pre>
+<ul>
+<li>カレンダーで日付を選択すると、その日の空き枠が下部に表示</li>
+<li>各時間帯に対応可能な占い師が一覧表示</li>
+<li>「予約」ボタンで予約確認画面へ</li>
+</ul>
+<h3 id="98">9.8 占い師カレンダー</h3>
+<p><strong>URL:</strong> <code>/booking/staff/&lt;pk&gt;/calendar/</code> または <code>/booking/staff/&lt;pk&gt;/calendar/&lt;year&gt;/&lt;month&gt;/&lt;day&gt;/</code></p>
+<p>特定の占い師のスケジュールをカレンダー形式で表示します。</p>
+<pre><code>┌─────────────────────────────────────────────────┐
+│  🔮 占い師A のスケジュール                        │
+│  [写真] タロット占い │ 30分 ¥3,000              │
+├─────────────────────────────────────────────────┤
+│  ◀ 2026年3月18日（水） ▶                         │
+├─────────────────────────────────────────────────┤
+│  10:00  ○ 空き     [予約する]                    │
+│  10:30  × 予約済み                               │
+│  11:00  ○ 空き     [予約する]                    │
+│  11:30  ○ 空き     [予約する]                    │
+│  12:00  ― 休憩                                   │
+│  13:00  ○ 空き     [予約する]                    │
+│  13:30  × 予約済み                               │
+│  14:00  ○ 空き     [予約する]                    │
+│  ...                                            │
+└─────────────────────────────────────────────────┘
+</code></pre>
+<h3 id="99-qr">9.9 予約確認・QRコード</h3>
+<p><strong>予約確認画面（PreBooking）:</strong></p>
+<p><strong>URL:</strong> <code>/booking/staff/&lt;pk&gt;/prebooking/&lt;year&gt;/&lt;month&gt;/&lt;day&gt;/&lt;hour&gt;/</code></p>
+<p>予約内容の最終確認画面です。認証が済んでいない場合は、ここで認証方法の選択に遷移します。</p>
+<p><strong>QRコード画面:</strong></p>
+<p><strong>URL:</strong> <code>/booking/reservation/&lt;reservation_number&gt;/qr/</code></p>
+<pre><code>┌─────────────────────────────────────────────────┐
+│  ✅ 予約が確定しました                            │
+├─────────────────────────────────────────────────┤
+│                                                 │
+│  予約番号: RES-20260318-001                      │
+│                                                 │
+│  ┌───────────────────┐                          │
+│  │  ┌─────────────┐  │                          │
+│  │  │ █▀▀▀█ █▀█   │  │                          │
+│  │  │ █ ▄▄█ █▄█   │  │                          │
+│  │  │ █▀▀▀█ ▀▀▀   │  │                          │
+│  │  │   QRコード    │  │                          │
+│  │  └─────────────┘  │                          │
+│  └───────────────────┘                          │
+│                                                 │
+│  占い師: 占い師A                                  │
+│  日時: 2026年3月18日 14:00〜14:30                │
+│  店舗: 占いサロンチャンス 本店                     │
+│  料金: ¥3,000                                   │
+│                                                 │
+│  ※来店時にこのQRコードをスタッフに提示してください │
+│                                                 │
+│  [予約をキャンセル]  [マイページへ]               │
+└─────────────────────────────────────────────────┘
+</code></pre>
+<h3 id="910">9.10 チェックイン（スタッフ側）</h3>
+<p><strong>URL:</strong> <code>/booking/checkin/</code> （要ログイン）</p>
+<p>スタッフがお客様のQRコードを読み取り、チェックインを記録します。</p>
+<pre><code>┌─────────────────────────────────────────────────┐
+│  📱 チェックインスキャナー                        │
+├─────────────────────────────────────────────────┤
+│                                                 │
+│  ┌─────────────────────────────────────────┐    │
+│  │                                         │    │
+│  │          📷 カメラプレビュー              │    │
+│  │          QRコードを読み取ってください       │    │
+│  │                                         │    │
+│  └─────────────────────────────────────────┘    │
+│                                                 │
+│  最近のチェックイン:                              │
+│  ✅ 14:00 占い師A - 山田様 (RES-20260318-001)   │
+│  ✅ 13:30 占い師B - 鈴木様 (RES-20260318-002)   │
+└─────────────────────────────────────────────────┘
+</code></pre>
+<ul>
+<li>API: <code>POST /api/checkin/</code> でQRコード検証</li>
+<li>チェックイン済みの予約には <code>is_checked_in=True</code>, <code>checked_in_at</code> が記録</li>
+</ul>
+<h3 id="911">9.11 予約キャンセル</h3>
+<p><strong>URL:</strong> <code>/booking/cancel_reservation/&lt;schedule_id&gt;/</code></p>
+<p>お客様またはスタッフが予約をキャンセルできます。キャンセル後は確認画面が表示されます。</p>
+<hr />
+<h2 id="10">10. マイページ</h2>
+<h3 id="101">10.1 概要</h3>
+<p>ログイン済みのスタッフが自分のスケジュール、プロフィール、休日設定を管理する画面群です。</p>
+<h3 id="102">10.2 マイページトップ</h3>
+<p><strong>URL:</strong> <code>/booking/mypage/</code> または <code>/booking/mypage/&lt;pk&gt;/</code></p>
+<pre><code>┌─────────────────────────────────────────────────┐
+│  👤 マイページ                   [ログアウト]     │
+│  占い師A さん                                     │
+├─────────────────────────────────────────────────┤
+│                                                 │
+│  ┌──────────┐  ┌──────────┐  ┌──────────┐      │
+│  │  👤      │  │  📅      │  │  📊      │      │
+│  │ プロフィール│  │ カレンダー │  │ スケジュール│      │
+│  │ 編集      │  │ 表示      │  │ 管理      │      │
+│  └──────────┘  └──────────┘  └──────────┘      │
+│                                                 │
+│  ┌──────────┐  ┌──────────┐  ┌──────────┐      │
+│  │  🗓️      │  │  💰      │  │  📋      │      │
+│  │ シフト    │  │ 売上      │  │ 予約一覧  │      │
+│  │ 確認      │  │ 確認      │  │          │      │
+│  └──────────┘  └──────────┘  └──────────┘      │
+│                                                 │
+│  今日の予約:                                     │
+│  14:00 山田様（タロット） | 15:00 鈴木様（手相）  │
+└─────────────────────────────────────────────────┘
+</code></pre>
+<h3 id="103">10.3 プロフィール編集</h3>
+<p><strong>URL:</strong> <code>/booking/mypage/&lt;pk&gt;/profile/</code></p>
+<table>
+<thead>
+<tr>
+<th>編集可能項目</th>
+<th>説明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>名前</td>
+<td>表示名</td>
+</tr>
+<tr>
+<td>サムネイル</td>
+<td>プロフィール写真</td>
+</tr>
+<tr>
+<td>自己紹介</td>
+<td>占い師紹介文</td>
+</tr>
+<tr>
+<td>料金</td>
+<td>1回の鑑定料金</td>
+</tr>
+<tr>
+<td>枠の長さ</td>
+<td>1予約あたりの時間（分）</td>
+</tr>
+</tbody>
+</table>
+<h3 id="104">10.4 カレンダー</h3>
+<p><strong>URL:</strong> <code>/booking/mypage/&lt;pk&gt;/calendar/</code> または <code>/booking/mypage/&lt;pk&gt;/calendar/&lt;year&gt;/&lt;month&gt;/&lt;day&gt;/</code></p>
+<p>自分の予約・休日を月間カレンダーで確認。日付をタップすると当日の詳細を表示。</p>
+<h3 id="105">10.5 日別詳細・休日設定</h3>
+<p><strong>URL:</strong> <code>/booking/mypage/&lt;pk&gt;/config/&lt;year&gt;/&lt;month&gt;/&lt;day&gt;/</code></p>
+<p>特定日のスケジュール設定画面:<br />
+- 時間帯ごとの休日追加: <code>/booking/mypage/holiday/add/&lt;pk&gt;/&lt;year&gt;/&lt;month&gt;/&lt;day&gt;/&lt;hour&gt;/</code><br />
+- 終日休日追加: <code>/booking/mypage/holiday/add/&lt;pk&gt;/&lt;year&gt;/&lt;month&gt;/&lt;day&gt;/</code></p>
+<h3 id="106">10.6 スケジュール管理</h3>
+<p><strong>URL:</strong> <code>/booking/mypage/schedule/&lt;pk&gt;/</code></p>
+<p>個別のスケジュール詳細表示・編集。不要なスケジュールの削除も可能:<br />
+- 削除: <code>/booking/mypage/schedule/&lt;pk&gt;/delete/</code></p>
+<hr />
+<h2 id="11-ec">11. ECショップ</h2>
+<h3 id="111">11.1 概要</h3>
+<p>占いグッズ（お守り、パワーストーン、書籍等）をオンラインで販売するECショップ機能です。商品閲覧→カート→チェックアウト→決済→完了の流れです。</p>
+<h3 id="112">11.2 商品一覧</h3>
+<p><strong>URL:</strong> <code>/booking/shop/</code></p>
+<pre><code>┌─────────────────────────────────────────────────┐
+│  🛍️ 占いサロンチャンス - ECショップ               │
+├─────────────────────────────────────────────────┤
+│  [検索: __________ ] [🔍検索]  [🛒カート (3)]   │
+├─────────────────────────────────────────────────┤
+│  [すべて] [お守り] [パワーストーン] [書籍] [雑貨] │
+├──────────────┬──────────────┬────────────────────┤
+│  ┌────────┐  │  ┌────────┐  │  ┌────────┐       │
+│  │ [商品   │  │  │ [商品   │  │  │ [商品   │       │
+│  │  画像]  │  │  │  画像]  │  │  │  画像]  │       │
+│  └────────┘  │  └────────┘  │  └────────┘       │
+│  開運お守り   │  水晶ブレス  │  タロットカード     │
+│  ¥1,200     │  ¥3,500     │  ¥2,800           │
+│  在庫あり     │  残り2点     │  在庫あり          │
+│  [-] [1] [+] │  [-] [1] [+] │  [-] [1] [+]      │
+│  [カートへ]   │  [カートへ]   │  [カートへ]        │
+├──────────────┴──────────────┴────────────────────┤
+│  ┌────────┐     ┌────────┐                       │
+│  │ [商品   │     │ [商品   │                       │
+│  │  画像]  │     │  画像]  │                       │
+│  └────────┘     └────────┘                       │
+│  パワーストーン   占い入門書                        │
+│  ¥5,000         ¥1,500                           │
+│  売り切れ        在庫あり                          │
+│                 [-] [1] [+]                       │
+│                 [カートへ]                         │
+└──────────────────────────────────────────────────┘
+</code></pre>
+<ul>
+<li>ECCategory で商品カテゴリ分類</li>
+<li>ECProduct が個別商品（価格、在庫状況、画像、説明）</li>
+<li>多言語対応（ProductTranslation）</li>
+</ul>
+<h3 id="113">11.3 ショッピングカート</h3>
+<p><strong>URL:</strong> <code>/booking/shop/cart/</code></p>
+<pre><code>┌─────────────────────────────────────────────────┐
+│  🛒 ショッピングカート                            │
+├─────────────────────────────────────────────────┤
+│                                                 │
+│  ┌─────────────────────────────────────────┐    │
+│  │ [画像] 開運お守り        ×2    ¥2,400    │    │
+│  │        [-] [2] [+]           [🗑削除]   │    │
+│  ├─────────────────────────────────────────┤    │
+│  │ [画像] タロットカード     ×1    ¥2,800    │    │
+│  │        [-] [1] [+]           [🗑削除]   │    │
+│  └─────────────────────────────────────────┘    │
+│                                                 │
+│  ──────────────────────────────────             │
+│  小計:                        ¥5,200            │
+│  消費税 (10%):                 ¥520             │
+│  送料:                         ¥500             │
+│  ──────────────────────────────────             │
+│  合計:                        ¥6,220            │
+│                                                 │
+│  [買い物を続ける]          [レジに進む →]         │
+└─────────────────────────────────────────────────┘
+</code></pre>
+<p>カートAPI:<br />
+- 追加: <code>POST /api/shop/cart/add/</code><br />
+- 更新: <code>PUT /api/shop/cart/update/</code><br />
+- 削除: <code>DELETE /api/shop/cart/remove/</code></p>
+<h3 id="114">11.4 チェックアウト</h3>
+<p><strong>URL:</strong> <code>/booking/shop/checkout/</code></p>
+<p>配送先情報と支払い方法を入力する画面:</p>
+<table>
+<thead>
+<tr>
+<th>入力項目</th>
+<th>必須</th>
+<th>説明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>氏名</td>
+<td>○</td>
+<td>配送先名前</td>
+</tr>
+<tr>
+<td>メールアドレス</td>
+<td>○</td>
+<td>注文確認メール送信先</td>
+</tr>
+<tr>
+<td>電話番号</td>
+<td>○</td>
+<td>配送連絡先</td>
+</tr>
+<tr>
+<td>備考</td>
+<td>×</td>
+<td>配送指示等</td>
+</tr>
+</tbody>
+</table>
+<h3 id="115">11.5 注文確認</h3>
+<p><strong>URL:</strong> <code>/booking/shop/confirm/</code></p>
+<p>注文内容・配送先・金額の最終確認画面。「注文を確定する」ボタンで注文が作成されます。</p>
+<h3 id="116">11.6 決済</h3>
+<p><strong>URL:</strong> <code>/booking/shop/order/&lt;order_id&gt;/payment/</code></p>
+<p>Coiney連携によるオンライン決済画面。決済完了後、注文完了ページへ遷移。</p>
+<p>Coiney Webhookエンドポイント: <code>/coiney_webhook/&lt;orderId&gt;/</code></p>
+<h3 id="117">11.7 注文完了</h3>
+<p><strong>URL:</strong> <code>/booking/shop/order/&lt;order_id&gt;/complete/</code></p>
+<pre><code>┌─────────────────────────────────────────────────┐
+│  ✅ ご注文ありがとうございます                     │
+├─────────────────────────────────────────────────┤
+│                                                 │
+│  注文番号: ORD-20260318-001                      │
+│                                                 │
+│  注文内容:                                       │
+│  ・開運お守り ×2         ¥2,400                  │
+│  ・タロットカード ×1      ¥2,800                  │
+│                                                 │
+│  合計: ¥6,220（税込・送料込）                     │
+│                                                 │
+│  確認メールを送信しました。                        │
+│  発送準備ができ次第、別途ご連絡いたします。          │
+│                                                 │
+│  [ショップに戻る]  [マイページ]                   │
+└─────────────────────────────────────────────────┘
+</code></pre>
+<hr />
+<h2 id="12">12. テーブル注文</h2>
+<h3 id="121">12.1 概要</h3>
+<p>店舗内のテーブルに設置されたQRコードを読み取り、スマートフォンからメニューを閲覧・注文できるシステムです。認証不要でテーブルUUIDで管理されます。</p>
+<h3 id="122">12.2 テーブル注文フロー</h3>
+<pre><code>┌──────────┐    ┌──────────┐    ┌──────────┐    ┌──────────┐    ┌──────────┐
+│ QRスキャン │───▶│ メニュー  │───▶│ カート    │───▶│ 注文確定  │───▶│ 会計     │
+│ テーブル   │    │ 閲覧     │    │ 確認     │    │ 追加注文  │    │ お支払い  │
+└──────────┘    └──────────┘    └──────────┘    └──────────┘    └──────────┘
+/t/&lt;uuid&gt;/      /t/&lt;uuid&gt;/      /t/&lt;uuid&gt;/      /t/&lt;uuid&gt;/      /t/&lt;uuid&gt;/
+                                cart/           order/          checkout/
+</code></pre>
+<h3 id="123">12.3 テーブルメニュー</h3>
+<p><strong>URL:</strong> <code>/t/&lt;table_uuid&gt;/</code></p>
+<pre><code>┌─────────────────────────────────────────────────┐
+│  🍽️ テーブル 5                    [注文履歴]     │
+├─────────────────────────────────────────────────┤
+│  [ドリンク] [フード] [デザート] [セット]          │
+├─────────────────────────────────────────────────┤
+│                                                 │
+│  🍹 ドリンク                                    │
+│  ┌─────────────────────────────────────────┐    │
+│  │  [写真] アイスコーヒー          ¥500     │    │
+│  │         香り高いブレンド                  │    │
+│  │                        [-] [0] [+]      │    │
+│  ├─────────────────────────────────────────┤    │
+│  │  [写真] カフェラテ              ¥600     │    │
+│  │         オーガニックミルク使用            │    │
+│  │                        [-] [0] [+]      │    │
+│  ├─────────────────────────────────────────┤    │
+│  │  [写真] 抹茶ラテ               ¥650     │    │
+│  │         京都産宇治抹茶                   │    │
+│  │                        [-] [0] [+]      │    │
+│  └─────────────────────────────────────────┘    │
+│                                                 │
+│  🍕 フード                                      │
+│  ┌─────────────────────────────────────────┐    │
+│  │  [写真] マルゲリータ            ¥1,200   │    │
+│  │         ...                              │    │
+│  └─────────────────────────────────────────┘    │
+│                                                 │
+│  ──────────────────────────────────────         │
+│  カート: 2品  合計 ¥1,100   [カートを見る →]     │
+└─────────────────────────────────────────────────┘
+</code></pre>
+<ul>
+<li>カテゴリタブで絞り込み</li>
+<li>数量ボタンでカートに追加</li>
+<li>多言語メニュー対応（ProductTranslation）</li>
+<li>アレルギー・ハラル・ヴィーガン情報表示</li>
+</ul>
+<h3 id="124">12.4 テーブルカート</h3>
+<p><strong>URL:</strong> <code>/t/&lt;table_uuid&gt;/cart/</code></p>
+<p>カート内容の確認・数量変更・削除。</p>
+<p>テーブルカートAPI:<br />
+- 追加: <code>POST /api/table/&lt;table_id&gt;/cart/add/</code><br />
+- 更新: <code>PUT /api/table/&lt;table_id&gt;/cart/update/</code><br />
+- 削除: <code>DELETE /api/table/&lt;table_id&gt;/cart/remove/</code></p>
+<h3 id="125">12.5 注文・追加注文</h3>
+<p><strong>URL:</strong> <code>/t/&lt;table_uuid&gt;/order/</code></p>
+<ul>
+<li>注文作成: <code>POST /api/table/&lt;table_id&gt;/order/create/</code></li>
+<li>注文状況: <code>GET /api/table/&lt;table_id&gt;/orders/status/</code></li>
+</ul>
+<p>注文後も追加注文が可能。注文履歴画面で全注文の状態を確認:</p>
+<p><strong>URL:</strong> <code>/t/&lt;table_uuid&gt;/history/</code></p>
+<h3 id="126">12.6 会計</h3>
+<p><strong>URL:</strong> <code>/t/&lt;table_uuid&gt;/checkout/</code></p>
+<p>テーブルの全注文の合計を表示し、お会計を依頼。POS側で決済処理を行います。</p>
+<hr />
+<h2 id="13-pos">13. POS（レジ）</h2>
+<h3 id="131">13.1 概要</h3>
+<p>店舗スタッフが注文管理・会計処理を行うPOS（Point of Sale）システムです。キッチンディスプレイ（KDS）と連携し、調理状況のリアルタイム管理が可能です。</p>
+<h3 id="132-pos">13.2 POS画面</h3>
+<p><strong>URL:</strong> <code>/admin/pos/</code> （要ログイン・AdminSidebar付き）</p>
+<pre><code>┌─────────────────────────────────────────────────────────────────┐
+│  💳 POS - 占いサロンチャンス                                      │
+├───────────────────────────────┬─────────────────────────────────┤
+│  カテゴリ                      │  現在の注文                      │
+│  [ドリンク] [フード] [デザート]  │                                 │
+│                               │  テーブル: 5                     │
+│  ┌────────┐ ┌────────┐       │  ──────────────────────         │
+│  │アイス   │ │カフェ   │       │  アイスコーヒー  ×2  ¥1,000     │
+│  │コーヒー │ │ラテ    │       │  マルゲリータ   ×1  ¥1,200     │
+│  │ ¥500   │ │ ¥600   │       │  ──────────────────────         │
+│  └────────┘ └────────┘       │  小計:          ¥2,200          │
+│  ┌────────┐ ┌────────┐       │  消費税 (10%):    ¥220          │
+│  │抹茶    │ │マルゲ   │       │  サービス料 (5%):  ¥110          │
+│  │ラテ    │ │リータ   │       │  ──────────────────────         │
+│  │ ¥650   │ │¥1,200  │       │  合計:          ¥2,530          │
+│  └────────┘ └────────┘       │                                 │
+│  ┌────────┐ ┌────────┐       │  支払方法: [現金] [カード]        │
+│  │ケーキ   │ │パフェ   │       │           [QR決済] [Coiney]     │
+│  │ ¥800   │ │ ¥900   │       │                                 │
+│  └────────┘ └────────┘       │  [会計する]                      │
+├───────────────────────────────┴─────────────────────────────────┤
+│  最近の会計: ORD-001 ¥3,200 ✅ | ORD-002 ¥1,800 ✅            │
+└─────────────────────────────────────────────────────────────────┘
+</code></pre>
+<p>POS API:<br />
+- 注文作成/取得: <code>GET/POST /api/pos/orders/</code><br />
+- 商品追加: <code>GET/POST /api/pos/order-items/</code><br />
+- 会計処理: <code>POST /api/pos/checkout/</code></p>
+<h3 id="133-kds">13.3 キッチンディスプレイ（KDS）</h3>
+<p><strong>URL:</strong> <code>/admin/pos/kitchen/</code> （AdminSidebar付き）</p>
+<pre><code>┌─────────────────────────────────────────────────────────────────┐
+│  🍳 キッチンディスプレイ                     [自動更新: ON]       │
+├──────────────────┬──────────────────┬────────────────────────────┤
+│  ⏳ 調理待ち       │  🔥 調理中        │  ✅ 提供済み               │
+├──────────────────┼──────────────────┼────────────────────────────┤
+│  ┌──────────┐    │  ┌──────────┐    │  ┌──────────┐             │
+│  │ T5 14:05 │    │  │ T3 13:50 │    │  │ T1 13:30 │             │
+│  │──────────│    │  │──────────│    │  │──────────│             │
+│  │マルゲリータ│    │  │カフェラテ │    │  │抹茶ラテ  │             │
+│  │ ×1       │    │  │ ×2       │    │  │ ×1       │             │
+│  │抹茶ラテ   │    │  │ケーキ    │    │  │          │             │
+│  │ ×1       │    │  │ ×1       │    │  │          │             │
+│  │          │    │  │          │    │  │          │             │
+│  │ [調理開始]│    │  │ [提供完了]│    │  │ 13:45完了 │             │
+│  └──────────┘    │  └──────────┘    │  └──────────┘             │
+└──────────────────┴──────────────────┴────────────────────────────┘
+</code></pre>
+<ul>
+<li>注文をカード形式で表示</li>
+<li>3つのカラム: 調理待ち → 調理中 → 提供済み</li>
+<li>自動更新（ポーリング）でリアルタイム表示</li>
+<li>API: <code>GET /api/pos/kitchen-orders/</code> でHTML断片を取得</li>
+</ul>
+<h3 id="134">13.4 レシート</h3>
+<p><strong>URL:</strong> <code>/admin/pos/receipt/&lt;receipt_number&gt;/</code> （要ログイン）</p>
+<pre><code>┌─────────────────────────────┐
+│   占いサロンチャンス          │
+│   東京都渋谷区...            │
+│   TEL: 03-XXXX-XXXX         │
+│                             │
+│  ─────────────────────────  │
+│  アイスコーヒー  ×2  ¥1,000  │
+│  マルゲリータ   ×1  ¥1,200  │
+│  ─────────────────────────  │
+│  小計:          ¥2,200      │
+│  消費税:          ¥220      │
+│  サービス料:       ¥110      │
+│  ─────────────────────────  │
+│  合計:          ¥2,530      │
+│  お支払い: カード             │
+│  ─────────────────────────  │
+│  2026/03/18 14:30            │
+│  レシート#: TXN-20260318-001 │
+│                             │
+│  ありがとうございました        │
+└─────────────────────────────┘
+</code></pre>
+<hr />
+<h2 id="14">14. シフト管理</h2>
+<h3 id="141">14.1 概要</h3>
+<p>スタッフのシフト希望提出から管理者によるシフト確定・公開までの一連のワークフローを管理します。テンプレート機能、<strong>カバレッジベース自動スケジューリング</strong>、<strong>不足枠（再募集）管理</strong>、<strong>交代・欠勤申請</strong>機能を備えています。</p>
+<p><strong>v1.1 (2026-03-19) 追加機能:</strong><br />
+- カバレッジベース自動配置（定員制御 + 営業時間クリップ）<br />
+- 最低連続勤務時間チェック（<code>min_shift_hours</code>）<br />
+- 不足枠（ShiftVacancy）の自動生成・再募集<br />
+- 交代・欠勤申請ワークフロー（ShiftSwapRequest）<br />
+- マネージャー権限による承認/却下フロー</p>
+<h3 id="142">14.2 シフト管理フロー</h3>
+<pre><code>┌──────────┐    ┌──────────┐    ┌──────────┐    ┌──────────┐    ┌──────────┐
+│ 期間作成  │───▶│ 希望提出  │───▶│ 自動配置  │───▶│ 手動調整  │───▶│ 公開     │
+│ (管理者)  │    │ (スタッフ)│    │ (カバレッジ│    │ (管理者)  │    │ (管理者)  │
+│           │    │           │    │  ベース)  │    │           │    │           │
+└──────────┘    └──────────┘    └──────────┘    └──────────┘    └──────────┘
+API:periods/    /shift/submit/  API:auto-       API:assignments/ API:publish/
+                API:my-requests/  schedule/
+                                    │
+                                    ▼
+                              ┌──────────┐    ┌──────────┐
+                              │ 不足枠   │───▶│ 再募集   │
+                              │ 自動生成  │    │ スタッフ  │
+                              │(Vacancy) │    │  応募可   │
+                              └──────────┘    └──────────┘
+                              API:vacancies/   API:vacancies/
+                                                &lt;pk&gt;/apply/
+</code></pre>
+<p><strong>ShiftPeriodのステータス遷移:</strong><br />
+- <code>open</code> → <code>closed</code> → <code>scheduled</code> → <code>approved</code><br />
+- <code>scheduled</code> → <code>open</code> （再募集: <code>API:reopen/</code>）<br />
+- <code>approved</code> → <code>scheduled</code> （撤回: <code>API:revoke/</code>）</p>
+<p><strong>イレギュラー対策フロー:</strong></p>
+<pre><code>┌──────────┐    ┌──────────┐    ┌──────────┐    ┌──────────┐
+│ 欠勤/交代 │───▶│ 管理者に  │───▶│ 承認/却下 │───▶│ アサイン  │
+│ 申請     │    │ LINE通知  │    │ (manager) │    │ 自動更新  │
+│ (スタッフ)│    │           │    │           │    │ + 通知    │
+└──────────┘    └──────────┘    └──────────┘    └──────────┘
+API:swap-       notify_swap_    API:swap-       _process_
+requests/       request()       requests/&lt;pk&gt;/  approved_swap()
+                                                    │
+                               欠勤の場合 ──────────▼
+                              ┌──────────┐    ┌──────────┐
+                              │ 不足枠   │───▶│ 緊急カバー│
+                              │ 自動生成  │    │ LINE通知  │
+                              └──────────┘    └──────────┘
+</code></pre>
+<h3 id="143">14.3 スタッフシフト希望提出</h3>
+<p><strong>URL:</strong> <code>/booking/shift/</code> （要ログイン）</p>
+<pre><code>┌─────────────────────────────────────────────────────────────────┐
+│  📋 シフト希望提出                                               │
+│  期間: 2026年3月後半 (3/16〜3/31)   状態: 受付中                 │
+├─────────────────────────────────────────────────────────────────┤
+│        月     火     水     木     金     土     日              │
+│  ───────────────────────────────────────────────               │
+│  3/16  [早]   [遅]   [×]   [早]   [遅]   [早]   [×]           │
+│  3/23  [早]   [遅]   [×]   [早]   [早]   [遅]   [×]           │
+│  3/30  [早]   ─     ─     ─     ─     ─     ─               │
+├─────────────────────────────────────────────────────────────────┤
+│  凡例: [早]=早番希望  [遅]=遅番希望  [×]=出勤不可  [─]=未入力    │
+│                                                                 │
+│  備考: ______________________________________                   │
+│                                                                 │
+│  [前週をコピー]                          [提出する]              │
+└─────────────────────────────────────────────────────────────────┘
+</code></pre>
+<p><strong>URL:</strong> <code>/booking/shift/&lt;period_id&gt;/submit/</code></p>
+<p>スタッフAPI:<br />
+- 希望取得/作成: <code>GET/POST /api/shift/my-requests/</code><br />
+- 一括登録: <code>POST /api/shift/requests/&lt;period_id&gt;/bulk/</code><br />
+- 前週コピー: <code>POST /api/shift/requests/&lt;period_id&gt;/copy-week/</code></p>
+<h3 id="144">14.4 管理者シフトカレンダー</h3>
+<p><strong>URL:</strong> <code>/admin/shift/calendar/</code> （AdminSidebar付き）</p>
+<pre><code>┌─────────────────────────────────────────────────────────────────┐
+│  📅 シフト管理カレンダー                                         │
+│  期間: 2026年3月後半    状態: [下書き ▼]                         │
+│  [テンプレート適用] [自動スケジュール] [公開] [印刷]              │
+├─────────┬─────┬─────┬─────┬─────┬─────┬─────┬─────┤            │
+│ スタッフ │ 月16 │ 火17 │ 水18 │ 木19 │ 金20 │ 土21 │ 日22 │            │
+├─────────┼─────┼─────┼─────┼─────┼─────┼─────┼─────┤            │
+│ 占い師A  │ 早  │ 早  │ 休  │ 遅  │ 早  │ 早  │ 休  │            │
+│ 占い師B  │ 遅  │ 早  │ 早  │ 早  │ 遅  │ 遅  │ 休  │            │
+│ 占い師C  │ 早  │ 遅  │ 遅  │ 休  │ 早  │ 早  │ 早  │            │
+│ スタッフD │ 早  │ 早  │ 早  │ 早  │ 早  │ 休  │ 休  │            │
+├─────────┼─────┼─────┼─────┼─────┼─────┼─────┼─────┤            │
+│ 合計人数  │  4  │  4  │  3  │  3  │  4  │  3  │  2  │            │
+│ 必要人数  │  3  │  3  │  3  │  3  │  3  │  4  │  2  │            │
+└─────────┴─────┴─────┴─────┴─────┴─────┴─────┴─────┘            │
+│                                                                 │
+│  セルをクリックして編集 │ 色: 🟢充足 🟡不足 🔴欠員               │
+└─────────────────────────────────────────────────────────────────┘
+</code></pre>
+<p>管理者API:<br />
+- 週間グリッド: <code>GET /api/shift/week-grid/</code><br />
+- セル詳細: <code>GET /api/shift/detail/&lt;pk&gt;/</code><br />
+- アサイン: <code>POST /api/shift/assignments/</code><br />
+- テンプレート適用: <code>POST /api/shift/apply-template/</code><br />
+- 自動スケジュール: <code>POST /api/shift/auto-schedule/</code><br />
+- 一括アサイン: <code>POST /api/shift/bulk-assign/</code><br />
+- 公開: <code>POST /api/shift/publish/</code><br />
+- 取消: <code>POST /api/shift/revoke/</code></p>
+<h3 id="145">14.5 本日のシフトタイムライン</h3>
+<p><strong>URL:</strong> <code>/admin/shift/today/</code> （AdminSidebar付き）</p>
+<pre><code>┌─────────────────────────────────────────────────┐
+│  ⏰ 本日のシフト - 2026年3月18日                  │
+├─────────────────────────────────────────────────┤
+│  09  10  11  12  13  14  15  16  17  18  19  20 │
+│  ──────────────────────────────────────────────  │
+│  占い師A                                        │
+│  [████████████████████              ]           │
+│   09:00          15:00                          │
+│                                                 │
+│  占い師B                                        │
+│           [████████████████████████]            │
+│            12:00              20:00              │
+│                                                 │
+│  スタッフD                                      │
+│  [████████████████████              ]           │
+│   09:00          15:00                          │
+└─────────────────────────────────────────────────┘
+</code></pre>
+<h3 id="146">14.6 店舗休業日管理</h3>
+<p>API: <code>GET/POST /api/shift/closed-dates/</code></p>
+<p>特定日を休業日として設定可能。シフトカレンダーに反映されます。</p>
+<h3 id="147">14.7 カバレッジベース自動スケジューリング</h3>
+<p><strong>API:</strong> <code>POST /api/shift/auto-schedule/</code></p>
+<p>自動配置アルゴリズム（v1.1）は定員（ShiftStaffRequirement）を参照し、各時間帯のカバレッジを追跡しながらシフトを配置します。</p>
+<p><strong>アルゴリズム概要:</strong></p>
+<pre><code>1. 既存アサイン全削除（再スケジューリング）
+2. リクエスト取得（unavailable除外、preferred→available優先順）
+3. 日付ごとの必要人数マップ構築（曜日別定員 + オーバーライド）
+4. カバレッジ追跡マップ初期化: {日付: {種別: {時間: [スタッフ]}}}
+5. リクエストを1件ずつ処理:
+   a. 休業日チェック → skip
+   b. 営業時間クリップ（10:00-17:00希望 → 営業13:00-21:00 → 13:00-17:00に調整）
+   c. 最低連続勤務時間チェック（クリップ後 &lt; min_shift_hours → skip）
+   d. カバレッジ判定: 時間帯に定員の空きがあるか
+      - 全時間帯が定員充足済み かつ available → skip
+      - preferred はカバレッジ充足でもアサイン（希望優先）
+   e. アサイン作成 + カバレッジマップ更新
+6. 不足枠(ShiftVacancy)を自動生成
+</code></pre>
+<p><strong>レスポンス例:</strong></p>
+<pre><code class="language-json">{
+  &quot;created&quot;: 42,
+  &quot;period_id&quot;: 5,
+  &quot;vacancy_count&quot;: 3
+}
+</code></pre>
+<h3 id="148-shiftvacancy">14.8 不足枠管理（ShiftVacancy）</h3>
+<p>自動スケジューリング後、定員未達の時間帯が<strong>不足枠（ShiftVacancy）</strong>として自動生成されます。スタッフは不足枠に応募できます。</p>
+<p><strong>管理者画面 — 不足枠パネル:</strong></p>
+<p><strong>URL:</strong> <code>/admin/shift/calendar/</code> の下部パネル</p>
+<pre><code>┌─────────────────────────────────────────────────────────────────┐
+│  ⚠ 不足枠 (3件)                                                │
+├─────────┬───────────────┬──────────┬──────┬──────────┬─────────┤
+│  日付   │  時間帯        │  種別    │ 不足 │ 状態     │ 操作    │
+├─────────┼───────────────┼──────────┼──────┼──────────┼─────────┤
+│ 04/13   │ 13:00〜17:00  │ 占い師   │ 1名  │ 募集中   │         │
+│ 04/15   │ 09:00〜12:00  │ スタッフ │ 2名  │ 募集中   │         │
+│ 04/20   │ 15:00〜21:00  │ 占い師   │ 1名  │ 募集中   │         │
+└─────────┴───────────────┴──────────┴──────┴──────────┴─────────┘
+</code></pre>
+<p><strong>スタッフ画面 — 再募集枠セクション:</strong></p>
+<p><strong>URL:</strong> <code>/booking/shift/calendar/</code></p>
+<pre><code>┌─────────────────────────────────────────────────────────────────┐
+│  📋 再募集枠（不足枠）                                           │
+├─────────┬───────────────┬──────────┬──────┬─────────────────────┤
+│  日付   │  時間帯        │  種別    │ 不足 │  操作               │
+├─────────┼───────────────┼──────────┼──────┼─────────────────────┤
+│ 04/13   │ 13:00〜17:00  │ 占い師   │ 1名  │  [応募する]          │
+│ 04/20   │ 15:00〜21:00  │ 占い師   │ 1名  │  [応募する]          │
+└─────────┴───────────────┴──────────┴──────┴─────────────────────┘
+│  ※ 自分のスタッフ種別に該当する不足枠のみ表示されます             │
+└─────────────────────────────────────────────────────────────────┘
+</code></pre>
+<p><strong>不足枠API:</strong></p>
+<table>
+<thead>
+<tr>
+<th>メソッド</th>
+<th>URL</th>
+<th>説明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>GET</td>
+<td><code>/api/shift/vacancies/</code></td>
+<td>不足枠一覧（<code>period_id</code>, <code>staff_type</code> でフィルタ可、pagination対応）</td>
+</tr>
+<tr>
+<td>POST</td>
+<td><code>/api/shift/vacancies/&lt;pk&gt;/apply/</code></td>
+<td>不足枠への応募（ShiftRequest作成）</td>
+</tr>
+</tbody>
+</table>
+<p><strong>GETレスポンス例:</strong></p>
+<pre><code class="language-json">{
+  &quot;results&quot;: [
+    {
+      &quot;id&quot;: 1,
+      &quot;period_id&quot;: 5,
+      &quot;date&quot;: &quot;2026-04-13&quot;,
+      &quot;start_hour&quot;: 13,
+      &quot;end_hour&quot;: 17,
+      &quot;staff_type&quot;: &quot;fortune_teller&quot;,
+      &quot;required_count&quot;: 2,
+      &quot;assigned_count&quot;: 1,
+      &quot;shortage&quot;: 1,
+      &quot;status&quot;: &quot;open&quot;
+    }
+  ],
+  &quot;total&quot;: 1,
+  &quot;limit&quot;: 100,
+  &quot;offset&quot;: 0
+}
+</code></pre>
+<h3 id="149-shiftswaprequest">14.9 交代・欠勤申請（ShiftSwapRequest）</h3>
+<p>確定済みシフトに対して、スタッフが交代依頼または欠勤申請を行えます。マネージャーが承認/却下します。</p>
+<p><strong>申請種別:</strong></p>
+<table>
+<thead>
+<tr>
+<th>種別</th>
+<th>コード</th>
+<th>説明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>交代</td>
+<td><code>swap</code></td>
+<td>他スタッフとシフトを交代</td>
+</tr>
+<tr>
+<td>カバー</td>
+<td><code>cover</code></td>
+<td>他スタッフにシフトを依頼</td>
+</tr>
+<tr>
+<td>欠勤</td>
+<td><code>absence</code></td>
+<td>シフトをキャンセル（不足枠が自動生成）</td>
+</tr>
+</tbody>
+</table>
+<p><strong>管理者画面 — 交代・欠勤申請パネル:</strong></p>
+<p><strong>URL:</strong> <code>/admin/shift/calendar/</code> の下部パネル</p>
+<pre><code>┌─────────────────────────────────────────────────────────────────┐
+│  🔴 交代・欠勤申請 (2件)                                        │
+├──────────┬──────┬───────────────┬──────────┬──────┬─────────────┤
+│  申請者  │ 種別 │  日時          │  理由    │ 交代先│ 操作        │
+├──────────┼──────┼───────────────┼──────────┼──────┼─────────────┤
+│ 山田太郎 │ 欠勤 │ 04/13 9-17    │ 体調不良 │  —   │ [承認][却下]│
+│ 鈴木花子 │ 交代 │ 04/15 13-21   │ 私用     │ 佐藤 │ [承認][却下]│
+└──────────┴──────┴───────────────┴──────────┴──────┴─────────────┘
+</code></pre>
+<p><strong>承認時の自動処理:</strong></p>
+<table>
+<thead>
+<tr>
+<th>申請種別</th>
+<th>承認後の処理</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>欠勤 (<code>absence</code>)</td>
+<td>元のアサイン削除 → ShiftVacancy自動生成 → 全スタッフに緊急カバー通知</td>
+</tr>
+<tr>
+<td>交代 (<code>swap</code>/<code>cover</code>)</td>
+<td>元のアサイン削除 → 交代先スタッフにアサイン作成 → ShiftChangeLog記録</td>
+</tr>
+</tbody>
+</table>
+<p><strong>交代・欠勤API:</strong></p>
+<table>
+<thead>
+<tr>
+<th>メソッド</th>
+<th>URL</th>
+<th>説明</th>
+<th>権限</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>GET</td>
+<td><code>/api/shift/swap-requests/</code></td>
+<td>申請一覧</td>
+<td>スタッフ以上</td>
+</tr>
+<tr>
+<td>POST</td>
+<td><code>/api/shift/swap-requests/</code></td>
+<td>新規申請作成</td>
+<td>スタッフ以上</td>
+</tr>
+<tr>
+<td>PUT</td>
+<td><code>/api/shift/swap-requests/&lt;pk&gt;/</code></td>
+<td>承認/却下</td>
+<td><strong>マネージャー以上</strong></td>
+</tr>
+</tbody>
+</table>
+<p><strong>POST リクエスト例:</strong></p>
+<pre><code class="language-json">{
+  &quot;assignment_id&quot;: 42,
+  &quot;request_type&quot;: &quot;swap&quot;,
+  &quot;reason&quot;: &quot;私用のため&quot;,
+  &quot;cover_staff_id&quot;: 7
+}
+</code></pre>
+<h3 id="1410">14.10 最低連続勤務時間</h3>
+<p>店舗設定で最低連続勤務時間（<code>min_shift_hours</code>）を設定できます。デフォルトは2時間です。</p>
+<p><strong>設定場所:</strong> Django Admin → StoreScheduleConfig → <code>min_shift_hours</code></p>
+<pre><code>┌─────────────────────────────────────────────────────────────────┐
+│  ⚙ 店舗スケジュール設定                                         │
+├───────────────────┬─────────────────────────────────────────────┤
+│  営業開始時間      │  13:00                                     │
+│  営業終了時間      │  21:00                                     │
+│  コマ時間(分)      │  60                                        │
+│  最低シフト時間    │  [2] 時間  ← NEW                           │
+└───────────────────┴─────────────────────────────────────────────┘
+</code></pre>
+<p><strong>バリデーション適用箇所:</strong><br />
+- スタッフシフト希望提出画面（フォーム送信時）<br />
+- スタッフシフトリクエストAPI（<code>POST /api/shift/my-requests/</code>）<br />
+- 自動スケジューリング（営業時間クリップ後の実効時間で判定）</p>
+<h3 id="1411-line">14.11 LINE通知一覧</h3>
+<p>シフト関連のLINE通知は以下の場面で送信されます。</p>
+<table>
+<thead>
+<tr>
+<th>通知</th>
+<th>トリガー</th>
+<th>受信者</th>
+<th>関数</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>シフト募集開始</td>
+<td>ShiftPeriod作成</td>
+<td>店舗全スタッフ</td>
+<td><code>notify_shift_period_open()</code></td>
+</tr>
+<tr>
+<td>シフト確定</td>
+<td>公開（publish）</td>
+<td>店舗全スタッフ</td>
+<td><code>notify_shift_approved()</code></td>
+</tr>
+<tr>
+<td>シフト撤回</td>
+<td>撤回（revoke）</td>
+<td>店舗全スタッフ</td>
+<td><code>notify_shift_revoked()</code></td>
+</tr>
+<tr>
+<td>シフト変更</td>
+<td>個別シフト修正</td>
+<td>対象スタッフ</td>
+<td><code>notify_shift_revised()</code></td>
+</tr>
+<tr>
+<td>交代・欠勤申請</td>
+<td>スタッフ申請</td>
+<td>マネージャー + 交代先</td>
+<td><code>notify_swap_request()</code></td>
+</tr>
+<tr>
+<td>申請承認/却下</td>
+<td>管理者承認</td>
+<td>申請者 + 交代先</td>
+<td><code>notify_swap_approved()</code></td>
+</tr>
+<tr>
+<td>緊急カバー募集</td>
+<td>欠勤承認</td>
+<td>同種別全スタッフ</td>
+<td><code>notify_emergency_cover()</code></td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="15">15. 勤怠管理</h2>
+<h3 id="151">15.1 概要</h3>
+<p>スタッフの出退勤記録をQRコード、PINコード、または手動で管理するシステムです。TOTP（ワンタイムパスワード）によるセキュリティ強化に対応しています。</p>
+<h3 id="152">15.2 打刻方法</h3>
+<table>
+<thead>
+<tr>
+<th>方法</th>
+<th>URL</th>
+<th>認証</th>
+<th>説明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>QR打刻</td>
+<td><code>/booking/attendance/stamp/</code></td>
+<td>TOTP+PIN</td>
+<td>スタッフがQRコードをスキャンして打刻</td>
+</tr>
+<tr>
+<td>PIN打刻</td>
+<td><code>/admin/attendance/pin/</code></td>
+<td>PIN</td>
+<td>4桁PINコードで直接打刻</td>
+</tr>
+<tr>
+<td>手動打刻</td>
+<td>API: <code>/api/attendance/manual-stamp/</code></td>
+<td>管理者のみ</td>
+<td>管理者が代理打刻</td>
+</tr>
+</tbody>
+</table>
+<h3 id="153-qr">15.3 QR表示画面（管理者側）</h3>
+<p><strong>URL:</strong> <code>/admin/attendance/qr/</code> （AdminSidebar付き）</p>
+<pre><code>┌─────────────────────────────────────────────────┐
+│  📱 勤怠QRコード                                 │
+├─────────────────────────────────────────────────┤
+│                                                 │
+│         ┌─────────────────────┐                 │
+│         │  ┌───────────────┐  │                 │
+│         │  │ █▀▀▀█ █▀█    │  │                 │
+│         │  │ █ ▄▄█ █▄█    │  │                 │
+│         │  │ █▀▀▀█ ▀▀▀    │  │                 │
+│         │  │   QRコード     │  │                 │
+│         │  └───────────────┘  │                 │
+│         └─────────────────────┘                 │
+│                                                 │
+│         有効期限: 30秒ごと更新                    │
+│         TOTP認証コード: ●●●●●●                  │
+│                                                 │
+│  このQRコードを店頭のタブレットに表示してください   │
+└─────────────────────────────────────────────────┘
+</code></pre>
+<p>QRコードにはTOTPトークンが埋め込まれ、30秒ごとに更新されます。</p>
+<h3 id="154">15.4 スタンプ画面（スタッフ側）</h3>
+<p><strong>URL:</strong> <code>/booking/attendance/stamp/</code> （認証不要）</p>
+<pre><code>┌─────────────────────────────────────────────────┐
+│  ⏰ 勤怠スタンプ                                 │
+├─────────────────────────────────────────────────┤
+│                                                 │
+│  スタッフを選択:                                  │
+│  ┌──────┐ ┌──────┐ ┌──────┐ ┌──────┐          │
+│  │[写真] │ │[写真] │ │[写真] │ │[写真] │          │
+│  │占い師A│ │占い師B│ │占い師C│ │ スタッフ│          │
+│  │      │ │      │ │      │ │ D     │          │
+│  └──────┘ └──────┘ └──────┘ └──────┘          │
+│                                                 │
+│  PIN入力: [____]                                 │
+│                                                 │
+│  ┌──────────┐  ┌──────────┐                    │
+│  │  🟢 出勤  │  │  🔴 退勤  │                    │
+│  └──────────┘  └──────────┘                    │
+│  ┌──────────┐  ┌──────────┐                    │
+│  │  ☕ 休入  │  │  🔙 休出  │                    │
+│  └──────────┘  └──────────┘                    │
+│                                                 │
+│  現在時刻: 14:30:25                              │
+└─────────────────────────────────────────────────┘
+</code></pre>
+<p>打刻タイプ:<br />
+- <code>clock_in</code> — 出勤<br />
+- <code>clock_out</code> — 退勤<br />
+- <code>break_start</code> — 休憩開始<br />
+- <code>break_end</code> — 休憩終了</p>
+<p>API: <code>POST /api/attendance/stamp/</code></p>
+<h3 id="155-pin">15.5 PIN打刻画面</h3>
+<p><strong>URL:</strong> <code>/admin/attendance/pin/</code> （AdminSidebar付き）</p>
+<p>テンキーパッド形式でPINを入力し、打刻。各スタッフの <code>attendance_pin</code> フィールドと照合。</p>
+<p>API: <code>POST /api/attendance/pin-stamp/</code></p>
+<h3 id="156">15.6 出勤ボード</h3>
+<p><strong>URL:</strong> <code>/admin/attendance/board/</code> （AdminSidebar付き）</p>
+<pre><code>┌─────────────────────────────────────────────────┐
+│  📋 出勤ボード - 2026年3月18日                    │
+├─────────────────────────────────────────────────┤
+│                                                 │
+│  🟢 出勤中                                      │
+│  ┌──────────────────────────────────────┐       │
+│  │ 占い師A   09:00出勤              6.5h │       │
+│  │ スタッフD  09:15出勤   (休憩中)    5.2h │       │
+│  └──────────────────────────────────────┘       │
+│                                                 │
+│  🔴 退勤済み                                    │
+│  ┌──────────────────────────────────────┐       │
+│  │ 占い師C   09:00〜13:00           4.0h │       │
+│  └──────────────────────────────────────┘       │
+│                                                 │
+│  ⚪ 未出勤                                      │
+│  ┌──────────────────────────────────────┐       │
+│  │ 占い師B   (シフト: 12:00〜20:00)      │       │
+│  └──────────────────────────────────────┘       │
+│                                                 │
+│  本日の出勤率: 75% (3/4)                         │
+└─────────────────────────────────────────────────┘
+</code></pre>
+<p>API: <code>GET /api/attendance/day-status/</code> で当日の勤怠状態を取得</p>
+<hr />
+<h2 id="16">16. 売上ダッシュボード</h2>
+<h3 id="161">16.1 概要</h3>
+<p>店舗の売上・予約・スタッフパフォーマンスを24種類のウィジェットで可視化する管理ダッシュボードです。レイアウトはドラッグ&amp;ドロップでカスタマイズ可能です。</p>
+<p><strong>URL:</strong> <code>/admin/dashboard/sales/</code> （AdminSidebar付き）</p>
+<h3 id="162">16.2 ダッシュボード画面</h3>
+<pre><code>┌─────────────────────────────────────────────────────────────────┐
+│  📊 売上ダッシュボード        期間: [今日▼] [今週] [今月] [年間]  │
+├─────────────────────────────────────────────────────────────────┤
+│                                                                 │
+│  ┌────────────┐ ┌────────────┐ ┌────────────┐ ┌────────────┐   │
+│  │ 本日売上    │ │ 予約数     │ │ 客単価     │ │ 来客数      │   │
+│  │ ¥45,200    │ │ 12件      │ │ ¥3,767    │ │ 28人       │   │
+│  │ ▲ +15%    │ │ ▲ +8%     │ │ ▼ -3%     │ │ ▲ +12%    │   │
+│  └────────────┘ └────────────┘ └────────────┘ └────────────┘   │
+│                                                                 │
+│  ┌──────────────────────────┐ ┌──────────────────────────┐     │
+│  │ 売上推移（日別）          │ │ カテゴリ別売上            │     │
+│  │  ¥50K ┤     ╭─╮         │ │  占い:  ████████ 60%     │     │
+│  │  ¥40K ┤   ╭─╯ ╰─╮      │ │  物販:  ████ 25%         │     │
+│  │  ¥30K ┤ ╭─╯      ╰──   │ │  飲食:  ██ 15%           │     │
+│  │  ¥20K ┤─╯               │ │                          │     │
+│  │       └──────────────    │ │                          │     │
+│  │        月 火 水 木 金 土  │ │                          │     │
+│  └──────────────────────────┘ └──────────────────────────┘     │
+│                                                                 │
+│  ┌──────────────────────────┐ ┌──────────────────────────┐     │
+│  │ 売上ヒートマップ          │ │ スタッフ別パフォーマンス    │     │
+│  │    月 火 水 木 金 土 日   │ │  占い師A  ████████ 35%   │     │
+│  │ 10 ░░ ▒▒ ░░ ▒▒ ░░ ██ ░░ │ │  占い師B  ██████ 28%     │     │
+│  │ 12 ▒▒ ██ ▒▒ ██ ▒▒ ██ ░░ │ │  占い師C  ████ 22%       │     │
+│  │ 14 ██ ██ ██ ██ ██ ██ ▒▒ │ │  その他   ███ 15%        │     │
+│  │ 16 ██ ██ ▒▒ ██ ██ ██ ▒▒ │ │                          │     │
+│  │ 18 ▒▒ ▒▒ ░░ ▒▒ ██ ██ ░░ │ │                          │     │
+│  └──────────────────────────┘ └──────────────────────────┘     │
+│                                                                 │
+│  ░=低 ▒=中 █=高                                                │
+└─────────────────────────────────────────────────────────────────┘
+</code></pre>
+<h3 id="163-24">16.3 利用可能なウィジェット（24種類）</h3>
+<table>
+<thead>
+<tr>
+<th>ウィジェット</th>
+<th>API</th>
+<th>説明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>予約統計</td>
+<td><code>/api/dashboard/reservations/</code></td>
+<td>予約数・キャンセル率</td>
+</tr>
+<tr>
+<td>売上統計</td>
+<td><code>/api/dashboard/sales/</code></td>
+<td>売上金額・前期比</td>
+</tr>
+<tr>
+<td>スタッフ実績</td>
+<td><code>/api/dashboard/staff-performance/</code></td>
+<td>個人別売上・予約数</td>
+</tr>
+<tr>
+<td>シフト概要</td>
+<td><code>/api/dashboard/shift-summary/</code></td>
+<td>本日のシフト状況</td>
+</tr>
+<tr>
+<td>在庫アラート</td>
+<td><code>/api/dashboard/low-stock/</code></td>
+<td>在庫不足商品</td>
+</tr>
+<tr>
+<td>メニュー分析</td>
+<td><code>/api/dashboard/menu-engineering/</code></td>
+<td>メニュー収益性分析</td>
+</tr>
+<tr>
+<td>ABC分析</td>
+<td><code>/api/dashboard/abc-analysis/</code></td>
+<td>商品ランキング</td>
+</tr>
+<tr>
+<td>売上予測</td>
+<td><code>/api/dashboard/forecast/</code></td>
+<td>AI売上予測</td>
+</tr>
+<tr>
+<td>ヒートマップ</td>
+<td><code>/api/dashboard/sales-heatmap/</code></td>
+<td>時間帯別売上</td>
+</tr>
+<tr>
+<td>客単価推移</td>
+<td><code>/api/dashboard/aov-trend/</code></td>
+<td>平均注文額の推移</td>
+</tr>
+<tr>
+<td>コホート分析</td>
+<td><code>/api/dashboard/cohort/</code></td>
+<td>顧客リテンション</td>
+</tr>
+<tr>
+<td>RFM分析</td>
+<td><code>/api/dashboard/rfm/</code></td>
+<td>顧客セグメント</td>
+</tr>
+<tr>
+<td>バスケット分析</td>
+<td><code>/api/dashboard/basket/</code></td>
+<td>商品組み合わせ</td>
+</tr>
+<tr>
+<td>ビジネスインサイト</td>
+<td><code>/api/dashboard/insights/</code></td>
+<td>AI提案</td>
+</tr>
+<tr>
+<td>KPIスコアカード</td>
+<td><code>/api/dashboard/kpi-scorecard/</code></td>
+<td>主要KPI</td>
+</tr>
+<tr>
+<td>顧客フィードバック</td>
+<td><code>/api/dashboard/feedback/</code></td>
+<td>評価・コメント</td>
+</tr>
+<tr>
+<td>NPS</td>
+<td><code>/api/dashboard/nps/</code></td>
+<td>推奨度スコア</td>
+</tr>
+<tr>
+<td>来客予測</td>
+<td><code>/api/dashboard/visitor-forecast/</code></td>
+<td>来客数予測</td>
+</tr>
+<tr>
+<td>CLV分析</td>
+<td><code>/api/dashboard/clv/</code></td>
+<td>顧客生涯価値</td>
+</tr>
+<tr>
+<td>自動発注提案</td>
+<td><code>/api/dashboard/auto-order/</code></td>
+<td>発注推奨</td>
+</tr>
+<tr>
+<td>外部データ連携</td>
+<td><code>/api/dashboard/external-data/</code></td>
+<td>天気・イベント</td>
+</tr>
+<tr>
+<td>レイアウト設定</td>
+<td><code>/api/dashboard/layout/</code></td>
+<td>ダッシュボード配置</td>
+</tr>
+</tbody>
+</table>
+<p>レイアウトはDashboardLayoutモデルで永続化され、ユーザーごとにカスタマイズ可能です。</p>
+<hr />
+<h2 id="17">17. 来客分析</h2>
+<h3 id="171">17.1 概要</h3>
+<p>店舗への来客数をリアルタイムで追跡・分析するダッシュボードです。IoTセンサー（PIR人感センサー）のデータも統合されます。</p>
+<p><strong>URL:</strong> <code>/admin/analytics/visitors/</code> （AdminSidebar付き）</p>
+<h3 id="172">17.2 来客分析画面</h3>
+<pre><code>┌─────────────────────────────────────────────────────────────────┐
+│  👥 来客分析          期間: [今日▼] [今週] [今月]  店舗: [全店▼] │
+├─────────────────────────────────────────────────────────────────┤
+│                                                                 │
+│  ┌────────────┐ ┌────────────┐ ┌────────────┐                  │
+│  │ 本日来客数  │ │ 予約率     │ │ 平均滞在時間│                  │
+│  │ 28人       │ │ 62%       │ │ 45分       │                  │
+│  └────────────┘ └────────────┘ └────────────┘                  │
+│                                                                 │
+│  ┌──────────────────────────────────────────────────┐          │
+│  │ 時間帯別来客数                                     │          │
+│  │  15 ┤              ██                              │          │
+│  │  10 ┤        ████  ████  ████                     │          │
+│  │   5 ┤  ████  ████  ████  ████  ████               │          │
+│  │   0 ┤──────────────────────────────               │          │
+│  │      09  10  11  12  13  14  15  16  17  18  19   │          │
+│  └──────────────────────────────────────────────────┘          │
+│                                                                 │
+│  ┌──────────────────────────┐                                  │
+│  │ 来客ヒートマップ（週別）   │                                  │
+│  │    月 火 水 木 金 土 日    │                                  │
+│  │ AM ░░ ▒▒ ░░ ▒▒ ▒▒ ██ ░░ │                                  │
+│  │ PM ▒▒ ██ ▒▒ ██ ██ ██ ▒▒ │                                  │
+│  └──────────────────────────┘                                  │
+│                                                                 │
+│  来客元: 予約 62% | 飛び込み 30% | オンライン 8%                  │
+└─────────────────────────────────────────────────────────────────┘
+</code></pre>
+<p>来客分析API:<br />
+- 来客数: <code>GET /api/analytics/visitors/</code><br />
+- ヒートマップ: <code>GET /api/analytics/heatmap/</code><br />
+- コンバージョン: <code>GET /api/analytics/conversion/</code></p>
+<hr />
+<h2 id="18">18. スタッフ評価</h2>
+<h3 id="181">18.1 概要</h3>
+<p>スタッフの出勤率、売上貢献、顧客評価などのパフォーマンス指標を一元管理するダッシュボードです。</p>
+<p><strong>URL:</strong> <code>/admin/attendance/performance/</code> （AdminSidebar付き）</p>
+<h3 id="182">18.2 スタッフ評価画面</h3>
+<pre><code>┌─────────────────────────────────────────────────────────────────┐
+│  📈 スタッフパフォーマンス       期間: [今月▼]                     │
+├─────────────────────────────────────────────────────────────────┤
+│                                                                 │
+│  ┌─────────┬──────┬──────┬──────┬──────┬──────┬───────┐        │
+│  │スタッフ  │出勤率 │売上   │予約数 │評価   │遅刻   │総合    │        │
+│  ├─────────┼──────┼──────┼──────┼──────┼──────┼───────┤        │
+│  │占い師A   │ 95%  │¥180K │ 45件 │ 4.8  │ 0回  │ ⭐A   │        │
+│  │占い師B   │ 88%  │¥150K │ 38件 │ 4.5  │ 2回  │ ⭐B+  │        │
+│  │占い師C   │ 92%  │¥120K │ 32件 │ 4.3  │ 1回  │ ⭐B   │        │
+│  │スタッフD  │100%  │ ─    │  ─   │  ─   │ 0回  │ ⭐A   │        │
+│  └─────────┴──────┴──────┴──────┴──────┴──────┴───────┘        │
+│                                                                 │
+│  ┌──────────────────────────────────────┐                       │
+│  │ 月別推移グラフ                        │                       │
+│  │  占い師A ────── 占い師B ─ ─ ─        │                       │
+│  │  100%┤──────────╮                    │                       │
+│  │   90%┤    ╭─────╯──╮                │                       │
+│  │   80%┤────╯         ╰───            │                       │
+│  │      └────────────────               │                       │
+│  │       1月   2月   3月                 │                       │
+│  └──────────────────────────────────────┘                       │
+└─────────────────────────────────────────────────────────────────┘
+</code></pre>
+<p>API: <code>GET /api/attendance/performance/</code></p>
+<p>評価指標:<br />
+- 出勤率（WorkAttendance）<br />
+- 売上貢献（Order集計）<br />
+- 予約数（Schedule集計）<br />
+- 顧客評価（CustomerFeedback）<br />
+- 遅刻回数（AttendanceStamp分析）</p>
+<hr />
+<h2 id="19-ec">19. EC注文管理</h2>
+<h3 id="191">19.1 概要</h3>
+<p>ECショップの受注処理・発送管理を行う管理画面です。</p>
+<p><strong>URL:</strong> <code>/admin/ec/orders/</code> （AdminSidebar付き）</p>
+<h3 id="192-ec">19.2 EC注文管理画面</h3>
+<pre><code>┌─────────────────────────────────────────────────────────────────┐
+│  📦 EC注文管理                    [新着: 3件]                    │
+├─────────────────────────────────────────────────────────────────┤
+│  フィルタ: [全て▼] [未発送] [発送済] [キャンセル]  検索:[_____]  │
+├─────────────────────────────────────────────────────────────────┤
+│                                                                 │
+│  ┌─────────┬──────────┬──────┬──────┬────────┬───────┐         │
+│  │注文番号  │注文日     │顧客   │金額   │ステータス│操作    │         │
+│  ├─────────┼──────────┼──────┼──────┼────────┼───────┤         │
+│  │ORD-003  │3/18 14:30│山田様 │¥6,220│🟡未発送 │[発送]  │         │
+│  │ORD-002  │3/18 10:15│鈴木様 │¥3,500│🟢発送済 │[追跡]  │         │
+│  │ORD-001  │3/17 16:00│田中様 │¥1,200│🟢配達完了│       │         │
+│  └─────────┴──────────┴──────┴──────┴────────┴───────┘         │
+│                                                                 │
+│  本日: 3件 / ¥10,920  |  今月: 45件 / ¥156,800                  │
+└─────────────────────────────────────────────────────────────────┘
+</code></pre>
+<p>EC注文API:<br />
+- 注文一覧: <code>GET /api/ec/orders/</code><br />
+- 発送更新: <code>POST /api/ec/orders/&lt;pk&gt;/shipping/</code></p>
+<hr />
+<h2 id="20">20. 在庫管理</h2>
+<h3 id="201">20.1 概要</h3>
+<p>商品の在庫数量をリアルタイムで追跡し、入庫・出庫を管理するシステムです。</p>
+<h3 id="202">20.2 在庫ダッシュボード</h3>
+<p><strong>URL:</strong> <code>/admin/inventory/</code> （AdminSidebar付き）</p>
+<pre><code>┌─────────────────────────────────────────────────────────────────┐
+│  📊 在庫管理ダッシュボード                                       │
+├─────────────────────────────────────────────────────────────────┤
+│                                                                 │
+│  ┌────────────┐ ┌────────────┐ ┌────────────┐                  │
+│  │ 総SKU数     │ │ 在庫不足   │ │ 在庫切れ   │                  │
+│  │ 48品目     │ │ 🟡 5品目   │ │ 🔴 2品目   │                  │
+│  └────────────┘ └────────────┘ └────────────┘                  │
+│                                                                 │
+│  ⚠️ 在庫アラート:                                               │
+│  ┌──────────────────────────────────────────────────┐          │
+│  │ 🔴 水晶ブレスレット（M）  残: 0   → [入庫する]     │          │
+│  │ 🔴 開運お守り（金）       残: 0   → [入庫する]     │          │
+│  │ 🟡 タロットカード         残: 3   → [入庫する]     │          │
+│  │ 🟡 パワーストーン(L)      残: 5   → [入庫する]     │          │
+│  └──────────────────────────────────────────────────┘          │
+│                                                                 │
+│  最近の在庫変動:                                                 │
+│  ┌────────┬──────────────┬────┬─────┬──────┐                   │
+│  │日時     │商品           │種別 │数量  │残在庫 │                   │
+│  ├────────┼──────────────┼────┼─────┼──────┤                   │
+│  │3/18 14h│開運お守り(金)  │出庫 │ -2  │  0   │                   │
+│  │3/18 10h│タロットカード   │入庫 │+20  │  3   │                   │
+│  │3/17 16h│水晶ブレス(M)   │出庫 │ -1  │  0   │                   │
+│  └────────┴──────────────┴────┴─────┴──────┘                   │
+└─────────────────────────────────────────────────────────────────┘
+</code></pre>
+<h3 id="203">20.3 入庫フォーム</h3>
+<p><strong>URL:</strong> <code>/admin/inventory/stock-in/</code> （AdminSidebar付き）</p>
+<pre><code>┌─────────────────────────────────────────────────┐
+│  📥 入庫登録                                     │
+├─────────────────────────────────────────────────┤
+│                                                 │
+│  商品:    [タロットカード          ▼]            │
+│  数量:    [    20    ]                           │
+│  理由:    [仕入れ ▼]                             │
+│  備考:    [3月分仕入れ             ]             │
+│  参照ID:  [PO-20260318-001         ]             │
+│                                                 │
+│  [QRスキャンで入庫]        [登録する]             │
+└─────────────────────────────────────────────────┘
+</code></pre>
+<p>QRスキャン入庫: <code>/booking/stock/inbound/</code> （要ログイン）<br />
+入庫API: <code>POST /api/stock/inbound/apply/</code></p>
+<p>StockMovementモデルで全在庫変動を記録:<br />
+- <code>movement_type</code>: <code>in</code>（入庫）/ <code>out</code>（出庫）/ <code>adjustment</code>（棚卸調整）</p>
+<hr />
+<h2 id="21-ai">21. AIレコメンド</h2>
+<h3 id="211">21.1 概要</h3>
+<p>機械学習モデルによるスタッフマッチング・需要予測を行うAIレコメンドエンジンです。</p>
+<p><strong>URL:</strong> <code>/admin/ai/recommendation/</code> （AdminSidebar付き）</p>
+<h3 id="212-ai">21.2 AIレコメンド画面</h3>
+<pre><code>┌─────────────────────────────────────────────────────────────────┐
+│  🤖 AIレコメンドエンジン                                         │
+├─────────────────────────────────────────────────────────────────┤
+│                                                                 │
+│  モデル状態:                                                     │
+│  ┌──────────────────────────────────────────────────┐          │
+│  │ モデル種別: スタッフマッチング v2                    │          │
+│  │ 精度: 87.3%                                       │          │
+│  │ 最終学習: 2026-03-15 02:00                         │          │
+│  │ 学習データ: 予約1,200件 + フィードバック850件         │          │
+│  │ 状態: 🟢 アクティブ                                 │          │
+│  │                                                    │          │
+│  │ [再学習する]  [モデル詳細]                           │          │
+│  └──────────────────────────────────────────────────┘          │
+│                                                                 │
+│  直近のレコメンド結果:                                           │
+│  ┌──────────────────────────────────────────────────┐          │
+│  │ 顧客: 山田様 → 推奨: 占い師A（信頼度: 92%）         │          │
+│  │   理由: 過去3回タロット予約、高評価                   │          │
+│  │ 顧客: 鈴木様 → 推奨: 占い師C（信頼度: 85%）         │          │
+│  │   理由: 手相希望、時間帯マッチ                       │          │
+│  └──────────────────────────────────────────────────┘          │
+└─────────────────────────────────────────────────────────────────┘
+</code></pre>
+<p>AI API:<br />
+- レコメンド取得: <code>GET /api/ai/recommendations/</code><br />
+- モデル学習: <code>POST /api/ai/train/</code><br />
+- モデル状態: <code>GET /api/ai/model-status/</code></p>
+<hr />
+<h2 id="22_1">22. お知らせ管理</h2>
+<h3 id="221">22.1 概要</h3>
+<p>店舗からのお知らせ・キャンペーン情報を管理・表示する機能です。</p>
+<h3 id="222">22.2 お知らせ一覧</h3>
+<p><strong>URL:</strong> <code>/booking/news/</code></p>
+<pre><code>┌─────────────────────────────────────────────────┐
+│  📢 お知らせ                                     │
+├─────────────────────────────────────────────────┤
+│                                                 │
+│  ┌─────────────────────────────────────────┐    │
+│  │ 2026/03/15                              │    │
+│  │ 春の特別キャンペーン開始！                │    │
+│  │ 3月限定で全鑑定10%OFF...                 │    │
+│  │                            [続きを読む]  │    │
+│  └─────────────────────────────────────────┘    │
+│                                                 │
+│  ┌─────────────────────────────────────────┐    │
+│  │ 2026/03/10                              │    │
+│  │ 新しい占い師が加わりました                │    │
+│  │ タロットの占い師Eが新規入店...            │    │
+│  │                            [続きを読む]  │    │
+│  └─────────────────────────────────────────┘    │
+│                                                 │
+│  ┌─────────────────────────────────────────┐    │
+│  │ 2026/03/01                              │    │
+│  │ 営業時間変更のお知らせ                    │    │
+│  │ 3月より営業時間を10:00〜21:00に...        │    │
+│  │                            [続きを読む]  │    │
+│  └─────────────────────────────────────────┘    │
+└─────────────────────────────────────────────────┘
+</code></pre>
+<h3 id="223">22.3 お知らせ詳細</h3>
+<p><strong>URL:</strong> <code>/booking/news/&lt;slug&gt;/</code></p>
+<p>個別のお知らせ記事をフル表示。Noticeモデルの <code>body</code> フィールドにマークダウンまたはHTMLで記述。</p>
+<p>管理画面（Django Admin）からお知らせの作成・編集・公開管理が可能:<br />
+- <code>is_active</code> で公開/非公開を制御<br />
+- <code>published_at</code> で公開日時を設定<br />
+- <code>slug</code> でURL-friendlyなパスを生成</p>
+<hr />
+<h2 id="23">23. 物件モニタリング</h2>
+<h3 id="231">23.1 概要</h3>
+<p>不動産物件に設置されたIoTデバイスのセンサーデータを監視し、異常検知時にアラートを発報するシステムです。</p>
+<h3 id="232">23.2 物件一覧</h3>
+<p><strong>URL:</strong> <code>/booking/properties/</code></p>
+<pre><code>┌─────────────────────────────────────────────────────────────────┐
+│  🏠 物件モニタリング                                             │
+├─────────────────────────────────────────────────────────────────┤
+│                                                                 │
+│  ┌──────────────────────────────────────────────────┐          │
+│  │  🟢 渋谷マンション 301号室                         │          │
+│  │  種別: 賃貸 | ステータス: 入居中                     │          │
+│  │  デバイス: 2台 | アラート: なし                      │          │
+│  │  最終更新: 5分前                                    │          │
+│  │                                      [詳細を見る]  │          │
+│  └──────────────────────────────────────────────────┘          │
+│                                                                 │
+│  ┌──────────────────────────────────────────────────┐          │
+│  │  🟡 新宿オフィス B1F                               │          │
+│  │  種別: テナント | ステータス: 管理中                  │          │
+│  │  デバイス: 1台 | アラート: ⚠️ 1件                   │          │
+│  │  最終更新: 10分前                                   │          │
+│  │                                      [詳細を見る]  │          │
+│  └──────────────────────────────────────────────────┘          │
+└─────────────────────────────────────────────────────────────────┘
+</code></pre>
+<h3 id="233">23.3 物件詳細</h3>
+<p><strong>URL:</strong> <code>/booking/properties/&lt;pk&gt;/</code></p>
+<pre><code>┌─────────────────────────────────────────────────────────────────┐
+│  🏠 渋谷マンション 301号室                                       │
+│  住所: 東京都渋谷区... | 面積: 65㎡ | 取得日: 2025-06-01        │
+├─────────────────────────────────────────────────────────────────┤
+│                                                                 │
+│  📡 設置デバイス:                                                │
+│  ┌──────────────────────────────────────────────────┐          │
+│  │ pico2w_001 (リビング)  🟢オンライン  最終: 5分前    │          │
+│  │ pico2w_002 (キッチン)  🟢オンライン  最終: 5分前    │          │
+│  └──────────────────────────────────────────────────┘          │
+│                                                                 │
+│  📊 センサーデータ（24時間）:                                     │
+│  ┌──────────────────────────────────────────────────┐          │
+│  │ CO濃度 (MQ-9)                                     │          │
+│  │  500 ┤─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ 警報ライン       │          │
+│  │  300 ┤          ╭╮                                │          │
+│  │  200 ┤────╮╭────╯╰──────────────                 │          │
+│  │  100 ┤    ╰╯                                      │          │
+│  │      └──────────────────────────                  │          │
+│  │       00  04  08  12  16  20  24                   │          │
+│  └──────────────────────────────────────────────────┘          │
+│                                                                 │
+│  ⚠️ アラート履歴:                                               │
+│  ┌──────────────────────────────────────────────────┐          │
+│  │ 3/15 14:30 ガス濃度上昇 (CO: 520) ✅ 解決済み     │          │
+│  │ 3/10 02:15 人感反応なし (24h)     ✅ 解決済み     │          │
+│  └──────────────────────────────────────────────────┘          │
+└─────────────────────────────────────────────────────────────────┘
+</code></pre>
+<p>物件API:<br />
+- ステータス: <code>GET /api/properties/&lt;pk&gt;/status/</code><br />
+- アラート解決: <code>POST /api/alerts/&lt;pk&gt;/resolve/</code></p>
+<hr />
+<h2 id="24-debug">24. システム管理（Debug）</h2>
+<h3 id="241">24.1 概要</h3>
+<p>開発者・管理者向けのシステムデバッグ・監視パネルです。</p>
+<p><strong>URL:</strong> <code>/admin/debug/</code> （AdminSidebar付き・開発者権限）</p>
+<h3 id="242">24.2 デバッグパネル</h3>
+<pre><code>┌─────────────────────────────────────────────────────────────────┐
+│  🔧 システムデバッグパネル                                       │
+├─────────────────────────────────────────────────────────────────┤
+│                                                                 │
+│  システム情報:                                                   │
+│  ┌──────────────────────────────────────────────────┐          │
+│  │ Django: 4.x | Python: 3.x | DB: SQLite          │          │
+│  │ Celery: 🟢接続中 | Redis: 🟢接続中                │          │
+│  │ 最終マイグレーション: 2026-03-18                    │          │
+│  │ 静的ファイル: 457件                                │          │
+│  └──────────────────────────────────────────────────┘          │
+│                                                                 │
+│  ログレベル制御:                                                 │
+│  [DEBUG ▼] [INFO] [WARNING] [ERROR]                             │
+│                                                                 │
+│  セキュリティログ（直近10件）:                                    │
+│  ┌────────┬────────┬─────────┬──────────────────┐              │
+│  │時刻     │種別     │ユーザー  │詳細               │              │
+│  ├────────┼────────┼─────────┼──────────────────┤              │
+│  │14:30   │LOGIN   │admin    │成功 (192.168.1.1)│              │
+│  │14:25   │API_ERR │-        │無効なAPIキー       │              │
+│  │14:20   │RATE    │-        │レート制限超過       │              │
+│  └────────┴────────┴─────────┴──────────────────┘              │
+│                                                                 │
+│  IoTデバイス状態:                                                │
+│  ┌──────────┬──────┬───────┬──────────┐                        │
+│  │デバイス   │状態   │最終通信 │バッテリー │                        │
+│  ├──────────┼──────┼───────┼──────────┤                        │
+│  │pico2w_001│🟢    │5分前   │ ─        │                        │
+│  │pico2w_002│🟢    │5分前   │ ─        │                        │
+│  └──────────┴──────┴───────┴──────────┘                        │
+└─────────────────────────────────────────────────────────────────┘
+</code></pre>
+<p>デバッグAPI:<br />
+- パネルデータ: <code>GET /api/debug/panel/</code><br />
+- ログレベル: <code>POST /api/debug/log-level/</code></p>
+<p>IoTデバイス個別デバッグ: <code>/admin/debug/device/&lt;device_id&gt;/</code></p>
+<hr />
+<h2 id="a-url">付録A: 全URL一覧</h2>
+<h3 id="_6">お客様向け画面</h3>
+<table>
+<thead>
+<tr>
+<th>#</th>
+<th>画面名</th>
+<th>URL</th>
+<th>認証</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>トップページ</td>
+<td><code>/booking/</code></td>
+<td>不要</td>
+</tr>
+<tr>
+<td>2</td>
+<td>店舗一覧</td>
+<td><code>/booking/stores/</code></td>
+<td>不要</td>
+</tr>
+<tr>
+<td>3</td>
+<td>占い師一覧</td>
+<td><code>/booking/fortune-tellers/</code></td>
+<td>不要</td>
+</tr>
+<tr>
+<td>4</td>
+<td>日付優先カレンダー</td>
+<td><code>/booking/date-calendar/</code></td>
+<td>不要</td>
+</tr>
+<tr>
+<td>5</td>
+<td>日付指定カレンダー</td>
+<td><code>/booking/date-calendar/&lt;year&gt;/&lt;month&gt;/&lt;day&gt;/</code></td>
+<td>不要</td>
+</tr>
+<tr>
+<td>6</td>
+<td>店舗詳細</td>
+<td><code>/booking/store/&lt;pk&gt;/access/</code></td>
+<td>不要</td>
+</tr>
+<tr>
+<td>7</td>
+<td>店舗スタッフ一覧</td>
+<td><code>/booking/store/&lt;pk&gt;/staffs/</code></td>
+<td>不要</td>
+</tr>
+<tr>
+<td>8</td>
+<td>占い師カレンダー</td>
+<td><code>/booking/staff/&lt;pk&gt;/calendar/</code></td>
+<td>不要</td>
+</tr>
+<tr>
+<td>9</td>
+<td>占い師日付カレンダー</td>
+<td><code>/booking/staff/&lt;pk&gt;/calendar/&lt;year&gt;/&lt;month&gt;/&lt;day&gt;/</code></td>
+<td>不要</td>
+</tr>
+<tr>
+<td>10</td>
+<td>予約確認</td>
+<td><code>/booking/staff/&lt;pk&gt;/prebooking/&lt;year&gt;/&lt;month&gt;/&lt;day&gt;/&lt;hour&gt;/</code></td>
+<td>認証必要</td>
+</tr>
+<tr>
+<td>11</td>
+<td>認証方法選択</td>
+<td><code>/booking/booking/channel-choice/</code></td>
+<td>不要</td>
+</tr>
+<tr>
+<td>12</td>
+<td>メール予約</td>
+<td><code>/booking/booking/email/</code></td>
+<td>不要</td>
+</tr>
+<tr>
+<td>13</td>
+<td>メール認証</td>
+<td><code>/booking/booking/email/verify/</code></td>
+<td>不要</td>
+</tr>
+<tr>
+<td>14</td>
+<td>LINE認証</td>
+<td><code>/booking/line_enter/</code></td>
+<td>不要</td>
+</tr>
+<tr>
+<td>15</td>
+<td>LINE成功</td>
+<td><code>/booking/booking/login/line/success/</code></td>
+<td>不要</td>
+</tr>
+<tr>
+<td>16</td>
+<td>予約QRコード</td>
+<td><code>/booking/reservation/&lt;number&gt;/qr/</code></td>
+<td>不要</td>
+</tr>
+<tr>
+<td>17</td>
+<td>予約キャンセル</td>
+<td><code>/booking/cancel_reservation/&lt;schedule_id&gt;/</code></td>
+<td>不要</td>
+</tr>
+<tr>
+<td>18</td>
+<td>ログイン</td>
+<td><code>/booking/login/</code></td>
+<td>不要</td>
+</tr>
+<tr>
+<td>19</td>
+<td>ログアウト</td>
+<td><code>/booking/logout/</code></td>
+<td>不要</td>
+</tr>
+<tr>
+<td>20</td>
+<td>ヘルプ</td>
+<td><code>/booking/help/</code></td>
+<td>不要</td>
+</tr>
+<tr>
+<td>21</td>
+<td>プライバシーポリシー</td>
+<td><code>/booking/privacy/</code></td>
+<td>不要</td>
+</tr>
+<tr>
+<td>22</td>
+<td>特商法</td>
+<td><code>/booking/tokushoho/</code></td>
+<td>不要</td>
+</tr>
+</tbody>
+</table>
+<h3 id="_7">マイページ</h3>
+<table>
+<thead>
+<tr>
+<th>#</th>
+<th>画面名</th>
+<th>URL</th>
+<th>認証</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>23</td>
+<td>マイページ</td>
+<td><code>/booking/mypage/</code></td>
+<td>要ログイン</td>
+</tr>
+<tr>
+<td>24</td>
+<td>マイページ(PK)</td>
+<td><code>/booking/mypage/&lt;pk&gt;/</code></td>
+<td>要ログイン</td>
+</tr>
+<tr>
+<td>25</td>
+<td>プロフィール編集</td>
+<td><code>/booking/mypage/&lt;pk&gt;/profile/</code></td>
+<td>要ログイン</td>
+</tr>
+<tr>
+<td>26</td>
+<td>個人カレンダー</td>
+<td><code>/booking/mypage/&lt;pk&gt;/calendar/</code></td>
+<td>要ログイン</td>
+</tr>
+<tr>
+<td>27</td>
+<td>個人日付カレンダー</td>
+<td><code>/booking/mypage/&lt;pk&gt;/calendar/&lt;year&gt;/&lt;month&gt;/&lt;day&gt;/</code></td>
+<td>要ログイン</td>
+</tr>
+<tr>
+<td>28</td>
+<td>日別設定</td>
+<td><code>/booking/mypage/&lt;pk&gt;/config/&lt;year&gt;/&lt;month&gt;/&lt;day&gt;/</code></td>
+<td>要ログイン</td>
+</tr>
+<tr>
+<td>29</td>
+<td>スケジュール詳細</td>
+<td><code>/booking/mypage/schedule/&lt;pk&gt;/</code></td>
+<td>要ログイン</td>
+</tr>
+<tr>
+<td>30</td>
+<td>スケジュール削除</td>
+<td><code>/booking/mypage/schedule/&lt;pk&gt;/delete/</code></td>
+<td>要ログイン</td>
+</tr>
+</tbody>
+</table>
+<h3 id="ec">ECショップ</h3>
+<table>
+<thead>
+<tr>
+<th>#</th>
+<th>画面名</th>
+<th>URL</th>
+<th>認証</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>31</td>
+<td>ショップ</td>
+<td><code>/booking/shop/</code></td>
+<td>不要</td>
+</tr>
+<tr>
+<td>32</td>
+<td>カート</td>
+<td><code>/booking/shop/cart/</code></td>
+<td>不要</td>
+</tr>
+<tr>
+<td>33</td>
+<td>チェックアウト</td>
+<td><code>/booking/shop/checkout/</code></td>
+<td>不要</td>
+</tr>
+<tr>
+<td>34</td>
+<td>注文確認</td>
+<td><code>/booking/shop/confirm/</code></td>
+<td>不要</td>
+</tr>
+<tr>
+<td>35</td>
+<td>決済</td>
+<td><code>/booking/shop/order/&lt;order_id&gt;/payment/</code></td>
+<td>不要</td>
+</tr>
+<tr>
+<td>36</td>
+<td>注文完了</td>
+<td><code>/booking/shop/order/&lt;order_id&gt;/complete/</code></td>
+<td>不要</td>
+</tr>
+</tbody>
+</table>
+<h3 id="_8">テーブル注文</h3>
+<table>
+<thead>
+<tr>
+<th>#</th>
+<th>画面名</th>
+<th>URL</th>
+<th>認証</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>37</td>
+<td>テーブルメニュー</td>
+<td><code>/t/&lt;table_uuid&gt;/</code></td>
+<td>不要</td>
+</tr>
+<tr>
+<td>38</td>
+<td>テーブルカート</td>
+<td><code>/t/&lt;table_uuid&gt;/cart/</code></td>
+<td>不要</td>
+</tr>
+<tr>
+<td>39</td>
+<td>テーブル注文</td>
+<td><code>/t/&lt;table_uuid&gt;/order/</code></td>
+<td>不要</td>
+</tr>
+<tr>
+<td>40</td>
+<td>注文履歴</td>
+<td><code>/t/&lt;table_uuid&gt;/history/</code></td>
+<td>不要</td>
+</tr>
+<tr>
+<td>41</td>
+<td>テーブル会計</td>
+<td><code>/t/&lt;table_uuid&gt;/checkout/</code></td>
+<td>不要</td>
+</tr>
+</tbody>
+</table>
+<h3 id="_9">お知らせ</h3>
+<table>
+<thead>
+<tr>
+<th>#</th>
+<th>画面名</th>
+<th>URL</th>
+<th>認証</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>42</td>
+<td>お知らせ一覧</td>
+<td><code>/booking/news/</code></td>
+<td>不要</td>
+</tr>
+<tr>
+<td>43</td>
+<td>お知らせ詳細</td>
+<td><code>/booking/news/&lt;slug&gt;/</code></td>
+<td>不要</td>
+</tr>
+</tbody>
+</table>
+<h3 id="_10">勤怠（スタッフ向け）</h3>
+<table>
+<thead>
+<tr>
+<th>#</th>
+<th>画面名</th>
+<th>URL</th>
+<th>認証</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>44</td>
+<td>スタンプ画面</td>
+<td><code>/booking/attendance/stamp/</code></td>
+<td>不要(TOTP+PIN)</td>
+</tr>
+<tr>
+<td>45</td>
+<td>シフトカレンダー</td>
+<td><code>/booking/shift/</code></td>
+<td>要ログイン</td>
+</tr>
+<tr>
+<td>46</td>
+<td>シフト提出</td>
+<td><code>/booking/shift/&lt;period_id&gt;/submit/</code></td>
+<td>要ログイン</td>
+</tr>
+</tbody>
+</table>
+<h3 id="iot">IoT・物件</h3>
+<table>
+<thead>
+<tr>
+<th>#</th>
+<th>画面名</th>
+<th>URL</th>
+<th>認証</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>47</td>
+<td>センサーダッシュボード</td>
+<td><code>/booking/dashboard/sensors/</code></td>
+<td>不要</td>
+</tr>
+<tr>
+<td>48</td>
+<td>MQ-9グラフ</td>
+<td><code>/booking/dashboard/mq9/</code></td>
+<td>要ログイン</td>
+</tr>
+<tr>
+<td>49</td>
+<td>物件一覧</td>
+<td><code>/booking/properties/</code></td>
+<td>不要</td>
+</tr>
+<tr>
+<td>50</td>
+<td>物件詳細</td>
+<td><code>/booking/properties/&lt;pk&gt;/</code></td>
+<td>不要</td>
+</tr>
+</tbody>
+</table>
+<h3 id="_11">チェックイン</h3>
+<table>
+<thead>
+<tr>
+<th>#</th>
+<th>画面名</th>
+<th>URL</th>
+<th>認証</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>51</td>
+<td>チェックインスキャナー</td>
+<td><code>/booking/checkin/</code></td>
+<td>要ログイン</td>
+</tr>
+<tr>
+<td>52</td>
+<td>入庫QR</td>
+<td><code>/booking/stock/inbound/</code></td>
+<td>要ログイン</td>
+</tr>
+</tbody>
+</table>
+<h3 id="adminsidebar">管理者画面（AdminSidebar付き）</h3>
+<table>
+<thead>
+<tr>
+<th>#</th>
+<th>画面名</th>
+<th>URL</th>
+<th>権限</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>53</td>
+<td>Django管理画面</td>
+<td><code>/admin/</code></td>
+<td>スーパーユーザー</td>
+</tr>
+<tr>
+<td>54</td>
+<td>POS</td>
+<td><code>/admin/pos/</code></td>
+<td>スタッフ以上</td>
+</tr>
+<tr>
+<td>55</td>
+<td>キッチンディスプレイ</td>
+<td><code>/admin/pos/kitchen/</code></td>
+<td>スタッフ以上</td>
+</tr>
+<tr>
+<td>56</td>
+<td>レシート</td>
+<td><code>/admin/pos/receipt/&lt;number&gt;/</code></td>
+<td>スタッフ以上</td>
+</tr>
+<tr>
+<td>57</td>
+<td>売上ダッシュボード</td>
+<td><code>/admin/dashboard/sales/</code></td>
+<td>マネージャー以上</td>
+</tr>
+<tr>
+<td>58</td>
+<td>シフトカレンダー(管理)</td>
+<td><code>/admin/shift/calendar/</code></td>
+<td>マネージャー以上</td>
+</tr>
+<tr>
+<td>59</td>
+<td>本日のシフト</td>
+<td><code>/admin/shift/today/</code></td>
+<td>マネージャー以上</td>
+</tr>
+<tr>
+<td>60</td>
+<td>QR勤怠表示</td>
+<td><code>/admin/attendance/qr/</code></td>
+<td>マネージャー以上</td>
+</tr>
+<tr>
+<td>61</td>
+<td>PIN勤怠表示</td>
+<td><code>/admin/attendance/pin/</code></td>
+<td>マネージャー以上</td>
+</tr>
+<tr>
+<td>62</td>
+<td>出勤ボード</td>
+<td><code>/admin/attendance/board/</code></td>
+<td>マネージャー以上</td>
+</tr>
+<tr>
+<td>63</td>
+<td>スタッフ評価</td>
+<td><code>/admin/attendance/performance/</code></td>
+<td>マネージャー以上</td>
+</tr>
+<tr>
+<td>64</td>
+<td>来客分析</td>
+<td><code>/admin/analytics/visitors/</code></td>
+<td>マネージャー以上</td>
+</tr>
+<tr>
+<td>65</td>
+<td>EC注文管理</td>
+<td><code>/admin/ec/orders/</code></td>
+<td>マネージャー以上</td>
+</tr>
+<tr>
+<td>66</td>
+<td>在庫ダッシュボード</td>
+<td><code>/admin/inventory/</code></td>
+<td>マネージャー以上</td>
+</tr>
+<tr>
+<td>67</td>
+<td>入庫フォーム</td>
+<td><code>/admin/inventory/stock-in/</code></td>
+<td>マネージャー以上</td>
+</tr>
+<tr>
+<td>68</td>
+<td>AIレコメンド</td>
+<td><code>/admin/ai/recommendation/</code></td>
+<td>マネージャー以上</td>
+</tr>
+<tr>
+<td>69</td>
+<td>メニュープレビュー</td>
+<td><code>/admin/menu/preview/</code></td>
+<td>マネージャー以上</td>
+</tr>
+<tr>
+<td>70</td>
+<td>IoTセンサー監視</td>
+<td><code>/admin/iot/sensors/</code></td>
+<td>開発者以上</td>
+</tr>
+<tr>
+<td>71</td>
+<td>デバッグパネル</td>
+<td><code>/admin/debug/</code></td>
+<td>開発者</td>
+</tr>
+<tr>
+<td>72</td>
+<td>IoTデバイスデバッグ</td>
+<td><code>/admin/debug/device/&lt;device_id&gt;/</code></td>
+<td>開発者</td>
+</tr>
+<tr>
+<td>73</td>
+<td>ヘルスチェック</td>
+<td><code>/healthz</code></td>
+<td>不要</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="b-api">付録B: API一覧</h2>
+<h3 id="iot_1">IoT関連</h3>
+<table>
+<thead>
+<tr>
+<th>メソッド</th>
+<th>エンドポイント</th>
+<th>認証</th>
+<th>説明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>POST</td>
+<td><code>/api/iot/events/</code></td>
+<td>APIキー</td>
+<td>IoTイベント送信</td>
+</tr>
+<tr>
+<td>GET/POST</td>
+<td><code>/api/iot/config/</code></td>
+<td>APIキー</td>
+<td>デバイス設定取得/更新</td>
+</tr>
+<tr>
+<td>POST</td>
+<td><code>/api/iot/ir/send/</code></td>
+<td>要ログイン</td>
+<td>IR信号送信</td>
+</tr>
+<tr>
+<td>GET</td>
+<td><code>/api/iot/sensors/data/</code></td>
+<td>不要</td>
+<td>センサーデータ取得</td>
+</tr>
+<tr>
+<td>GET</td>
+<td><code>/api/iot/sensors/pir-events/</code></td>
+<td>不要</td>
+<td>PIRイベント集計</td>
+</tr>
+<tr>
+<td>GET</td>
+<td><code>/api/iot/sensors/pir-status/</code></td>
+<td>不要</td>
+<td>PIRステータス</td>
+</tr>
+</tbody>
+</table>
+<h3 id="_12">予約・タイミング</h3>
+<table>
+<thead>
+<tr>
+<th>メソッド</th>
+<th>エンドポイント</th>
+<th>認証</th>
+<th>説明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>GET</td>
+<td><code>/api/endTime</code></td>
+<td>不要</td>
+<td>終了時刻取得</td>
+</tr>
+<tr>
+<td>GET</td>
+<td><code>/api/currentTime</code></td>
+<td>不要</td>
+<td>現在時刻取得</td>
+</tr>
+<tr>
+<td>GET</td>
+<td><code>/api/reservation/&lt;pk&gt;/</code></td>
+<td>不要</td>
+<td>予約詳細</td>
+</tr>
+<tr>
+<td>GET</td>
+<td><code>/api/reservation_times/&lt;pk&gt;/</code></td>
+<td>不要</td>
+<td>予約時間</td>
+</tr>
+<tr>
+<td>POST</td>
+<td><code>/api/checkin/</code></td>
+<td>要ログイン</td>
+<td>QRチェックイン検証</td>
+</tr>
+</tbody>
+</table>
+<h3 id="_13">メニュー・注文</h3>
+<table>
+<thead>
+<tr>
+<th>メソッド</th>
+<th>エンドポイント</th>
+<th>認証</th>
+<th>説明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>GET</td>
+<td><code>/api/menu</code></td>
+<td>不要</td>
+<td>メニューJSON</td>
+</tr>
+<tr>
+<td>GET</td>
+<td><code>/api/products/alternatives/</code></td>
+<td>不要</td>
+<td>代替商品</td>
+</tr>
+<tr>
+<td>POST</td>
+<td><code>/api/orders/create/</code></td>
+<td>不要</td>
+<td>注文作成</td>
+</tr>
+<tr>
+<td>GET</td>
+<td><code>/api/orders/status/</code></td>
+<td>不要</td>
+<td>注文状況</td>
+</tr>
+<tr>
+<td>POST</td>
+<td><code>/api/staff/orders/served/</code></td>
+<td>要ログイン</td>
+<td>提供完了マーク</td>
+</tr>
+<tr>
+<td>POST</td>
+<td><code>/api/staff/orders/items/&lt;item_id&gt;/status/</code></td>
+<td>要ログイン</td>
+<td>商品ステータス更新</td>
+</tr>
+</tbody>
+</table>
+<h3 id="ec_1">ECカート</h3>
+<table>
+<thead>
+<tr>
+<th>メソッド</th>
+<th>エンドポイント</th>
+<th>認証</th>
+<th>説明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>POST</td>
+<td><code>/api/shop/cart/add/</code></td>
+<td>不要</td>
+<td>カートに追加</td>
+</tr>
+<tr>
+<td>PUT</td>
+<td><code>/api/shop/cart/update/</code></td>
+<td>不要</td>
+<td>カート更新</td>
+</tr>
+<tr>
+<td>DELETE</td>
+<td><code>/api/shop/cart/remove/</code></td>
+<td>不要</td>
+<td>カートから削除</td>
+</tr>
+</tbody>
+</table>
+<h3 id="_14">テーブル注文</h3>
+<table>
+<thead>
+<tr>
+<th>メソッド</th>
+<th>エンドポイント</th>
+<th>認証</th>
+<th>説明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>POST</td>
+<td><code>/api/table/&lt;table_id&gt;/cart/add/</code></td>
+<td>不要</td>
+<td>テーブルカート追加</td>
+</tr>
+<tr>
+<td>PUT</td>
+<td><code>/api/table/&lt;table_id&gt;/cart/update/</code></td>
+<td>不要</td>
+<td>テーブルカート更新</td>
+</tr>
+<tr>
+<td>DELETE</td>
+<td><code>/api/table/&lt;table_id&gt;/cart/remove/</code></td>
+<td>不要</td>
+<td>テーブルカート削除</td>
+</tr>
+<tr>
+<td>POST</td>
+<td><code>/api/table/&lt;table_id&gt;/order/create/</code></td>
+<td>不要</td>
+<td>テーブル注文作成</td>
+</tr>
+<tr>
+<td>GET</td>
+<td><code>/api/table/&lt;table_id&gt;/orders/status/</code></td>
+<td>不要</td>
+<td>テーブル注文状況</td>
+</tr>
+</tbody>
+</table>
+<h3 id="pos">POS</h3>
+<table>
+<thead>
+<tr>
+<th>メソッド</th>
+<th>エンドポイント</th>
+<th>認証</th>
+<th>説明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>GET/POST</td>
+<td><code>/api/pos/orders/</code></td>
+<td>要ログイン</td>
+<td>POS注文一覧/作成</td>
+</tr>
+<tr>
+<td>GET/POST</td>
+<td><code>/api/pos/order-items/</code></td>
+<td>要ログイン</td>
+<td>注文商品一覧/追加</td>
+</tr>
+<tr>
+<td>GET/PUT</td>
+<td><code>/api/pos/order-items/&lt;pk&gt;/</code></td>
+<td>要ログイン</td>
+<td>注文商品詳細/更新</td>
+</tr>
+<tr>
+<td>POST</td>
+<td><code>/api/pos/checkout/</code></td>
+<td>要ログイン</td>
+<td>会計処理</td>
+</tr>
+<tr>
+<td>GET</td>
+<td><code>/api/pos/order-item/&lt;pk&gt;/status/</code></td>
+<td>要ログイン</td>
+<td>商品ステータス</td>
+</tr>
+<tr>
+<td>GET</td>
+<td><code>/api/pos/kitchen-orders/</code></td>
+<td>要ログイン</td>
+<td>キッチン注文HTML</td>
+</tr>
+<tr>
+<td>POST</td>
+<td><code>/api/pos/order/&lt;pk&gt;/complete/</code></td>
+<td>要ログイン</td>
+<td>注文完了</td>
+</tr>
+<tr>
+<td>POST</td>
+<td><code>/api/pos/order/&lt;pk&gt;/uncomplete/</code></td>
+<td>要ログイン</td>
+<td>完了取消</td>
+</tr>
+</tbody>
+</table>
+<h3 id="_15">シフト管理</h3>
+<table>
+<thead>
+<tr>
+<th>メソッド</th>
+<th>エンドポイント</th>
+<th>認証</th>
+<th>説明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>GET</td>
+<td><code>/api/shift/week-grid/</code></td>
+<td>要ログイン</td>
+<td>週間シフトグリッド</td>
+</tr>
+<tr>
+<td>GET</td>
+<td><code>/api/shift/detail/&lt;pk&gt;/</code></td>
+<td>要ログイン</td>
+<td>シフトセル詳細</td>
+</tr>
+<tr>
+<td>POST</td>
+<td><code>/api/shift/assignments/</code></td>
+<td>要ログイン</td>
+<td>シフトアサイン作成/更新</td>
+</tr>
+<tr>
+<td>GET</td>
+<td><code>/api/shift/assignments/&lt;pk&gt;/</code></td>
+<td>要ログイン</td>
+<td>アサイン詳細</td>
+</tr>
+<tr>
+<td>POST</td>
+<td><code>/api/shift/apply-template/</code></td>
+<td>要ログイン</td>
+<td>テンプレート適用</td>
+</tr>
+<tr>
+<td>GET/POST</td>
+<td><code>/api/shift/templates/</code></td>
+<td>要ログイン</td>
+<td>テンプレート一覧/作成</td>
+</tr>
+<tr>
+<td>GET/PUT</td>
+<td><code>/api/shift/templates/&lt;pk&gt;/</code></td>
+<td>要ログイン</td>
+<td>テンプレート詳細/更新</td>
+</tr>
+<tr>
+<td>POST</td>
+<td><code>/api/shift/bulk-assign/</code></td>
+<td>要ログイン</td>
+<td>一括アサイン</td>
+</tr>
+<tr>
+<td>POST</td>
+<td><code>/api/shift/auto-schedule/</code></td>
+<td>要ログイン</td>
+<td>自動スケジュール</td>
+</tr>
+<tr>
+<td>POST</td>
+<td><code>/api/shift/publish/</code></td>
+<td>要ログイン</td>
+<td>シフト公開</td>
+</tr>
+<tr>
+<td>POST</td>
+<td><code>/api/shift/revoke/</code></td>
+<td>要ログイン</td>
+<td>シフト公開取消</td>
+</tr>
+<tr>
+<td>POST</td>
+<td><code>/api/shift/reopen/</code></td>
+<td>要ログイン</td>
+<td>シフト再開</td>
+</tr>
+<tr>
+<td>GET/POST</td>
+<td><code>/api/shift/periods/</code></td>
+<td>要ログイン</td>
+<td>期間一覧/作成</td>
+</tr>
+<tr>
+<td>GET/PUT</td>
+<td><code>/api/shift/periods/&lt;pk&gt;/</code></td>
+<td>要ログイン</td>
+<td>期間詳細/更新</td>
+</tr>
+<tr>
+<td>GET/POST</td>
+<td><code>/api/shift/closed-dates/</code></td>
+<td>要ログイン</td>
+<td>休業日管理</td>
+</tr>
+<tr>
+<td>GET/POST</td>
+<td><code>/api/shift/my-requests/</code></td>
+<td>要ログイン</td>
+<td>希望一覧/提出</td>
+</tr>
+<tr>
+<td>GET/PUT</td>
+<td><code>/api/shift/my-requests/&lt;pk&gt;/</code></td>
+<td>要ログイン</td>
+<td>希望詳細/更新</td>
+</tr>
+<tr>
+<td>POST</td>
+<td><code>/api/shift/requests/&lt;period_id&gt;/bulk/</code></td>
+<td>要ログイン</td>
+<td>希望一括登録</td>
+</tr>
+<tr>
+<td>POST</td>
+<td><code>/api/shift/requests/&lt;period_id&gt;/copy-week/</code></td>
+<td>要ログイン</td>
+<td>前週コピー</td>
+</tr>
+</tbody>
+</table>
+<h3 id="_16">勤怠</h3>
+<table>
+<thead>
+<tr>
+<th>メソッド</th>
+<th>エンドポイント</th>
+<th>認証</th>
+<th>説明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>POST</td>
+<td><code>/api/attendance/stamp/</code></td>
+<td>要ログイン</td>
+<td>打刻記録</td>
+</tr>
+<tr>
+<td>POST</td>
+<td><code>/api/attendance/totp/refresh/</code></td>
+<td>要ログイン</td>
+<td>TOTPリフレッシュ</td>
+</tr>
+<tr>
+<td>GET</td>
+<td><code>/api/attendance/day-status/</code></td>
+<td>要ログイン</td>
+<td>当日勤怠状態</td>
+</tr>
+<tr>
+<td>GET</td>
+<td><code>/api/attendance/day-status-html/</code></td>
+<td>要ログイン</td>
+<td>勤怠状態HTML</td>
+</tr>
+<tr>
+<td>POST</td>
+<td><code>/api/attendance/pin-stamp/</code></td>
+<td>要ログイン</td>
+<td>PIN打刻</td>
+</tr>
+<tr>
+<td>POST</td>
+<td><code>/api/attendance/qr-stamp/</code></td>
+<td>不要(TOTP)</td>
+<td>QR打刻</td>
+</tr>
+<tr>
+<td>POST</td>
+<td><code>/api/attendance/manual-stamp/</code></td>
+<td>管理者のみ</td>
+<td>手動打刻</td>
+</tr>
+<tr>
+<td>GET</td>
+<td><code>/api/attendance/performance/</code></td>
+<td>要ログイン</td>
+<td>パフォーマンスデータ</td>
+</tr>
+</tbody>
+</table>
+<h3 id="_17">ダッシュボード分析</h3>
+<table>
+<thead>
+<tr>
+<th>メソッド</th>
+<th>エンドポイント</th>
+<th>認証</th>
+<th>説明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>GET</td>
+<td><code>/api/dashboard/layout/</code></td>
+<td>要ログイン</td>
+<td>レイアウト設定</td>
+</tr>
+<tr>
+<td>GET</td>
+<td><code>/api/dashboard/reservations/</code></td>
+<td>要ログイン</td>
+<td>予約統計</td>
+</tr>
+<tr>
+<td>GET</td>
+<td><code>/api/dashboard/sales/</code></td>
+<td>要ログイン</td>
+<td>売上統計</td>
+</tr>
+<tr>
+<td>GET</td>
+<td><code>/api/dashboard/staff-performance/</code></td>
+<td>要ログイン</td>
+<td>スタッフ実績</td>
+</tr>
+<tr>
+<td>GET</td>
+<td><code>/api/dashboard/shift-summary/</code></td>
+<td>要ログイン</td>
+<td>シフト概要</td>
+</tr>
+<tr>
+<td>GET</td>
+<td><code>/api/dashboard/low-stock/</code></td>
+<td>要ログイン</td>
+<td>在庫不足アラート</td>
+</tr>
+<tr>
+<td>GET</td>
+<td><code>/api/dashboard/menu-engineering/</code></td>
+<td>要ログイン</td>
+<td>メニュー分析</td>
+</tr>
+<tr>
+<td>GET</td>
+<td><code>/api/dashboard/abc-analysis/</code></td>
+<td>要ログイン</td>
+<td>ABC分析</td>
+</tr>
+<tr>
+<td>GET</td>
+<td><code>/api/dashboard/forecast/</code></td>
+<td>要ログイン</td>
+<td>売上予測</td>
+</tr>
+<tr>
+<td>GET</td>
+<td><code>/api/dashboard/sales-heatmap/</code></td>
+<td>要ログイン</td>
+<td>ヒートマップ</td>
+</tr>
+<tr>
+<td>GET</td>
+<td><code>/api/dashboard/aov-trend/</code></td>
+<td>要ログイン</td>
+<td>客単価推移</td>
+</tr>
+<tr>
+<td>GET</td>
+<td><code>/api/dashboard/cohort/</code></td>
+<td>要ログイン</td>
+<td>コホート分析</td>
+</tr>
+<tr>
+<td>GET</td>
+<td><code>/api/dashboard/rfm/</code></td>
+<td>要ログイン</td>
+<td>RFM分析</td>
+</tr>
+<tr>
+<td>GET</td>
+<td><code>/api/dashboard/basket/</code></td>
+<td>要ログイン</td>
+<td>バスケット分析</td>
+</tr>
+<tr>
+<td>GET</td>
+<td><code>/api/dashboard/insights/</code></td>
+<td>要ログイン</td>
+<td>AIインサイト</td>
+</tr>
+<tr>
+<td>GET</td>
+<td><code>/api/dashboard/kpi-scorecard/</code></td>
+<td>要ログイン</td>
+<td>KPIスコアカード</td>
+</tr>
+<tr>
+<td>GET</td>
+<td><code>/api/dashboard/feedback/</code></td>
+<td>要ログイン</td>
+<td>フィードバック</td>
+</tr>
+<tr>
+<td>GET</td>
+<td><code>/api/dashboard/nps/</code></td>
+<td>要ログイン</td>
+<td>NPS</td>
+</tr>
+<tr>
+<td>GET</td>
+<td><code>/api/dashboard/visitor-forecast/</code></td>
+<td>要ログイン</td>
+<td>来客予測</td>
+</tr>
+<tr>
+<td>GET</td>
+<td><code>/api/dashboard/clv/</code></td>
+<td>要ログイン</td>
+<td>顧客生涯価値</td>
+</tr>
+<tr>
+<td>GET</td>
+<td><code>/api/dashboard/auto-order/</code></td>
+<td>要ログイン</td>
+<td>自動発注推奨</td>
+</tr>
+<tr>
+<td>GET</td>
+<td><code>/api/dashboard/external-data/</code></td>
+<td>要ログイン</td>
+<td>外部データ</td>
+</tr>
+</tbody>
+</table>
+<h3 id="_18">来客分析</h3>
+<table>
+<thead>
+<tr>
+<th>メソッド</th>
+<th>エンドポイント</th>
+<th>認証</th>
+<th>説明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>GET</td>
+<td><code>/api/analytics/visitors/</code></td>
+<td>要ログイン</td>
+<td>来客数</td>
+</tr>
+<tr>
+<td>GET</td>
+<td><code>/api/analytics/heatmap/</code></td>
+<td>要ログイン</td>
+<td>ヒートマップ</td>
+</tr>
+<tr>
+<td>GET</td>
+<td><code>/api/analytics/conversion/</code></td>
+<td>要ログイン</td>
+<td>コンバージョン</td>
+</tr>
+</tbody>
+</table>
+<h3 id="ec_2">EC注文管理</h3>
+<table>
+<thead>
+<tr>
+<th>メソッド</th>
+<th>エンドポイント</th>
+<th>認証</th>
+<th>説明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>GET</td>
+<td><code>/api/ec/orders/</code></td>
+<td>要ログイン</td>
+<td>EC注文一覧</td>
+</tr>
+<tr>
+<td>POST</td>
+<td><code>/api/ec/orders/&lt;pk&gt;/shipping/</code></td>
+<td>要ログイン</td>
+<td>発送更新</td>
+</tr>
+</tbody>
+</table>
+<h3 id="ai">AIレコメンド</h3>
+<table>
+<thead>
+<tr>
+<th>メソッド</th>
+<th>エンドポイント</th>
+<th>認証</th>
+<th>説明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>GET</td>
+<td><code>/api/ai/recommendations/</code></td>
+<td>要ログイン</td>
+<td>レコメンド取得</td>
+</tr>
+<tr>
+<td>POST</td>
+<td><code>/api/ai/train/</code></td>
+<td>要ログイン</td>
+<td>モデル学習</td>
+</tr>
+<tr>
+<td>GET</td>
+<td><code>/api/ai/model-status/</code></td>
+<td>要ログイン</td>
+<td>モデル状態</td>
+</tr>
+</tbody>
+</table>
+<h3 id="_19">物件管理</h3>
+<table>
+<thead>
+<tr>
+<th>メソッド</th>
+<th>エンドポイント</th>
+<th>認証</th>
+<th>説明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>GET</td>
+<td><code>/api/properties/&lt;pk&gt;/status/</code></td>
+<td>不要</td>
+<td>物件ステータス</td>
+</tr>
+<tr>
+<td>POST</td>
+<td><code>/api/alerts/&lt;pk&gt;/resolve/</code></td>
+<td>要ログイン</td>
+<td>アラート解決</td>
+</tr>
+</tbody>
+</table>
+<h3 id="_20">在庫</h3>
+<table>
+<thead>
+<tr>
+<th>メソッド</th>
+<th>エンドポイント</th>
+<th>認証</th>
+<th>説明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>POST</td>
+<td><code>/api/stock/inbound/apply/</code></td>
+<td>要ログイン</td>
+<td>入庫処理</td>
+</tr>
+</tbody>
+</table>
+<h3 id="_21">デバッグ</h3>
+<table>
+<thead>
+<tr>
+<th>メソッド</th>
+<th>エンドポイント</th>
+<th>認証</th>
+<th>説明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>GET</td>
+<td><code>/api/debug/panel/</code></td>
+<td>要ログイン</td>
+<td>デバッグデータ</td>
+</tr>
+<tr>
+<td>POST</td>
+<td><code>/api/debug/log-level/</code></td>
+<td>要ログイン</td>
+<td>ログレベル変更</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="c">付録C: 権限マトリクス</h2>
+<h3 id="_22">ロール定義</h3>
+<table>
+<thead>
+<tr>
+<th>ロール</th>
+<th>説明</th>
+<th>判定条件</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>スーパーユーザー</td>
+<td>全機能アクセス可能</td>
+<td><code>is_superuser=True</code></td>
+</tr>
+<tr>
+<td>オーナー</td>
+<td>全機能アクセス可能</td>
+<td><code>staff.is_owner=True</code></td>
+</tr>
+<tr>
+<td>開発者</td>
+<td>システム管理含む限定アクセス</td>
+<td><code>staff.is_developer=True</code></td>
+</tr>
+<tr>
+<td>店長</td>
+<td>店舗管理全般</td>
+<td><code>staff.is_store_manager=True</code></td>
+</tr>
+<tr>
+<td>スタッフ</td>
+<td>基本操作のみ</td>
+<td>上記いずれもFalse</td>
+</tr>
+<tr>
+<td>ゲスト</td>
+<td>公開画面のみ</td>
+<td>未ログイン</td>
+</tr>
+</tbody>
+</table>
+<h3 id="_23">機能×ロール アクセス表</h3>
+<table>
+<thead>
+<tr>
+<th>機能</th>
+<th>ゲスト</th>
+<th>スタッフ</th>
+<th>店長</th>
+<th>開発者</th>
+<th>オーナー</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>予約トップ・カレンダー</td>
+<td>✅</td>
+<td>✅</td>
+<td>✅</td>
+<td>✅</td>
+<td>✅</td>
+</tr>
+<tr>
+<td>占い師・店舗一覧</td>
+<td>✅</td>
+<td>✅</td>
+<td>✅</td>
+<td>✅</td>
+<td>✅</td>
+</tr>
+<tr>
+<td>ECショップ閲覧・購入</td>
+<td>✅</td>
+<td>✅</td>
+<td>✅</td>
+<td>✅</td>
+<td>✅</td>
+</tr>
+<tr>
+<td>テーブル注文</td>
+<td>✅</td>
+<td>✅</td>
+<td>✅</td>
+<td>✅</td>
+<td>✅</td>
+</tr>
+<tr>
+<td>お知らせ閲覧</td>
+<td>✅</td>
+<td>✅</td>
+<td>✅</td>
+<td>✅</td>
+<td>✅</td>
+</tr>
+<tr>
+<td>物件一覧・詳細</td>
+<td>✅</td>
+<td>✅</td>
+<td>✅</td>
+<td>✅</td>
+<td>✅</td>
+</tr>
+<tr>
+<td>センサーダッシュボード</td>
+<td>✅</td>
+<td>✅</td>
+<td>✅</td>
+<td>✅</td>
+<td>✅</td>
+</tr>
+<tr>
+<td>ヘルプ・ポリシー</td>
+<td>✅</td>
+<td>✅</td>
+<td>✅</td>
+<td>✅</td>
+<td>✅</td>
+</tr>
+<tr>
+<td>マイページ</td>
+<td>❌</td>
+<td>✅</td>
+<td>✅</td>
+<td>✅</td>
+<td>✅</td>
+</tr>
+<tr>
+<td>シフト希望提出</td>
+<td>❌</td>
+<td>✅</td>
+<td>✅</td>
+<td>✅</td>
+<td>✅</td>
+</tr>
+<tr>
+<td>勤怠スタンプ</td>
+<td>❌</td>
+<td>✅</td>
+<td>✅</td>
+<td>✅</td>
+<td>✅</td>
+</tr>
+<tr>
+<td>チェックインスキャナー</td>
+<td>❌</td>
+<td>✅</td>
+<td>✅</td>
+<td>✅</td>
+<td>✅</td>
+</tr>
+<tr>
+<td>MQ-9グラフ</td>
+<td>❌</td>
+<td>✅</td>
+<td>✅</td>
+<td>✅</td>
+<td>✅</td>
+</tr>
+<tr>
+<td>POS</td>
+<td>❌</td>
+<td>✅*</td>
+<td>✅</td>
+<td>✅</td>
+<td>✅</td>
+</tr>
+<tr>
+<td>キッチンディスプレイ</td>
+<td>❌</td>
+<td>✅*</td>
+<td>✅</td>
+<td>✅</td>
+<td>✅</td>
+</tr>
+<tr>
+<td>シフト管理（管理者）</td>
+<td>❌</td>
+<td>❌</td>
+<td>✅</td>
+<td>❌</td>
+<td>✅</td>
+</tr>
+<tr>
+<td>売上ダッシュボード</td>
+<td>❌</td>
+<td>❌</td>
+<td>✅</td>
+<td>❌</td>
+<td>✅</td>
+</tr>
+<tr>
+<td>来客分析</td>
+<td>❌</td>
+<td>❌</td>
+<td>✅</td>
+<td>❌</td>
+<td>✅</td>
+</tr>
+<tr>
+<td>スタッフ評価</td>
+<td>❌</td>
+<td>❌</td>
+<td>✅</td>
+<td>❌</td>
+<td>✅</td>
+</tr>
+<tr>
+<td>EC注文管理</td>
+<td>❌</td>
+<td>❌</td>
+<td>✅</td>
+<td>❌</td>
+<td>✅</td>
+</tr>
+<tr>
+<td>在庫管理</td>
+<td>❌</td>
+<td>❌**</td>
+<td>✅</td>
+<td>❌</td>
+<td>✅</td>
+</tr>
+<tr>
+<td>AIレコメンド</td>
+<td>❌</td>
+<td>❌</td>
+<td>✅</td>
+<td>❌</td>
+<td>✅</td>
+</tr>
+<tr>
+<td>QR/PIN勤怠表示</td>
+<td>❌</td>
+<td>❌</td>
+<td>✅</td>
+<td>✅</td>
+<td>✅</td>
+</tr>
+<tr>
+<td>出勤ボード</td>
+<td>❌</td>
+<td>❌</td>
+<td>✅</td>
+<td>❌</td>
+<td>✅</td>
+</tr>
+<tr>
+<td>IoTセンサー監視(admin)</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>✅</td>
+<td>✅</td>
+</tr>
+<tr>
+<td>デバッグパネル</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>✅</td>
+<td>❌</td>
+</tr>
+<tr>
+<td>Django管理画面</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>✅</td>
+</tr>
+</tbody>
+</table>
+<p><strong>注記:</strong><br />
+- ✅<em> POS/キッチンは <code>AdminSidebar</code> 経由だがスタッフ権限で利用可能<br />
+- ❌</em>* 在庫は <code>can_see_inventory=True</code> のスタッフのみ閲覧可能</p>
+<h3 id="_24">追加権限フラグ</h3>
+<table>
+<thead>
+<tr>
+<th>フラグ</th>
+<th>対象</th>
+<th>説明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>can_see_inventory</code></td>
+<td>Staff</td>
+<td>在庫画面の閲覧権限</td>
+</tr>
+<tr>
+<td><code>can_see_orders</code></td>
+<td>Staff</td>
+<td>注文画面の閲覧権限</td>
+</tr>
+<tr>
+<td><code>notify_booking</code></td>
+<td>Staff</td>
+<td>予約通知を受信</td>
+</tr>
+<tr>
+<td><code>notify_shift</code></td>
+<td>Staff</td>
+<td>シフト通知を受信</td>
+</tr>
+<tr>
+<td><code>notify_business</code></td>
+<td>Staff</td>
+<td>ビジネス通知を受信</td>
+</tr>
+</tbody>
 </table>
 
 </body>

@@ -20,18 +20,6 @@ from .models import IoTDevice, IoTEvent, Staff, SystemConfig
 logger = logging.getLogger(__name__)
 
 
-def _is_developer_or_superuser(user):
-    """Check if user is superuser or has developer flag."""
-    if not user.is_authenticated:
-        return False
-    if user.is_superuser:
-        return True
-    try:
-        return user.staff.is_developer
-    except (Staff.DoesNotExist, AttributeError):
-        return False
-
-
 class AdminDebugPanelView(AdminSidebarMixin, TemplateView):
     """Admin debug panel — superuser/developer only."""
     template_name = 'admin/booking/debug_panel.html'
@@ -103,8 +91,6 @@ def _is_developer_or_superuser(user):
 
 class AdminDebugPanelAPIView(APIView):
     """AJAX endpoint for debug panel auto-refresh."""
-    authentication_classes = []
-    permission_classes = []
 
     def get(self, request):
         if not _is_developer_or_superuser(request.user):
@@ -140,8 +126,6 @@ class AdminDebugPanelAPIView(APIView):
 
 class LogLevelControlAPIView(APIView):
     """Dynamic log level control API."""
-    authentication_classes = []
-    permission_classes = []
 
     def get(self, request):
         if not _is_developer_or_superuser(request.user):

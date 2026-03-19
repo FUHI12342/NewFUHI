@@ -1,50 +1,51 @@
 # Core
 django>=4.2,<5.0
-djangorestframework>=3.14.0
-gunicorn>=21.2.0
+djangorestframework>=3.14.0,<4.0
+gunicorn>=21.2.0,<23.0
 
 # Auth
-social-auth-app-django>=5.4.0
+social-auth-app-django>=5.4.0,<6.0
 
 # Async tasks
-celery>=5.3.0
-redis>=5.0.0
+celery>=5.3.0,<6.0
+redis>=5.0.0,<6.0
 
 # Security
-cryptography>=42.0.0
-PyJWT>=2.8.0
+cryptography>=42.0.0,<44.0
+PyJWT>=2.8.0,<3.0
+argon2-cffi>=23.1.0,<24.0
 
 # Media / QR
-pillow>=10.0.0
-qrcode[pil]>=7.0
+pillow>=10.0.0,<11.0
+qrcode[pil]>=7.0,<8.0
 
 # AWS
-boto3>=1.26.0
+boto3>=1.26.0,<2.0
 
 # Utils
-requests>=2.31.0
+requests>=2.31.0,<3.0
 newspaper3k>=0.2.8
-python-dotenv>=1.0.0
+python-dotenv>=1.0.0,<2.0
 pytz>=2024.1
 lxml_html_clean>=0.4.0
 
 # LINE
-line-bot-sdk>=3.5.0
+line-bot-sdk>=3.5.0,<4.0
 
 # Database
-dj-database-url>=2.1.0
+dj-database-url>=2.1.0,<3.0
 
 # Admin UI
-django-jazzmin>=3.0.0
+django-jazzmin>=3.0.0,<4.0
 
 # TOTP
-pyotp>=2.9.0
+pyotp>=2.9.0,<3.0
 
 # ML
-scikit-learn>=1.5.0
-joblib>=1.4.0
+scikit-learn>=1.5.0,<2.0
+joblib>=1.4.0,<2.0
 
 # Test
-pytest>=7.0.0
-pytest-django>=4.5.0
-hypothesis>=6.0.0
+pytest>=7.0.0,<9.0
+pytest-django>=4.5.0,<5.0
+hypothesis>=6.0.0,<7.0

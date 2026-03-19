@@ -114,12 +114,8 @@ class PropertyDetailView(TemplateView):
 
 class PropertyStatusAPIView(APIView):
     """AJAX endpoint for property detail auto-refresh."""
-    authentication_classes = []
-    permission_classes = []
 
     def get(self, request, pk):
-        if not request.user.is_authenticated:
-            return Response({'detail': 'login required'}, status=status.HTTP_403_FORBIDDEN)
 
         now = timezone.now()
         try:
@@ -162,12 +158,8 @@ class PropertyStatusAPIView(APIView):
 
 class PropertyAlertResolveAPIView(APIView):
     """POST /api/alerts/<id>/resolve/ — mark an alert as resolved."""
-    authentication_classes = []
-    permission_classes = []
 
     def post(self, request, pk):
-        if not request.user.is_authenticated:
-            return Response({'detail': 'login required'}, status=status.HTTP_403_FORBIDDEN)
         try:
             alert = PropertyAlert.objects.get(pk=pk)
         except PropertyAlert.DoesNotExist:
