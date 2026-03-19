@@ -145,25 +145,27 @@ def auto_schedule(period):
                 logger.info("Skipping request %s: store closed on %s", req, req.date)
                 continue
 
-            # 営業時間外チェック
-            if req.start_hour < open_h or req.end_hour > close_h:
+            # 営業時間クリップ（はみ出し部分を営業時間内に切り詰め）
+            eff_start = max(req.start_hour, open_h)
+            eff_end = min(req.end_hour, close_h)
+            if eff_start >= eff_end:
                 logger.info(
-                    "Skipping request %s: outside business hours (%d-%d)",
+                    "Skipping request %s: entirely outside business hours (%d-%d)",
                     req, open_h, close_h,
                 )
                 continue
 
-            # 最低連続勤務時間チェック
-            shift_hours = req.end_hour - req.start_hour
+            # 最低連続勤務時間チェック（クリップ後の実効時間で判定）
+            shift_hours = eff_end - eff_start
             if shift_hours < min_shift:
                 logger.info(
-                    "Skipping request %s: shift duration %dh < min %dh",
+                    "Skipping request %s: clipped duration %dh < min %dh",
                     req, shift_hours, min_shift,
                 )
                 continue
 
             # 重複チェック
-            slot_key = (req.date, req.start_hour)
+            slot_key = (req.date, eff_start)
             if slot_key not in assigned_slots:
                 assigned_slots[slot_key] = set()
             if req.staff_id in assigned_slots[slot_key]:
@@ -173,7 +175,7 @@ def auto_schedule(period):
             staff_type = req.staff.staff_type
             has_need = check_coverage_need(
                 coverage_map, req_map, req.date, staff_type,
-                req.start_hour, req.end_hour,
+                eff_start, eff_end,
             )
 
             if not has_need and req.preference != 'preferred':
@@ -187,15 +189,15 @@ def auto_schedule(period):
                 period=period,
                 staff=req.staff,
                 date=req.date,
-                start_hour=req.start_hour,
-                end_hour=req.end_hour,
-                start_time=req.start_time or datetime.time(req.start_hour, 0),
-                end_time=req.end_time or datetime.time(req.end_hour, 0),
+                start_hour=eff_start,
+                end_hour=eff_end,
+                start_time=req.start_time or datetime.time(eff_start, 0),
+                end_time=req.end_time or datetime.time(eff_end, 0),
             )
             assigned_slots[slot_key].add(req.staff_id)
             record_assignment(
                 coverage_map, req.date, staff_type,
-                req.start_hour, req.end_hour, req.staff_id,
+                eff_start, eff_end, req.staff_id,
             )
             created_count += 1
 
