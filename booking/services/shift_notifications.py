@@ -50,7 +50,10 @@ def notify_shift_period_open(period):
     """シフト募集開始通知 (LINE個別Push + メール)"""
     store = period.store
     month_str = period.year_month.strftime('%Y年%m月')
-    deadline_str = timezone.localtime(period.deadline).strftime('%Y/%m/%d %H:%M')
+    deadline_str = (
+        timezone.localtime(period.deadline).strftime('%Y/%m/%d %H:%M')
+        if period.deadline else '未設定'
+    )
 
     message = (
         f"【シフト募集開始】\n"

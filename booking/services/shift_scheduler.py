@@ -130,6 +130,8 @@ def auto_schedule(period):
         )
         requests = period.requests.exclude(
             preference='unavailable'
+        ).select_related(
+            'staff',
         ).annotate(
             pref_order=preference_order,
         ).order_by(
