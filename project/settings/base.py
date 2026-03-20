@@ -215,18 +215,8 @@ JAZZMIN_SETTINGS = {
         "auth.Group": "fas fa-users-cog",
     },
 
-    # カスタムリンク（ダッシュボード等）
-    "custom_links": {
-        "booking": [{
-            "name": _("売上ダッシュボード"),
-            "url": "/admin/dashboard/sales/",
-            "icon": "fas fa-chart-line",
-        }, {
-            "name": _("デバッグパネル"),
-            "url": "/admin/debug/",
-            "icon": "fas fa-bug",
-        }],
-    },
+    # カスタムリンクは admin_site.py の SIDEBAR_CUSTOM_LINKS で管理（i18n対応）
+    "custom_links": {},
 
     "hide_apps": [],
 

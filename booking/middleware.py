@@ -8,11 +8,14 @@ from django.conf import settings
 from django.http import JsonResponse
 from django.utils import translation
 
+LANGUAGE_SESSION_KEY = '_language'
+
 logger = logging.getLogger(__name__)
 
 
 class ForceLanguageMiddleware:
     """SiteSettings.forced_language が設定されていればその言語を強制適用。
+    URLに言語プレフィックスがある場合はセッションに保存して維持する。
     LocaleMiddleware の直後に配置。"""
 
     def __init__(self, get_response):
@@ -25,8 +28,20 @@ class ForceLanguageMiddleware:
             if site_settings.forced_language:
                 translation.activate(site_settings.forced_language)
                 request.LANGUAGE_CODE = site_settings.forced_language
+                return self.get_response(request)
         except Exception:
             pass
+
+        # URLプレフィックスから言語を検出した場合、セッションに保存
+        lang_from_url = getattr(request, 'LANGUAGE_CODE', None)
+        if lang_from_url and hasattr(request, 'session'):
+            stored_lang = request.session.get(LANGUAGE_SESSION_KEY)
+            if lang_from_url != settings.LANGUAGE_CODE and lang_from_url != stored_lang:
+                request.session[LANGUAGE_SESSION_KEY] = lang_from_url
+            elif lang_from_url == settings.LANGUAGE_CODE and stored_lang:
+                # デフォルト言語に戻った場合、セッションの言語設定をクリア
+                request.session.pop(LANGUAGE_SESSION_KEY, None)
+
         return self.get_response(request)
 
 

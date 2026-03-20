@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.contrib import admin
 from django.contrib.admin.sites import AdminSite
 from django.urls import reverse
@@ -439,6 +440,13 @@ class RoleBasedAdminSite(AdminSite):
 
     def _regroup_apps(self, raw_app_list, role=None, request=None):
         """フラットなモデルリストを仮想アプリグループに再構成（slug ベース）"""
+        # 言語プレフィックスを取得（i18n_patterns + prefix_default_language=False 対応）
+        from django.utils.translation import get_language
+        lang = get_language()
+        lang_prefix = ''
+        if lang and lang != settings.LANGUAGE_CODE:
+            lang_prefix = f'/{lang}'
+
         # 全モデルをフラットに収集
         all_models = {}
         for app in raw_app_list:
@@ -528,7 +536,7 @@ class RoleBasedAdminSite(AdminSite):
                     'name': str(link['name']),
                     'object_name': '',
                     'perms': {'view': True},
-                    'admin_url': link['admin_url'],
+                    'admin_url': lang_prefix + link['admin_url'],
                     'view_only': True,
                 })
             if group_models:
@@ -536,7 +544,7 @@ class RoleBasedAdminSite(AdminSite):
                     'name': g['name'],
                     'slug': slug,
                     'app_label': slug,
-                    'app_url': f'/admin/{slug}/',
+                    'app_url': f'{lang_prefix}/admin/{slug}/',
                     'has_module_perms': True,
                     'models': group_models,
                 })
@@ -552,7 +560,7 @@ class RoleBasedAdminSite(AdminSite):
                 'name': _('その他'),
                 'slug': 'other',
                 'app_label': 'other',
-                'app_url': '/admin/other/',
+                'app_url': f'{lang_prefix}/admin/other/',
                 'has_module_perms': True,
                 'models': other_models,
             })

@@ -88,7 +88,7 @@ urlpatterns += i18n_patterns(
     # 旧マイシフト → シフトカレンダーへリダイレクト（後方互換）
     path(
         "admin/shift/my/",
-        RedirectView.as_view(url='/admin/shift/calendar/', permanent=True),
+        RedirectView.as_view(pattern_name='admin_shift_calendar', permanent=True),
         name="staff_my_shift",
     ),
 
