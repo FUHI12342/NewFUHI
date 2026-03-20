@@ -92,6 +92,7 @@ $SSH_CMD "cd '$REMOTE_PATH' && \
     source .venv/bin/activate && \
     pip install -q -r requirements.txt && \
     DJANGO_SETTINGS_MODULE=project.settings.production python manage.py migrate --noinput && \
+    DJANGO_SETTINGS_MODULE=project.settings.production python manage.py compilemessages 2>/dev/null && \
     DJANGO_SETTINGS_MODULE=project.settings.production python manage.py collectstatic --noinput && \
     DJANGO_SETTINGS_MODULE=project.settings.production python manage.py sync_menu_config"
 echo -e "${GREEN}  完了${NC}"
