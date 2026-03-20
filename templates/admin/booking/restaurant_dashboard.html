@@ -60,7 +60,7 @@
   .insight-card.severity-info { border-left-color: #3b82f6; background: #eff6ff; }
   .insight-card.is-read { opacity: 0.6; }
 
-  /* ===== CSS variables (light mode only) ===== */
+  /* ===== CSS variables ===== */
   :root {
     --bg-primary: #ffffff;
     --bg-secondary: #f9fafb;
@@ -69,6 +69,132 @@
     --text-secondary: #6b7280;
     --border-color: #e5e7eb;
     --shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+  }
+  [data-bs-theme="dark"] {
+    --bg-primary: #1a1a2e;
+    --bg-secondary: #1e2a45;
+    --bg-card: #16213e;
+    --text-primary: #e0e0e0;
+    --text-secondary: #9ca3af;
+    --border-color: #2d3a5c;
+    --shadow: 0 4px 6px -1px rgba(0,0,0,0.3);
+  }
+
+  /* ===== Dark mode: Tailwind utility overrides ===== */
+  [data-bs-theme="dark"] .dashboard-wrap {
+    color: var(--text-primary);
+  }
+  /* bg-white / bg-gray-50 / bg-gray-100 / bg-gray-200 */
+  [data-bs-theme="dark"] .dashboard-wrap .bg-white,
+  [data-bs-theme="dark"] .dashboard-wrap .bg-gray-50 {
+    background-color: var(--bg-card) !important;
+  }
+  [data-bs-theme="dark"] .dashboard-wrap .bg-gray-100 {
+    background-color: var(--bg-secondary) !important;
+  }
+  [data-bs-theme="dark"] .dashboard-wrap .bg-gray-200 {
+    background-color: #253352 !important;
+  }
+  [data-bs-theme="dark"] .dashboard-wrap .bg-gray-300 {
+    background-color: #2d3a5c !important;
+  }
+  /* text-gray-* */
+  [data-bs-theme="dark"] .dashboard-wrap .text-gray-300 { color: #6b7280 !important; }
+  [data-bs-theme="dark"] .dashboard-wrap .text-gray-400 { color: #9ca3af !important; }
+  [data-bs-theme="dark"] .dashboard-wrap .text-gray-500 { color: #a1a8b8 !important; }
+  [data-bs-theme="dark"] .dashboard-wrap .text-gray-600 { color: #c0c7d4 !important; }
+  [data-bs-theme="dark"] .dashboard-wrap .text-gray-700 { color: #d1d5db !important; }
+  [data-bs-theme="dark"] .dashboard-wrap .text-gray-800 { color: #e0e0e0 !important; }
+  [data-bs-theme="dark"] .dashboard-wrap .text-gray-900 { color: #f0f0f0 !important; }
+  /* Gradient backgrounds (AI analysis panels, etc.) */
+  [data-bs-theme="dark"] .dashboard-wrap [class*="from-violet-50"],
+  [data-bs-theme="dark"] .dashboard-wrap [class*="from-blue-50"],
+  [data-bs-theme="dark"] .dashboard-wrap [class*="from-emerald-50"],
+  [data-bs-theme="dark"] .dashboard-wrap .ai-analysis-panel {
+    background: var(--bg-secondary) !important;
+  }
+  /* border-gray */
+  [data-bs-theme="dark"] .dashboard-wrap [class*="border-gray"] {
+    border-color: var(--border-color) !important;
+  }
+  [data-bs-theme="dark"] .dashboard-wrap .border {
+    border-color: var(--border-color) !important;
+  }
+  /* Insight cards */
+  [data-bs-theme="dark"] .insight-card.severity-critical { background: #3b1c1c !important; }
+  [data-bs-theme="dark"] .insight-card.severity-warning { background: #3b2f1c !important; }
+  [data-bs-theme="dark"] .insight-card.severity-info { background: #1c2a3b !important; }
+  /* Table header rows */
+  [data-bs-theme="dark"] .dashboard-wrap table thead tr,
+  [data-bs-theme="dark"] .dashboard-wrap table tr.bg-gray-50 {
+    background-color: var(--bg-secondary) !important;
+  }
+  [data-bs-theme="dark"] .dashboard-wrap table {
+    color: var(--text-primary) !important;
+    border-color: var(--border-color) !important;
+  }
+  [data-bs-theme="dark"] .dashboard-wrap table th,
+  [data-bs-theme="dark"] .dashboard-wrap table td {
+    border-color: var(--border-color) !important;
+    color: var(--text-primary) !important;
+  }
+  /* select / input inside dashboard */
+  [data-bs-theme="dark"] .dashboard-wrap select,
+  [data-bs-theme="dark"] .dashboard-wrap input {
+    background-color: var(--bg-secondary) !important;
+    color: var(--text-primary) !important;
+    border-color: var(--border-color) !important;
+  }
+  /* Badge overrides: light-colored badges need dark text→light text in dark mode */
+  [data-bs-theme="dark"] .dashboard-wrap .bg-emerald-100 { background-color: #064e3b !important; }
+  [data-bs-theme="dark"] .dashboard-wrap .text-emerald-700 { color: #6ee7b7 !important; }
+  [data-bs-theme="dark"] .dashboard-wrap .bg-amber-100 { background-color: #78350f !important; }
+  [data-bs-theme="dark"] .dashboard-wrap .text-amber-700 { color: #fcd34d !important; }
+  [data-bs-theme="dark"] .dashboard-wrap .bg-rose-100 { background-color: #7f1d1d !important; }
+  [data-bs-theme="dark"] .dashboard-wrap .text-rose-700 { color: #fca5a5 !important; }
+  [data-bs-theme="dark"] .dashboard-wrap .bg-indigo-100 { background-color: #1e1b4b !important; }
+  [data-bs-theme="dark"] .dashboard-wrap .text-indigo-700 { color: #a5b4fc !important; }
+  /* Progress bar backgrounds */
+  [data-bs-theme="dark"] .dashboard-wrap .bg-gray-200 { background-color: #253352 !important; }
+  /* shadow-sm on cards */
+  [data-bs-theme="dark"] .dashboard-wrap .shadow-sm,
+  [data-bs-theme="dark"] .dashboard-wrap [class*="shadow"] {
+    box-shadow: 0 2px 8px rgba(0,0,0,0.3) !important;
+  }
+  /* bg-white/60 used in AI analysis panels */
+  [data-bs-theme="dark"] .dashboard-wrap [style*="background: white"],
+  [data-bs-theme="dark"] .dashboard-wrap [class*="bg-white\\/"] {
+    background-color: rgba(30, 42, 69, 0.6) !important;
+  }
+  /* Rounded colored stat cards */
+  [data-bs-theme="dark"] .dashboard-wrap .rounded-lg {
+    border-color: var(--border-color);
+  }
+  /* Font color for bold numbers */
+  [data-bs-theme="dark"] .dashboard-wrap .text-2xl,
+  [data-bs-theme="dark"] .dashboard-wrap .text-3xl,
+  [data-bs-theme="dark"] .dashboard-wrap .text-4xl,
+  [data-bs-theme="dark"] .dashboard-wrap .font-extrabold,
+  [data-bs-theme="dark"] .dashboard-wrap .font-bold {
+    color: var(--text-primary);
+  }
+  /* Keep colored text visible (indigo, violet, emerald, etc.) */
+  [data-bs-theme="dark"] .dashboard-wrap .text-indigo-600 { color: #818cf8 !important; }
+  [data-bs-theme="dark"] .dashboard-wrap .text-violet-600 { color: #a78bfa !important; }
+  [data-bs-theme="dark"] .dashboard-wrap .text-blue-600 { color: #93c5fd !important; }
+  [data-bs-theme="dark"] .dashboard-wrap .text-emerald-600 { color: #6ee7b7 !important; }
+  [data-bs-theme="dark"] .dashboard-wrap .text-rose-600 { color: #fca5a5 !important; }
+  [data-bs-theme="dark"] .dashboard-wrap .text-amber-600 { color: #fcd34d !important; }
+  /* Links */
+  [data-bs-theme="dark"] .dashboard-wrap a:not(.tab-btn):not(.sub-tab-btn):not(.quick-link-card) {
+    color: #93c5fd;
+  }
+  /* AI recommendation box (in analysis text panel) */
+  .ai-reco-box { background: rgba(255,255,255,0.6); }
+  [data-bs-theme="dark"] .ai-reco-box { background: rgba(30, 42, 69, 0.6) !important; }
+  /* Chart.js canvas in dark mode */
+  [data-bs-theme="dark"] .dashboard-wrap canvas {
+    filter: brightness(0.92);
   }
 
   .db-card {
@@ -949,6 +1075,33 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', function () {
+
+  /* ------------------------------------------------------------------ */
+  /*  Dark mode detection & Chart.js defaults                            */
+  /* ------------------------------------------------------------------ */
+  var isDark = document.documentElement.getAttribute('data-bs-theme') === 'dark';
+  if (isDark && window.Chart) {
+    Chart.defaults.color = '#9ca3af';
+    Chart.defaults.borderColor = 'rgba(45,58,92,0.5)';
+    Chart.defaults.scale = Chart.defaults.scale || {};
+  }
+  // Observe theme changes (Jazzmin toggle)
+  new MutationObserver(function(mutations) {
+    mutations.forEach(function(m) {
+      if (m.attributeName === 'data-bs-theme') {
+        var dark = document.documentElement.getAttribute('data-bs-theme') === 'dark';
+        if (window.Chart) {
+          Chart.defaults.color = dark ? '#9ca3af' : '#666';
+          Chart.defaults.borderColor = dark ? 'rgba(45,58,92,0.5)' : 'rgba(0,0,0,0.1)';
+        }
+        // Re-render all charts by refreshing current tab
+        document.querySelectorAll('canvas').forEach(function(c) {
+          var chart = Chart.getChart(c);
+          if (chart) chart.update();
+        });
+      }
+    });
+  }).observe(document.documentElement, {attributes: true});
 
   /* ------------------------------------------------------------------ */
   /*  Tab switching                                                      */
@@ -2539,7 +2692,7 @@ document.addEventListener('DOMContentLoaded', function () {
       html += '</ul>';
     }
     if (data.recommendations && data.recommendations.length > 0) {
-      html += '<div class="p-3 bg-white/60 rounded-lg">'
+      html += '<div class="p-3 ai-reco-box rounded-lg">'
         + '<div class="text-xs font-bold text-indigo-600 mb-1">推奨アクション</div>'
         + '<ul class="text-xs text-gray-700 space-y-1">';
       data.recommendations.forEach(function(r) { html += '<li>- ' + escapeHtml(r) + '</li>'; });
