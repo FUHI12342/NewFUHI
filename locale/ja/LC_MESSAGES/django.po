@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-03-20 21:43+0900\n"
+"POT-Creation-Date: 2026-03-20 22:16+0900\n"
 "PO-Revision-Date: 2026-02-22 00:00+0900\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: Japanese <LL@li.org>\n"
@@ -393,206 +393,206 @@ msgstr "種別"
 msgid "全曜日×全種別のデフォルト設定を一括作成"
 msgstr "全曜日×全種別のデフォルト設定を一括作成"
 
-#: booking/admin_site.py:31 booking/admin_site.py:92
+#: booking/admin_site.py:32 booking/admin_site.py:93
 #: booking/views_attendance.py:256
 #: templates/admin/booking/attendance_pin.html:44
 msgid "タイムカード打刻"
 msgstr "タイムカード打刻"
 
-#: booking/admin_site.py:32
+#: booking/admin_site.py:33
 msgid "予約管理"
 msgstr "予約管理"
 
-#: booking/admin_site.py:33
+#: booking/admin_site.py:34
 #: templates/admin/booking/restaurant_dashboard.html:337
 msgid "シフト"
 msgstr "シフト"
 
-#: booking/admin_site.py:34
+#: booking/admin_site.py:35
 msgid "従業員管理"
 msgstr "従業員管理"
 
-#: booking/admin_site.py:35
+#: booking/admin_site.py:36
 msgid "給与管理"
 msgstr "給与管理"
 
-#: booking/admin_site.py:36
+#: booking/admin_site.py:37
 msgid "勤怠管理"
 msgstr "勤怠管理"
 
-#: booking/admin_site.py:37
+#: booking/admin_site.py:38
 msgid "店内メニュー"
 msgstr "店内メニュー"
 
-#: booking/admin_site.py:38
+#: booking/admin_site.py:39
 msgid "在庫管理"
 msgstr "在庫管理"
 
-#: booking/admin_site.py:39
+#: booking/admin_site.py:40
 msgid "注文履歴管理"
 msgstr "注文履歴管理"
 
-#: booking/admin_site.py:40
+#: booking/admin_site.py:41
 msgid "レジ（POS）"
 msgstr "レジ（POS）"
 
-#: booking/admin_site.py:41 booking/admin_site.py:121 booking/views_pos.py:330
+#: booking/admin_site.py:42 booking/admin_site.py:122 booking/views_pos.py:330
 msgid "キッチンディスプレイ"
 msgstr "キッチンディスプレイ"
 
-#: booking/admin_site.py:42 booking/templates/booking/shop.html:9
+#: booking/admin_site.py:43 booking/templates/booking/shop.html:9
 msgid "オンラインショップ"
 msgstr "オンラインショップ"
 
-#: booking/admin_site.py:43
+#: booking/admin_site.py:44
 msgid "店舗管理"
 msgstr "店舗管理"
 
-#: booking/admin_site.py:44
-msgid "IoT管理"
-msgstr "IoT管理"
-
 #: booking/admin_site.py:45
+msgid "IoT制御登録"
+msgstr "IoT制御登録"
+
+#: booking/admin_site.py:46
 msgid "決済"
 msgstr "決済"
 
-#: booking/admin_site.py:46
+#: booking/admin_site.py:47
 msgid "物件管理"
 msgstr "物件管理"
 
-#: booking/admin_site.py:47
+#: booking/admin_site.py:48
 msgid "分析"
 msgstr "分析"
 
-#: booking/admin_site.py:48
+#: booking/admin_site.py:49
 #: templates/admin/booking/sitesettings/change_form.html:155
 msgid "メインページ設定"
 msgstr "メインページ設定"
 
-#: booking/admin_site.py:49
+#: booking/admin_site.py:50
 msgid "ページ設定(サブ)"
 msgstr "ページ設定(サブ)"
 
-#: booking/admin_site.py:50 templates/admin/booking/debug_panel.html:35
+#: booking/admin_site.py:51 templates/admin/booking/debug_panel.html:35
 msgid "システム"
 msgstr "システム"
 
-#: booking/admin_site.py:51
+#: booking/admin_site.py:52
 msgid "セキュリティ"
 msgstr "セキュリティ"
 
-#: booking/admin_site.py:52
+#: booking/admin_site.py:53
 msgid "ユーザーアカウント管理"
 msgstr "ユーザーアカウント管理"
 
-#: booking/admin_site.py:93 booking/views_attendance.py:101
+#: booking/admin_site.py:94 booking/views_attendance.py:101
 #: templates/admin/booking/attendance_board.html:55
 #: templates/admin/booking/restaurant_dashboard.html:294
 #: templates/admin/booking/restaurant_dashboard.html:893
 msgid "出退勤ボード"
 msgstr "出退勤ボード"
 
-#: booking/admin_site.py:96 project/settings/base.py:221
+#: booking/admin_site.py:97
 msgid "売上ダッシュボード"
 msgstr "売上ダッシュボード"
 
-#: booking/admin_site.py:97 booking/templates/booking/checkin_scan.html:5
+#: booking/admin_site.py:98 booking/templates/booking/checkin_scan.html:5
 #: booking/templates/booking/checkin_scan.html:22
 msgid "チェックインスキャン"
 msgstr "チェックインスキャン"
 
-#: booking/admin_site.py:98
+#: booking/admin_site.py:99
 msgid "顧客分析"
 msgstr "顧客分析"
 
-#: booking/admin_site.py:99
+#: booking/admin_site.py:100
 #: templates/admin/booking/restaurant_dashboard.html:310
 #: templates/admin/booking/restaurant_dashboard.html:956
 msgid "AI推薦"
 msgstr "AI推薦"
 
-#: booking/admin_site.py:102 booking/admin_site.py:145
-#: booking/admin_site.py:151 booking/views_shift_manager.py:247
+#: booking/admin_site.py:103 booking/admin_site.py:146
+#: booking/admin_site.py:152 booking/views_shift_manager.py:247
 #: templates/admin/booking/restaurant_dashboard.html:286
 msgid "シフトカレンダー"
 msgstr "シフトカレンダー"
 
-#: booking/admin_site.py:103 booking/admin_site.py:146
-#: booking/admin_site.py:152 booking/views_shift_manager.py:372
+#: booking/admin_site.py:104 booking/admin_site.py:147
+#: booking/admin_site.py:153 booking/views_shift_manager.py:372
 #: templates/admin/booking/today_shift.html:52
 msgid "本日のシフト"
 msgstr "本日のシフト"
 
-#: booking/admin_site.py:104 booking/admin_site.py:147
+#: booking/admin_site.py:105 booking/admin_site.py:148
 msgid "必要人数設定（曜日別）"
 msgstr "必要人数設定（曜日別）"
 
-#: booking/admin_site.py:105 booking/admin_site.py:148
+#: booking/admin_site.py:106 booking/admin_site.py:149
 msgid "必要人数設定（日付指定）"
 msgstr "必要人数設定（日付指定）"
 
-#: booking/admin_site.py:108 booking/admin_site.py:163
+#: booking/admin_site.py:109 booking/admin_site.py:164
 #: booking/models/core.py:169
 msgid "従業員一覧"
 msgstr "従業員一覧"
 
-#: booking/admin_site.py:109
+#: booking/admin_site.py:110
 msgid "キャスト一覧"
 msgstr "キャスト一覧"
 
-#: booking/admin_site.py:110
+#: booking/admin_site.py:111
 msgid "スタッフ一覧"
 msgstr "スタッフ一覧"
 
-#: booking/admin_site.py:111 booking/admin_site.py:164
+#: booking/admin_site.py:112 booking/admin_site.py:165
 msgid "勤怠実績"
 msgstr "勤怠実績"
 
-#: booking/admin_site.py:114
+#: booking/admin_site.py:115
 msgid "店内注文履歴一覧"
 msgstr "店内注文履歴一覧"
 
-#: booking/admin_site.py:115
+#: booking/admin_site.py:116
 msgid "EC注文履歴一覧"
 msgstr "EC注文履歴一覧"
 
-#: booking/admin_site.py:118
+#: booking/admin_site.py:119
 msgid "レジ画面"
 msgstr "レジ画面"
 
-#: booking/admin_site.py:124
+#: booking/admin_site.py:125
 msgid "メニュープレビュー"
 msgstr "メニュープレビュー"
 
-#: booking/admin_site.py:127 booking/views_ec_dashboard.py:41
+#: booking/admin_site.py:128 booking/views_ec_dashboard.py:41
 #: templates/admin/booking/ec_dashboard.html:21
 msgid "EC注文管理"
 msgstr "EC注文管理"
 
-#: booking/admin_site.py:128 booking/models/orders.py:267
+#: booking/admin_site.py:129 booking/models/orders.py:267
 #: booking/models/orders.py:268
 msgid "送料設定"
 msgstr "送料設定"
 
-#: booking/admin_site.py:131
+#: booking/admin_site.py:132
 msgid "在庫ダッシュボード"
 msgstr "在庫ダッシュボード"
 
-#: booking/admin_site.py:134
+#: booking/admin_site.py:135
 msgid "センサーグラフ"
 msgstr "センサーグラフ"
 
-#: booking/admin_site.py:137 booking/views_debug.py:74
-#: project/settings/base.py:225 templates/admin/booking/debug_panel.html:30
+#: booking/admin_site.py:138 booking/views_debug.py:74
+#: templates/admin/booking/debug_panel.html:30
 #: templates/admin/booking/debug_panel.html:36
 msgid "デバッグパネル"
 msgstr "デバッグパネル"
 
-#: booking/admin_site.py:167 booking/templates/booking/base.html:272
+#: booking/admin_site.py:168 booking/templates/booking/base.html:272
 msgid "マイページ"
 msgstr "マイページ"
 
-#: booking/admin_site.py:552 booking/models/core.py:407
+#: booking/admin_site.py:561 booking/models/core.py:407
 #: booking/models/hr.py:317 booking/models/iot.py:21
 #: booking/templates/booking/base.html:290
 #: booking/templates/booking/property_list.html:68
@@ -849,7 +849,7 @@ msgstr "ダークモード"
 msgid "情報"
 msgstr "情報"
 
-#: booking/models/cms.py:163
+#: booking/models/cms.py:163 booking/templates/booking/iot_mq9_graph.html:227
 #: templates/admin/booking/restaurant_dashboard.html:1157
 #: templates/admin/booking/restaurant_dashboard.html:1166
 msgid "注意"
@@ -1469,6 +1469,7 @@ msgid "管理操作"
 msgstr "管理操作"
 
 #: booking/models/cms.py:582 booking/models/iot.py:285
+#: booking/templates/booking/iot_mq9_graph.html:229
 msgid "緊急"
 msgstr "緊急"
 
@@ -3562,7 +3563,7 @@ msgstr "全%(label)s一覧"
 #: booking/templates/booking/email_form.html:12
 #: booking/templates/booking/email_verify.html:12
 #: booking/templates/booking/staff_list.html:13 project/settings.py:419
-#: project/settings/base.py:235 templates/admin/booking/debug_panel.html:34
+#: project/settings/base.py:225 templates/admin/booking/debug_panel.html:34
 msgid "ホーム"
 msgstr "ホーム"
 
@@ -4371,6 +4372,190 @@ msgstr "入庫登録"
 msgid "検出された商品"
 msgstr "検出された商品"
 
+#: booking/templates/booking/iot_mq9_graph.html:119
+#, fuzzy
+#| msgid "センサーグラフ"
+msgid "センサーモニター"
+msgstr "センサーグラフ"
+
+#: booking/templates/booking/iot_mq9_graph.html:121
+#, fuzzy
+#| msgid "読み込み中..."
+msgid "読み込み中…"
+msgstr "読み込み中..."
+
+#: booking/templates/booking/iot_mq9_graph.html:125
+msgid "1.5日"
+msgstr "1.5日"
+
+#: booking/templates/booking/iot_mq9_graph.html:152
+#: booking/templates/booking/iot_mq9_graph.html:169
+#: booking/templates/booking/iot_mq9_graph.html:186
+#: booking/templates/booking/iot_mq9_graph.html:203
+msgid "データを取得中…"
+msgstr "データを取得中…"
+
+#: booking/templates/booking/iot_mq9_graph.html:225
+msgid "正常"
+msgstr "正常"
+
+#: booking/templates/booking/iot_mq9_graph.html:226
+msgid "やや高め"
+msgstr "やや高め"
+
+#: booking/templates/booking/iot_mq9_graph.html:228
+#: booking/templates/booking/property_detail.html:139
+#: booking/templates/booking/property_detail.html:209
+#: booking/templates/booking/property_detail.html:253
+#: booking/templates/booking/property_list.html:58
+msgid "危険"
+msgstr "危険"
+
+#: booking/templates/booking/iot_mq9_graph.html:230
+msgid "空気はきれいです"
+msgstr "空気はきれいです"
+
+#: booking/templates/booking/iot_mq9_graph.html:231
+msgid "換気を推奨します"
+msgstr "換気を推奨します"
+
+#: booking/templates/booking/iot_mq9_graph.html:232
+msgid "CO濃度が上昇中 — 換気扇を確認"
+msgstr "CO濃度が上昇中 — 換気扇を確認"
+
+#: booking/templates/booking/iot_mq9_graph.html:233
+#, fuzzy
+#| msgid "選択してください"
+msgid "すぐに換気してください！"
+msgstr "選択してください"
+
+#: booking/templates/booking/iot_mq9_graph.html:234
+msgid "即座に退避・換気が必要！"
+msgstr "即座に退避・換気が必要！"
+
+#: booking/templates/booking/iot_mq9_graph.html:236
+msgid "OFF閾値 (200)"
+msgstr "OFF閾値 (200)"
+
+#: booking/templates/booking/iot_mq9_graph.html:237
+msgid "ON閾値 (400)"
+msgstr "ON閾値 (400)"
+
+#: booking/templates/booking/iot_mq9_graph.html:238
+msgid "警報レベル (800)"
+msgstr "警報レベル (800)"
+
+#: booking/templates/booking/iot_mq9_graph.html:240
+msgid "暗い"
+msgstr "暗い"
+
+#: booking/templates/booking/iot_mq9_graph.html:241
+#, fuzzy
+#| msgid "通常(h)"
+msgctxt "light"
+msgid "通常"
+msgstr "通常(h)"
+
+#: booking/templates/booking/iot_mq9_graph.html:242
+msgid "非常に明るい"
+msgstr "非常に明るい"
+
+#: booking/templates/booking/iot_mq9_graph.html:243
+msgid "照明がOFFの可能性"
+msgstr "照明がOFFの可能性"
+
+#: booking/templates/booking/iot_mq9_graph.html:244
+msgid "適切な明るさです"
+msgstr "適切な明るさです"
+
+#: booking/templates/booking/iot_mq9_graph.html:245
+msgid "直射日光？"
+msgstr "直射日光？"
+
+#: booking/templates/booking/iot_mq9_graph.html:247
+msgid "静か"
+msgstr "静か"
+
+#: booking/templates/booking/iot_mq9_graph.html:248
+#, fuzzy
+#| msgid "通常(h)"
+msgctxt "sound"
+msgid "通常"
+msgstr "通常(h)"
+
+#: booking/templates/booking/iot_mq9_graph.html:249
+msgid "騒がしい"
+msgstr "騒がしい"
+
+#: booking/templates/booking/iot_mq9_graph.html:250
+msgid "人がいない可能性"
+msgstr "人がいない可能性"
+
+#: booking/templates/booking/iot_mq9_graph.html:251
+msgid "普通の環境音です"
+msgstr "普通の環境音です"
+
+#: booking/templates/booking/iot_mq9_graph.html:252
+msgid "異常な音量"
+msgstr "異常な音量"
+
+#: booking/templates/booking/iot_mq9_graph.html:254
+#: templates/admin/booking/restaurant_dashboard.html:1118
+#: templates/admin/booking/staff_performance.html:107
+#: templates/admin/booking/staff_performance.html:143
+msgid "データがありません"
+msgstr "データがありません"
+
+#: booking/templates/booking/iot_mq9_graph.html:256
+#, fuzzy
+#| msgid "検知"
+msgid "検知中"
+msgstr "検知"
+
+#: booking/templates/booking/iot_mq9_graph.html:257
+msgid "人の動きを検知中"
+msgstr "人の動きを検知中"
+
+#: booking/templates/booking/iot_mq9_graph.html:258
+msgid "モーションセンサーが反応しています"
+msgstr "モーションセンサーが反応しています"
+
+#: booking/templates/booking/iot_mq9_graph.html:259
+#, fuzzy
+#| msgid "静止中"
+msgid "静止"
+msgstr "静止中"
+
+#: booking/templates/booking/iot_mq9_graph.html:260
+msgid "動きなし"
+msgstr "動きなし"
+
+#: booking/templates/booking/iot_mq9_graph.html:261
+msgid "静止状態 — 動きは検知されていません"
+msgstr "静止状態 — 動きは検知されていません"
+
+#: booking/templates/booking/iot_mq9_graph.html:262
+#, fuzzy
+#| msgid "件"
+msgid " 件"
+msgstr "件"
+
+#: booking/templates/booking/iot_mq9_graph.html:264
+#: booking/templates/booking/iot_sensor_dashboard.html:307
+#: booking/templates/booking/property_detail.html:260
+msgid "データの取得に失敗しています。接続を確認してください。"
+msgstr "データの取得に失敗しています。接続を確認してください。"
+
+#: booking/templates/booking/iot_mq9_graph.html:266
+#, fuzzy
+#| msgid "デバイス"
+msgid "デバイスなし"
+msgstr "デバイス"
+
+#: booking/templates/booking/iot_mq9_graph.html:267
+msgid "取得失敗"
+msgstr "取得失敗"
+
 #: booking/templates/booking/iot_sensor_dashboard.html:192
 msgid "IoT Sensor Dashboard"
 msgstr "IoT Sensor Dashboard"
@@ -4419,11 +4604,6 @@ msgstr "静止中"
 #: booking/templates/booking/iot_sensor_dashboard.html:290
 msgid "人感（赤外線動体検知）センサー。人の出入りや在室状況をイベント数で表示。"
 msgstr "人感（赤外線動体検知）センサー。人の出入りや在室状況をイベント数で表示。"
-
-#: booking/templates/booking/iot_sensor_dashboard.html:307
-#: booking/templates/booking/property_detail.html:260
-msgid "データの取得に失敗しています。接続を確認してください。"
-msgstr "データの取得に失敗しています。接続を確認してください。"
 
 #: booking/templates/booking/iot_sensor_dashboard.html:308
 msgid "人感センサー反応中"
@@ -4724,13 +4904,6 @@ msgstr "登録デバイスはありません。"
 #: booking/templates/booking/property_list.html:50
 msgid "アクティブアラート"
 msgstr "アクティブアラート"
-
-#: booking/templates/booking/property_detail.html:139
-#: booking/templates/booking/property_detail.html:209
-#: booking/templates/booking/property_detail.html:253
-#: booking/templates/booking/property_list.html:58
-msgid "危険"
-msgstr "危険"
 
 #: booking/templates/booking/property_detail.html:162
 #: booking/templates/booking/property_detail.html:257
@@ -5610,7 +5783,7 @@ msgstr "占いサロンチャンス 管理画面"
 msgid "占いサロンチャンス 管理画面へようこそ"
 msgstr "占いサロンチャンス 管理画面へようこそ"
 
-#: project/settings.py:420 project/settings/base.py:236
+#: project/settings.py:420 project/settings/base.py:226
 msgid "本番サイト"
 msgstr "本番サイト"
 
@@ -6494,12 +6667,6 @@ msgstr "残"
 msgid "フィードバックがありません"
 msgstr "フィードバックがありません"
 
-#: templates/admin/booking/restaurant_dashboard.html:1118
-#: templates/admin/booking/staff_performance.html:107
-#: templates/admin/booking/staff_performance.html:143
-msgid "データがありません"
-msgstr "データがありません"
-
 #: templates/admin/booking/restaurant_dashboard.html:1119
 msgid "読み込みエラー"
 msgstr "読み込みエラー"
@@ -7082,6 +7249,9 @@ msgstr "曜日×時間ヒートマップ"
 #: templates/admin/booking/visitor_analytics.html:57
 msgid "データ読込中..."
 msgstr "データ読込中..."
+
+#~ msgid "IoT管理"
+#~ msgstr "IoT管理"
 
 #~ msgid "現在募集中のシフト期間はありません。"
 #~ msgstr "現在募集中のシフト期間はありません。"

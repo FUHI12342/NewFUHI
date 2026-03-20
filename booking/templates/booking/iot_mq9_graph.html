@@ -116,13 +116,13 @@
 
   <!-- Header -->
   <div class="sm-header">
-    <h1>センサーモニター</h1>
+    <h1>{% trans 'センサーモニター' %}</h1>
     <div class="sm-controls">
-      <select id="device-select"><option value="">読み込み中…</option></select>
+      <select id="device-select"><option value="">{% trans '読み込み中…' %}</option></select>
       <button class="range-btn" data-range="1h">1h</button>
       <button class="range-btn" data-range="6h">6h</button>
       <button class="range-btn" data-range="24h">24h</button>
-      <button class="range-btn active" data-range="36h">1.5日</button>
+      <button class="range-btn active" data-range="36h">{% trans '1.5日' %}</button>
       <button class="range-btn" data-range="7d">7d</button>
     </div>
   </div>
@@ -149,7 +149,7 @@
       <div class="status-value" id="val-gas">--</div>
       <div class="status-info">
         <span class="status-badge badge-gray" id="badge-gas">--</span>
-        <p class="status-text" id="text-gas">データを取得中…</p>
+        <p class="status-text" id="text-gas">{% trans 'データを取得中…' %}</p>
       </div>
     </div>
     <div class="chart-card">
@@ -166,7 +166,7 @@
       <div class="status-value" id="val-light">--</div>
       <div class="status-info">
         <span class="status-badge badge-gray" id="badge-light">--</span>
-        <p class="status-text" id="text-light">データを取得中…</p>
+        <p class="status-text" id="text-light">{% trans 'データを取得中…' %}</p>
       </div>
     </div>
     <div class="chart-card">
@@ -183,7 +183,7 @@
       <div class="status-value" id="val-sound">--</div>
       <div class="status-info">
         <span class="status-badge badge-gray" id="badge-sound">--</span>
-        <p class="status-text" id="text-sound">データを取得中…</p>
+        <p class="status-text" id="text-sound">{% trans 'データを取得中…' %}</p>
       </div>
     </div>
     <div class="chart-card">
@@ -200,7 +200,7 @@
       <div class="status-value" id="val-pir">--</div>
       <div class="status-info">
         <span class="status-badge badge-gray" id="badge-pir">--</span>
-        <p class="status-text" id="text-pir">データを取得中…</p>
+        <p class="status-text" id="text-pir">{% trans 'データを取得中…' %}</p>
       </div>
     </div>
     <div class="chart-card">
@@ -213,9 +213,59 @@
 
 </div>
 
+{% get_current_language as LANGUAGE_CODE %}
 <script>
 (function() {
   'use strict';
+
+  // ── Translations ────────────────────────────────────────
+  var LANG = '{{ LANGUAGE_CODE }}';
+  var T = {
+    // Gas thresholds
+    gasNormal:      '{% filter escapejs %}{% trans "正常" %}{% endfilter %}',
+    gasSlightlyHigh:'{% filter escapejs %}{% trans "やや高め" %}{% endfilter %}',
+    gasCaution:     '{% filter escapejs %}{% trans "注意" %}{% endfilter %}',
+    gasDanger:      '{% filter escapejs %}{% trans "危険" %}{% endfilter %}',
+    gasEmergency:   '{% filter escapejs %}{% trans "緊急" %}{% endfilter %}',
+    gasTextNormal:      '{% filter escapejs %}{% trans "空気はきれいです" %}{% endfilter %}',
+    gasTextSlightlyHigh:'{% filter escapejs %}{% trans "換気を推奨します" %}{% endfilter %}',
+    gasTextCaution:     '{% filter escapejs %}{% trans "CO濃度が上昇中 — 換気扇を確認" %}{% endfilter %}',
+    gasTextDanger:      '{% filter escapejs %}{% trans "すぐに換気してください！" %}{% endfilter %}',
+    gasTextEmergency:   '{% filter escapejs %}{% trans "即座に退避・換気が必要！" %}{% endfilter %}',
+    // Gas annotations
+    gasAnnotOff:   '{% filter escapejs %}{% trans "OFF閾値 (200)" %}{% endfilter %}',
+    gasAnnotOn:    '{% filter escapejs %}{% trans "ON閾値 (400)" %}{% endfilter %}',
+    gasAnnotAlarm: '{% filter escapejs %}{% trans "警報レベル (800)" %}{% endfilter %}',
+    // Light thresholds
+    lightDark:      '{% filter escapejs %}{% trans "暗い" %}{% endfilter %}',
+    lightNormal:    '{% filter escapejs %}{% trans "通常" context "light" %}{% endfilter %}',
+    lightVeryBright:'{% filter escapejs %}{% trans "非常に明るい" %}{% endfilter %}',
+    lightTextDark:      '{% filter escapejs %}{% trans "照明がOFFの可能性" %}{% endfilter %}',
+    lightTextNormal:    '{% filter escapejs %}{% trans "適切な明るさです" %}{% endfilter %}',
+    lightTextVeryBright:'{% filter escapejs %}{% trans "直射日光？" %}{% endfilter %}',
+    // Sound thresholds
+    soundQuiet:  '{% filter escapejs %}{% trans "静か" %}{% endfilter %}',
+    soundNormal: '{% filter escapejs %}{% trans "通常" context "sound" %}{% endfilter %}',
+    soundLoud:   '{% filter escapejs %}{% trans "騒がしい" %}{% endfilter %}',
+    soundTextQuiet:  '{% filter escapejs %}{% trans "人がいない可能性" %}{% endfilter %}',
+    soundTextNormal: '{% filter escapejs %}{% trans "普通の環境音です" %}{% endfilter %}',
+    soundTextLoud:   '{% filter escapejs %}{% trans "異常な音量" %}{% endfilter %}',
+    // Status
+    noData:       '{% filter escapejs %}{% trans "データがありません" %}{% endfilter %}',
+    // PIR
+    pirDetecting:     '{% filter escapejs %}{% trans "検知中" %}{% endfilter %}',
+    pirMotionDetected:'{% filter escapejs %}{% trans "人の動きを検知中" %}{% endfilter %}',
+    pirMotionText:    '{% filter escapejs %}{% trans "モーションセンサーが反応しています" %}{% endfilter %}',
+    pirStill:         '{% filter escapejs %}{% trans "静止" %}{% endfilter %}',
+    pirNoMotion:      '{% filter escapejs %}{% trans "動きなし" %}{% endfilter %}',
+    pirStillText:     '{% filter escapejs %}{% trans "静止状態 — 動きは検知されていません" %}{% endfilter %}',
+    pirCountSuffix:   '{% filter escapejs %}{% trans " 件" %}{% endfilter %}',
+    // Stale warning
+    staleWarning: '{% filter escapejs %}{% trans "データの取得に失敗しています。接続を確認してください。" %}{% endfilter %}',
+    // Devices
+    noDevices:    '{% filter escapejs %}{% trans "デバイスなし" %}{% endfilter %}',
+    fetchFailed:  '{% filter escapejs %}{% trans "取得失敗" %}{% endfilter %}'
+  };
 
   // ── State ──────────────────────────────────────────────
   var currentTab = 'gas';
@@ -240,32 +290,32 @@
       apiSensor: 'mq9', color: '#f97316', unit: '',
       suggestedMax: 1000,
       thresholds: [
-        { max: 200,  badge: 'badge-green',  label: '正常',       text: '空気はきれいです' },
-        { max: 400,  badge: 'badge-yellow', label: 'やや高め',   text: '換気を推奨します' },
-        { max: 600,  badge: 'badge-yellow', label: '注意',       text: 'CO濃度が上昇中 — 換気扇を確認' },
-        { max: 800,  badge: 'badge-red',    label: '危険',       text: 'すぐに換気してください！' },
-        { max: Infinity, badge: 'badge-red', label: '緊急',      text: '即座に退避・換気が必要！' }
+        { max: 200,  badge: 'badge-green',  label: T.gasNormal,       text: T.gasTextNormal },
+        { max: 400,  badge: 'badge-yellow', label: T.gasSlightlyHigh, text: T.gasTextSlightlyHigh },
+        { max: 600,  badge: 'badge-yellow', label: T.gasCaution,      text: T.gasTextCaution },
+        { max: 800,  badge: 'badge-red',    label: T.gasDanger,       text: T.gasTextDanger },
+        { max: Infinity, badge: 'badge-red', label: T.gasEmergency,   text: T.gasTextEmergency }
       ],
       annotations: [
-        { value: 200, color: '#22c55e80', label: 'OFF閾値 (200)' },
-        { value: 400, color: '#f9731680', label: 'ON閾値 (400)' },
-        { value: 800, color: '#ef444480', label: '警報レベル (800)' }
+        { value: 200, color: '#22c55e80', label: T.gasAnnotOff },
+        { value: 400, color: '#f9731680', label: T.gasAnnotOn },
+        { value: 800, color: '#ef444480', label: T.gasAnnotAlarm }
       ]
     },
     light: {
       apiSensor: 'light', color: '#eab308', unit: ' lux',
       thresholds: [
-        { max: 50,   badge: 'badge-blue',   label: '暗い',           text: '照明がOFFの可能性' },
-        { max: 500,  badge: 'badge-green',  label: '通常',           text: '適切な明るさです' },
-        { max: Infinity, badge: 'badge-yellow', label: '非常に明るい', text: '直射日光？' }
+        { max: 50,   badge: 'badge-blue',   label: T.lightDark,       text: T.lightTextDark },
+        { max: 500,  badge: 'badge-green',  label: T.lightNormal,     text: T.lightTextNormal },
+        { max: Infinity, badge: 'badge-yellow', label: T.lightVeryBright, text: T.lightTextVeryBright }
       ]
     },
     sound: {
       apiSensor: 'sound', color: '#22d3ee', unit: '',
       thresholds: [
-        { max: 100,  badge: 'badge-blue',   label: '静か',       text: '人がいない可能性' },
-        { max: 500,  badge: 'badge-green',  label: '通常',       text: '普通の環境音です' },
-        { max: Infinity, badge: 'badge-red', label: '騒がしい',   text: '異常な音量' }
+        { max: 100,  badge: 'badge-blue',   label: T.soundQuiet,  text: T.soundTextQuiet },
+        { max: 500,  badge: 'badge-green',  label: T.soundNormal, text: T.soundTextNormal },
+        { max: Infinity, badge: 'badge-red', label: T.soundLoud,  text: T.soundTextLoud }
       ]
     }
   };
@@ -325,8 +375,8 @@
               if (!items.length) return '';
               var d = new Date(items[0].parsed.x);
               if (isNaN(d.getTime())) return items[0].label || '';
-              return d.toLocaleDateString('ja-JP', {year:'numeric',month:'2-digit',day:'2-digit',weekday:'short'})
-                + ' ' + d.toLocaleTimeString('en-US', {hour:'numeric',minute:'2-digit',second:'2-digit',hour12:true});
+              return d.toLocaleDateString(LANG, {year:'numeric',month:'2-digit',day:'2-digit',weekday:'short'})
+                + ' ' + d.toLocaleTimeString(LANG, {hour:'numeric',minute:'2-digit',second:'2-digit',hour12:true});
             }
           }
         }
@@ -364,7 +414,7 @@
       valEl.textContent = '--';
       badgeEl.className = 'status-badge badge-gray';
       badgeEl.textContent = 'N/A';
-      textEl.textContent = 'データがありません';
+      textEl.textContent = T.noData;
       return;
     }
 
@@ -388,15 +438,15 @@
     var textEl = document.getElementById('text-pir');
 
     if (active) {
-      valEl.textContent = '検知中';
+      valEl.textContent = T.pirDetecting;
       badgeEl.className = 'status-badge badge-red blink';
-      badgeEl.textContent = '人の動きを検知中';
-      textEl.textContent = 'モーションセンサーが反応しています';
+      badgeEl.textContent = T.pirMotionDetected;
+      textEl.textContent = T.pirMotionText;
     } else {
-      valEl.textContent = '静止';
+      valEl.textContent = T.pirStill;
       badgeEl.className = 'status-badge badge-gray';
-      badgeEl.textContent = '動きなし';
-      textEl.textContent = '静止状態 — 動きは検知されていません';
+      badgeEl.textContent = T.pirNoMotion;
+      textEl.textContent = T.pirStillText;
     }
   }
 
@@ -450,9 +500,9 @@
     var last = new Date(labels[labels.length - 1]);
     var opts = { year: 'numeric', month: '2-digit', day: '2-digit', weekday: 'short' };
     if (first.toDateString() === last.toDateString()) {
-      el.textContent = first.toLocaleDateString('ja-JP', opts);
+      el.textContent = first.toLocaleDateString(LANG, opts);
     } else {
-      el.textContent = first.toLocaleDateString('ja-JP', opts) + ' 〜 ' + last.toLocaleDateString('ja-JP', opts);
+      el.textContent = first.toLocaleDateString(LANG, opts) + ' 〜 ' + last.toLocaleDateString(LANG, opts);
     }
   }
 
@@ -524,7 +574,7 @@
       var opts = lineOpts();
       opts.plugins.tooltip.callbacks = {
         title: opts.plugins.tooltip.callbacks.title,
-        label: function(ctx) { return ctx.parsed.y + ' 件'; }
+        label: function(ctx) { return ctx.parsed.y + T.pirCountSuffix; }
       };
       charts.pir = new Chart(ctx, {
         type: 'bar',
@@ -556,7 +606,7 @@
         var el = document.createElement('div');
         el.id = 'stale-warning';
         el.className = 'bg-yellow-50 border border-yellow-200 text-yellow-700 text-sm px-4 py-2 rounded mb-4';
-        el.textContent = 'データの取得に失敗しています。接続を確認してください。';
+        el.textContent = T.staleWarning;
         var container = document.querySelector('.container, main, [role="main"]');
         if (container) container.prepend(el);
       }
@@ -661,7 +711,7 @@
       if (devices.length === 0) {
         var opt = document.createElement('option');
         opt.value = '';
-        opt.textContent = 'デバイスなし';
+        opt.textContent = T.noDevices;
         deviceSelect.appendChild(opt);
         return;
       }
@@ -674,7 +724,7 @@
       currentDevice = deviceSelect.value;
       startPolling();
     }).catch(function() {
-      deviceSelect.innerHTML = '<option value="">取得失敗</option>';
+      deviceSelect.innerHTML = '<option value="">' + T.fetchFailed + '</option>';
     });
   }
 

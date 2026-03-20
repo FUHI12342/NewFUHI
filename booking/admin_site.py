@@ -42,7 +42,7 @@ GROUPS = [
     {'slug': 'kitchen', 'name': _('キッチンディスプレイ'), 'models': []},
     {'slug': 'ec_shop', 'name': _('オンラインショップ'), 'models': ['eccategory', 'ecproduct', 'shippingconfig'], 'hidden_models': ['shippingconfig']},
     {'slug': 'table_order', 'name': _('店舗管理'), 'models': ['store', 'tableseat']},
-    {'slug': 'iot', 'name': _('IoT管理'), 'models': ['iotdevice', 'ventilationautocontrol'], 'hidden_models': ['iotdevice']},
+    {'slug': 'iot', 'name': _('IoT制御登録'), 'models': ['iotdevice', 'ventilationautocontrol'], 'hidden_models': ['iotdevice']},
     {'slug': 'payment', 'name': _('決済'), 'models': ['paymentmethod'], 'hidden': True},
     {'slug': 'property', 'name': _('物件管理'), 'models': ['property'], 'hidden': True},
     {'slug': 'analytics', 'name': _('分析'), 'models': ['visitorcount', 'visitoranalyticsconfig', 'staffrecommendationmodel', 'staffrecommendationresult', 'businessinsight', 'customerfeedback'], 'hidden': True},
@@ -198,6 +198,7 @@ DEFAULT_ALLOWED_MODELS = {
         'staffrecommendationmodel', 'staffrecommendationresult',
         'staffevaluation', 'evaluationcriteria',
         'eccategory', 'ecproduct', 'shippingconfig',
+        'ventilationautocontrol',
     ],
     'staff': [
         'schedule', 'order', 'staff',
