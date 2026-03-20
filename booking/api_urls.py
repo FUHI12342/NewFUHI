@@ -29,6 +29,7 @@ from .views_restaurant_dashboard import (
     CLVAnalysisAPIView,
     AutoOrderRecommendationAPIView,
     ExternalDataAPIView,
+    CheckinStatsAPIView,
 )
 from .views_property import PropertyStatusAPIView, PropertyAlertResolveAPIView
 from .views import CheckinAPIView, CartAddAPIView, CartUpdateAPIView, CartRemoveAPIView
@@ -104,6 +105,7 @@ urlpatterns = [
     path('dashboard/clv/', CLVAnalysisAPIView.as_view(), name='clv_analysis_api'),
     path('dashboard/auto-order/', AutoOrderRecommendationAPIView.as_view(), name='auto_order_api'),
     path('dashboard/external-data/', ExternalDataAPIView.as_view(), name='external_data_api'),
+    path('dashboard/checkin-stats/', CheckinStatsAPIView.as_view(), name='checkin_stats_api'),
 
     # Property APIs
     path('properties/<int:pk>/status/', PropertyStatusAPIView.as_view(), name='property_status_api'),

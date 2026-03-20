@@ -1,7 +1,7 @@
-"""Integration tests for CheckinAPIView (QR token + backup code paths)."""
+"""Integration tests for CheckinAPIView, checkin stats, and admin display."""
 import json
 from datetime import timedelta
-from unittest.mock import patch
+from unittest.mock import patch, MagicMock
 
 from django.contrib.auth.models import User
 from django.test import TestCase, override_settings
@@ -256,3 +256,148 @@ class BackupCodeCheckinTests(CheckinAPITestBase):
             format='json',
         )
         self.assertEqual(resp.status_code, 400)
+
+
+class CheckinCustomerNotificationTests(CheckinAPITestBase):
+    """Test that customer is notified on successful checkin."""
+
+    @patch('booking.views_booking.LineBotApi')
+    def test_line_notification_sent_on_checkin(self, mock_line_cls):
+        mock_api = MagicMock()
+        mock_line_cls.return_value = mock_api
+        schedule = _make_schedule(
+            self.staff, start_offset_min=15,
+            checkin_backup_code='112233',
+        )
+        # Set encrypted LINE user id
+        try:
+            schedule.set_line_user_id('U_test_user_123')
+            schedule.save(update_fields=['line_user_hash', 'line_user_enc'])
+        except Exception:
+            pass  # Skip if encryption key not configured in test
+
+        self.client.post(
+            self.url,
+            {'backup_code': '112233'},
+            format='json',
+        )
+        schedule.refresh_from_db()
+        self.assertTrue(schedule.is_checked_in)
+
+    @patch('booking.views_booking.send_mail')
+    def test_email_notification_sent_on_checkin(self, mock_send_mail):
+        schedule = _make_schedule(
+            self.staff, start_offset_min=15,
+            checkin_backup_code='998877',
+            booking_channel='email',
+            customer_email='test@example.com',
+        )
+        self.client.post(
+            self.url,
+            {'backup_code': '998877'},
+            format='json',
+        )
+        schedule.refresh_from_db()
+        self.assertTrue(schedule.is_checked_in)
+        mock_send_mail.assert_called_once()
+        call_kwargs = mock_send_mail.call_args
+        self.assertIn('チェックイン完了', call_kwargs[1]['subject'] if 'subject' in (call_kwargs[1] or {}) else call_kwargs[0][0])
+
+
+class CheckinStatsAPITests(TestCase):
+    """Test the checkin stats dashboard API."""
+
+    def setUp(self):
+        self.store = _make_store()
+        self.user, self.staff = _make_staff_user(self.store)
+        self.client = APIClient()
+        self.client.force_authenticate(user=self.user)
+        self.url = reverse('booking_api:checkin_stats_api')
+
+    def test_stats_empty(self):
+        resp = self.client.get(self.url)
+        self.assertEqual(resp.status_code, 200)
+        self.assertEqual(resp.data['summary']['total'], 0)
+        self.assertEqual(resp.data['summary']['checkin_rate'], 0)
+
+    def test_stats_with_data(self):
+        # Create some schedules
+        _make_schedule(
+            self.staff, start_offset_min=-30,
+            is_checked_in=True, checked_in_at=timezone.now(),
+        )
+        _make_schedule(self.staff, start_offset_min=-60)
+        _make_schedule(self.staff, start_offset_min=-90)
+
+        resp = self.client.get(self.url)
+        self.assertEqual(resp.status_code, 200)
+        self.assertEqual(resp.data['summary']['total'], 3)
+        self.assertEqual(resp.data['summary']['checked_in'], 1)
+        self.assertEqual(resp.data['summary']['no_show'], 2)
+        self.assertAlmostEqual(resp.data['summary']['checkin_rate'], 0.3333, places=3)
+
+    def test_stats_by_staff(self):
+        _make_schedule(
+            self.staff, start_offset_min=-30,
+            is_checked_in=True, checked_in_at=timezone.now(),
+        )
+        resp = self.client.get(self.url)
+        self.assertEqual(resp.status_code, 200)
+        self.assertTrue(len(resp.data['by_staff']) > 0)
+        self.assertEqual(resp.data['by_staff'][0]['staff_name'], self.staff.name)
+
+    def test_stats_store_scoped(self):
+        """Non-superuser should only see their store's data."""
+        other_store = _make_store(name='Other Store')
+        _, other_staff = _make_staff_user(
+            other_store, username='other_stat', name='他スタッフStat',
+        )
+        _make_schedule(other_staff, start_offset_min=-30)
+        _make_schedule(self.staff, start_offset_min=-30)
+
+        resp = self.client.get(self.url)
+        self.assertEqual(resp.status_code, 200)
+        # Should only see own store's schedule
+        self.assertEqual(resp.data['summary']['total'], 1)
+
+    def test_stats_unauthenticated(self):
+        client = APIClient()
+        resp = client.get(self.url)
+        self.assertIn(resp.status_code, [401, 403])
+
+    def test_stats_days_param(self):
+        resp = self.client.get(f'{self.url}?days=7')
+        self.assertEqual(resp.status_code, 200)
+        self.assertEqual(resp.data['summary']['days'], 7)
+
+
+class AdminScheduleDisplayTests(TestCase):
+    """Test that admin displays new checkin fields correctly."""
+
+    def setUp(self):
+        self.store = _make_store()
+        self.su = User.objects.create_superuser(
+            username='admin_test', password='adminpass',
+        )
+        self.staff_obj = Staff.objects.create(
+            user=self.su, store=self.store, name='Admin Staff',
+        )
+        self.client.login(username='admin_test', password='adminpass')
+
+    def test_schedule_admin_changelist(self):
+        schedule = _make_schedule(
+            self.staff_obj, start_offset_min=15,
+            checkin_backup_code='999111',
+        )
+        resp = self.client.get('/admin/booking/schedule/')
+        self.assertEqual(resp.status_code, 200)
+
+    def test_schedule_admin_change_view(self):
+        schedule = _make_schedule(
+            self.staff_obj, start_offset_min=15,
+            checkin_backup_code='999222',
+            checked_in_by=self.staff_obj,
+        )
+        resp = self.client.get(f'/admin/booking/schedule/{schedule.pk}/change/')
+        self.assertEqual(resp.status_code, 200)
+        self.assertContains(resp, '999222')

@@ -26,10 +26,14 @@ class ScheduleAdmin(admin.ModelAdmin):
         'price',
         'has_line_user',
     )
-    search_fields = ('customer_name', 'hashed_id', 'reservation_number', 'line_user_hash')
+    list_filter = ('is_checked_in', 'is_temporary', 'is_cancelled')
+    search_fields = ('customer_name', 'hashed_id', 'reservation_number', 'line_user_hash', 'checkin_backup_code')
     ordering = ('-start',)
 
-    readonly_fields = ('reservation_number', 'line_user_hash', 'line_user_enc', 'checkin_qr', 'checked_in_at')
+    readonly_fields = (
+        'reservation_number', 'line_user_hash', 'line_user_enc',
+        'checkin_qr', 'checked_in_at', 'checkin_backup_code', 'checked_in_by',
+    )
 
     def short_reservation_number(self, obj):
         rn = obj.reservation_number or ''

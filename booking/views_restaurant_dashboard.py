@@ -1298,3 +1298,106 @@ class ExternalDataAPIView(APIView):
             'total': len(integrations),
             'configured_count': sum(1 for i in integrations if i['configured']),
         })
+
+
+class CheckinStatsAPIView(APIView):
+    """GET /api/dashboard/checkin-stats/ — checkin statistics."""
+
+    def get(self, request):
+        if not request.user.is_authenticated:
+            return Response({'detail': 'login required'}, status=status.HTTP_403_FORBIDDEN)
+
+        days = _clamp_int(request.GET.get('days'), 30, lo=7, hi=90)
+        now = timezone.now()
+        since = now - timedelta(days=days)
+
+        scope = {}
+        if not request.user.is_superuser:
+            try:
+                scope = {'staff__store': request.user.staff.store}
+            except (Staff.DoesNotExist, AttributeError):
+                return Response({'detail': 'no store access'}, status=status.HTTP_403_FORBIDDEN)
+
+        base_qs = Schedule.objects.filter(
+            start__gte=since,
+            start__lte=now,
+            is_temporary=False,
+            is_cancelled=False,
+            **scope,
+        )
+
+        # Daily checkin stats
+        daily = (
+            base_qs
+            .annotate(date=TruncDate('start'))
+            .values('date')
+            .annotate(
+                total=Count('id'),
+                checked_in=Count('id', filter=Q(is_checked_in=True)),
+            )
+            .order_by('date')
+        )
+        daily_list = []
+        for d in daily:
+            total = d['total']
+            checked = d['checked_in']
+            rate = round(checked / total, 4) if total > 0 else 0
+            daily_list.append({
+                'date': d['date'].isoformat(),
+                'total': total,
+                'checked_in': checked,
+                'no_show': total - checked,
+                'checkin_rate': rate,
+            })
+
+        # Summary
+        total_all = base_qs.count()
+        checked_all = base_qs.filter(is_checked_in=True).count()
+        checkin_rate = round(checked_all / total_all, 4) if total_all > 0 else 0
+        no_show_rate = round(1 - checkin_rate, 4) if total_all > 0 else 0
+
+        # By staff
+        by_staff = (
+            base_qs
+            .values('staff__name')
+            .annotate(
+                total=Count('id'),
+                checked_in=Count('id', filter=Q(is_checked_in=True)),
+            )
+            .order_by('-total')
+        )
+        staff_list = []
+        for s in by_staff:
+            t = s['total']
+            c = s['checked_in']
+            staff_list.append({
+                'staff_name': s['staff__name'],
+                'total': t,
+                'checked_in': c,
+                'checkin_rate': round(c / t, 4) if t > 0 else 0,
+            })
+
+        # Hourly distribution
+        hourly = (
+            base_qs
+            .filter(is_checked_in=True)
+            .annotate(hour=ExtractHour('checked_in_at'))
+            .values('hour')
+            .annotate(count=Count('id'))
+            .order_by('hour')
+        )
+        hourly_list = [{'hour': h['hour'], 'count': h['count']} for h in hourly]
+
+        return Response({
+            'summary': {
+                'total': total_all,
+                'checked_in': checked_all,
+                'no_show': total_all - checked_all,
+                'checkin_rate': checkin_rate,
+                'no_show_rate': no_show_rate,
+                'days': days,
+            },
+            'daily': daily_list,
+            'by_staff': staff_list,
+            'hourly': hourly_list,
+        })

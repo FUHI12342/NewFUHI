@@ -245,33 +245,47 @@ class LineCallbackView(View):
                 schedule.is_temporary = False
                 schedule.save(update_fields=['is_temporary'])
 
-                # キャスト（スタッフ）通知
-                staff_line_id = schedule.staff.line_id
-                if staff_line_id:
-                    local_tz = pytz.timezone('Asia/Tokyo')
-                    local_time = schedule.start.astimezone(local_tz)
-                    staff_message = (
-                        f'予約が確定しました。\n'
-                        f'予約者: {schedule.customer_name or "Unknown"}\n'
-                        f'日時: {local_time.strftime("%Y/%m/%d %H:%M")}\n'
-                        f'店舗: {schedule.staff.store.name}\n'
-                        f'予約番号: {reservation_number}'
+                # 署名付きQR + バックアップコード生成
+                from booking.services.checkin_token import (
+                    generate_backup_code as _gen_backup,
+                    generate_signed_checkin_qr as _gen_qr,
+                )
+                try:
+                    staff_obj = Staff.objects.select_related('store').get(pk=schedule.staff_id)
+                    qr_file = _gen_qr(str(schedule.reservation_number), schedule.end)
+                    schedule.checkin_qr.save(qr_file.name, qr_file, save=True)
+                    backup_code = _gen_backup(staff_obj.store, schedule.start.date())
+                    Schedule.objects.filter(pk=schedule.pk).update(
+                        checkin_backup_code=backup_code,
                     )
-                    try:
-                        line_bot_api.push_message(
-                            staff_line_id,
-                            TextSendMessage(text=staff_message)
-                        )
-                    except LineBotApiError as e:
-                        logger.error('スタッフ通知エラー（無料予約）: %s', e)
+                except Exception as e:
+                    logger.warning('無料予約QR/バックアップコード生成エラー: %s', e)
+                    backup_code = None
 
+                # キャスト（スタッフ）通知
+                from booking.services.staff_notifications import notify_booking_to_staff
+                notify_booking_to_staff(schedule)
+
+                # 顧客LINE通知（QR/バックアップコード含む）
+                qr_page_url = (
+                    f'https://timebaibai.com/reservation/'
+                    f'{reservation_number}/qr/'
+                )
+                backup_line = ''
+                if backup_code:
+                    backup_line = (
+                        f'\n\nチェックインQRコード: {qr_page_url}'
+                        f'\n口頭確認コード: {backup_code}'
+                        f'\n（QRが読み取れない場合、スタッフにこの6桁コードをお伝えください）'
+                    )
                 line_bot_api.push_message(
                     user_id,
                     TextSendMessage(
-                        text=f'ご予約が確定しました。\n'
+                        text=f'【予約確定】ご予約が確定しました。\n'
                              f'予約番号: {reservation_number}\n'
-                             f'日時: {schedule.start.strftime("%Y/%m/%d %H:%M")}\n'
-                             f'ご来店をお待ちしております。'
+                             f'日時: {schedule.start.strftime("%Y/%m/%d %H:%M")}'
+                             + backup_line
+                             + f'\n\nご来店をお待ちしております。'
                     )
                 )
 
@@ -819,8 +833,47 @@ class CheckinAPIView(APIView):
             checked_in_by=checked_in_by,
         )
 
+        # --- 顧客にチェックイン完了通知 ---
+        self._notify_customer_checkin(schedule)
+
         return Response({
             'status': 'ok',
             'message': f'{schedule.customer_name or "お客様"} のチェックインが完了しました',
             'checked_in_at': now.isoformat(),
         })
+
+    @staticmethod
+    def _notify_customer_checkin(schedule):
+        """チェックイン完了をLINEまたはメールで顧客に通知する。"""
+        local_tz = pytz.timezone('Asia/Tokyo')
+        local_time = schedule.start.astimezone(local_tz)
+        message = (
+            f'チェックインが完了しました。\n\n'
+            f'占い師: {schedule.staff.name}\n'
+            f'日時: {local_time.strftime("%Y/%m/%d %H:%M")}\n'
+            f'ご来店ありがとうございます。'
+        )
+
+        # LINE通知
+        try:
+            user_id = schedule.get_line_user_id()
+            if user_id:
+                line_bot_api = LineBotApi(settings.LINE_ACCESS_TOKEN)
+                line_bot_api.push_message(
+                    user_id, TextSendMessage(text=message),
+                )
+        except Exception as e:
+            logger.warning('チェックイン完了LINE通知に失敗: %s', e)
+
+        # メール通知
+        if schedule.booking_channel == 'email' and schedule.customer_email:
+            try:
+                send_mail(
+                    subject='チェックイン完了のお知らせ',
+                    message=f'{schedule.customer_name}様\n\n{message}',
+                    from_email=settings.DEFAULT_FROM_EMAIL,
+                    recipient_list=[schedule.customer_email],
+                    fail_silently=True,
+                )
+            except Exception as e:
+                logger.warning('チェックイン完了メール通知に失敗: %s', e)

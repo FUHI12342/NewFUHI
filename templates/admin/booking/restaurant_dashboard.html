@@ -207,6 +207,7 @@
     <button class="tab-btn" data-tab="shift" onclick="switchTab('shift')">シフト</button>
     <button class="tab-btn" data-tab="attendance" onclick="switchTab('attendance')">勤怠</button>
     <button class="tab-btn" data-tab="operations" onclick="switchTab('operations')">運営</button>
+    <button class="tab-btn" data-tab="checkin" onclick="switchTab('checkin')">チェックイン</button>
   </div>
 
   {# ===== Tab: 概要 ===== #}
@@ -638,6 +639,68 @@
     </div>
   </div>
 
+  {# ===== Tab: チェックイン ===== #}
+  <div class="tab-content" id="tab-checkin">
+    <div class="sub-tab-bar" id="checkin-sub-tabs">
+      <button class="sub-tab-btn active" data-subtab="checkin-summary" onclick="switchSubTab('checkin', 'checkin-summary')">サマリー</button>
+      <button class="sub-tab-btn" data-subtab="checkin-daily" onclick="switchSubTab('checkin', 'checkin-daily')">日別推移</button>
+      <button class="sub-tab-btn" data-subtab="checkin-staff" onclick="switchSubTab('checkin', 'checkin-staff')">スタッフ別</button>
+      <button class="sub-tab-btn" data-subtab="checkin-hourly" onclick="switchSubTab('checkin', 'checkin-hourly')">時間帯別</button>
+    </div>
+
+    {# サマリー #}
+    <div class="sub-tab-content active" id="subtab-checkin-summary">
+      <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
+        <div class="db-card text-center">
+          <span class="text-sm text-gray-500">総予約数</span>
+          <div id="ci-total" class="text-3xl font-extrabold text-indigo-500">--</div>
+        </div>
+        <div class="db-card text-center">
+          <span class="text-sm text-gray-500">チェックイン済</span>
+          <div id="ci-checked" class="text-3xl font-extrabold text-emerald-500">--</div>
+        </div>
+        <div class="db-card text-center">
+          <span class="text-sm text-gray-500">ノーショー</span>
+          <div id="ci-noshow" class="text-3xl font-extrabold text-rose-500">--</div>
+        </div>
+        <div class="db-card text-center">
+          <span class="text-sm text-gray-500">チェックイン率</span>
+          <div id="ci-rate" class="text-3xl font-extrabold text-sky-500">--%</div>
+        </div>
+      </div>
+    </div>
+
+    {# 日別推移 #}
+    <div class="sub-tab-content" id="subtab-checkin-daily">
+      <div class="db-card">
+        <h3 class="text-lg font-semibold mb-3">日別チェックイン推移</h3>
+        <div class="chart-viewport" style="position:relative;height:calc(100vh - 380px);min-height:300px;">
+          <canvas id="checkinDailyChart"></canvas>
+        </div>
+      </div>
+    </div>
+
+    {# スタッフ別 #}
+    <div class="sub-tab-content" id="subtab-checkin-staff">
+      <div class="db-card">
+        <h3 class="text-lg font-semibold mb-3">スタッフ別チェックイン率</h3>
+        <div class="chart-viewport" style="position:relative;height:calc(100vh - 380px);min-height:300px;">
+          <canvas id="checkinStaffChart"></canvas>
+        </div>
+      </div>
+    </div>
+
+    {# 時間帯別 #}
+    <div class="sub-tab-content" id="subtab-checkin-hourly">
+      <div class="db-card">
+        <h3 class="text-lg font-semibold mb-3">時間帯別チェックイン分布</h3>
+        <div class="chart-viewport" style="position:relative;height:calc(100vh - 380px);min-height:300px;">
+          <canvas id="checkinHourlyChart"></canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+
 </div>
 
 <script>
@@ -666,6 +729,7 @@ document.addEventListener('DOMContentLoaded', function () {
     if (tabName === 'attendance' && !attendanceLoaded) { loadAttendance(); attendanceLoaded = true; }
     if (tabName === 'customers' && !customersLoaded) { loadCohort(); customersLoaded = true; }
     if (tabName === 'operations' && !operationsLoaded) { loadOperations(); operationsLoaded = true; }
+    if (tabName === 'checkin' && !checkinLoaded) { loadCheckinStats(); }
   };
 
   var salesLoaded = false;
@@ -674,6 +738,7 @@ document.addEventListener('DOMContentLoaded', function () {
   var attendanceLoaded = false;
   var operationsLoaded = false;
   var customersLoaded = false;
+  var checkinLoaded = false;
 
   /* ------------------------------------------------------------------ */
   /*  Sub-tab switching (within a main tab)                              */
@@ -2214,6 +2279,104 @@ document.addEventListener('DOMContentLoaded', function () {
       action: function() { switchTab('overview'); }
     },
   ];
+
+  /* ------------------------------------------------------------------ */
+  /*  Checkin Stats Tab                                                  */
+  /* ------------------------------------------------------------------ */
+  var checkinDailyChart = null;
+  var checkinStaffChart = null;
+  var checkinHourlyChart = null;
+
+  function loadCheckinStats() {
+    if (checkinLoaded) return;
+    checkinLoaded = true;
+    fetch('/api/dashboard/checkin-stats/?days=30', { headers: { 'X-CSRFToken': csrfToken } })
+      .then(function(r) { return r.json(); })
+      .then(function(data) {
+        // Summary
+        var s = data.summary;
+        document.getElementById('ci-total').textContent = s.total;
+        document.getElementById('ci-checked').textContent = s.checked_in;
+        document.getElementById('ci-noshow').textContent = s.no_show;
+        document.getElementById('ci-rate').textContent = (s.checkin_rate * 100).toFixed(1) + '%';
+
+        // Daily chart
+        if (data.daily && data.daily.length > 0) {
+          if (checkinDailyChart) checkinDailyChart.destroy();
+          var ctx = document.getElementById('checkinDailyChart').getContext('2d');
+          checkinDailyChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+              labels: data.daily.map(function(d) { return d.date; }),
+              datasets: [
+                {
+                  label: 'チェックイン',
+                  data: data.daily.map(function(d) { return d.checked_in; }),
+                  backgroundColor: 'rgba(16,185,129,0.7)',
+                },
+                {
+                  label: 'ノーショー',
+                  data: data.daily.map(function(d) { return d.no_show; }),
+                  backgroundColor: 'rgba(244,63,94,0.7)',
+                }
+              ]
+            },
+            options: {
+              responsive: true,
+              maintainAspectRatio: false,
+              scales: { x: { stacked: true }, y: { stacked: true, beginAtZero: true } },
+              plugins: { legend: { display: true } },
+            }
+          });
+        }
+
+        // Staff chart
+        if (data.by_staff && data.by_staff.length > 0) {
+          if (checkinStaffChart) checkinStaffChart.destroy();
+          var ctx2 = document.getElementById('checkinStaffChart').getContext('2d');
+          checkinStaffChart = new Chart(ctx2, {
+            type: 'bar',
+            data: {
+              labels: data.by_staff.map(function(s) { return s.staff_name; }),
+              datasets: [{
+                label: 'チェックイン率 (%)',
+                data: data.by_staff.map(function(s) { return (s.checkin_rate * 100).toFixed(1); }),
+                backgroundColor: 'rgba(99,102,241,0.7)',
+              }]
+            },
+            options: {
+              indexAxis: 'y',
+              responsive: true,
+              maintainAspectRatio: false,
+              scales: { x: { beginAtZero: true, max: 100 } },
+            }
+          });
+        }
+
+        // Hourly chart
+        if (data.hourly && data.hourly.length > 0) {
+          if (checkinHourlyChart) checkinHourlyChart.destroy();
+          var ctx3 = document.getElementById('checkinHourlyChart').getContext('2d');
+          checkinHourlyChart = new Chart(ctx3, {
+            type: 'bar',
+            data: {
+              labels: data.hourly.map(function(h) { return h.hour + ':00'; }),
+              datasets: [{
+                label: 'チェックイン数',
+                data: data.hourly.map(function(h) { return h.count; }),
+                backgroundColor: 'rgba(14,165,233,0.7)',
+              }]
+            },
+            options: {
+              responsive: true,
+              maintainAspectRatio: false,
+              scales: { y: { beginAtZero: true } },
+            }
+          });
+        }
+      })
+      .catch(function(e) { console.error('Checkin stats load error:', e); });
+  }
 
 });
 </script>
