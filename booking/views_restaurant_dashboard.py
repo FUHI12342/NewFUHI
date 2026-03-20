@@ -176,10 +176,18 @@ class SalesStatsAPIView(APIView):
 
         since = timezone.now() - timedelta(days=90)
 
+        # Optional channel filter (comma-separated, e.g. ?channel=ec or ?channel=pos,table)
+        channel_param = request.GET.get('channel', '')
+        channel_filter = {}
+        if channel_param:
+            channels = [c.strip() for c in channel_param.split(',') if c.strip()]
+            if channels:
+                channel_filter = {'order__channel__in': channels}
+
         # Sales trend
         trend = (
             OrderItem.objects
-            .filter(order__created_at__gte=since, **scope)
+            .filter(order__created_at__gte=since, **scope, **channel_filter)
             .annotate(date=trunc_fn('order__created_at'))
             .values('date')
             .annotate(total=Sum(F('qty') * F('unit_price')))
@@ -190,7 +198,7 @@ class SalesStatsAPIView(APIView):
         # Top 10 products
         top_products = (
             OrderItem.objects
-            .filter(order__created_at__gte=since, **scope)
+            .filter(order__created_at__gte=since, **scope, **channel_filter)
             .values('product__name')
             .annotate(total=Sum('qty'))
             .order_by('-total')[:10]
@@ -217,10 +225,16 @@ class StaffPerformanceAPIView(APIView):
             except (Staff.DoesNotExist, AttributeError):
                 return Response({'detail': 'no store access'}, status=status.HTTP_403_FORBIDDEN)
 
+        # Optional staff_type filter (e.g. ?staff_type=fortune_teller)
+        staff_type_param = request.GET.get('staff_type', '')
+        staff_type_filter = {}
+        if staff_type_param:
+            staff_type_filter = {'staff_type': staff_type_param}
+
         # N+1最適化: スタッフごとのループ内クエリをアノテーションに置換
         staffs = (
             Staff.objects
-            .filter(**scope)
+            .filter(**scope, **staff_type_filter)
             .select_related('store')
             .annotate(
                 reservation_count=Count(
