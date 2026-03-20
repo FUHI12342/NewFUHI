@@ -2,7 +2,7 @@
 
 **システム名:** NewFUHI（占いサロン予約＋IoTモニタリングシステム）
 **本番URL:** https://timebaibai.com
-**バージョン:** 2026-03-18
+**バージョン:** 2026-03-20
 
 ---
 
@@ -19,7 +19,7 @@
 7. [トラブルシューティング](#7-トラブルシューティング)
 8. [API仕様](#8-api仕様)
 
-**機能編（セクション9〜24）**
+**機能編（セクション9〜29）**
 
 9. [予約フロー（お客様向け）](#9-予約フローお客様向け)
 10. [マイページ](#10-マイページ)
@@ -37,6 +37,11 @@
 22. [お知らせ管理](#22-お知らせ管理)
 23. [物件モニタリング](#23-物件モニタリング)
 24. [システム管理（Debug）](#24-システム管理debug)
+25. [QRチェックイン](#25-qrチェックイン) ← **NEW**
+26. [顧客フィードバック（NPS）](#26-顧客フィードバックnps) ← **NEW**
+27. [セキュリティログ](#27-セキュリティログ) ← **NEW**
+28. [ビジネスインサイト](#28-ビジネスインサイト) ← **NEW**
+29. [シフト交代・空き管理](#29-シフト交代空き管理) ← **NEW**
 
 **付録**
 
@@ -282,6 +287,8 @@ secrets = {
 ---
 
 ## 4. センサーダッシュボード
+
+![IoTセンサーグラフ](screenshots/iot_sensors_vp.png)
 
 ### 4.1 リアルタイムダッシュボード
 
@@ -727,6 +734,12 @@ GET /api/iot/sensors/data/?device_id=pico2w_001&sensor=mq9&range=24h
 
 ## 9. 予約フロー（お客様向け）
 
+![トップページ](screenshots/front_top.png)
+*図9-1: お客様向けトップページ（モバイル表示）*
+
+![スタッフ一覧](screenshots/front_staff_list.png)
+*図9-2: 占い師一覧ページ*
+
 ### 9.1 概要
 
 お客様が占い師の予約を行うまでの一連のフローです。LINE認証またはメール認証で本人確認を行い、店舗・占い師・日時を選択して予約を完了します。予約完了後はQRコードが発行され、来店時のチェックインに使用します。
@@ -865,6 +878,8 @@ GET /api/iot/sensors/data/?device_id=pico2w_001&sensor=mq9&range=24h
 - 「この店舗で予約」ボタン → 店舗のスタッフ一覧へ
 
 ### 9.7 日付優先カレンダー
+
+![予約カレンダー](screenshots/booking_calendar_desktop.png)
 
 **URL:** `/booking/date-calendar/` または `/booking/date-calendar/<year>/<month>/<day>/`
 
@@ -1034,6 +1049,8 @@ GET /api/iot/sensors/data/?device_id=pico2w_001&sensor=mq9&range=24h
 
 ### 10.3 プロフィール編集
 
+![スタッフ設定画面](screenshots/staff_edit_vp.png)
+
 **URL:** `/booking/mypage/<pk>/profile/`
 
 | 編集可能項目 | 説明 |
@@ -1068,6 +1085,9 @@ GET /api/iot/sensors/data/?device_id=pico2w_001&sensor=mq9&range=24h
 ---
 
 ## 11. ECショップ
+
+![ECショップ](screenshots/front_shop.png)
+*図11-1: ECショップ（モバイル表示）*
 
 ### 11.1 概要
 
@@ -1199,6 +1219,8 @@ Coiney Webhookエンドポイント: `/coiney_webhook/<orderId>/`
 
 ## 12. テーブル注文
 
+![QRテーブル注文画面](screenshots/table_order_vp.png)
+
 ### 12.1 概要
 
 店舗内のテーブルに設置されたQRコードを読み取り、スマートフォンからメニューを閲覧・注文できるシステムです。認証不要でテーブルUUIDで管理されます。
@@ -1287,6 +1309,14 @@ Coiney Webhookエンドポイント: `/coiney_webhook/<orderId>/`
 ---
 
 ## 13. POS（レジ）
+
+![POS画面](screenshots/pos.png)
+*図13-1: POSレジ画面*
+
+![キッチンディスプレイ](screenshots/kitchen_display.png)
+*図13-2: キッチンディスプレイ（KDS）*
+
+![キッチンディスプレイ](screenshots/kitchen_display_vp.png)
 
 ### 13.1 概要
 
@@ -1386,6 +1416,15 @@ POS API:
 ---
 
 ## 14. シフト管理
+
+![シフトカレンダー](screenshots/shift_calendar.png)
+*図14-1: シフトカレンダー（週グリッド表示）*
+
+![本日のシフト](screenshots/shift_today.png)
+*図14-2: 本日のシフトタイムライン*
+
+![シフト期間一覧](screenshots/shift_period_list.png)
+*図14-3: シフト期間一覧（open/closed/scheduled/approved の4ステータス）*
 
 ### 14.1 概要
 
@@ -1728,6 +1767,15 @@ API: `GET/POST /api/shift/closed-dates/`
 
 ## 15. 勤怠管理
 
+![QR勤怠キオスク](screenshots/attendance_qr.png)
+*図15-1: QR勤怠キオスク画面*
+
+![出退勤ボード](screenshots/attendance_board.png)
+*図15-2: 本日の出退勤ボード*
+
+![勤務実績](screenshots/attendance_performance.png)
+*図15-3: スタッフ別勤務実績ダッシュボード*
+
 ### 15.1 概要
 
 スタッフの出退勤記録をQRコード、PINコード、または手動で管理するシステムです。TOTP（ワンタイムパスワード）によるセキュリティ強化に対応しています。
@@ -1847,6 +1895,9 @@ API: `GET /api/attendance/day-status/` で当日の勤怠状態を取得
 
 ## 16. 売上ダッシュボード
 
+![売上ダッシュボード](screenshots/dashboard_sales.png)
+*図16-1: 売上分析ダッシュボード*
+
 ### 16.1 概要
 
 店舗の売上・予約・スタッフパフォーマンスを24種類のウィジェットで可視化する管理ダッシュボードです。レイアウトはドラッグ&ドロップでカスタマイズ可能です。
@@ -1923,6 +1974,9 @@ API: `GET /api/attendance/day-status/` で当日の勤怠状態を取得
 
 ## 17. 来客分析
 
+![来客分析](screenshots/visitor_analytics.png)
+*図17-1: 来客分析ダッシュボード*
+
 ### 17.1 概要
 
 店舗への来客数をリアルタイムで追跡・分析するダッシュボードです。IoTセンサー（PIR人感センサー）のデータも統合されます。
@@ -1969,6 +2023,9 @@ API: `GET /api/attendance/day-status/` で当日の勤怠状態を取得
 ---
 
 ## 18. スタッフ評価
+
+![スタッフ評価](screenshots/staff_evaluation.png)
+*図18-1: スタッフ評価一覧*
 
 ### 18.1 概要
 
@@ -2017,6 +2074,9 @@ API: `GET /api/attendance/performance/`
 
 ## 19. EC注文管理
 
+![EC注文管理](screenshots/ec_orders.png)
+*図19-1: EC注文管理ダッシュボード*
+
 ### 19.1 概要
 
 ECショップの受注処理・発送管理を行う管理画面です。
@@ -2051,6 +2111,9 @@ EC注文API:
 ---
 
 ## 20. 在庫管理
+
+![在庫管理](screenshots/inventory.png)
+*図20-1: 在庫管理ダッシュボード*
 
 ### 20.1 概要
 
@@ -2117,6 +2180,9 @@ StockMovementモデルで全在庫変動を記録:
 ---
 
 ## 21. AIレコメンド
+
+![AIレコメンド](screenshots/ai_recommendation.png)
+*図21-1: AIスタッフ推薦ダッシュボード*
 
 ### 21.1 概要
 
@@ -2286,6 +2352,9 @@ AI API:
 
 ## 24. システム管理（Debug）
 
+![デバッグパネル](screenshots/debug_panel.png)
+*図24-1: デバッグパネル*
+
 ### 24.1 概要
 
 開発者・管理者向けのシステムデバッグ・監視パネルです。
@@ -2334,6 +2403,267 @@ AI API:
 - ログレベル: `POST /api/debug/log-level/`
 
 IoTデバイス個別デバッグ: `/admin/debug/device/<device_id>/`
+
+---
+
+## 25. QRチェックイン
+
+![チェックインスキャン](screenshots/checkin_scan.png)
+*図25-1: QRチェックインスキャン画面*
+
+### 25.1 概要
+
+予約確定時にQRコードが自動発行され、来店時に店舗スタッフがスマートフォンのカメラでスキャンするだけでチェックインが完了します。QRコードが使えない場合に備え、6桁のバックアップコードも発行されます。
+
+### 25.2 チェックインフロー
+
+```
+┌──────────┐    ┌──────────┐    ┌──────────┐    ┌──────────┐
+│ 予約確定  │───▶│ QR発行   │───▶│ 来店     │───▶│ チェック  │
+│ 自動発行  │    │ +6桁コード│    │ QR提示   │    │ イン完了  │
+└──────────┘    └──────────┘    └──────────┘    └──────────┘
+```
+
+### 25.3 データモデル
+
+| フィールド | 説明 |
+|-----------|------|
+| `checkin_qr` | QRコード画像（ImageField） |
+| `is_checked_in` | チェックイン済みフラグ |
+| `checked_in_at` | チェックイン日時 |
+| `checkin_backup_code` | 口頭確認用6桁コード |
+| `checked_in_by` | チェックインを行ったスタッフ |
+
+### 25.4 統計
+
+チェックイン率は売上ダッシュボードの `CheckinStatsAPIView` で確認可能です。モックデータではチェックイン率70%、ノーショー率30%のリアルな分布を再現しています。
+
+### 25.5 管理画面
+
+チェックインスキャン: `/admin/checkin/scan/`
+予約一覧でチェックイン状態のフィルタリングが可能です。
+
+---
+
+## 26. 顧客フィードバック（NPS）
+
+![顧客フィードバック](screenshots/customer_feedback.png)
+*図26-1: 顧客フィードバック一覧（NPS・感情分析付き）*
+
+### 26.1 概要
+
+NPS（Net Promoter Score）ベースの顧客満足度管理システムです。0〜10のスコアでPromoter/Passive/Detractorに自動分類し、料理・サービス・雰囲気の3軸評価と自由記述コメント、感情分析（positive/neutral/negative）を記録します。
+
+### 26.2 NPS分類
+
+| カテゴリ | スコア範囲 | 意味 |
+|---------|-----------|------|
+| Promoter | 9〜10 | 推奨者（ロイヤルカスタマー） |
+| Passive | 7〜8 | 中立者 |
+| Detractor | 0〜6 | 批判者 |
+
+**NPS = Promoter% - Detractor%**（-100〜+100の範囲）
+
+### 26.3 データモデル
+
+| フィールド | 説明 |
+|-----------|------|
+| `store` | 店舗FK |
+| `order` | 紐付き注文（任意） |
+| `nps_score` | NPS値（0〜10） |
+| `food_rating` | 料理評価（1〜5） |
+| `service_rating` | サービス評価（1〜5） |
+| `ambiance_rating` | 雰囲気評価（1〜5） |
+| `comment` | 自由記述コメント |
+| `sentiment` | 感情分析（positive/neutral/negative） |
+
+### 26.4 API
+
+| エンドポイント | 説明 |
+|---------------|------|
+| `GET /api/dashboard/nps/` | NPS統計（promoter/passive/detractor比率） |
+| `GET /api/dashboard/customer-feedback/` | フィードバック一覧 |
+
+### 26.5 管理画面
+
+顧客フィードバック一覧: `/admin/booking/customerfeedback/`
+売上ダッシュボードのNPSウィジェットからも確認可能。
+
+---
+
+## 27. セキュリティログ
+
+![セキュリティログ](screenshots/security_log.png)
+*図27-1: セキュリティイベントログ一覧*
+
+![セキュリティ監査](screenshots/security_audit.png)
+*図27-2: セキュリティ監査結果*
+
+### 27.1 概要
+
+全リクエストをミドルウェアで監視し、セキュリティイベントを自動記録するシステムです。ログイン成功/失敗、API認証エラー、権限拒否、不審なリクエスト（レートリミット超過等）を検知・記録します。
+
+### 27.2 イベント種別
+
+| イベント | 重大度 | 説明 |
+|---------|--------|------|
+| `login_success` | info | ログイン成功 |
+| `login_fail` | warning | ログイン失敗 |
+| `api_auth_fail` | warning | API認証エラー |
+| `permission_denied` | warning | 権限不足アクセス |
+| `suspicious_request` | critical | 不審なリクエスト（レートリミット超過等） |
+| `admin_action` | info | 管理者操作記録 |
+
+### 27.3 データモデル
+
+| フィールド | 説明 |
+|-----------|------|
+| `event_type` | イベント種別 |
+| `severity` | 重大度（critical/warning/info） |
+| `user` | 関連ユーザー |
+| `ip_address` | IPアドレス |
+| `user_agent` | ユーザーエージェント |
+| `path` | リクエストパス |
+| `method` | HTTPメソッド |
+| `detail` | 詳細テキスト |
+
+### 27.4 レートリミット
+
+`SecurityAuditMiddleware` は IP ベースで 60秒間100リクエストのレートリミットを実施。超過時は `429 Too Many Requests` を返し、`suspicious_request` イベントを記録します。
+
+### 27.5 自動メンテナンス
+
+- **ログクリーンアップ**: 毎週日曜 04:00 に90日超のログを自動削除（Celery Beat）
+- **セキュリティ監査**: 毎日 03:00 に12項目の自動診断を実行
+
+### 27.6 管理画面
+
+セキュリティログ: `/admin/booking/securitylog/`
+セキュリティ監査: `/admin/booking/securityaudit/`
+
+---
+
+## 28. ビジネスインサイト
+
+![ビジネスインサイト](screenshots/business_insight.png)
+*図28-1: ビジネスインサイト一覧*
+
+### 28.1 概要
+
+売上・在庫・スタッフ配置・メニュー・顧客の5カテゴリで自動生成されるビジネスインサイトです。`InsightEngine` サービスが定期的にデータを分析し、異常値や改善機会を検知して通知します。
+
+### 28.2 カテゴリ
+
+| カテゴリ | 例 |
+|---------|---|
+| `sales` | 売上前月比増減、曜日別売上傾向 |
+| `inventory` | 在庫充足状況、在庫切れ予測 |
+| `staffing` | シフト不足警告、出勤率レポート |
+| `menu` | 人気メニュー上昇/下降トレンド |
+| `customer` | NPS改善/悪化、リピート率変動 |
+
+### 28.3 重大度
+
+| 重大度 | 色 | 対応 |
+|--------|---|------|
+| `info` | 青 | 参考情報（対応不要） |
+| `warning` | 黄 | 注意（確認推奨） |
+| `critical` | 赤 | 緊急（即時対応必要） |
+
+### 28.4 データモデル
+
+各インサイトには `data` フィールド（JSONField）に関連する数値データが格納されます。例:
+
+```json
+{
+  "increase_pct": 15,
+  "top_category": "シーシャ"
+}
+```
+
+### 28.5 管理画面
+
+ビジネスインサイト: `/admin/booking/businessinsight/`
+売上ダッシュボードの「インサイト」タブからも一覧表示可能。
+
+---
+
+## 29. シフト交代・空き管理
+
+![シフト交代申請](screenshots/shift_swap_list.png)
+*図29-1: シフト交代申請一覧*
+
+![シフト空き](screenshots/shift_vacancy_list.png)
+*図29-2: シフト空き（Vacancy）一覧*
+
+![定休日](screenshots/store_closed_date.png)
+*図29-3: 店舗休業日一覧*
+
+### 29.1 シフト交代申請（ShiftSwapRequest）
+
+スタッフが自分の確定シフトに対して交代・カバー・欠勤の申請を行える機能です。
+
+| 申請種別 | 説明 |
+|---------|------|
+| `swap` | 他のスタッフとシフトを交換 |
+| `cover` | 代わりに出勤してくれるスタッフを募集 |
+| `absence` | 欠勤申請 |
+
+**承認フロー:** pending → approved / rejected（店長が承認・却下）
+
+交代が承認されると、対象の `ShiftVacancy` が自動的に `filled` に更新されます。
+
+### 29.2 シフト空き（ShiftVacancy）
+
+自動スケジューリング実行後に、必要人数を満たせなかった時間帯が `ShiftVacancy` として自動記録されます。
+
+| ステータス | 説明 |
+|-----------|------|
+| `open` | 空き枠あり（スタッフ募集中） |
+| `filled` | 充足（カバーされた） |
+| `cancelled` | キャンセル済み |
+
+**不足数** = `required_count` - `assigned_count`
+
+スタッフは `POST /api/shift/vacancies/<id>/apply/` で空き枠に応募できます。
+
+### 29.3 シフト変更ログ（ShiftChangeLog）
+
+確定シフトへの全変更を監査ログとして記録します。
+
+| 変更種別 | 説明 |
+|---------|------|
+| `revised` | 時間帯やスタッフの変更 |
+| `deleted` | シフト削除 |
+
+変更前後の値がJSON形式で `old_values` / `new_values` に保存されるため、完全な監査証跡を確保しています。
+
+### 29.4 店舗休業日（StoreClosedDate）
+
+休業日を登録すると、自動スケジューリング時にその日のシフト割当がスキップされます。
+
+### 29.5 シフトステータスの全体像
+
+```
+┌────────┐    ┌────────┐    ┌──────────┐    ┌──────────┐
+│  open  │───▶│ closed │───▶│ scheduled│───▶│ approved │
+│ 募集中  │    │ 締切   │    │ 確定     │    │ 承認済み  │
+└────────┘    └────────┘    └──────────┘    └──────────┘
+                              │                │
+                              │ auto_schedule   │ publish
+                              ▼                ▼
+                         ShiftAssignment  ShiftPublishHistory
+                         ShiftVacancy     (publish/revoke/reopen)
+```
+
+### 29.6 管理画面
+
+| 画面 | URL |
+|------|-----|
+| シフト交代申請 | `/admin/booking/shiftswaprequest/` |
+| シフト空き | `/admin/booking/shiftvacancy/` |
+| シフト変更ログ | `/admin/booking/shiftchangelog/` |
+| 定休日 | `/admin/booking/storecloseddate/` |
 
 ---
 

@@ -203,7 +203,7 @@
     <button class="tab-btn active" data-tab="overview" onclick="switchTab('overview')">概要</button>
     <button class="tab-btn" data-tab="sales" onclick="switchTab('sales')">売上</button>
     <button class="tab-btn" data-tab="customers" onclick="switchTab('customers')">顧客</button>
-    <button class="tab-btn" data-tab="staff" onclick="switchTab('staff')">スタッフ</button>
+    <button class="tab-btn" data-tab="staff" onclick="switchTab('staff')">{{ staff_label|default:"スタッフ" }}</button>
     <button class="tab-btn" data-tab="shift" onclick="switchTab('shift')">シフト</button>
     <button class="tab-btn" data-tab="attendance" onclick="switchTab('attendance')">勤怠</button>
     <button class="tab-btn" data-tab="operations" onclick="switchTab('operations')">運営</button>
@@ -277,6 +277,7 @@
       <button class="sub-tab-btn" data-subtab="sales-forecast" onclick="switchSubTab('sales', 'sales-forecast'); loadForecast();">売上予測</button>
       <button class="sub-tab-btn" data-subtab="sales-heatmap" onclick="switchSubTab('sales', 'sales-heatmap'); loadSalesHeatmap();">時間帯別売上</button>
       <button class="sub-tab-btn" data-subtab="sales-aov" onclick="switchSubTab('sales', 'sales-aov'); loadAOVTrend();">客単価推移</button>
+      <button class="sub-tab-btn" data-subtab="sales-channel" onclick="switchSubTab('sales', 'sales-channel'); loadChannelSales();">チャネル別売上</button>
     </div>
     <div class="sub-tab-content active" id="subtab-sales-trend">
       <div class="db-card">
@@ -382,6 +383,19 @@
         <div class="chart-viewport"><canvas id="aovTrendChart"></canvas></div>
       </div>
     </div>
+    <div class="sub-tab-content" id="subtab-sales-channel">
+      <div class="db-card">
+        <div class="flex items-center justify-between mb-3">
+          <h3 class="text-lg font-semibold">チャネル別売上</h3>
+          <select id="channel-period-select" onchange="loadChannelSales(true)" class="text-sm border border-gray-300 rounded px-2 py-1">
+            <option value="daily">日別</option>
+            <option value="weekly">週別</option>
+            <option value="monthly">月別</option>
+          </select>
+        </div>
+        <div class="chart-viewport"><canvas id="channelSalesChart"></canvas></div>
+      </div>
+    </div>
   </div>
 
   {# ===== Tab: 顧客分析 ===== #}
@@ -467,7 +481,7 @@
   {# ===== Tab: スタッフ ===== #}
   <div class="tab-content" id="tab-staff">
     <div class="db-card">
-      <h3 class="text-lg font-semibold mb-3">スタッフ別 予約数・売上比較</h3>
+      <h3 class="text-lg font-semibold mb-3">{{ staff_label|default:"スタッフ" }}別 予約数・売上比較</h3>
       <div class="chart-viewport"><canvas id="staffChart"></canvas></div>
     </div>
   </div>
@@ -496,11 +510,11 @@
         </div>
       </div>
       <div id="shift-staff-table" class="mt-6">
-        <h4 class="text-base font-semibold mb-2">スタッフ別シフト数</h4>
+        <h4 class="text-base font-semibold mb-2">{{ staff_label|default:"スタッフ" }}別シフト数</h4>
         <table class="w-full text-sm border border-gray-200 rounded">
           <thead>
             <tr class="bg-gray-50">
-              <th class="px-4 py-2 text-left">スタッフ</th>
+              <th class="px-4 py-2 text-left">{{ staff_label|default:"スタッフ" }}</th>
               <th class="px-4 py-2 text-right">確定シフト数</th>
               <th class="px-4 py-2 text-right">同期済み</th>
             </tr>
@@ -544,7 +558,7 @@
       <table class="w-full text-sm border border-gray-200 rounded">
         <thead>
           <tr class="bg-gray-50">
-            <th class="px-4 py-2 text-left">スタッフ</th>
+            <th class="px-4 py-2 text-left">{{ staff_label|default:"スタッフ" }}</th>
             <th class="px-4 py-2 text-center">状態</th>
             <th class="px-4 py-2 text-right">出勤</th>
             <th class="px-4 py-2 text-right">退勤</th>
@@ -594,7 +608,7 @@
             <div id="ops-ai-accuracy" class="text-3xl font-extrabold text-pink-500">--%</div>
           </div>
           <div class="text-center p-4 bg-indigo-50 rounded-lg">
-            <span class="text-sm text-gray-500">今日の推薦スタッフ数</span>
+            <span class="text-sm text-gray-500">今日の推薦{{ staff_label|default:"スタッフ" }}数</span>
             <div id="ops-ai-recommend" class="text-3xl font-extrabold text-indigo-500">--</div>
           </div>
         </div>
@@ -644,7 +658,7 @@
     <div class="sub-tab-bar" id="checkin-sub-tabs">
       <button class="sub-tab-btn active" data-subtab="checkin-summary" onclick="switchSubTab('checkin', 'checkin-summary')">サマリー</button>
       <button class="sub-tab-btn" data-subtab="checkin-daily" onclick="switchSubTab('checkin', 'checkin-daily')">日別推移</button>
-      <button class="sub-tab-btn" data-subtab="checkin-staff" onclick="switchSubTab('checkin', 'checkin-staff')">スタッフ別</button>
+      <button class="sub-tab-btn" data-subtab="checkin-staff" onclick="switchSubTab('checkin', 'checkin-staff')">{{ staff_label|default:"スタッフ" }}別</button>
       <button class="sub-tab-btn" data-subtab="checkin-hourly" onclick="switchSubTab('checkin', 'checkin-hourly')">時間帯別</button>
     </div>
 
@@ -683,7 +697,7 @@
     {# スタッフ別 #}
     <div class="sub-tab-content" id="subtab-checkin-staff">
       <div class="db-card">
-        <h3 class="text-lg font-semibold mb-3">スタッフ別チェックイン率</h3>
+        <h3 class="text-lg font-semibold mb-3">{{ staff_label|default:"スタッフ" }}別チェックイン率</h3>
         <div class="chart-viewport" style="position:relative;height:calc(100vh - 380px);min-height:300px;">
           <canvas id="checkinStaffChart"></canvas>
         </div>
@@ -1543,6 +1557,82 @@ document.addEventListener('DOMContentLoaded', function () {
       });
     }).catch(function(err) {
       console.error('Failed to load AOV trend:', err);
+    });
+  };
+
+  /* ------------------------------------------------------------------ */
+  /*  2h. Channel Sales (lazy loaded)                                    */
+  /* ------------------------------------------------------------------ */
+  var channelSalesChart = null;
+  var channelSalesLoaded = false;
+  var CHANNEL_COLORS = {
+    ec: '#3B82F6',
+    pos: '#10B981',
+    table: '#F59E0B',
+    reservation: '#8B5CF6',
+  };
+
+  window.loadChannelSales = function(forceReload) {
+    if (channelSalesLoaded && !forceReload) return;
+    channelSalesLoaded = true;
+
+    var period = document.getElementById('channel-period-select').value;
+
+    apiFetch('/api/dashboard/channel-sales/?period=' + period).then(function (data) {
+      var channels = data.channels || [];
+      var trend = data.trend || [];
+      var labels = data.channel_labels || {};
+
+      // Group by date
+      var dateMap = {};
+      var dateOrder = [];
+      trend.forEach(function(t) {
+        if (!dateMap[t.date]) {
+          dateMap[t.date] = {};
+          dateOrder.push(t.date);
+        }
+        dateMap[t.date][t.channel] = t.total;
+      });
+
+      // Build datasets per channel
+      var datasets = channels.map(function(ch) {
+        return {
+          label: labels[ch] || ch,
+          data: dateOrder.map(function(d) { return dateMap[d][ch] || 0; }),
+          backgroundColor: CHANNEL_COLORS[ch] || '#9CA3AF',
+          borderRadius: 3,
+        };
+      });
+
+      if (channelSalesChart) channelSalesChart.destroy();
+      var ctx = document.getElementById('channelSalesChart').getContext('2d');
+      channelSalesChart = new Chart(ctx, {
+        type: 'bar',
+        data: { labels: dateOrder, datasets: datasets },
+        options: {
+          responsive: true, maintainAspectRatio: false,
+          plugins: {
+            legend: { position: 'top' },
+            tooltip: {
+              callbacks: {
+                label: function(context) {
+                  return context.dataset.label + ': ' + Number(context.parsed.y).toLocaleString() + ' 円';
+                }
+              }
+            }
+          },
+          scales: {
+            x: { stacked: true, ticks: { maxTicksLimit: 12, maxRotation: 45, font: { size: 10 } } },
+            y: {
+              stacked: true, beginAtZero: true,
+              title: { display: true, text: '売上 (円)' },
+              ticks: { callback: function(v) { return Number(v).toLocaleString(); } }
+            }
+          }
+        }
+      });
+    }).catch(function(err) {
+      console.error('Failed to load channel sales:', err);
     });
   };
 

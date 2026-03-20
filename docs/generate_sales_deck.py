@@ -9,6 +9,7 @@ from pptx.util import Inches, Pt, Emu
 from pptx.dml.color import RGBColor
 from pptx.enum.text import PP_ALIGN, MSO_ANCHOR
 from pptx.enum.shapes import MSO_SHAPE
+from PIL import Image
 import os
 
 # ==============================
@@ -94,6 +95,26 @@ def add_feature_card(slide, left, top, width, height, title, items, accent_color
     add_bullet_list(slide, left + Inches(0.2), top + Inches(0.6),
                     width - Inches(0.4), height - Inches(0.8),
                     items, font_size=11, icon="●")
+
+
+def add_picture_fit(slide, img_path, left, top, max_width, max_height):
+    """画像をアスペクト比を維持してバウンディングボックスに収める"""
+    with Image.open(img_path) as img:
+        iw, ih = img.size
+    ratio = iw / ih
+    box_ratio = max_width / max_height
+    if ratio > box_ratio:
+        # 横長 → 幅に合わせる
+        w = max_width
+        h = max_width / ratio
+    else:
+        # 縦長 → 高さに合わせる
+        h = max_height
+        w = max_height * ratio
+    # 中央揃え
+    x = left + (max_width - w) / 2
+    y = top + (max_height - h) / 2
+    return slide.shapes.add_picture(img_path, int(x), int(y), width=int(w), height=int(h))
 
 
 def add_number_highlight(slide, left, top, number, label, color=BROWN):
@@ -324,7 +345,231 @@ def create_presentation():
         ], ACCENT_ORANGE)
 
     # ==========================================
-    # スライド 7: 導入メリット
+    # スライド 7: 機能一覧（4/5）分析・セキュリティ — NEW
+    # ==========================================
+    slide = prs.slides.add_slide(prs.slide_layouts[6])
+    set_slide_bg(slide, WHITE)
+
+    add_text(slide, Inches(0.8), Inches(0.3), Inches(11), Inches(0.5),
+             "主な機能  ④  データ分析 / セキュリティ",
+             font_size=28, bold=True, color=BROWN)
+    add_shape(slide, Inches(0.8), Inches(0.9), Inches(3), Inches(0.04), BROWN)
+
+    add_feature_card(slide, Inches(0.5), Inches(1.2), Inches(5.8), Inches(5.5),
+        "データ分析・AI活用", [
+            "売上ダッシュボードで月次/週次/日次の推移を可視化",
+            "メニューエンジニアリング（Star/Dog分類）で利益改善",
+            "ABC分析・RFM分析・コホート分析・バスケット分析",
+            "NPS（顧客満足度）自動集計でリピーター獲得に貢献",
+            "AIが時間帯別のスタッフ必要人数を自動予測",
+            "来客予測・売上予測で仕入れや人員配置を最適化",
+            "ビジネスインサイトが異常値や改善機会を自動検知",
+            "KPIスコアカードで経営状態をひと目で把握",
+        ], ACCENT_BLUE)
+
+    add_feature_card(slide, Inches(6.9), Inches(1.2), Inches(5.8), Inches(5.5),
+        "セキュリティ・監査", [
+            "全アクセスログを自動記録（ログイン/操作/異常検知）",
+            "IP別レートリミットで不正アクセスを自動ブロック",
+            "顧客個人情報はAES暗号化で安全に保管",
+            "セキュリティ自動監査（12項目を毎日チェック）",
+            "権限別アクセス制御（オーナー/店長/スタッフ/開発者）",
+            "操作履歴・シフト変更ログで完全な監査証跡",
+            "SSL暗号化通信・CSRF保護を標準装備",
+            "PCI DSS準拠の外部決済サービスと連携",
+        ], ACCENT_ORANGE)
+
+    # ==========================================
+    # スライド 8〜: 画面イメージ（1画面1スライド）
+    # 構成: メインページ → スマホ → 管理画面
+    # ==========================================
+    screenshots_dir = os.path.dirname(os.path.abspath(__file__))
+
+    def _add_desktop_slide(img_name, title, subtitle, bullets, header_prefix=""):
+        """デスクトップ画面スライド: 左にスクショ、右に説明"""
+        slide = prs.slides.add_slide(prs.slide_layouts[6])
+        set_slide_bg(slide, WHITE)
+        full_title = f"{header_prefix}{title}" if header_prefix else title
+        add_text(slide, Inches(0.8), Inches(0.3), Inches(11), Inches(0.5),
+                 full_title, font_size=28, bold=True, color=BROWN)
+        add_shape(slide, Inches(0.8), Inches(0.9), Inches(3), Inches(0.04), BROWN)
+        img_path = os.path.join(screenshots_dir, img_name)
+        add_shape(slide, Inches(0.4), Inches(1.2), Inches(8.2), Inches(5.8),
+                  LIGHT_GRAY, corner_radius=True)
+        if os.path.exists(img_path):
+            try:
+                add_picture_fit(slide, img_path,
+                                Inches(0.5), Inches(1.3), Inches(8.0), Inches(5.6))
+            except Exception:
+                add_text(slide, Inches(2), Inches(3.5), Inches(4), Inches(1),
+                         f'[{title}]', font_size=18, color=GRAY, align=PP_ALIGN.CENTER)
+        add_text(slide, Inches(8.9), Inches(1.2), Inches(4), Inches(0.5),
+                 subtitle, font_size=18, bold=True, color=DARK)
+        add_bullet_list(slide, Inches(8.9), Inches(1.8), Inches(4), Inches(5),
+                        bullets, font_size=12, icon="✓")
+
+    # ── 1. お客様向け画面（メインページ）──
+    frontend_screens = [
+        ('screenshots/front_top_desktop.png', 'トップページ',
+         'お客様が最初に目にする画面',
+         [
+             'ヒーローバナーで店舗の魅力をアピール',
+             '予約方法を選べるわかりやすい導線',
+             'スタッフランキングで人気キャストをPR',
+             'お知らせ・メディア掲載を自動表示',
+             '7言語対応でインバウンド集客にも対応',
+         ]),
+        ('screenshots/front_staff_list_desktop.png', 'スタッフ紹介・店舗情報',
+         'お店のスタッフを魅力的に紹介',
+         [
+             'スタッフの写真・プロフィールを掲載',
+             '得意メニュー・資格を表示',
+             'そのまま予約カレンダーへ遷移',
+             '店舗情報（営業時間・地図・アクセス）を表示',
+             '管理画面から簡単に内容を更新',
+         ]),
+        ('screenshots/front_news_desktop.png', 'お知らせ',
+         '最新情報をお客様に発信',
+         [
+             '新メニュー・キャンペーン情報を簡単投稿',
+             '管理画面からワンクリックで公開',
+             '日付順に自動ソートで常に最新情報を表示',
+             'SNS連携で情報拡散をサポート',
+             'お客様のリピート来店を促進',
+         ]),
+        ('screenshots/front_shop_desktop.png', 'オンラインショップ',
+         'ECで売上チャネルを拡大',
+         [
+             '店舗の商品をオンラインで販売',
+             '商品検索・カテゴリ絞り込み機能',
+             'カート機能で複数商品をまとめて購入',
+             'クレジットカード・電子マネーで決済',
+             '店頭在庫と一元管理で在庫ミスを防止',
+         ]),
+        ('screenshots/table_order_vp.png', 'QRテーブル注文',
+         'スマホで簡単オーダー',
+         [
+             'テーブルのQRコードをスキャンするだけ',
+             '写真付きメニューで料理のイメージが伝わる',
+             'カテゴリ別タブで欲しい商品がすぐ見つかる',
+             'カート機能で追加注文もラクラク',
+             '注文状況をリアルタイムで確認',
+         ]),
+        ('screenshots/booking_calendar_desktop.png', '予約カレンダー',
+         'オンラインで24時間予約受付',
+         [
+             'キャスト別の空き状況をカレンダーで一覧表示',
+             'お客様が好きな日時・時間帯を選んで予約',
+             '前払い決済で予約確定（ドタキャン防止）',
+             'LINE・メールでの予約にも対応',
+             '予約確定時にスタッフへ自動通知',
+         ]),
+    ]
+
+    for img_name, title, subtitle, bullets in frontend_screens:
+        _add_desktop_slide(img_name, title, subtitle, bullets,
+                           header_prefix="お客様向け画面 — ")
+
+    # ── 2. スマホ対応（トップページ + 管理画面）──
+    slide = prs.slides.add_slide(prs.slide_layouts[6])
+    set_slide_bg(slide, BEIGE)
+
+    add_text(slide, Inches(0.8), Inches(0.3), Inches(11), Inches(0.5),
+             "スマートフォン完全対応", font_size=32, bold=True, color=BROWN)
+    add_shape(slide, Inches(0.8), Inches(0.9), Inches(3), Inches(0.04), BROWN)
+
+    add_text(slide, Inches(0.8), Inches(1.2), Inches(11), Inches(0.4),
+             "お客様向けサイトも管理画面も、スマホからそのまま操作できます。",
+             font_size=16, color=DARK)
+
+    mobile_items = [
+        ('screenshots/front_top_mobile_vp.png', 'お客様向けトップページ'),
+        ('screenshots/admin_dashboard_mobile_vp.png', '管理画面ダッシュボード'),
+    ]
+
+    for i, (img_name, label) in enumerate(mobile_items):
+        x = Inches(1.5) + i * Inches(5.5)
+        y = Inches(1.8)
+
+        add_shape(slide, x, y, Inches(4.2), Inches(5.0), WHITE, corner_radius=True)
+
+        img_path = os.path.join(screenshots_dir, img_name)
+        if os.path.exists(img_path):
+            try:
+                add_picture_fit(slide, img_path,
+                                x + Inches(0.6), y + Inches(0.15),
+                                Inches(3.0), Inches(4.4))
+            except Exception:
+                add_text(slide, x + Inches(0.5), y + Inches(2), Inches(3.2), Inches(1),
+                         f'[{label}]', font_size=14, color=GRAY, align=PP_ALIGN.CENTER)
+
+        add_text(slide, x, y + Inches(4.5), Inches(4.2), Inches(0.4),
+                 label, font_size=14, bold=True, color=DARK, align=PP_ALIGN.CENTER)
+
+    # ── 3. 管理画面（デスクトップ）──
+    admin_screens = [
+        ('screenshots/dashboard_sales_vp.png', '売上ダッシュボード',
+         '経営状況をひと目で把握',
+         [
+             '日別・週別・月別の売上推移をグラフで表示',
+             '予約KPI（件数・キャンセル率）をリアルタイム集計',
+             'メニューエンジニアリングで人気商品・利益率を分析',
+             'KPIスコアカードで主要指標を一覧表示',
+             'ビジネスインサイトが改善機会を自動で提案',
+         ]),
+        ('screenshots/shift_calendar_vp.png', 'シフトカレンダー',
+         'シフト管理を効率化',
+         [
+             'スタッフのシフト希望をスマホから受付',
+             'カレンダー形式で全スタッフの予定を俯瞰',
+             '自動スケジューリングでワンクリック割り当て',
+             '人員不足の日を自動検知しアラート表示',
+             '確定シフトをスタッフにLINEで自動通知',
+         ]),
+        ('screenshots/pos_vp.png', 'POS レジ',
+         '会計をスムーズに',
+         [
+             'カテゴリ別タブで商品をすばやく選択',
+             '現金・クレジットカード・PayPay・交通系ICに対応',
+             'レシート自動発行・印刷対応',
+             'キッチンディスプレイと連動してオーダー通知',
+             '日次・月次の売上レポートを自動生成',
+         ]),
+        ('screenshots/inventory_vp.png', '在庫管理',
+         '在庫切れを防止',
+         [
+             '全商品の在庫数をリアルタイムで一覧表示',
+             '注文と連動して在庫を自動で差し引き',
+             '在庫が少なくなったらアラート通知',
+             'QRコードで入庫処理（バーコードリーダー不要）',
+             '入出庫の履歴をすべて記録（監査対応）',
+         ]),
+        ('screenshots/customer_feedback_vp.png', '顧客フィードバック（NPS）',
+         'お客様の声を数値で把握',
+         [
+             'NPS（顧客推奨度）を自動集計・トレンド表示',
+             'Promoter / Passive / Detractor を色分け表示',
+             'コメント付きフィードバックで具体的な改善点を把握',
+             '注文データと紐付けてサービス品質を分析',
+             '月別・スタッフ別の満足度推移を可視化',
+         ]),
+        ('screenshots/attendance_board_vp.png', '出退勤ボード',
+         'スタッフの勤務状況をリアルタイム表示',
+         [
+             '出勤中・休憩中・未出勤のステータスを一覧表示',
+             '30秒ごとに自動更新でリアルタイム把握',
+             'QRコード / PIN入力 / スマホ打刻の3方式に対応',
+             '残業・深夜・休日出勤を自動で分類',
+             '勤怠データから給与計算へシームレスに連携',
+         ]),
+    ]
+
+    for img_name, title, subtitle, bullets in admin_screens:
+        _add_desktop_slide(img_name, title, subtitle, bullets,
+                           header_prefix="管理画面 — ")
+
+    # ==========================================
+    # スライド 10: 導入メリット
     # ==========================================
     slide = prs.slides.add_slide(prs.slide_layouts[6])
     set_slide_bg(slide, BEIGE)

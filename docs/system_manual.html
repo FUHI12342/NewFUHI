@@ -63,14 +63,14 @@ blockquote { border-left: 4px solid #cbd5e0; margin: 10px 0; padding: 8px 14px; 
   <h1>NewFUHI</h1>
   <h1 style="font-size:26pt;">システム取扱説明書</h1>
   <div class="subtitle">予約・店舗・IoT・決済・在庫・給与 統合管理プラットフォーム</div>
-  <div class="date">Version 1.1 — 2026年03月19日</div>
+  <div class="date">Version 1.1 — 2026年03月20日</div>
   <div class="confidential">Confidential — 社内用資料</div>
 </div>
 
 <h1 id="newfuhi">NewFUHI システム取り扱いマニュアル</h1>
 <p><strong>システム名:</strong> NewFUHI（占いサロン予約＋IoTモニタリングシステム）<br />
 <strong>本番URL:</strong> https://timebaibai.com<br />
-<strong>バージョン:</strong> 2026-03-18</p>
+<strong>バージョン:</strong> 2026-03-20</p>
 <hr />
 <h2 id="_1">目次</h2>
 <p><strong>基本編（セクション1〜8）</strong></p>
@@ -84,7 +84,7 @@ blockquote { border-left: 4px solid #cbd5e0; margin: 10px 0; padding: 8px 14px; 
 <li><a href="#7-トラブルシューティング">トラブルシューティング</a></li>
 <li><a href="#8-api仕様">API仕様</a></li>
 </ol>
-<p><strong>機能編（セクション9〜24）</strong></p>
+<p><strong>機能編（セクション9〜29）</strong></p>
 <ol>
 <li><a href="#9-予約フローお客様向け">予約フロー（お客様向け）</a></li>
 <li><a href="#10-マイページ">マイページ</a></li>
@@ -102,6 +102,11 @@ blockquote { border-left: 4px solid #cbd5e0; margin: 10px 0; padding: 8px 14px; 
 <li><a href="#22-お知らせ管理">お知らせ管理</a></li>
 <li><a href="#23-物件モニタリング">物件モニタリング</a></li>
 <li><a href="#24-システム管理debug">システム管理（Debug）</a></li>
+<li><a href="#25-qrチェックイン">QRチェックイン</a> ← <strong>NEW</strong></li>
+<li><a href="#26-顧客フィードバックnps">顧客フィードバック（NPS）</a> ← <strong>NEW</strong></li>
+<li><a href="#27-セキュリティログ">セキュリティログ</a> ← <strong>NEW</strong></li>
+<li><a href="#28-ビジネスインサイト">ビジネスインサイト</a> ← <strong>NEW</strong></li>
+<li><a href="#29-シフト交代空き管理">シフト交代・空き管理</a> ← <strong>NEW</strong></li>
 </ol>
 <p><strong>付録</strong></p>
 <ul>
@@ -448,6 +453,7 @@ WiFi接続 (secrets.pyの認証情報使用)
 | チェックイン | <code>/booking/checkin/</code> |</p>
 <hr />
 <h2 id="4">4. センサーダッシュボード</h2>
+<p><img alt="IoTセンサーグラフ" src="screenshots/iot_sensors_vp.png" /></p>
 <h3 id="41">4.1 リアルタイムダッシュボード</h3>
 <p><strong>URL:</strong> <code>https://timebaibai.com/dashboard/sensors/</code></p>
 <p>Chart.jsベースのグラフでセンサーデータを可視化:</p>
@@ -970,6 +976,10 @@ Header: X-API-KEY: &lt;デバイスAPIキー&gt;
 </table>
 <hr />
 <h2 id="9">9. 予約フロー（お客様向け）</h2>
+<p><img alt="トップページ" src="screenshots/front_top.png" /><br />
+<em>図9-1: お客様向けトップページ（モバイル表示）</em></p>
+<p><img alt="スタッフ一覧" src="screenshots/front_staff_list.png" /><br />
+<em>図9-2: 占い師一覧ページ</em></p>
 <h3 id="91">9.1 概要</h3>
 <p>お客様が占い師の予約を行うまでの一連のフローです。LINE認証またはメール認証で本人確認を行い、店舗・占い師・日時を選択して予約を完了します。予約完了後はQRコードが発行され、来店時のチェックインに使用します。</p>
 <h3 id="92">9.2 予約フロー全体図</h3>
@@ -1101,6 +1111,7 @@ Header: X-API-KEY: &lt;デバイスAPIキー&gt;
 - Google Maps埋め込みリンク<br />
 - 「この店舗で予約」ボタン → 店舗のスタッフ一覧へ</p>
 <h3 id="97">9.7 日付優先カレンダー</h3>
+<p><img alt="予約カレンダー" src="screenshots/booking_calendar_desktop.png" /></p>
 <p><strong>URL:</strong> <code>/booking/date-calendar/</code> または <code>/booking/date-calendar/&lt;year&gt;/&lt;month&gt;/&lt;day&gt;/</code></p>
 <pre><code>┌─────────────────────────────────────────────────┐
 │  📅 予約カレンダー          ◀ 2026年3月 ▶        │
@@ -1238,6 +1249,7 @@ Header: X-API-KEY: &lt;デバイスAPIキー&gt;
 └─────────────────────────────────────────────────┘
 </code></pre>
 <h3 id="103">10.3 プロフィール編集</h3>
+<p><img alt="スタッフ設定画面" src="screenshots/staff_edit_vp.png" /></p>
 <p><strong>URL:</strong> <code>/booking/mypage/&lt;pk&gt;/profile/</code></p>
 <table>
 <thead>
@@ -1283,6 +1295,8 @@ Header: X-API-KEY: &lt;デバイスAPIキー&gt;
 - 削除: <code>/booking/mypage/schedule/&lt;pk&gt;/delete/</code></p>
 <hr />
 <h2 id="11-ec">11. ECショップ</h2>
+<p><img alt="ECショップ" src="screenshots/front_shop.png" /><br />
+<em>図11-1: ECショップ（モバイル表示）</em></p>
 <h3 id="111">11.1 概要</h3>
 <p>占いグッズ（お守り、パワーストーン、書籍等）をオンラインで販売するECショップ機能です。商品閲覧→カート→チェックアウト→決済→完了の流れです。</p>
 <h3 id="112">11.2 商品一覧</h3>
@@ -1411,6 +1425,7 @@ Header: X-API-KEY: &lt;デバイスAPIキー&gt;
 </code></pre>
 <hr />
 <h2 id="12">12. テーブル注文</h2>
+<p><img alt="QRテーブル注文画面" src="screenshots/table_order_vp.png" /></p>
 <h3 id="121">12.1 概要</h3>
 <p>店舗内のテーブルに設置されたQRコードを読み取り、スマートフォンからメニューを閲覧・注文できるシステムです。認証不要でテーブルUUIDで管理されます。</p>
 <h3 id="122">12.2 テーブル注文フロー</h3>
@@ -1480,6 +1495,11 @@ Header: X-API-KEY: &lt;デバイスAPIキー&gt;
 <p>テーブルの全注文の合計を表示し、お会計を依頼。POS側で決済処理を行います。</p>
 <hr />
 <h2 id="13-pos">13. POS（レジ）</h2>
+<p><img alt="POS画面" src="screenshots/pos.png" /><br />
+<em>図13-1: POSレジ画面</em></p>
+<p><img alt="キッチンディスプレイ" src="screenshots/kitchen_display.png" /><br />
+<em>図13-2: キッチンディスプレイ（KDS）</em></p>
+<p><img alt="キッチンディスプレイ" src="screenshots/kitchen_display_vp.png" /></p>
 <h3 id="131">13.1 概要</h3>
 <p>店舗スタッフが注文管理・会計処理を行うPOS（Point of Sale）システムです。キッチンディスプレイ（KDS）と連携し、調理状況のリアルタイム管理が可能です。</p>
 <h3 id="132-pos">13.2 POS画面</h3>
@@ -1563,6 +1583,12 @@ Header: X-API-KEY: &lt;デバイスAPIキー&gt;
 </code></pre>
 <hr />
 <h2 id="14">14. シフト管理</h2>
+<p><img alt="シフトカレンダー" src="screenshots/shift_calendar.png" /><br />
+<em>図14-1: シフトカレンダー（週グリッド表示）</em></p>
+<p><img alt="本日のシフト" src="screenshots/shift_today.png" /><br />
+<em>図14-2: 本日のシフトタイムライン</em></p>
+<p><img alt="シフト期間一覧" src="screenshots/shift_period_list.png" /><br />
+<em>図14-3: シフト期間一覧（open/closed/scheduled/approved の4ステータス）</em></p>
 <h3 id="141">14.1 概要</h3>
 <p>スタッフのシフト希望提出から管理者によるシフト確定・公開までの一連のワークフローを管理します。テンプレート機能、<strong>カバレッジベース自動スケジューリング</strong>、<strong>不足枠（再募集）管理</strong>、<strong>交代・欠勤申請</strong>機能を備えています。</p>
 <p><strong>v1.1 (2026-03-19) 追加機能:</strong><br />
@@ -1952,6 +1978,12 @@ requests/       request()       requests/&lt;pk&gt;/  approved_swap()
 </table>
 <hr />
 <h2 id="15">15. 勤怠管理</h2>
+<p><img alt="QR勤怠キオスク" src="screenshots/attendance_qr.png" /><br />
+<em>図15-1: QR勤怠キオスク画面</em></p>
+<p><img alt="出退勤ボード" src="screenshots/attendance_board.png" /><br />
+<em>図15-2: 本日の出退勤ボード</em></p>
+<p><img alt="勤務実績" src="screenshots/attendance_performance.png" /><br />
+<em>図15-3: スタッフ別勤務実績ダッシュボード</em></p>
 <h3 id="151">15.1 概要</h3>
 <p>スタッフの出退勤記録をQRコード、PINコード、または手動で管理するシステムです。TOTP（ワンタイムパスワード）によるセキュリティ強化に対応しています。</p>
 <h3 id="152">15.2 打刻方法</h3>
@@ -2070,6 +2102,8 @@ requests/       request()       requests/&lt;pk&gt;/  approved_swap()
 <p>API: <code>GET /api/attendance/day-status/</code> で当日の勤怠状態を取得</p>
 <hr />
 <h2 id="16">16. 売上ダッシュボード</h2>
+<p><img alt="売上ダッシュボード" src="screenshots/dashboard_sales.png" /><br />
+<em>図16-1: 売上分析ダッシュボード</em></p>
 <h3 id="161">16.1 概要</h3>
 <p>店舗の売上・予約・スタッフパフォーマンスを24種類のウィジェットで可視化する管理ダッシュボードです。レイアウトはドラッグ&amp;ドロップでカスタマイズ可能です。</p>
 <p><strong>URL:</strong> <code>/admin/dashboard/sales/</code> （AdminSidebar付き）</p>
@@ -2232,6 +2266,8 @@ requests/       request()       requests/&lt;pk&gt;/  approved_swap()
 <p>レイアウトはDashboardLayoutモデルで永続化され、ユーザーごとにカスタマイズ可能です。</p>
 <hr />
 <h2 id="17">17. 来客分析</h2>
+<p><img alt="来客分析" src="screenshots/visitor_analytics.png" /><br />
+<em>図17-1: 来客分析ダッシュボード</em></p>
 <h3 id="171">17.1 概要</h3>
 <p>店舗への来客数をリアルタイムで追跡・分析するダッシュボードです。IoTセンサー（PIR人感センサー）のデータも統合されます。</p>
 <p><strong>URL:</strong> <code>/admin/analytics/visitors/</code> （AdminSidebar付き）</p>
@@ -2270,6 +2306,8 @@ requests/       request()       requests/&lt;pk&gt;/  approved_swap()
 - コンバージョン: <code>GET /api/analytics/conversion/</code></p>
 <hr />
 <h2 id="18">18. スタッフ評価</h2>
+<p><img alt="スタッフ評価" src="screenshots/staff_evaluation.png" /><br />
+<em>図18-1: スタッフ評価一覧</em></p>
 <h3 id="181">18.1 概要</h3>
 <p>スタッフの出勤率、売上貢献、顧客評価などのパフォーマンス指標を一元管理するダッシュボードです。</p>
 <p><strong>URL:</strong> <code>/admin/attendance/performance/</code> （AdminSidebar付き）</p>
@@ -2307,6 +2345,8 @@ requests/       request()       requests/&lt;pk&gt;/  approved_swap()
 - 遅刻回数（AttendanceStamp分析）</p>
 <hr />
 <h2 id="19-ec">19. EC注文管理</h2>
+<p><img alt="EC注文管理" src="screenshots/ec_orders.png" /><br />
+<em>図19-1: EC注文管理ダッシュボード</em></p>
 <h3 id="191">19.1 概要</h3>
 <p>ECショップの受注処理・発送管理を行う管理画面です。</p>
 <p><strong>URL:</strong> <code>/admin/ec/orders/</code> （AdminSidebar付き）</p>
@@ -2333,6 +2373,8 @@ requests/       request()       requests/&lt;pk&gt;/  approved_swap()
 - 発送更新: <code>POST /api/ec/orders/&lt;pk&gt;/shipping/</code></p>
 <hr />
 <h2 id="20">20. 在庫管理</h2>
+<p><img alt="在庫管理" src="screenshots/inventory.png" /><br />
+<em>図20-1: 在庫管理ダッシュボード</em></p>
 <h3 id="201">20.1 概要</h3>
 <p>商品の在庫数量をリアルタイムで追跡し、入庫・出庫を管理するシステムです。</p>
 <h3 id="202">20.2 在庫ダッシュボード</h3>
@@ -2385,6 +2427,8 @@ requests/       request()       requests/&lt;pk&gt;/  approved_swap()
 - <code>movement_type</code>: <code>in</code>（入庫）/ <code>out</code>（出庫）/ <code>adjustment</code>（棚卸調整）</p>
 <hr />
 <h2 id="21-ai">21. AIレコメンド</h2>
+<p><img alt="AIレコメンド" src="screenshots/ai_recommendation.png" /><br />
+<em>図21-1: AIスタッフ推薦ダッシュボード</em></p>
 <h3 id="211">21.1 概要</h3>
 <p>機械学習モデルによるスタッフマッチング・需要予測を行うAIレコメンドエンジンです。</p>
 <p><strong>URL:</strong> <code>/admin/ai/recommendation/</code> （AdminSidebar付き）</p>
@@ -2519,6 +2563,8 @@ requests/       request()       requests/&lt;pk&gt;/  approved_swap()
 - アラート解決: <code>POST /api/alerts/&lt;pk&gt;/resolve/</code></p>
 <hr />
 <h2 id="24-debug">24. システム管理（Debug）</h2>
+<p><img alt="デバッグパネル" src="screenshots/debug_panel.png" /><br />
+<em>図24-1: デバッグパネル</em></p>
 <h3 id="241">24.1 概要</h3>
 <p>開発者・管理者向けのシステムデバッグ・監視パネルです。</p>
 <p><strong>URL:</strong> <code>/admin/debug/</code> （AdminSidebar付き・開発者権限）</p>
@@ -2560,6 +2606,451 @@ requests/       request()       requests/&lt;pk&gt;/  approved_swap()
 - パネルデータ: <code>GET /api/debug/panel/</code><br />
 - ログレベル: <code>POST /api/debug/log-level/</code></p>
 <p>IoTデバイス個別デバッグ: <code>/admin/debug/device/&lt;device_id&gt;/</code></p>
+<hr />
+<h2 id="25-qr">25. QRチェックイン</h2>
+<p><img alt="チェックインスキャン" src="screenshots/checkin_scan.png" /><br />
+<em>図25-1: QRチェックインスキャン画面</em></p>
+<h3 id="251">25.1 概要</h3>
+<p>予約確定時にQRコードが自動発行され、来店時に店舗スタッフがスマートフォンのカメラでスキャンするだけでチェックインが完了します。QRコードが使えない場合に備え、6桁のバックアップコードも発行されます。</p>
+<h3 id="252">25.2 チェックインフロー</h3>
+<pre><code>┌──────────┐    ┌──────────┐    ┌──────────┐    ┌──────────┐
+│ 予約確定  │───▶│ QR発行   │───▶│ 来店     │───▶│ チェック  │
+│ 自動発行  │    │ +6桁コード│    │ QR提示   │    │ イン完了  │
+└──────────┘    └──────────┘    └──────────┘    └──────────┘
+</code></pre>
+<h3 id="253">25.3 データモデル</h3>
+<table>
+<thead>
+<tr>
+<th>フィールド</th>
+<th>説明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>checkin_qr</code></td>
+<td>QRコード画像（ImageField）</td>
+</tr>
+<tr>
+<td><code>is_checked_in</code></td>
+<td>チェックイン済みフラグ</td>
+</tr>
+<tr>
+<td><code>checked_in_at</code></td>
+<td>チェックイン日時</td>
+</tr>
+<tr>
+<td><code>checkin_backup_code</code></td>
+<td>口頭確認用6桁コード</td>
+</tr>
+<tr>
+<td><code>checked_in_by</code></td>
+<td>チェックインを行ったスタッフ</td>
+</tr>
+</tbody>
+</table>
+<h3 id="254">25.4 統計</h3>
+<p>チェックイン率は売上ダッシュボードの <code>CheckinStatsAPIView</code> で確認可能です。モックデータではチェックイン率70%、ノーショー率30%のリアルな分布を再現しています。</p>
+<h3 id="255">25.5 管理画面</h3>
+<p>チェックインスキャン: <code>/admin/checkin/scan/</code><br />
+予約一覧でチェックイン状態のフィルタリングが可能です。</p>
+<hr />
+<h2 id="26-nps">26. 顧客フィードバック（NPS）</h2>
+<p><img alt="顧客フィードバック" src="screenshots/customer_feedback.png" /><br />
+<em>図26-1: 顧客フィードバック一覧（NPS・感情分析付き）</em></p>
+<h3 id="261">26.1 概要</h3>
+<p>NPS（Net Promoter Score）ベースの顧客満足度管理システムです。0〜10のスコアでPromoter/Passive/Detractorに自動分類し、料理・サービス・雰囲気の3軸評価と自由記述コメント、感情分析（positive/neutral/negative）を記録します。</p>
+<h3 id="262-nps">26.2 NPS分類</h3>
+<table>
+<thead>
+<tr>
+<th>カテゴリ</th>
+<th>スコア範囲</th>
+<th>意味</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Promoter</td>
+<td>9〜10</td>
+<td>推奨者（ロイヤルカスタマー）</td>
+</tr>
+<tr>
+<td>Passive</td>
+<td>7〜8</td>
+<td>中立者</td>
+</tr>
+<tr>
+<td>Detractor</td>
+<td>0〜6</td>
+<td>批判者</td>
+</tr>
+</tbody>
+</table>
+<p><strong>NPS = Promoter% - Detractor%</strong>（-100〜+100の範囲）</p>
+<h3 id="263">26.3 データモデル</h3>
+<table>
+<thead>
+<tr>
+<th>フィールド</th>
+<th>説明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>store</code></td>
+<td>店舗FK</td>
+</tr>
+<tr>
+<td><code>order</code></td>
+<td>紐付き注文（任意）</td>
+</tr>
+<tr>
+<td><code>nps_score</code></td>
+<td>NPS値（0〜10）</td>
+</tr>
+<tr>
+<td><code>food_rating</code></td>
+<td>料理評価（1〜5）</td>
+</tr>
+<tr>
+<td><code>service_rating</code></td>
+<td>サービス評価（1〜5）</td>
+</tr>
+<tr>
+<td><code>ambiance_rating</code></td>
+<td>雰囲気評価（1〜5）</td>
+</tr>
+<tr>
+<td><code>comment</code></td>
+<td>自由記述コメント</td>
+</tr>
+<tr>
+<td><code>sentiment</code></td>
+<td>感情分析（positive/neutral/negative）</td>
+</tr>
+</tbody>
+</table>
+<h3 id="264-api">26.4 API</h3>
+<table>
+<thead>
+<tr>
+<th>エンドポイント</th>
+<th>説明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>GET /api/dashboard/nps/</code></td>
+<td>NPS統計（promoter/passive/detractor比率）</td>
+</tr>
+<tr>
+<td><code>GET /api/dashboard/customer-feedback/</code></td>
+<td>フィードバック一覧</td>
+</tr>
+</tbody>
+</table>
+<h3 id="265">26.5 管理画面</h3>
+<p>顧客フィードバック一覧: <code>/admin/booking/customerfeedback/</code><br />
+売上ダッシュボードのNPSウィジェットからも確認可能。</p>
+<hr />
+<h2 id="27_1">27. セキュリティログ</h2>
+<p><img alt="セキュリティログ" src="screenshots/security_log.png" /><br />
+<em>図27-1: セキュリティイベントログ一覧</em></p>
+<p><img alt="セキュリティ監査" src="screenshots/security_audit.png" /><br />
+<em>図27-2: セキュリティ監査結果</em></p>
+<h3 id="271">27.1 概要</h3>
+<p>全リクエストをミドルウェアで監視し、セキュリティイベントを自動記録するシステムです。ログイン成功/失敗、API認証エラー、権限拒否、不審なリクエスト（レートリミット超過等）を検知・記録します。</p>
+<h3 id="272">27.2 イベント種別</h3>
+<table>
+<thead>
+<tr>
+<th>イベント</th>
+<th>重大度</th>
+<th>説明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>login_success</code></td>
+<td>info</td>
+<td>ログイン成功</td>
+</tr>
+<tr>
+<td><code>login_fail</code></td>
+<td>warning</td>
+<td>ログイン失敗</td>
+</tr>
+<tr>
+<td><code>api_auth_fail</code></td>
+<td>warning</td>
+<td>API認証エラー</td>
+</tr>
+<tr>
+<td><code>permission_denied</code></td>
+<td>warning</td>
+<td>権限不足アクセス</td>
+</tr>
+<tr>
+<td><code>suspicious_request</code></td>
+<td>critical</td>
+<td>不審なリクエスト（レートリミット超過等）</td>
+</tr>
+<tr>
+<td><code>admin_action</code></td>
+<td>info</td>
+<td>管理者操作記録</td>
+</tr>
+</tbody>
+</table>
+<h3 id="273">27.3 データモデル</h3>
+<table>
+<thead>
+<tr>
+<th>フィールド</th>
+<th>説明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>event_type</code></td>
+<td>イベント種別</td>
+</tr>
+<tr>
+<td><code>severity</code></td>
+<td>重大度（critical/warning/info）</td>
+</tr>
+<tr>
+<td><code>user</code></td>
+<td>関連ユーザー</td>
+</tr>
+<tr>
+<td><code>ip_address</code></td>
+<td>IPアドレス</td>
+</tr>
+<tr>
+<td><code>user_agent</code></td>
+<td>ユーザーエージェント</td>
+</tr>
+<tr>
+<td><code>path</code></td>
+<td>リクエストパス</td>
+</tr>
+<tr>
+<td><code>method</code></td>
+<td>HTTPメソッド</td>
+</tr>
+<tr>
+<td><code>detail</code></td>
+<td>詳細テキスト</td>
+</tr>
+</tbody>
+</table>
+<h3 id="274">27.4 レートリミット</h3>
+<p><code>SecurityAuditMiddleware</code> は IP ベースで 60秒間100リクエストのレートリミットを実施。超過時は <code>429 Too Many Requests</code> を返し、<code>suspicious_request</code> イベントを記録します。</p>
+<h3 id="275">27.5 自動メンテナンス</h3>
+<ul>
+<li><strong>ログクリーンアップ</strong>: 毎週日曜 04:00 に90日超のログを自動削除（Celery Beat）</li>
+<li><strong>セキュリティ監査</strong>: 毎日 03:00 に12項目の自動診断を実行</li>
+</ul>
+<h3 id="276">27.6 管理画面</h3>
+<p>セキュリティログ: <code>/admin/booking/securitylog/</code><br />
+セキュリティ監査: <code>/admin/booking/securityaudit/</code></p>
+<hr />
+<h2 id="28_1">28. ビジネスインサイト</h2>
+<p><img alt="ビジネスインサイト" src="screenshots/business_insight.png" /><br />
+<em>図28-1: ビジネスインサイト一覧</em></p>
+<h3 id="281">28.1 概要</h3>
+<p>売上・在庫・スタッフ配置・メニュー・顧客の5カテゴリで自動生成されるビジネスインサイトです。<code>InsightEngine</code> サービスが定期的にデータを分析し、異常値や改善機会を検知して通知します。</p>
+<h3 id="282">28.2 カテゴリ</h3>
+<table>
+<thead>
+<tr>
+<th>カテゴリ</th>
+<th>例</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>sales</code></td>
+<td>売上前月比増減、曜日別売上傾向</td>
+</tr>
+<tr>
+<td><code>inventory</code></td>
+<td>在庫充足状況、在庫切れ予測</td>
+</tr>
+<tr>
+<td><code>staffing</code></td>
+<td>シフト不足警告、出勤率レポート</td>
+</tr>
+<tr>
+<td><code>menu</code></td>
+<td>人気メニュー上昇/下降トレンド</td>
+</tr>
+<tr>
+<td><code>customer</code></td>
+<td>NPS改善/悪化、リピート率変動</td>
+</tr>
+</tbody>
+</table>
+<h3 id="283">28.3 重大度</h3>
+<table>
+<thead>
+<tr>
+<th>重大度</th>
+<th>色</th>
+<th>対応</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>info</code></td>
+<td>青</td>
+<td>参考情報（対応不要）</td>
+</tr>
+<tr>
+<td><code>warning</code></td>
+<td>黄</td>
+<td>注意（確認推奨）</td>
+</tr>
+<tr>
+<td><code>critical</code></td>
+<td>赤</td>
+<td>緊急（即時対応必要）</td>
+</tr>
+</tbody>
+</table>
+<h3 id="284">28.4 データモデル</h3>
+<p>各インサイトには <code>data</code> フィールド（JSONField）に関連する数値データが格納されます。例:</p>
+<pre><code class="language-json">{
+  &quot;increase_pct&quot;: 15,
+  &quot;top_category&quot;: &quot;シーシャ&quot;
+}
+</code></pre>
+<h3 id="285">28.5 管理画面</h3>
+<p>ビジネスインサイト: <code>/admin/booking/businessinsight/</code><br />
+売上ダッシュボードの「インサイト」タブからも一覧表示可能。</p>
+<hr />
+<h2 id="29_1">29. シフト交代・空き管理</h2>
+<p><img alt="シフト交代申請" src="screenshots/shift_swap_list.png" /><br />
+<em>図29-1: シフト交代申請一覧</em></p>
+<p><img alt="シフト空き" src="screenshots/shift_vacancy_list.png" /><br />
+<em>図29-2: シフト空き（Vacancy）一覧</em></p>
+<p><img alt="定休日" src="screenshots/store_closed_date.png" /><br />
+<em>図29-3: 店舗休業日一覧</em></p>
+<h3 id="291-shiftswaprequest">29.1 シフト交代申請（ShiftSwapRequest）</h3>
+<p>スタッフが自分の確定シフトに対して交代・カバー・欠勤の申請を行える機能です。</p>
+<table>
+<thead>
+<tr>
+<th>申請種別</th>
+<th>説明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>swap</code></td>
+<td>他のスタッフとシフトを交換</td>
+</tr>
+<tr>
+<td><code>cover</code></td>
+<td>代わりに出勤してくれるスタッフを募集</td>
+</tr>
+<tr>
+<td><code>absence</code></td>
+<td>欠勤申請</td>
+</tr>
+</tbody>
+</table>
+<p><strong>承認フロー:</strong> pending → approved / rejected（店長が承認・却下）</p>
+<p>交代が承認されると、対象の <code>ShiftVacancy</code> が自動的に <code>filled</code> に更新されます。</p>
+<h3 id="292-shiftvacancy">29.2 シフト空き（ShiftVacancy）</h3>
+<p>自動スケジューリング実行後に、必要人数を満たせなかった時間帯が <code>ShiftVacancy</code> として自動記録されます。</p>
+<table>
+<thead>
+<tr>
+<th>ステータス</th>
+<th>説明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>open</code></td>
+<td>空き枠あり（スタッフ募集中）</td>
+</tr>
+<tr>
+<td><code>filled</code></td>
+<td>充足（カバーされた）</td>
+</tr>
+<tr>
+<td><code>cancelled</code></td>
+<td>キャンセル済み</td>
+</tr>
+</tbody>
+</table>
+<p><strong>不足数</strong> = <code>required_count</code> - <code>assigned_count</code></p>
+<p>スタッフは <code>POST /api/shift/vacancies/&lt;id&gt;/apply/</code> で空き枠に応募できます。</p>
+<h3 id="293-shiftchangelog">29.3 シフト変更ログ（ShiftChangeLog）</h3>
+<p>確定シフトへの全変更を監査ログとして記録します。</p>
+<table>
+<thead>
+<tr>
+<th>変更種別</th>
+<th>説明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>revised</code></td>
+<td>時間帯やスタッフの変更</td>
+</tr>
+<tr>
+<td><code>deleted</code></td>
+<td>シフト削除</td>
+</tr>
+</tbody>
+</table>
+<p>変更前後の値がJSON形式で <code>old_values</code> / <code>new_values</code> に保存されるため、完全な監査証跡を確保しています。</p>
+<h3 id="294-storecloseddate">29.4 店舗休業日（StoreClosedDate）</h3>
+<p>休業日を登録すると、自動スケジューリング時にその日のシフト割当がスキップされます。</p>
+<h3 id="295">29.5 シフトステータスの全体像</h3>
+<pre><code>┌────────┐    ┌────────┐    ┌──────────┐    ┌──────────┐
+│  open  │───▶│ closed │───▶│ scheduled│───▶│ approved │
+│ 募集中  │    │ 締切   │    │ 確定     │    │ 承認済み  │
+└────────┘    └────────┘    └──────────┘    └──────────┘
+                              │                │
+                              │ auto_schedule   │ publish
+                              ▼                ▼
+                         ShiftAssignment  ShiftPublishHistory
+                         ShiftVacancy     (publish/revoke/reopen)
+</code></pre>
+<h3 id="296">29.6 管理画面</h3>
+<table>
+<thead>
+<tr>
+<th>画面</th>
+<th>URL</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>シフト交代申請</td>
+<td><code>/admin/booking/shiftswaprequest/</code></td>
+</tr>
+<tr>
+<td>シフト空き</td>
+<td><code>/admin/booking/shiftvacancy/</code></td>
+</tr>
+<tr>
+<td>シフト変更ログ</td>
+<td><code>/admin/booking/shiftchangelog/</code></td>
+</tr>
+<tr>
+<td>定休日</td>
+<td><code>/admin/booking/storecloseddate/</code></td>
+</tr>
+</tbody>
+</table>
 <hr />
 <h2 id="a-url">付録A: 全URL一覧</h2>
 <h3 id="_6">お客様向け画面</h3>

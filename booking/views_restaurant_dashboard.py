@@ -14,6 +14,7 @@ from rest_framework import status
 from .models import (
     Store, Schedule, Order, OrderItem, Staff, Product, DashboardLayout, DEFAULT_DASHBOARD_LAYOUT,
     ShiftPeriod, ShiftAssignment, BusinessInsight, CustomerFeedback, VisitorCount,
+    SiteSettings,
 )
 
 logger = logging.getLogger(__name__)
@@ -56,6 +57,11 @@ class RestaurantDashboardView(AdminSidebarMixin, TemplateView):
         ctx = super().get_context_data(**kwargs)
         ctx['title'] = '売上分析'
         ctx['has_permission'] = True
+        settings = SiteSettings.load()
+        ctx['show_ec'] = settings.show_admin_ec_shop
+        ctx['show_pos'] = settings.show_admin_pos
+        ctx['show_reservation'] = settings.show_admin_reservation
+        ctx['staff_label'] = settings.staff_label or 'スタッフ'
         return ctx
 
 
@@ -1400,4 +1406,76 @@ class CheckinStatsAPIView(APIView):
             'daily': daily_list,
             'by_staff': staff_list,
             'hourly': hourly_list,
+        })
+
+
+class ChannelSalesAPIView(APIView):
+    """GET /api/dashboard/channel-sales/?period=daily — channel breakdown."""
+
+    CHANNEL_LABELS = {
+        'ec': 'ECショップ',
+        'pos': 'POS',
+        'table': 'テーブル注文',
+        'reservation': '予約',
+    }
+
+    def get(self, request):
+        if not request.user.is_authenticated:
+            return Response({'detail': 'login required'}, status=status.HTTP_403_FORBIDDEN)
+
+        period = request.GET.get('period', 'daily')
+        trunc_fn = SalesStatsAPIView.TRUNC_MAP.get(period, TruncDate)
+
+        scope = {}
+        if not request.user.is_superuser:
+            try:
+                staff = request.user.staff
+                scope = {'order__store': staff.store}
+            except (Staff.DoesNotExist, AttributeError):
+                return Response({'detail': 'no store access'}, status=status.HTTP_403_FORBIDDEN)
+
+        since = timezone.now() - timedelta(days=90)
+
+        settings = SiteSettings.load()
+        channels = []
+        if settings.show_admin_pos:
+            channels.extend(['pos', 'table'])
+        if settings.show_admin_ec_shop:
+            channels.append('ec')
+        if settings.show_admin_reservation:
+            channels.append('reservation')
+
+        if not channels:
+            return Response({
+                'channels': [],
+                'trend': [],
+                'channel_labels': self.CHANNEL_LABELS,
+            })
+
+        trend_qs = (
+            OrderItem.objects
+            .filter(
+                order__created_at__gte=since,
+                order__channel__in=channels,
+                **scope,
+            )
+            .annotate(date=trunc_fn('order__created_at'))
+            .values('date', 'order__channel')
+            .annotate(total=Sum(F('qty') * F('unit_price')))
+            .order_by('date', 'order__channel')
+        )
+
+        trend_list = [
+            {
+                'date': t['date'].isoformat(),
+                'channel': t['order__channel'],
+                'total': t['total'] or 0,
+            }
+            for t in trend_qs
+        ]
+
+        return Response({
+            'channels': channels,
+            'trend': trend_list,
+            'channel_labels': self.CHANNEL_LABELS,
         })

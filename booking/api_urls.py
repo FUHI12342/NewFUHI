@@ -30,6 +30,7 @@ from .views_restaurant_dashboard import (
     AutoOrderRecommendationAPIView,
     ExternalDataAPIView,
     CheckinStatsAPIView,
+    ChannelSalesAPIView,
 )
 from .views_property import PropertyStatusAPIView, PropertyAlertResolveAPIView
 from .views import CheckinAPIView, CartAddAPIView, CartUpdateAPIView, CartRemoveAPIView
@@ -106,6 +107,7 @@ urlpatterns = [
     path('dashboard/auto-order/', AutoOrderRecommendationAPIView.as_view(), name='auto_order_api'),
     path('dashboard/external-data/', ExternalDataAPIView.as_view(), name='external_data_api'),
     path('dashboard/checkin-stats/', CheckinStatsAPIView.as_view(), name='checkin_stats_api'),
+    path('dashboard/channel-sales/', ChannelSalesAPIView.as_view(), name='channel_sales_api'),
 
     # Property APIs
     path('properties/<int:pk>/status/', PropertyStatusAPIView.as_view(), name='property_status_api'),

@@ -27,6 +27,7 @@ from booking.models import (
     TableSeat, PaymentMethod, StoreScheduleConfig,
     ShiftPeriod, ShiftRequest, ShiftAssignment, ShiftTemplate,
     ShiftPublishHistory, ShiftStaffRequirement, ShiftStaffRequirementOverride,
+    ShiftSwapRequest, ShiftVacancy, ShiftChangeLog, StoreClosedDate,
     AdminTheme, SiteSettings, HomepageCustomBlock, ExternalLink,
     HeroBanner, BannerAd,
     EmploymentContract, WorkAttendance, PayrollPeriod, PayrollEntry,
@@ -40,7 +41,9 @@ from booking.models import (
     EvaluationCriteria,
     StaffEvaluation,
     ShippingConfig,
+    CustomerFeedback, SecurityLog, BusinessInsight,
 )
+from booking.services.shift_scheduler import auto_schedule
 
 
 class Command(BaseCommand):
@@ -83,11 +86,17 @@ class Command(BaseCommand):
         self._seed_shift_templates()
         self._seed_shift_periods()
         self._seed_shift_requirements()
+        self._seed_store_closed_dates()
         self._seed_employment_contracts()
 
         # ── 予約・注文（ダッシュボードKPI用）──
         self._seed_schedules()
         self._seed_orders()
+
+        # ── シフト交代・変更・空き ──
+        self._seed_shift_swap_requests()
+        self._seed_shift_change_logs()
+        self._seed_shift_vacancies()
 
         # ── 勤怠 ──
         self._seed_work_attendance()
@@ -114,6 +123,18 @@ class Command(BaseCommand):
         # ── システム ──
         self._seed_dashboard_layouts()
         self._seed_system_configs()
+
+        # ── チェックイン ──
+        self._seed_checkin_data()
+
+        # ── 顧客フィードバック ──
+        self._seed_customer_feedback()
+
+        # ── セキュリティ ──
+        self._seed_security_logs()
+
+        # ── ビジネスインサイト ──
+        self._seed_business_insights()
 
         # ── スタッフ評価 ──
         self._seed_staff_evaluations()
@@ -194,6 +215,10 @@ class Command(BaseCommand):
         Order.objects.exclude(id=1).delete()
         AttendanceStamp.objects.all().delete()
         WorkAttendance.objects.all().delete()
+        # シフト関連（依存順）
+        ShiftSwapRequest.objects.all().delete()
+        ShiftChangeLog.objects.all().delete()
+        ShiftVacancy.objects.all().delete()
         ShiftPublishHistory.objects.all().delete()
         ShiftAssignment.objects.all().delete()
         ShiftRequest.objects.all().delete()
@@ -201,6 +226,11 @@ class Command(BaseCommand):
         ShiftTemplate.objects.all().delete()
         ShiftStaffRequirement.objects.all().delete()
         ShiftStaffRequirementOverride.objects.all().delete()
+        StoreClosedDate.objects.all().delete()
+        # 顧客フィードバック・セキュリティ・インサイト
+        CustomerFeedback.objects.all().delete()
+        SecurityLog.objects.all().delete()
+        BusinessInsight.objects.all().delete()
         EmploymentContract.objects.all().delete()
         ProductTranslation.objects.all().delete()
         Product.objects.all().delete()
@@ -685,8 +715,20 @@ class Command(BaseCommand):
         if ShiftTemplate.objects.filter(store=self.store).exists():
             self.stdout.write('  ShiftTemplate: skip')
             return
-        # シフトテンプレートは店舗ごとにカスタム設定するため、シードでは作成しない
-        self.stdout.write('  ShiftTemplate: skip (店舗個別設定)')
+        templates = [
+            ('早番', time(9, 0), time(15, 0), '#3B82F6'),
+            ('遅番', time(15, 0), time(22, 0), '#8B5CF6'),
+            ('通し', time(11, 0), time(22, 0), '#10B981'),
+            ('夕方', time(17, 0), time(22, 0), '#F59E0B'),
+            ('短時間', time(13, 0), time(17, 0), '#EF4444'),
+        ]
+        for i, (name, start, end, color) in enumerate(templates):
+            ShiftTemplate.objects.create(
+                store=self.store, name=name,
+                start_time=start, end_time=end,
+                color=color, is_active=True, sort_order=i,
+            )
+        self.stdout.write(self.style.SUCCESS(f'  ShiftTemplate: {len(templates)}件'))
 
 
     # ═════════════════════════════════════════════
@@ -702,56 +744,347 @@ class Command(BaseCommand):
         if not staff_list:
             return
 
-        for month_offset in [0, 1]:
-            target = (now.replace(day=1) + timedelta(days=32 * month_offset)).replace(day=1)
+        fortune_staff = [s for s in staff_list if s.staff_type == 'fortune_teller']
+        store_staff = [s for s in staff_list if s.staff_type == 'store_staff']
+
+        # ── 4期間を作成 ──
+        # month_offset: -2=approved, -1=scheduled, 0=closed, 1=open
+        period_configs = [
+            (-2, 'approved'),
+            (-1, 'scheduled'),
+            (0, 'closed'),
+            (1, 'open'),
+        ]
+
+        for month_offset, status in period_configs:
+            target = self._month_offset(now, month_offset)
             deadline_dt = target.replace(day=25, hour=23, minute=59, second=0, microsecond=0)
             if timezone.is_naive(deadline_dt):
                 deadline_dt = timezone.make_aware(deadline_dt)
-            if month_offset == 0:
-                deadline_dt = now - timedelta(days=5)
+            if month_offset <= 0:
+                deadline_dt = now - timedelta(days=5 + abs(month_offset) * 20)
 
             period = ShiftPeriod.objects.create(
                 store=self.store,
                 year_month=target.date(),
                 deadline=deadline_dt,
-                status='scheduled' if month_offset == 0 else 'open',
+                status=status,
             )
 
+            self._populate_shift_requests(
+                period, target, staff_list, fortune_staff, store_staff,
+                status, month_offset,
+            )
+
+        # ── PublishHistory (publish → revoke → reopen) ──
+        approved_period = ShiftPeriod.objects.filter(
+            store=self.store, status='approved',
+        ).first()
+        if approved_period:
+            first_staff = staff_list[0] if staff_list else None
+            for action, note in [
+                ('publish', 'シフト公開'),
+                ('revoke', '一部修正のため撤回'),
+                ('reopen', '修正後再公開'),
+            ]:
+                ShiftPublishHistory.objects.create(
+                    period=approved_period,
+                    published_by=first_staff,
+                    assignment_count=ShiftAssignment.objects.filter(
+                        period=approved_period,
+                    ).count(),
+                    action=action,
+                    note=note,
+                )
+
+        scheduled_period = ShiftPeriod.objects.filter(
+            store=self.store, status='scheduled',
+        ).first()
+        if scheduled_period:
+            ShiftPublishHistory.objects.create(
+                period=scheduled_period,
+                assignment_count=ShiftAssignment.objects.filter(
+                    period=scheduled_period,
+                ).count(),
+                note='自動生成（モックデータ）',
+            )
+
+        req = ShiftRequest.objects.filter(period__store=self.store).count()
+        assign = ShiftAssignment.objects.filter(period__store=self.store).count()
+        synced = ShiftAssignment.objects.filter(
+            period__store=self.store, is_synced=True,
+        ).count()
+        self.stdout.write(self.style.SUCCESS(
+            f'  Shift: 4期間, 希望{req}件, 割当{assign}件(同期済{synced}件)'))
+
+    @staticmethod
+    def _month_offset(now, offset):
+        """now から offset ヶ月ずらした月初 datetime を返す"""
+        year = now.year
+        month = now.month + offset
+        while month < 1:
+            month += 12
+            year -= 1
+        while month > 12:
+            month -= 12
+            year += 1
+        return now.replace(year=year, month=month, day=1)
+
+    def _populate_shift_requests(
+        self, period, target, staff_list, fortune_staff, store_staff,
+        status, month_offset,
+    ):
+        """期間ステータスに応じたシフト希望・割当を投入"""
+        colors = ['#3B82F6', '#8B5CF6', '#10B981', '#F59E0B', '#EF4444']
+
+        if status == 'approved':
+            # ── approved: 全スタッフが preferred → 全割当 ──
             for staff in staff_list:
                 for day in range(1, 29):
                     try:
                         shift_date = target.replace(day=day).date()
                     except ValueError:
                         continue
-                    if random.random() < 0.45:
+                    if random.random() < 0.2:
+                        continue
+                    start_h = random.choice([13, 14, 15])
+                    end_h = min(start_h + random.choice([5, 6, 8]), 23)
+                    ShiftRequest.objects.create(
+                        period=period, staff=staff,
+                        date=shift_date, start_hour=start_h, end_hour=end_h,
+                        preference='preferred',
+                    )
+                    ShiftAssignment.objects.create(
+                        period=period, staff=staff,
+                        date=shift_date, start_hour=start_h, end_hour=end_h,
+                        color=random.choice(colors),
+                        is_synced=True,
+                    )
+
+        elif status == 'scheduled':
+            # ── scheduled: available のみ、一部に空き ──
+            for staff in staff_list:
+                for day in range(1, 29):
+                    try:
+                        shift_date = target.replace(day=day).date()
+                    except ValueError:
+                        continue
+                    if random.random() < 0.4:
                         continue
                     start_h = random.choice([13, 14, 15, 18])
                     end_h = min(start_h + random.choice([5, 6, 8, 10]), 23)
                     ShiftRequest.objects.create(
                         period=period, staff=staff,
                         date=shift_date, start_hour=start_h, end_hour=end_h,
-                        preference=random.choice(['available', 'preferred']),
+                        preference='available',
                     )
-                    if month_offset == 0:
+                    # 85%に割当
+                    if random.random() < 0.85:
                         ShiftAssignment.objects.create(
                             period=period, staff=staff,
                             date=shift_date, start_hour=start_h, end_hour=end_h,
-                            color=random.choice(['#3B82F6', '#8B5CF6', '#10B981']),
+                            color=random.choice(colors),
                             is_synced=random.random() > 0.15,
                         )
 
-            if month_offset == 0:
-                ShiftPublishHistory.objects.create(
-                    period=period,
-                    assignment_count=ShiftAssignment.objects.filter(period=period).count(),
-                    note='自動生成（モックデータ）',
+        elif status == 'closed':
+            # ── closed: エッジケース集中 ──
+            self._seed_edge_case_requests(
+                period, target, staff_list, fortune_staff, store_staff,
+            )
+
+        elif status == 'open':
+            # ── open: 一部希望のみ ──
+            for staff in staff_list[:4]:
+                for day in range(1, 15):
+                    try:
+                        shift_date = target.replace(day=day).date()
+                    except ValueError:
+                        continue
+                    if random.random() < 0.5:
+                        continue
+                    start_h = random.choice([13, 15, 18])
+                    end_h = min(start_h + random.choice([5, 6]), 23)
+                    pref = random.choice(['available', 'preferred', 'unavailable'])
+                    ShiftRequest.objects.create(
+                        period=period, staff=staff,
+                        date=shift_date, start_hour=start_h, end_hour=end_h,
+                        preference=pref,
+                    )
+
+    def _seed_edge_case_requests(
+        self, period, target, staff_list, fortune_staff, store_staff,
+    ):
+        """closed期間にシフトのエッジケースを投入"""
+        # スタッフを名前付きで参照しやすく
+        staff_a = staff_list[0] if len(staff_list) > 0 else None
+        staff_b = staff_list[1] if len(staff_list) > 1 else None
+        staff_c = staff_list[2] if len(staff_list) > 2 else None
+        staff_d = staff_list[3] if len(staff_list) > 3 else None
+        staff_e = staff_list[4] if len(staff_list) > 4 else None
+
+        # ── ケース1: 全日 preferred（スタッフA）──
+        for day in range(1, 15):
+            try:
+                d = target.replace(day=day).date()
+            except ValueError:
+                continue
+            ShiftRequest.objects.create(
+                period=period, staff=staff_a,
+                date=d, start_hour=13, end_hour=22,
+                preference='preferred',
+            )
+
+        # ── ケース2: 全日 available（スタッフB）──
+        if staff_b:
+            for day in range(1, 15):
+                try:
+                    d = target.replace(day=day).date()
+                except ValueError:
+                    continue
+                ShiftRequest.objects.create(
+                    period=period, staff=staff_b,
+                    date=d, start_hour=14, end_hour=22,
+                    preference='available',
                 )
 
-        req = ShiftRequest.objects.filter(period__store=self.store).count()
-        assign = ShiftAssignment.objects.filter(period__store=self.store).count()
-        synced = ShiftAssignment.objects.filter(period__store=self.store, is_synced=True).count()
-        self.stdout.write(self.style.SUCCESS(
-            f'  Shift: 2期間, 希望{req}件, 割当{assign}件(同期済{synced}件)'))
+        # ── ケース3: unavailable 混在（スタッフC: 週末=unavailable, 平日=preferred）──
+        if staff_c:
+            for day in range(1, 22):
+                try:
+                    d = target.replace(day=day).date()
+                except ValueError:
+                    continue
+                is_weekend = d.weekday() >= 5
+                ShiftRequest.objects.create(
+                    period=period, staff=staff_c,
+                    date=d, start_hour=13, end_hour=21,
+                    preference='unavailable' if is_weekend else 'preferred',
+                )
+
+        # ── ケース4: 最小シフト 2h（スタッフD: 13:00-15:00）──
+        if staff_d:
+            for day in [3, 5, 7, 10, 12]:
+                try:
+                    d = target.replace(day=day).date()
+                except ValueError:
+                    continue
+                ShiftRequest.objects.create(
+                    period=period, staff=staff_d,
+                    date=d, start_hour=13, end_hour=15,
+                    preference='preferred',
+                )
+
+        # ── ケース5: 最大シフト 12h（スタッフA: 10:00-22:00）──
+        for day in [2, 9, 16]:
+            try:
+                d = target.replace(day=day).date()
+            except ValueError:
+                continue
+            ShiftRequest.objects.update_or_create(
+                period=period, staff=staff_a,
+                date=d, start_hour=10,
+                defaults={
+                    'end_hour': 22,
+                    'preference': 'preferred',
+                    'note': '12時間ロングシフト',
+                },
+            )
+
+        # ── ケース6: 深夜跨ぎ（スタッフE: 20:00-23:00 → close_hour 境界）──
+        if staff_e:
+            for day in [4, 11, 18]:
+                try:
+                    d = target.replace(day=day).date()
+                except ValueError:
+                    continue
+                ShiftRequest.objects.create(
+                    period=period, staff=staff_e,
+                    date=d, start_hour=20, end_hour=23,
+                    preference='preferred',
+                    note='close_hour境界テスト',
+                )
+
+        # ── ケース7: open_hour 境界（スタッフA: 8:00-14:00 → open_hour=9 でクリップ）──
+        for day in [6, 13, 20]:
+            try:
+                d = target.replace(day=day).date()
+            except ValueError:
+                continue
+            ShiftRequest.objects.update_or_create(
+                period=period, staff=staff_a,
+                date=d, start_hour=8,
+                defaults={
+                    'end_hour': 14,
+                    'preference': 'available',
+                    'note': 'open_hour境界テスト',
+                },
+            )
+
+        # ── ケース8: 全員 unavailable の日（day=15）──
+        try:
+            unavail_date = target.replace(day=15).date()
+            for staff in staff_list:
+                ShiftRequest.objects.update_or_create(
+                    period=period, staff=staff,
+                    date=unavail_date, start_hour=13,
+                    defaults={
+                        'end_hour': 22,
+                        'preference': 'unavailable',
+                    },
+                )
+        except ValueError:
+            pass
+
+        # ── ケース9: 需要超過（day=8: required=5 だが available=2）──
+        try:
+            demand_date = target.replace(day=8).date()
+            for staff in staff_list[:2]:
+                if not ShiftRequest.objects.filter(
+                    period=period, staff=staff, date=demand_date, start_hour=13,
+                ).exists():
+                    ShiftRequest.objects.create(
+                        period=period, staff=staff,
+                        date=demand_date, start_hour=13, end_hour=22,
+                        preference='available',
+                        note='需要超過テスト',
+                    )
+        except ValueError:
+            pass
+
+        # ── ケース10: 需要不足（day=10: required=1 だが preferred=4）──
+        try:
+            surplus_date = target.replace(day=10).date()
+            for staff in staff_list[:4]:
+                if not ShiftRequest.objects.filter(
+                    period=period, staff=staff, date=surplus_date, start_hour=14,
+                ).exists():
+                    ShiftRequest.objects.create(
+                        period=period, staff=staff,
+                        date=surplus_date, start_hour=14, end_hour=22,
+                        preference='preferred',
+                        note='需要不足テスト（人余り）',
+                    )
+        except ValueError:
+            pass
+
+        # ── ケース11: 重複リクエスト（同日・同スタッフで異なる時間帯）──
+        if staff_b:
+            try:
+                dup_date = target.replace(day=5).date()
+                for start_h, end_h in [(13, 17), (18, 22)]:
+                    if not ShiftRequest.objects.filter(
+                        period=period, staff=staff_b,
+                        date=dup_date, start_hour=start_h,
+                    ).exists():
+                        ShiftRequest.objects.create(
+                            period=period, staff=staff_b,
+                            date=dup_date, start_hour=start_h, end_hour=end_h,
+                            preference='preferred',
+                            note='重複リクエストテスト',
+                        )
+            except ValueError:
+                pass
 
     # ═════════════════════════════════════════════
     # ShiftStaffRequirement（曜日別デフォルト必要人数）
@@ -1492,6 +1825,440 @@ class Command(BaseCommand):
 
         self.stdout.write(self.style.SUCCESS(
             f'  EvaluationCriteria: {len(criteria_data)}件, StaffEvaluation: {created}件'))
+
+    # ═════════════════════════════════════════════
+    # StoreClosedDate
+    # ═════════════════════════════════════════════
+    def _seed_store_closed_dates(self):
+        if StoreClosedDate.objects.filter(store=self.store).exists():
+            self.stdout.write('  StoreClosedDate: skip')
+            return
+        today = date.today()
+        days_until_wed = (2 - today.weekday()) % 7
+        if days_until_wed == 0:
+            days_until_wed = 7
+        next_wed = today + timedelta(days=days_until_wed)
+        next_month_1st = (today.replace(day=1) + timedelta(days=32)).replace(day=1)
+        year_end = date(today.year, 12, 31)
+
+        closed_dates = [
+            (next_wed, '定休日'),
+            (next_month_1st, '棚卸し'),
+            (year_end, '年末休業'),
+        ]
+        for d, reason in closed_dates:
+            StoreClosedDate.objects.create(
+                store=self.store, date=d, reason=reason,
+            )
+        self.stdout.write(self.style.SUCCESS(f'  StoreClosedDate: {len(closed_dates)}件'))
+
+    # ═════════════════════════════════════════════
+    # ShiftSwapRequest
+    # ═════════════════════════════════════════════
+    def _seed_shift_swap_requests(self):
+        if ShiftSwapRequest.objects.exists():
+            self.stdout.write('  ShiftSwapRequest: skip')
+            return
+        assignments = list(
+            ShiftAssignment.objects.filter(
+                period__store=self.store,
+            ).select_related('staff')[:20]
+        )
+        if len(assignments) < 6:
+            self.stdout.write('  ShiftSwapRequest: skip (割当不足)')
+            return
+
+        staff_list = list(Staff.objects.filter(store=self.store))
+        manager = next(
+            (s for s in staff_list if s.is_store_manager or s.is_owner), None,
+        )
+
+        swap_configs = [
+            # (index, request_type, status, needs_cover_staff)
+            (0, 'swap', 'pending', True),
+            (1, 'swap', 'approved', True),
+            (2, 'cover', 'pending', False),
+            (3, 'cover', 'rejected', False),
+            (4, 'absence', 'pending', False),
+            (5, 'absence', 'approved', False),
+        ]
+
+        created = 0
+        for idx, req_type, status, needs_cover in swap_configs:
+            assignment = assignments[idx]
+            cover = None
+            if needs_cover:
+                cover = next(
+                    (s for s in staff_list if s.id != assignment.staff_id),
+                    None,
+                )
+            kwargs = {
+                'assignment': assignment,
+                'request_type': req_type,
+                'requested_by': assignment.staff,
+                'reason': f'{req_type}テスト（{status}）',
+                'status': status,
+            }
+            if cover:
+                kwargs['cover_staff'] = cover
+            if status in ('approved', 'rejected') and manager:
+                kwargs['reviewed_by'] = manager
+                kwargs['reviewed_at'] = timezone.now()
+            ShiftSwapRequest.objects.create(**kwargs)
+            created += 1
+
+        self.stdout.write(self.style.SUCCESS(f'  ShiftSwapRequest: {created}件'))
+
+    # ═════════════════════════════════════════════
+    # ShiftChangeLog
+    # ═════════════════════════════════════════════
+    def _seed_shift_change_logs(self):
+        if ShiftChangeLog.objects.exists():
+            self.stdout.write('  ShiftChangeLog: skip')
+            return
+        assignments = list(
+            ShiftAssignment.objects.filter(
+                period__store=self.store,
+            ).select_related('staff')[:6]
+        )
+        if len(assignments) < 3:
+            self.stdout.write('  ShiftChangeLog: skip (割当不足)')
+            return
+
+        staff_list = list(Staff.objects.filter(store=self.store))
+        if len(staff_list) < 2:
+            self.stdout.write('  ShiftChangeLog: skip (スタッフ不足)')
+            return
+        changer = staff_list[0]
+
+        log_configs = [
+            # (index, change_type, old, new, reason)
+            (0, 'revised',
+             {'start_hour': 13, 'end_hour': 20},
+             {'start_hour': 14, 'end_hour': 22},
+             '営業時間変更に伴う調整'),
+            (1, 'deleted',
+             {'start_hour': 15, 'end_hour': 22},
+             {},
+             '体調不良による欠勤'),
+            (2, 'revised',
+             {'staff_id': staff_list[0].id},
+             {'staff_id': staff_list[1].id},
+             'スタッフ変更'),
+        ]
+
+        created = 0
+        for idx, change_type, old, new, reason in log_configs:
+            ShiftChangeLog.objects.create(
+                assignment=assignments[idx],
+                changed_by=changer,
+                change_type=change_type,
+                old_values=old,
+                new_values=new,
+                reason=reason,
+            )
+            created += 1
+
+        self.stdout.write(self.style.SUCCESS(f'  ShiftChangeLog: {created}件'))
+
+    # ═════════════════════════════════════════════
+    # ShiftVacancy
+    # ═════════════════════════════════════════════
+    def _seed_shift_vacancies(self):
+        if ShiftVacancy.objects.filter(store=self.store).exists():
+            self.stdout.write('  ShiftVacancy: skip')
+            return
+
+        # 方法1: approved 期間に auto_schedule → 自然な Vacancy
+        approved_period = ShiftPeriod.objects.filter(
+            store=self.store, status='approved',
+        ).first()
+        auto_count = 0
+        if approved_period:
+            try:
+                auto_count = auto_schedule(approved_period)
+                # status を approved に戻す（auto_schedule が scheduled に変える）
+                ShiftPeriod.objects.filter(pk=approved_period.pk).update(
+                    status='approved',
+                )
+            except Exception as e:
+                self.stderr.write(f'  ShiftVacancy: auto_schedule エラー: {e}')
+
+        # 方法2: 手動で open/filled/cancelled を各1件作成
+        scheduled_period = ShiftPeriod.objects.filter(
+            store=self.store, status='scheduled',
+        ).first()
+        manual_count = 0
+        if scheduled_period:
+            today = date.today()
+            for i, (status, staff_type) in enumerate([
+                ('open', 'fortune_teller'),
+                ('filled', 'store_staff'),
+                ('cancelled', 'fortune_teller'),
+            ]):
+                vacancy_date = today + timedelta(days=i + 1)
+                ShiftVacancy.objects.create(
+                    period=scheduled_period,
+                    store=self.store,
+                    date=vacancy_date,
+                    start_hour=13,
+                    end_hour=22,
+                    staff_type=staff_type,
+                    required_count=3,
+                    assigned_count=1 if status == 'filled' else 0,
+                    status=status,
+                )
+                manual_count += 1
+
+        total = ShiftVacancy.objects.filter(store=self.store).count()
+        self.stdout.write(self.style.SUCCESS(
+            f'  ShiftVacancy: {total}件（auto={auto_count}, 手動={manual_count}）'))
+
+    # ═════════════════════════════════════════════
+    # チェックインデータ（既存 Schedule を更新）
+    # ═════════════════════════════════════════════
+    def _seed_checkin_data(self):
+        now = timezone.now()
+        past_schedules = Schedule.objects.filter(
+            memo='モックデータ',
+            start__lt=now,
+            is_cancelled=False,
+            is_temporary=False,
+        )
+        if not past_schedules.exists():
+            self.stdout.write('  Checkin: skip (対象予約なし)')
+            return
+
+        already_checked = past_schedules.filter(is_checked_in=True).count()
+        if already_checked > 0:
+            self.stdout.write('  Checkin: skip (設定済み)')
+            return
+
+        staff_list = list(Staff.objects.filter(store=self.store))
+        checked_in = 0
+        no_show = 0
+
+        for schedule in past_schedules:
+            backup_code = f'{random.randint(0, 999999):06d}'
+            if random.random() < 0.70:
+                # チェックイン済み
+                checkin_time = schedule.start + timedelta(
+                    minutes=random.randint(-10, 15),
+                )
+                Schedule.objects.filter(pk=schedule.pk).update(
+                    is_checked_in=True,
+                    checked_in_at=checkin_time,
+                    checkin_backup_code=backup_code,
+                    checked_in_by=random.choice(staff_list) if staff_list else None,
+                )
+                checked_in += 1
+            else:
+                # ノーショー
+                Schedule.objects.filter(pk=schedule.pk).update(
+                    checkin_backup_code=backup_code,
+                )
+                no_show += 1
+
+        self.stdout.write(self.style.SUCCESS(
+            f'  Checkin: {checked_in}件チェックイン済み, {no_show}件ノーショー'))
+
+    # ═════════════════════════════════════════════
+    # CustomerFeedback（NPS）
+    # ═════════════════════════════════════════════
+    def _seed_customer_feedback(self):
+        if CustomerFeedback.objects.filter(store=self.store).exists():
+            self.stdout.write('  CustomerFeedback: skip')
+            return
+
+        now = timezone.now()
+        closed_orders = list(
+            Order.objects.filter(store=self.store, status='CLOSED')[:50]
+        )
+
+        comments_positive = [
+            'とても居心地の良い空間でした。また来ます！',
+            '占い師の方がとても親切で、的確なアドバイスをいただけました。',
+            'シーシャのフレーバーが豊富で大満足です。',
+            'スタッフの対応が丁寧で好印象でした。',
+            '友人にもおすすめしたいお店です。',
+        ]
+        comments_neutral = [
+            '普通に楽しめました。',
+            '雰囲気は良いですが、少し混んでいました。',
+            '価格相応のサービスだと思います。',
+        ]
+        comments_negative = [
+            '待ち時間が長かったです。',
+            '空調が少し寒かったです。',
+        ]
+
+        created = 0
+        for days_ago in range(60, 0, -1):
+            daily_count = random.randint(2, 4)
+            for _ in range(daily_count):
+                # NPS分布: Promoter 50%, Passive 30%, Detractor 20%
+                roll = random.random()
+                if roll < 0.50:
+                    nps_score = random.randint(9, 10)
+                    sentiment = 'positive'
+                    comment = random.choice(comments_positive)
+                elif roll < 0.80:
+                    nps_score = random.randint(7, 8)
+                    sentiment = 'neutral'
+                    comment = random.choice(comments_neutral)
+                else:
+                    nps_score = random.randint(1, 6)
+                    sentiment = 'negative'
+                    comment = random.choice(comments_negative)
+
+                order = random.choice(closed_orders) if closed_orders else None
+
+                fb = CustomerFeedback.objects.create(
+                    store=self.store,
+                    order=order,
+                    nps_score=nps_score,
+                    food_rating=min(5, max(1, nps_score // 2)),
+                    service_rating=min(5, max(1, (nps_score + 1) // 2)),
+                    ambiance_rating=random.randint(3, 5),
+                    comment=comment,
+                    sentiment=sentiment,
+                )
+                # created_at を過去日に
+                past_dt = now - timedelta(
+                    days=days_ago,
+                    hours=random.randint(13, 22),
+                    minutes=random.randint(0, 59),
+                )
+                CustomerFeedback.objects.filter(pk=fb.pk).update(
+                    created_at=past_dt,
+                )
+                created += 1
+
+        self.stdout.write(self.style.SUCCESS(f'  CustomerFeedback: {created}件'))
+
+    # ═════════════════════════════════════════════
+    # SecurityLog
+    # ═════════════════════════════════════════════
+    def _seed_security_logs(self):
+        if SecurityLog.objects.exists():
+            self.stdout.write('  SecurityLog: skip')
+            return
+
+        now = timezone.now()
+        users = list(User.objects.all()[:10])
+
+        event_configs = [
+            ('login_success', 'info', 50),
+            ('login_fail', 'warning', 15),
+            ('api_auth_fail', 'warning', 5),
+            ('permission_denied', 'warning', 8),
+            ('suspicious_request', 'critical', 2),
+        ]
+
+        ips = [
+            '192.168.1.100', '192.168.1.101', '10.0.0.50',
+            '203.0.113.45', '198.51.100.12',
+        ]
+        user_agents = [
+            'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X)',
+            'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)',
+            'Mozilla/5.0 (Windows NT 10.0; Win64; x64)',
+            'python-requests/2.31.0',
+        ]
+        paths = [
+            '/admin/login/', '/api/v1/schedules/', '/api/v1/orders/',
+            '/admin/booking/staff/', '/admin/',
+        ]
+
+        created = 0
+        for event_type, severity, count in event_configs:
+            for _ in range(count):
+                days_ago = random.randint(0, 30)
+                log_time = now - timedelta(
+                    days=days_ago,
+                    hours=random.randint(0, 23),
+                    minutes=random.randint(0, 59),
+                )
+                user = random.choice(users) if users else None
+                log = SecurityLog.objects.create(
+                    event_type=event_type,
+                    severity=severity,
+                    user=user,
+                    username=user.username if user else 'anonymous',
+                    ip_address=random.choice(ips),
+                    user_agent=random.choice(user_agents),
+                    path=random.choice(paths),
+                    method=random.choice(['GET', 'POST']),
+                    detail=f'{event_type} テストデータ',
+                )
+                SecurityLog.objects.filter(pk=log.pk).update(
+                    created_at=log_time,
+                )
+                created += 1
+
+        self.stdout.write(self.style.SUCCESS(f'  SecurityLog: {created}件'))
+
+    # ═════════════════════════════════════════════
+    # BusinessInsight
+    # ═════════════════════════════════════════════
+    def _seed_business_insights(self):
+        if BusinessInsight.objects.filter(store=self.store).exists():
+            self.stdout.write('  BusinessInsight: skip')
+            return
+
+        insights = [
+            ('sales', 'info', '今月の売上が前月比15%増加',
+             '週末の来客数増加が主因です。特にシーシャメニューの売上が好調。',
+             {'increase_pct': 15, 'top_category': 'シーシャ'}),
+            ('sales', 'warning', '水曜日の売上が平均を下回っています',
+             '水曜日の売上が他の曜日と比べて30%低い傾向があります。',
+             {'weekday': 'wednesday', 'gap_pct': -30}),
+            ('inventory', 'info', 'シーシャフレーバー在庫が潤沢です',
+             '主要フレーバーの在庫は2週間分以上確保されています。',
+             {'weeks_supply': 2.5}),
+            ('inventory', 'critical', 'ミントフレーバーの在庫が残り3個です',
+             '早急に発注が必要です。平均消費ペースでは2日で在庫切れの見込み。',
+             {'product': 'ブルーベリーミント', 'stock': 3, 'days_until_out': 2}),
+            ('staffing', 'warning', '来週土曜のシフトが1名不足しています',
+             'fortune_teller の必要人数3名に対し、希望提出は2名です。',
+             {'date': 'next_saturday', 'required': 3, 'available': 2}),
+            ('staffing', 'info', '今月の出勤率は95.2%です',
+             '先月（92.1%）から改善しています。',
+             {'rate': 95.2, 'prev_rate': 92.1}),
+            ('menu', 'info', 'タロット30分コースが人気上昇中です',
+             '先月比20%増の予約数。リピーターが多い傾向。',
+             {'product': 'タロット占い（20分）', 'growth_pct': 20}),
+            ('customer', 'info', 'NPS平均スコアが8.2に改善しました',
+             'Promoter比率が50%を超えました。',
+             {'nps_avg': 8.2, 'promoter_pct': 52}),
+            ('customer', 'warning', 'リピート率が先月比5%低下しています',
+             '新規顧客は増加していますが、2回目以降の来店率が低下しています。',
+             {'repeat_rate': 38, 'change_pct': -5}),
+            ('menu', 'warning', 'ヒーリングシーシャセットの注文が減少傾向',
+             '先月比15%減。価格設定の見直しを検討してください。',
+             {'product': 'ヒーリングシーシャセット', 'decline_pct': -15}),
+        ]
+
+        created = 0
+        now = timezone.now()
+        for i, (category, severity, title, message, data) in enumerate(insights):
+            insight = BusinessInsight.objects.create(
+                store=self.store,
+                category=category,
+                severity=severity,
+                title=title,
+                message=message,
+                data=data,
+                is_read=(i < 3),
+            )
+            # 時間を分散
+            past_dt = now - timedelta(hours=i * 8, minutes=random.randint(0, 59))
+            BusinessInsight.objects.filter(pk=insight.pk).update(
+                created_at=past_dt,
+            )
+            created += 1
+
+        self.stdout.write(self.style.SUCCESS(f'  BusinessInsight: {created}件'))
 
     def _seed_shipping_config(self):
         """送料設定デモデータ"""
