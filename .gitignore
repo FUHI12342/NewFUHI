@@ -209,3 +209,7 @@ repo_snapshot/
 # IoTデバイス秘匿情報（WiFi認証情報等）
 MB_IoT_device_main/secrets.py
 pico_device/secrets.py
+.gstack/
+node_modules/
+package-lock.json
+package.json

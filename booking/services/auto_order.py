@@ -65,6 +65,19 @@ def compute_auto_order(scope=None, history_days=None, lead_time_days=None, safet
         for c in consumption
     }
 
+    # 直近7日の消費量（短期トレンド検出用）
+    recent_since = now - timedelta(days=7)
+    recent_consumption = (
+        OrderItem.objects
+        .filter(order__created_at__gte=recent_since, **order_item_scope)
+        .values('product_id')
+        .annotate(total_qty=Sum('qty'))
+    )
+    recent_consumption_map = {
+        c['product_id']: c['total_qty'] or 0
+        for c in recent_consumption
+    }
+
     recommendations = []
     summary = {
         'total_products': 0,
@@ -76,8 +89,15 @@ def compute_auto_order(scope=None, history_days=None, lead_time_days=None, safet
     for product in products:
         total_consumed = consumption_map.get(product.id, 0)
 
-        # 日次消費率
+        # 日次消費率（直近7日と全期間の加重平均で精度向上）
         daily_consumption = total_consumed / history_days if history_days > 0 else 0
+
+        # 直近7日の消費率で短期トレンドを加味
+        recent_consumed = recent_consumption_map.get(product.id, 0)
+        recent_daily = recent_consumed / min(7, history_days) if history_days > 0 else 0
+        # 加重平均: 直近60% + 全期間40%
+        if recent_daily > 0 and daily_consumption > 0:
+            daily_consumption = recent_daily * 0.6 + daily_consumption * 0.4
 
         # 残日数（在庫がゼロ以下の場合は0）
         if daily_consumption > 0:

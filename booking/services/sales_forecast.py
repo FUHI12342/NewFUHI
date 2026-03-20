@@ -16,11 +16,14 @@ from booking.models import OrderItem
 logger = logging.getLogger(__name__)
 
 
-def _get_historical_daily(since, scope):
+def _get_historical_daily(since, scope, channel_filter=None):
     """Return list of (date, revenue) sorted by date."""
+    filters = {'order__created_at__gte': since, **scope}
+    if channel_filter:
+        filters.update(channel_filter)
     qs = (
         OrderItem.objects
-        .filter(order__created_at__gte=since, **scope)
+        .filter(**filters)
         .annotate(d=TruncDate('order__created_at'))
         .values('d')
         .annotate(revenue=Sum(F('qty') * F('unit_price')))
@@ -110,12 +113,22 @@ def _try_prophet_forecast(historical, forecast_days=14):
         df = pd.DataFrame(historical, columns=['ds', 'y'])
         df['ds'] = pd.to_datetime(df['ds'])
 
+        # Enable yearly seasonality only if 60+ days of data
+        has_yearly = len(historical) >= 60
+
         model = Prophet(
-            yearly_seasonality=False,
+            yearly_seasonality=has_yearly,
             weekly_seasonality=True,
             daily_seasonality=False,
             changepoint_prior_scale=0.05,
         )
+
+        # Add Japanese holidays for better accuracy
+        try:
+            model.add_country_holidays(country_name='JP')
+        except Exception:
+            pass  # Skip if holidays package unavailable
+
         model.fit(df)
 
         future = model.make_future_dataframe(periods=forecast_days)
@@ -137,19 +150,20 @@ def _try_prophet_forecast(historical, forecast_days=14):
         return None
 
 
-def generate_forecast(scope, forecast_days=14, history_days=90):
+def generate_forecast(scope, forecast_days=14, history_days=90, channel_filter=None):
     """Generate sales forecast.
 
     Args:
         scope: dict of filter kwargs for store scoping
         forecast_days: number of days to forecast
         history_days: number of days of history to use
+        channel_filter: optional dict of channel filter kwargs
 
     Returns:
         dict with 'historical', 'forecast', 'method' keys
     """
     since = timezone.now() - timedelta(days=history_days)
-    historical = _get_historical_daily(since, scope)
+    historical = _get_historical_daily(since, scope, channel_filter=channel_filter)
 
     historical_list = [
         {'date': d.isoformat(), 'revenue': rev}

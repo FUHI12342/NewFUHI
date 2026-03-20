@@ -12,6 +12,8 @@ import uuid
 from decimal import Decimal
 from typing import Optional
 
+from booking.fields import EncryptedCharField
+
 
 # ==============================
 # 共通定数
@@ -408,8 +410,8 @@ class PaymentMethod(models.Model):
     method_type = models.CharField(_('決済種別'), max_length=20, choices=METHOD_TYPE_CHOICES)
     display_name = models.CharField(_('表示名'), max_length=100)
     is_enabled = models.BooleanField(_('有効'), default=True)
-    api_key = models.CharField(_('APIキー'), max_length=500, blank=True, default='')
-    api_secret = models.CharField(_('APIシークレット'), max_length=500, blank=True, default='')
+    api_key = EncryptedCharField(_('APIキー'), max_length=500, blank=True, default='')
+    api_secret = EncryptedCharField(_('APIシークレット'), max_length=500, blank=True, default='')
     api_endpoint = models.URLField(_('APIエンドポイント'), blank=True, default='')
     extra_config = models.JSONField(_('追加設定'), default=dict, blank=True)
     sort_order = models.IntegerField(_('並び順'), default=0)
