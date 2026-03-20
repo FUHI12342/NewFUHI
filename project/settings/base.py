@@ -230,6 +230,7 @@ JAZZMIN_SETTINGS = {
     "changeform_format": "horizontal_tabs",
     "language_chooser": True,
     "custom_css": "css/jazzmin_overrides.css",
+    "custom_js": "js/sidebar_keep_open.js",
 }
 
 # ====================================
