@@ -6,6 +6,7 @@ Common settings shared across all environments.
 import os
 import datetime
 from dotenv import load_dotenv
+from django.utils.translation import gettext_lazy as _
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -193,10 +194,10 @@ PUBLIC_HOLIDAYS = [
 # django-jazzmin (Admin UI theme)
 # ====================================
 JAZZMIN_SETTINGS = {
-    "site_title": "占いサロンチャンス 管理画面",
-    "site_header": "占いサロンチャンス 管理画面",
-    "site_brand": "占いサロンチャンス",
-    "welcome_sign": "占いサロンチャンス 管理画面へようこそ",
+    "site_title": _("占いサロンチャンス 管理画面"),
+    "site_header": _("占いサロンチャンス 管理画面"),
+    "site_brand": _("占いサロンチャンス"),
+    "welcome_sign": _("占いサロンチャンス 管理画面へようこそ"),
     "copyright": "占いサロンチャンス",
 
     # サイドバーナビ設定
@@ -217,11 +218,11 @@ JAZZMIN_SETTINGS = {
     # カスタムリンク（ダッシュボード等）
     "custom_links": {
         "booking": [{
-            "name": "売上ダッシュボード",
+            "name": _("売上ダッシュボード"),
             "url": "/admin/dashboard/sales/",
             "icon": "fas fa-chart-line",
         }, {
-            "name": "デバッグパネル",
+            "name": _("デバッグパネル"),
             "url": "/admin/debug/",
             "icon": "fas fa-bug",
         }],
@@ -231,8 +232,8 @@ JAZZMIN_SETTINGS = {
 
     # トップメニュー
     "topmenu_links": [
-        {"name": "ホーム", "url": "admin:index", "permissions": ["auth.view_user"]},
-        {"name": "本番サイト", "url": "/", "new_window": True},
+        {"name": _("ホーム"), "url": "admin:index", "permissions": ["auth.view_user"]},
+        {"name": _("本番サイト"), "url": "/", "new_window": True},
     ],
 
     # UI設定

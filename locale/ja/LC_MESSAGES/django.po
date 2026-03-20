@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-03-20 19:32+0900\n"
+"POT-Creation-Date: 2026-03-20 21:43+0900\n"
 "PO-Revision-Date: 2026-02-22 00:00+0900\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: Japanese <LL@li.org>\n"
@@ -492,7 +492,7 @@ msgstr "ユーザーアカウント管理"
 msgid "出退勤ボード"
 msgstr "出退勤ボード"
 
-#: booking/admin_site.py:96
+#: booking/admin_site.py:96 project/settings/base.py:221
 msgid "売上ダッシュボード"
 msgstr "売上ダッシュボード"
 
@@ -583,7 +583,7 @@ msgid "センサーグラフ"
 msgstr "センサーグラフ"
 
 #: booking/admin_site.py:137 booking/views_debug.py:74
-#: templates/admin/booking/debug_panel.html:30
+#: project/settings/base.py:225 templates/admin/booking/debug_panel.html:30
 #: templates/admin/booking/debug_panel.html:36
 msgid "デバッグパネル"
 msgstr "デバッグパネル"
@@ -3562,7 +3562,7 @@ msgstr "全%(label)s一覧"
 #: booking/templates/booking/email_form.html:12
 #: booking/templates/booking/email_verify.html:12
 #: booking/templates/booking/staff_list.html:13 project/settings.py:419
-#: templates/admin/booking/debug_panel.html:34
+#: project/settings/base.py:235 templates/admin/booking/debug_panel.html:34
 msgid "ホーム"
 msgstr "ホーム"
 
@@ -3771,7 +3771,7 @@ msgid "占い掲示板"
 msgstr "占い掲示板"
 
 #: booking/templates/booking/base.html:298 project/settings.py:395
-#: project/settings.py:397
+#: project/settings.py:397 project/settings/base.py:199
 msgid "占いサロンチャンス"
 msgstr "占いサロンチャンス"
 
@@ -5128,6 +5128,7 @@ msgid "締切:"
 msgstr "締切:"
 
 #: booking/templates/booking/staff_shift_submit.html:22
+#, python-format
 msgid "最低%(hours)s時間以上のシフトを入力してください。"
 msgstr "最低%(hours)s時間以上のシフトを入力してください。"
 
@@ -5600,15 +5601,16 @@ msgstr "テーブルが登録されていません。先にテーブルを作成
 msgid "勤務実績"
 msgstr "勤務実績"
 
-#: project/settings.py:393 project/settings.py:394
+#: project/settings.py:393 project/settings.py:394 project/settings/base.py:197
+#: project/settings/base.py:198
 msgid "占いサロンチャンス 管理画面"
 msgstr "占いサロンチャンス 管理画面"
 
-#: project/settings.py:396
+#: project/settings.py:396 project/settings/base.py:200
 msgid "占いサロンチャンス 管理画面へようこそ"
 msgstr "占いサロンチャンス 管理画面へようこそ"
 
-#: project/settings.py:420
+#: project/settings.py:420 project/settings/base.py:236
 msgid "本番サイト"
 msgstr "本番サイト"
 
@@ -6448,6 +6450,7 @@ msgid "平均評価"
 msgstr "平均評価"
 
 #: templates/admin/booking/restaurant_dashboard.html:1105
+#, python-format
 msgid "チェックイン率 (%%)"
 msgstr "チェックイン率 (%%)"
 
@@ -7163,3 +7166,15 @@ msgstr "データ読込中..."
 
 #~ msgid "占い師一覧へ"
 #~ msgstr "占い師一覧へ"
+
+#~ msgid "チェックイン率 (%)"
+#~ msgstr "チェックイン率 (%)"
+
+#~ msgid "上位80%"
+#~ msgstr "上位80%"
+
+#~ msgid "利益率 (%)"
+#~ msgstr "利益率 (%)"
+
+#~ msgid "累積構成比 (%)"
+#~ msgstr "累積構成比 (%)"

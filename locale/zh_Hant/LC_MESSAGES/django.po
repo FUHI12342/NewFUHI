@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-03-20 19:32+0900\n"
+"POT-Creation-Date: 2026-03-20 21:43+0900\n"
 "PO-Revision-Date: 2026-02-21 00:00+0000\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: Chinese Traditional <LL@li.org>\n"
@@ -492,7 +492,7 @@ msgstr "使用者帳號管理"
 msgid "出退勤ボード"
 msgstr "出退勤看板"
 
-#: booking/admin_site.py:96
+#: booking/admin_site.py:96 project/settings/base.py:221
 msgid "売上ダッシュボード"
 msgstr "銷售儀表板"
 
@@ -583,7 +583,7 @@ msgid "センサーグラフ"
 msgstr "感測器圖表"
 
 #: booking/admin_site.py:137 booking/views_debug.py:74
-#: templates/admin/booking/debug_panel.html:30
+#: project/settings/base.py:225 templates/admin/booking/debug_panel.html:30
 #: templates/admin/booking/debug_panel.html:36
 msgid "デバッグパネル"
 msgstr "除錯面板"
@@ -3562,7 +3562,7 @@ msgstr "全部%(label)s列表"
 #: booking/templates/booking/email_form.html:12
 #: booking/templates/booking/email_verify.html:12
 #: booking/templates/booking/staff_list.html:13 project/settings.py:419
-#: templates/admin/booking/debug_panel.html:34
+#: project/settings/base.py:235 templates/admin/booking/debug_panel.html:34
 msgid "ホーム"
 msgstr "首頁"
 
@@ -3771,7 +3771,7 @@ msgid "占い掲示板"
 msgstr "占卜論壇"
 
 #: booking/templates/booking/base.html:298 project/settings.py:395
-#: project/settings.py:397
+#: project/settings.py:397 project/settings/base.py:199
 msgid "占いサロンチャンス"
 msgstr "占卜沙龍Chance"
 
@@ -5601,15 +5601,16 @@ msgstr "尚未登錄桌位。請先建立桌位。"
 msgid "勤務実績"
 msgstr "勤務實績"
 
-#: project/settings.py:393 project/settings.py:394
+#: project/settings.py:393 project/settings.py:394 project/settings/base.py:197
+#: project/settings/base.py:198
 msgid "占いサロンチャンス 管理画面"
 msgstr "占卜沙龍Chance 管理後台"
 
-#: project/settings.py:396
+#: project/settings.py:396 project/settings/base.py:200
 msgid "占いサロンチャンス 管理画面へようこそ"
 msgstr "歡迎來到占卜沙龍Chance管理後台"
 
-#: project/settings.py:420
+#: project/settings.py:420 project/settings/base.py:236
 msgid "本番サイト"
 msgstr "正式網站"
 
@@ -7081,3 +7082,15 @@ msgstr "星期×時間熱力圖"
 #: templates/admin/booking/visitor_analytics.html:57
 msgid "データ読込中..."
 msgstr "資料載入中..."
+
+#~ msgid "チェックイン率 (%)"
+#~ msgstr "報到率 (%)"
+
+#~ msgid "上位80%"
+#~ msgstr "前80%"
+
+#~ msgid "利益率 (%)"
+#~ msgstr "利潤率 (%)"
+
+#~ msgid "累積構成比 (%)"
+#~ msgstr "累積構成比 (%)"
