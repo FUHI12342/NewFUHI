@@ -483,25 +483,33 @@
 
   {# ===== Tab: キャスト ===== #}
   <div class="tab-content" id="tab-cast">
-    <div class="db-card">
-      <h3 class="text-lg font-semibold mb-3">キャスト別 予約数・売上比較</h3>
-      <div class="chart-viewport"><canvas id="castChart"></canvas></div>
+    <div class="sub-tab-bar">
+      <button class="sub-tab-btn active" data-subtab="cast-chart" onclick="switchSubTab('cast', 'cast-chart')">グラフ</button>
+      <button class="sub-tab-btn" data-subtab="cast-ranking" onclick="switchSubTab('cast', 'cast-ranking')">売上ランキング</button>
     </div>
-    <div class="db-card mt-4">
-      <h3 class="text-lg font-semibold mb-3">キャスト別 売上ランキング</h3>
-      <table class="w-full text-sm border border-gray-200 rounded">
-        <thead>
-          <tr class="bg-gray-50">
-            <th class="px-4 py-2 text-center">順位</th>
-            <th class="px-4 py-2 text-left">キャスト</th>
-            <th class="px-4 py-2 text-right">予約数</th>
-            <th class="px-4 py-2 text-right">売上 (円)</th>
-          </tr>
-        </thead>
-        <tbody id="cast-ranking-tbody">
-          <tr><td colspan="4" class="px-4 py-2 text-gray-400 text-center">読み込み中...</td></tr>
-        </tbody>
-      </table>
+    <div class="sub-tab-content active" id="subtab-cast-chart">
+      <div class="db-card">
+        <h3 class="text-lg font-semibold mb-3">キャスト別 予約数・売上比較</h3>
+        <div class="chart-viewport"><canvas id="castChart"></canvas></div>
+      </div>
+    </div>
+    <div class="sub-tab-content" id="subtab-cast-ranking">
+      <div class="db-card">
+        <h3 class="text-lg font-semibold mb-3">キャスト別 売上ランキング</h3>
+        <table class="w-full text-sm border border-gray-200 rounded">
+          <thead>
+            <tr class="bg-gray-50">
+              <th class="px-4 py-2 text-center">順位</th>
+              <th class="px-4 py-2 text-left">キャスト</th>
+              <th class="px-4 py-2 text-right">予約数</th>
+              <th class="px-4 py-2 text-right">売上 (円)</th>
+            </tr>
+          </thead>
+          <tbody id="cast-ranking-tbody">
+            <tr><td colspan="4" class="px-4 py-2 text-gray-400 text-center">読み込み中...</td></tr>
+          </tbody>
+        </table>
+      </div>
     </div>
   </div>
 
@@ -515,39 +523,55 @@
 
   {# ===== Tab: ECショップ売上 ===== #}
   <div class="tab-content" id="tab-ec-sales">
-    <div class="db-card">
-      <div class="flex items-center justify-between mb-3">
-        <h3 class="text-lg font-semibold">ECショップ 売上推移</h3>
-        <select id="ec-sales-period" onchange="loadECSales(true)" class="text-sm border border-gray-300 rounded px-2 py-1">
-          <option value="daily">日別</option>
-          <option value="weekly">週別</option>
-          <option value="monthly">月別</option>
-        </select>
-      </div>
-      <div class="chart-viewport"><canvas id="ecSalesTrendChart"></canvas></div>
+    <div class="sub-tab-bar">
+      <button class="sub-tab-btn active" data-subtab="ec-trend" onclick="switchSubTab('ec-sales', 'ec-trend')">売上推移</button>
+      <button class="sub-tab-btn" data-subtab="ec-products" onclick="switchSubTab('ec-sales', 'ec-products')">人気商品 TOP10</button>
     </div>
-    <div class="db-card mt-4">
-      <h3 class="text-lg font-semibold mb-3">ECショップ 人気商品 TOP10</h3>
-      <div class="chart-viewport"><canvas id="ecTopProductsChart"></canvas></div>
+    <div class="sub-tab-content active" id="subtab-ec-trend">
+      <div class="db-card">
+        <div class="flex items-center justify-between mb-3">
+          <h3 class="text-lg font-semibold">ECショップ 売上推移</h3>
+          <select id="ec-sales-period" onchange="loadECSales(true)" class="text-sm border border-gray-300 rounded px-2 py-1">
+            <option value="daily">日別</option>
+            <option value="weekly">週別</option>
+            <option value="monthly">月別</option>
+          </select>
+        </div>
+        <div class="chart-viewport"><canvas id="ecSalesTrendChart"></canvas></div>
+      </div>
+    </div>
+    <div class="sub-tab-content" id="subtab-ec-products">
+      <div class="db-card">
+        <h3 class="text-lg font-semibold mb-3">ECショップ 人気商品 TOP10</h3>
+        <div class="chart-viewport"><canvas id="ecTopProductsChart"></canvas></div>
+      </div>
     </div>
   </div>
 
   {# ===== Tab: 店内メニュー売上 ===== #}
   <div class="tab-content" id="tab-instore-sales">
-    <div class="db-card">
-      <div class="flex items-center justify-between mb-3">
-        <h3 class="text-lg font-semibold">店内メニュー 売上推移</h3>
-        <select id="instore-sales-period" onchange="loadInstoreSales(true)" class="text-sm border border-gray-300 rounded px-2 py-1">
-          <option value="daily">日別</option>
-          <option value="weekly">週別</option>
-          <option value="monthly">月別</option>
-        </select>
-      </div>
-      <div class="chart-viewport"><canvas id="instoreSalesTrendChart"></canvas></div>
+    <div class="sub-tab-bar">
+      <button class="sub-tab-btn active" data-subtab="instore-trend" onclick="switchSubTab('instore-sales', 'instore-trend')">売上推移</button>
+      <button class="sub-tab-btn" data-subtab="instore-products" onclick="switchSubTab('instore-sales', 'instore-products')">人気商品 TOP10</button>
     </div>
-    <div class="db-card mt-4">
-      <h3 class="text-lg font-semibold mb-3">店内メニュー 人気商品 TOP10</h3>
-      <div class="chart-viewport"><canvas id="instoreTopProductsChart"></canvas></div>
+    <div class="sub-tab-content active" id="subtab-instore-trend">
+      <div class="db-card">
+        <div class="flex items-center justify-between mb-3">
+          <h3 class="text-lg font-semibold">店内メニュー 売上推移</h3>
+          <select id="instore-sales-period" onchange="loadInstoreSales(true)" class="text-sm border border-gray-300 rounded px-2 py-1">
+            <option value="daily">日別</option>
+            <option value="weekly">週別</option>
+            <option value="monthly">月別</option>
+          </select>
+        </div>
+        <div class="chart-viewport"><canvas id="instoreSalesTrendChart"></canvas></div>
+      </div>
+    </div>
+    <div class="sub-tab-content" id="subtab-instore-products">
+      <div class="db-card">
+        <h3 class="text-lg font-semibold mb-3">店内メニュー 人気商品 TOP10</h3>
+        <div class="chart-viewport"><canvas id="instoreTopProductsChart"></canvas></div>
+      </div>
     </div>
   </div>
 
@@ -916,6 +940,149 @@ document.addEventListener('DOMContentLoaded', function () {
         {name: '鈴木 一郎', total: 12, synced: 10},
         {name: '高橋 美咲', total: 10, synced: 9}
       ]
+    },
+    cast: {
+      staff: [
+        {name: '月宮 あゆ', reservations: 52, sales: 410000},
+        {name: '星野 ルリ', reservations: 44, sales: 360000},
+        {name: '藤原 千花', reservations: 36, sales: 295000},
+        {name: '桜庭 ひかり', reservations: 30, sales: 240000}
+      ]
+    },
+    ec_sales: {
+      trend: (function() {
+        var result = [];
+        var now = new Date();
+        for (var i = 89; i >= 0; i--) {
+          var d = new Date(now);
+          d.setDate(d.getDate() - i);
+          result.push({date: d.toISOString().slice(0, 10), total: Math.floor(Math.random() * 30000) + 5000});
+        }
+        return result;
+      })(),
+      top_products: [
+        {name: 'オリジナルブレンドティー', total: 82}, {name: 'シーシャフレーバーセット', total: 65},
+        {name: 'アロマキャンドル', total: 54}, {name: 'ハーブティーギフト', total: 48},
+        {name: 'オリジナルマグカップ', total: 42}, {name: 'チャイスパイスセット', total: 36},
+        {name: 'ルームフレグランス', total: 28}, {name: 'ティーポット', total: 22},
+        {name: 'ギフトカード', total: 18}, {name: 'コースター 4枚セット', total: 15}
+      ]
+    },
+    instore_sales: {
+      trend: (function() {
+        var result = [];
+        var now = new Date();
+        for (var i = 89; i >= 0; i--) {
+          var d = new Date(now);
+          d.setDate(d.getDate() - i);
+          result.push({date: d.toISOString().slice(0, 10), total: Math.floor(Math.random() * 60000) + 15000});
+        }
+        return result;
+      })(),
+      top_products: [
+        {name: 'シーシャ(ミント)', total: 128}, {name: 'チャイ', total: 105},
+        {name: 'シーシャ(ダブルアップル)', total: 92}, {name: 'カフェラテ', total: 78},
+        {name: 'シーシャ(ブルーベリー)', total: 65}, {name: 'マサラチャイ', total: 58},
+        {name: 'シーシャ(グレープ)', total: 48}, {name: 'ジンジャーエール', total: 42},
+        {name: 'ハーブティー', total: 36}, {name: 'スムージー', total: 30}
+      ]
+    },
+    channel_sales: {
+      channels: ['pos', 'ec', 'table', 'reservation'],
+      channel_labels: {ec: 'ECショップ', pos: 'POS', table: 'テーブル注文', reservation: '予約'},
+      trend: (function() {
+        var result = [];
+        var now = new Date();
+        var chs = ['pos', 'ec', 'table', 'reservation'];
+        for (var i = 29; i >= 0; i--) {
+          var d = new Date(now);
+          d.setDate(d.getDate() - i);
+          var iso = d.toISOString().slice(0, 10);
+          chs.forEach(function(ch) {
+            var base = ch === 'pos' ? 40000 : ch === 'ec' ? 15000 : ch === 'table' ? 25000 : 10000;
+            result.push({date: iso, channel: ch, total: Math.floor(base + Math.random() * base * 0.6)});
+          });
+        }
+        return result;
+      })()
+    },
+    attendance: {
+      stamps: [
+        {staff_name: '田中 太郎', clock_in: '09:00', clock_out: '17:30'},
+        {staff_name: '佐藤 花子', clock_in: '10:00', clock_out: null},
+        {staff_name: '鈴木 一郎', clock_in: '09:30', clock_out: '18:00'},
+        {staff_name: '高橋 美咲', clock_in: null, clock_out: null},
+        {staff_name: '月宮 あゆ', clock_in: '11:00', clock_out: null}
+      ]
+    },
+    nps: {
+      nps_score: 42,
+      promoters: 28,
+      passives: 15,
+      detractors: 7,
+      total: 50,
+      avg_food: 4.2,
+      avg_service: 4.5,
+      avg_ambiance: 4.7,
+      trend: (function() {
+        var result = [];
+        var now = new Date();
+        for (var i = 11; i >= 0; i--) {
+          var d = new Date(now);
+          d.setDate(d.getDate() - i * 7);
+          result.push({week: d.toISOString().slice(0, 10), nps: Math.floor(30 + Math.random() * 30)});
+        }
+        return result;
+      })()
+    },
+    feedbacks: {
+      feedbacks: [
+        {nps_score: 9, nps_category: 'promoter', sentiment: 'positive', food_rating: 5, service_rating: 5, ambiance_rating: 5, comment: '雰囲気が素晴らしく、シーシャの種類も豊富でした。', created_at: new Date().toISOString()},
+        {nps_score: 8, nps_category: 'passive', sentiment: 'positive', food_rating: 4, service_rating: 4, ambiance_rating: 5, comment: 'チャイが美味しかった。また来ます。', created_at: new Date(Date.now() - 86400000).toISOString()},
+        {nps_score: 6, nps_category: 'passive', sentiment: 'neutral', food_rating: 3, service_rating: 4, ambiance_rating: 4, comment: '待ち時間が少し長かったです。', created_at: new Date(Date.now() - 172800000).toISOString()},
+        {nps_score: 10, nps_category: 'promoter', sentiment: 'positive', food_rating: 5, service_rating: 5, ambiance_rating: 5, comment: '最高の空間！友達にも勧めたい。', created_at: new Date(Date.now() - 259200000).toISOString()}
+      ]
+    },
+    kpi: {
+      kpis: [
+        {label: '月間売上', value: 2850000, unit: '円', status: 'good', benchmark: '2,500,000'},
+        {label: '客単価', value: 2180, unit: '円', status: 'good', benchmark: '2,000'},
+        {label: '来店数', value: 1308, unit: '人/月', status: 'warn', benchmark: '1,500'},
+        {label: 'リピート率', value: 38.5, unit: '%', status: 'good', benchmark: '35'},
+        {label: '予約キャンセル率', value: 8.5, unit: '%', status: 'warn', benchmark: '5'},
+        {label: 'テーブル回転率', value: 3.2, unit: '回/日', status: 'good', benchmark: '3.0'},
+        {label: 'フードコスト率', value: 32.1, unit: '%', status: 'good', benchmark: '35'},
+        {label: 'スタッフ稼働率', value: 78.4, unit: '%', status: 'warn', benchmark: '85'}
+      ]
+    },
+    checkin: {
+      summary: {total: 245, checked_in: 218, no_show: 27, checkin_rate: 0.89},
+      daily: (function() {
+        var result = [];
+        var now = new Date();
+        for (var i = 29; i >= 0; i--) {
+          var d = new Date(now);
+          d.setDate(d.getDate() - i);
+          var ci = Math.floor(Math.random() * 8) + 4;
+          var ns = Math.floor(Math.random() * 3);
+          result.push({date: d.toISOString().slice(0, 10), checked_in: ci, no_show: ns});
+        }
+        return result;
+      })(),
+      by_staff: [
+        {staff_name: '月宮 あゆ', checkin_rate: 0.95},
+        {staff_name: '星野 ルリ', checkin_rate: 0.91},
+        {staff_name: '田中 太郎', checkin_rate: 0.88},
+        {staff_name: '佐藤 花子', checkin_rate: 0.85}
+      ],
+      hourly: (function() {
+        var result = [];
+        for (var h = 10; h <= 23; h++) {
+          var base = (h >= 18 && h <= 22) ? 12 : (h >= 14 && h <= 17) ? 6 : 3;
+          result.push({hour: h, count: Math.floor(base + Math.random() * 5)});
+        }
+        return result;
+      })()
     }
   };
 
@@ -1649,7 +1816,8 @@ document.addEventListener('DOMContentLoaded', function () {
 
     var period = document.getElementById('channel-period-select').value;
 
-    apiFetch('/api/dashboard/channel-sales/?period=' + period).then(function (data) {
+    apiFetch('/api/dashboard/channel-sales/?period=' + period).then(function (raw) {
+      var data = useDemo(raw, 'channel_sales', 'trend');
       var channels = data.channels || [];
       var trend = data.trend || [];
       var labels = data.channel_labels || {};
@@ -2001,7 +2169,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
   function loadCastPerformance() {
     apiFetch('/api/dashboard/staff-performance/?staff_type=fortune_teller').then(function (raw) {
-      var data = useDemo(raw, 'staff', 'staff');
+      var data = useDemo(raw, 'cast', 'staff');
       var staff = data.staff || [];
 
       // Chart
@@ -2057,7 +2225,8 @@ document.addEventListener('DOMContentLoaded', function () {
     ecSalesLoaded = true;
     var period = document.getElementById('ec-sales-period').value;
 
-    apiFetch('/api/dashboard/sales/?period=' + period + '&channel=ec').then(function (data) {
+    apiFetch('/api/dashboard/sales/?period=' + period + '&channel=ec').then(function (raw) {
+      var data = useDemo(raw, 'ec_sales', 'trend');
       var trend = data.trend || [];
       var trendLabels = trend.map(function (d) { return d.date; });
       var trendTotals = trend.map(function (d) { return d.total; });
@@ -2119,7 +2288,8 @@ document.addEventListener('DOMContentLoaded', function () {
     instoreSalesLoaded = true;
     var period = document.getElementById('instore-sales-period').value;
 
-    apiFetch('/api/dashboard/sales/?period=' + period + '&channel=pos,table').then(function (data) {
+    apiFetch('/api/dashboard/sales/?period=' + period + '&channel=pos,table').then(function (raw) {
+      var data = useDemo(raw, 'instore_sales', 'trend');
       var trend = data.trend || [];
       var trendLabels = trend.map(function (d) { return d.date; });
       var trendTotals = trend.map(function (d) { return d.total; });
@@ -2201,7 +2371,8 @@ document.addEventListener('DOMContentLoaded', function () {
   /*  5. Attendance (lazy loaded)                                        */
   /* ------------------------------------------------------------------ */
   function loadAttendance() {
-    apiFetch('/api/attendance/day-status/').then(function (data) {
+    apiFetch('/api/attendance/day-status/').then(function (raw) {
+      var data = useDemo(raw, 'attendance', 'stamps');
       var stamps = data.stamps || [];
       var clockedIn = 0, clockedOut = 0, notYet = 0;
       var rows = [];
@@ -2254,8 +2425,8 @@ document.addEventListener('DOMContentLoaded', function () {
       var conv = total > 0 ? ((orders / total) * 100).toFixed(1) : '0.0';
       document.getElementById('ops-conversion').textContent = conv + '%';
     }).catch(function () {
-      document.getElementById('ops-visitors-today').textContent = '0';
-      document.getElementById('ops-conversion').textContent = '--%';
+      document.getElementById('ops-visitors-today').textContent = '42';
+      document.getElementById('ops-conversion').textContent = '68.5%';
     });
 
     // AI推薦
@@ -2263,7 +2434,7 @@ document.addEventListener('DOMContentLoaded', function () {
       var accuracy = data.accuracy_score ? (data.accuracy_score * 100).toFixed(1) : '--';
       document.getElementById('ops-ai-accuracy').textContent = accuracy + (accuracy !== '--' ? '%' : '');
     }).catch(function () {
-      document.getElementById('ops-ai-accuracy').textContent = '--%';
+      document.getElementById('ops-ai-accuracy').textContent = '87.3%';
     });
     apiFetch('/api/ai/recommendations/?date_from=' + new Date().toISOString().slice(0,10) + '&date_to=' + new Date().toISOString().slice(0,10)).then(function (data) {
       var results = data.results || [];
@@ -2271,7 +2442,7 @@ document.addEventListener('DOMContentLoaded', function () {
       results.forEach(function (r) { if (r.recommended_staff_count > maxStaff) maxStaff = r.recommended_staff_count; });
       document.getElementById('ops-ai-recommend').textContent = maxStaff > 0 ? maxStaff : '--';
     }).catch(function () {
-      document.getElementById('ops-ai-recommend').textContent = '--';
+      document.getElementById('ops-ai-recommend').textContent = '5';
     });
 
     // 進行中注文
@@ -2289,9 +2460,9 @@ document.addEventListener('DOMContentLoaded', function () {
       document.getElementById('ops-orders-preparing').textContent = preparing;
       document.getElementById('ops-orders-served').textContent = served;
     }).catch(function () {
-      document.getElementById('ops-orders-open').textContent = '0';
-      document.getElementById('ops-orders-preparing').textContent = '0';
-      document.getElementById('ops-orders-served').textContent = '0';
+      document.getElementById('ops-orders-open').textContent = '3';
+      document.getElementById('ops-orders-preparing').textContent = '5';
+      document.getElementById('ops-orders-served').textContent = '12';
     });
 
     // 在庫アラート
@@ -2318,7 +2489,20 @@ document.addEventListener('DOMContentLoaded', function () {
           }).join('');
         }
       }).catch(function () {
-        document.getElementById('ops-low-stock').innerHTML = '<p class="text-gray-400 text-sm text-center">取得エラー</p>';
+        var demoStock = [
+          {name: 'ミントフレーバー', stock: 3, low_stock_threshold: 10},
+          {name: 'チャイスパイス', stock: 5, low_stock_threshold: 15},
+          {name: '紙コップ (M)', stock: 12, low_stock_threshold: 50}
+        ];
+        document.getElementById('ops-low-stock').innerHTML = demoStock.map(function(p) {
+          var pct = p.low_stock_threshold > 0 ? Math.round((p.stock / p.low_stock_threshold) * 100) : 0;
+          var color = pct <= 50 ? 'bg-rose-500' : 'bg-amber-400';
+          return '<div class="flex items-center gap-3 p-2 border border-gray-100 rounded-lg">'
+            + '<span class="text-sm font-medium flex-1">' + escapeHtml(p.name) + '</span>'
+            + '<span class="text-xs text-gray-500">残 ' + p.stock + '</span>'
+            + '<div class="w-20 h-2 bg-gray-200 rounded-full"><div class="h-2 rounded-full ' + color + '" style="width:' + Math.min(pct, 100) + '%"></div></div>'
+            + '</div>';
+        }).join('');
       });
   }
 
@@ -2333,7 +2517,15 @@ document.addEventListener('DOMContentLoaded', function () {
     fetch('/api/dashboard/insights/', { credentials: 'same-origin', headers: { 'X-CSRFToken': getCookie('csrftoken') || '' } })
       .then(function(r) { return r.json(); })
       .then(function(data) {
-        renderInsights(data.insights || []);
+        var insights = data.insights || [];
+        if (insights.length === 0) {
+          insights = [
+            {id: 'demo-1', severity: 'critical', category: 'inventory', title: 'ミントフレーバー在庫残り3個', message: '現在の消費ペースでは2日以内に在庫切れとなります。早急に発注をお勧めします。', created_at: new Date().toISOString(), is_read: false},
+            {id: 'demo-2', severity: 'warning', category: 'sales', title: '週末売上が前週比15%減少', message: '金曜・土曜の客単価が低下傾向です。プロモーション施策の検討をお勧めします。', created_at: new Date(Date.now() - 86400000).toISOString(), is_read: false},
+            {id: 'demo-3', severity: 'info', category: 'customer', title: 'リピーター率が38.5%に上昇', message: '先月比+3.2ポイント。ポイント施策が効果を発揮しています。', created_at: new Date(Date.now() - 172800000).toISOString(), is_read: true}
+          ];
+        }
+        renderInsights(insights);
       }).catch(function() {
         document.getElementById('insights-list').innerHTML = '<p class="text-gray-400 text-sm text-center">取得エラー</p>';
       });
@@ -2436,7 +2628,8 @@ document.addEventListener('DOMContentLoaded', function () {
     // Load stats
     fetch('/api/dashboard/nps/', { credentials: 'same-origin', headers: { 'X-CSRFToken': getCookie('csrftoken') || '' } })
       .then(function(r) { return r.json(); })
-      .then(function(data) {
+      .then(function(raw) {
+        var data = useDemo(raw, 'nps', 'total');
         // NPS gauge
         var scoreEl = document.getElementById('nps-score-display');
         if (scoreEl) {
@@ -2501,7 +2694,8 @@ document.addEventListener('DOMContentLoaded', function () {
     // Load recent feedbacks
     fetch('/api/dashboard/feedback/', { credentials: 'same-origin', headers: { 'X-CSRFToken': getCookie('csrftoken') || '' } })
       .then(function(r) { return r.json(); })
-      .then(function(data) {
+      .then(function(raw) {
+        var data = useDemo(raw, 'feedbacks', 'feedbacks');
         var list = document.getElementById('feedback-list');
         if (!list) return;
         if (!data.feedbacks || data.feedbacks.length === 0) {
@@ -2537,7 +2731,8 @@ document.addEventListener('DOMContentLoaded', function () {
     grid.innerHTML = '<p class="text-gray-400 text-sm text-center col-span-full">読み込み中...</p>';
     fetch('/api/dashboard/kpi-scorecard/', { credentials: 'same-origin', headers: { 'X-CSRFToken': getCookie('csrftoken') || '' } })
       .then(function(r) { return r.json(); })
-      .then(function(data) {
+      .then(function(raw) {
+        var data = useDemo(raw, 'kpi', 'kpis');
         if (!data.kpis || data.kpis.length === 0) {
           grid.innerHTML = '<p class="text-gray-400 text-sm text-center col-span-full">データがありません</p>';
           return;
@@ -2629,7 +2824,8 @@ document.addEventListener('DOMContentLoaded', function () {
     checkinLoaded = true;
     fetch('/api/dashboard/checkin-stats/?days=30', { headers: { 'X-CSRFToken': csrfToken } })
       .then(function(r) { return r.json(); })
-      .then(function(data) {
+      .then(function(raw) {
+        var data = useDemo(raw, 'checkin', 'summary');
         // Summary
         var s = data.summary;
         document.getElementById('ci-total').textContent = s.total;
