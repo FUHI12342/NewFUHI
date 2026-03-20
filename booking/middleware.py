@@ -1,4 +1,4 @@
-"""セキュリティ監視ミドルウェア"""
+"""セキュリティ監視ミドルウェア + 言語固定ミドルウェア"""
 import threading
 import time
 import logging
@@ -6,8 +6,28 @@ from collections import defaultdict
 
 from django.conf import settings
 from django.http import JsonResponse
+from django.utils import translation
 
 logger = logging.getLogger(__name__)
+
+
+class ForceLanguageMiddleware:
+    """SiteSettings.forced_language が設定されていればその言語を強制適用。
+    LocaleMiddleware の直後に配置。"""
+
+    def __init__(self, get_response):
+        self.get_response = get_response
+
+    def __call__(self, request):
+        try:
+            from booking.models import SiteSettings
+            site_settings = SiteSettings.load()
+            if site_settings.forced_language:
+                translation.activate(site_settings.forced_language)
+                request.LANGUAGE_CODE = site_settings.forced_language
+        except Exception:
+            pass
+        return self.get_response(request)
 
 
 class SecurityAuditMiddleware:

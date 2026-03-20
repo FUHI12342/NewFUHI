@@ -260,9 +260,31 @@ class AdminTheme(models.Model):
         return f"{self.store.name} テーマ"
 
 
+LANGUAGE_CHOICES = [
+    ('', _('自動（ブラウザ設定に従う）')),
+    ('ja', '日本語'),
+    ('zh-hant', '繁體中文'),
+    ('en', 'English'),
+    ('ko', '한국어'),
+    ('es', 'Español'),
+    ('pt', 'Português'),
+    ('zh-hans', '简体中文'),
+]
+
+
 class SiteSettings(models.Model):
     """サイト全体の設定 (シングルトン)"""
     site_name = models.CharField(_('サイト名'), max_length=200, default='占いサロンチャンス')
+
+    # 表示言語固定
+    forced_language = models.CharField(
+        max_length=10,
+        choices=LANGUAGE_CHOICES,
+        default='',
+        blank=True,
+        verbose_name=_('表示言語固定'),
+        help_text=_('設定すると全ユーザーの表示言語をこの言語に固定します。空欄＝ブラウザ設定に従う'),
+    )
 
     # ホームページカードON/OFF
     show_card_store = models.BooleanField(_('店舗カード表示'), default=True)

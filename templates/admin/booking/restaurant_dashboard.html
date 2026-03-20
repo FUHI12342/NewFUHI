@@ -283,85 +283,85 @@
   <div class="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-2 mb-4">
     <a href="/admin/shift/calendar/" class="quick-link-card">
       <i class="fas fa-calendar-alt text-indigo-500"></i>
-      <span>シフトカレンダー</span>
+      <span>{% trans "シフトカレンダー" %}</span>
     </a>
     <a href="/admin/attendance/qr/" class="quick-link-card">
       <i class="fas fa-qrcode text-emerald-500"></i>
-      <span>QR勤怠</span>
+      <span>{% trans "QR勤怠" %}</span>
     </a>
     <a href="/admin/attendance/board/" class="quick-link-card">
       <i class="fas fa-clipboard-check text-sky-500"></i>
-      <span>出退勤ボード</span>
+      <span>{% trans "出退勤ボード" %}</span>
     </a>
     <a href="/admin/pos/" class="quick-link-card">
       <i class="fas fa-cash-register text-amber-500"></i>
-      <span>POS</span>
+      <span>{% trans "POS" %}</span>
     </a>
     <a href="/admin/pos/kitchen/" class="quick-link-card">
       <i class="fas fa-utensils text-rose-500"></i>
-      <span>キッチン</span>
+      <span>{% trans "キッチン" %}</span>
     </a>
     <a href="/admin/analytics/visitors/" class="quick-link-card">
       <i class="fas fa-chart-bar text-violet-500"></i>
-      <span>来客分析</span>
+      <span>{% trans "来客分析" %}</span>
     </a>
     <a href="/admin/ai/recommendation/" class="quick-link-card">
       <i class="fas fa-robot text-pink-500"></i>
-      <span>AI推薦</span>
+      <span>{% trans "AI推薦" %}</span>
     </a>
   </div>
 
   {# ===== Toolbar ===== #}
   <div class="flex items-center gap-3 mb-4 flex-wrap">
-    <button class="tour-help-btn" onclick="startTour();" title="ヘルプを表示">ヘルプ</button>
+    <button class="tour-help-btn" onclick="startTour();" title="{% trans 'ヘルプを表示' %}">{% trans "ヘルプ" %}</button>
     <div class="flex items-center gap-2 ml-auto">
-      <label for="sales-period" class="text-sm font-medium db-text-secondary">期間:</label>
+      <label for="sales-period" class="text-sm font-medium db-text-secondary">{% trans "期間" %}:</label>
       <select id="sales-period" class="toolbar-btn">
-        <option value="daily">日別</option>
-        <option value="weekly">週別</option>
-        <option value="monthly">月別</option>
-        <option value="yearly">年別</option>
+        <option value="daily">{% trans "日別" %}</option>
+        <option value="weekly">{% trans "週別" %}</option>
+        <option value="monthly">{% trans "月別" %}</option>
+        <option value="yearly">{% trans "年別" %}</option>
       </select>
     </div>
   </div>
 
   {# ===== Tabs ===== #}
   <div class="flex gap-1 border-b border-gray-200 mb-4 flex-wrap" id="dashboard-tabs">
-    <button class="tab-btn active" data-tab="overview" onclick="switchTab('overview')">概要</button>
-    <button class="tab-btn" data-tab="sales" onclick="switchTab('sales')">総売上</button>
-    <button class="tab-btn" data-tab="customers" onclick="switchTab('customers')">顧客</button>
-    <button class="tab-btn" data-tab="cast" onclick="switchTab('cast')">キャスト</button>
-    <button class="tab-btn" data-tab="staff" onclick="switchTab('staff')">スタッフ</button>
-    <button class="tab-btn" data-tab="ec-sales" onclick="switchTab('ec-sales')">ECショップ売上</button>
-    <button class="tab-btn" data-tab="instore-sales" onclick="switchTab('instore-sales')">店内メニュー売上</button>
-    <button class="tab-btn" data-tab="shift" onclick="switchTab('shift')">シフト</button>
-    <button class="tab-btn" data-tab="attendance" onclick="switchTab('attendance')">勤怠</button>
-    <button class="tab-btn" data-tab="operations" onclick="switchTab('operations')">運営</button>
-    <button class="tab-btn" data-tab="checkin" onclick="switchTab('checkin')">チェックイン</button>
+    <button class="tab-btn active" data-tab="overview" onclick="switchTab('overview')">{% trans "概要" %}</button>
+    <button class="tab-btn" data-tab="sales" onclick="switchTab('sales')">{% trans "総売上" %}</button>
+    <button class="tab-btn" data-tab="customers" onclick="switchTab('customers')">{% trans "顧客" %}</button>
+    <button class="tab-btn" data-tab="cast" onclick="switchTab('cast')">{% trans "キャスト" %}</button>
+    <button class="tab-btn" data-tab="staff" onclick="switchTab('staff')">{% trans "スタッフ" %}</button>
+    <button class="tab-btn" data-tab="ec-sales" onclick="switchTab('ec-sales')">{% trans "ECショップ売上" %}</button>
+    <button class="tab-btn" data-tab="instore-sales" onclick="switchTab('instore-sales')">{% trans "店内メニュー売上" %}</button>
+    <button class="tab-btn" data-tab="shift" onclick="switchTab('shift')">{% trans "シフト" %}</button>
+    <button class="tab-btn" data-tab="attendance" onclick="switchTab('attendance')">{% trans "勤怠" %}</button>
+    <button class="tab-btn" data-tab="operations" onclick="switchTab('operations')">{% trans "運営" %}</button>
+    <button class="tab-btn" data-tab="checkin" onclick="switchTab('checkin')">{% trans "チェックイン" %}</button>
   </div>
 
   {# ===== Tab: 概要 ===== #}
   <div class="tab-content active" id="tab-overview">
     <div class="sub-tab-bar" id="overview-sub-tabs">
-      <button class="sub-tab-btn active" data-subtab="overview-kpi" onclick="switchSubTab('overview', 'overview-kpi')">予約KPI</button>
-      <button class="sub-tab-btn" data-subtab="overview-chart" onclick="switchSubTab('overview', 'overview-chart')">日別予約グラフ</button>
-      <button class="sub-tab-btn" data-subtab="overview-insights" onclick="switchSubTab('overview', 'overview-insights'); loadInsights();">インサイト <span id="insight-badge" class="inline-flex items-center justify-center px-2 py-0.5 text-xs font-bold rounded-full bg-rose-500 text-white" style="display:none;">0</span></button>
-      <button class="sub-tab-btn" data-subtab="overview-kpi-score" onclick="switchSubTab('overview', 'overview-kpi-score'); loadKPIScorecard();">KPIスコアカード</button>
+      <button class="sub-tab-btn active" data-subtab="overview-kpi" onclick="switchSubTab('overview', 'overview-kpi')">{% trans "予約KPI" %}</button>
+      <button class="sub-tab-btn" data-subtab="overview-chart" onclick="switchSubTab('overview', 'overview-chart')">{% trans "日別予約グラフ" %}</button>
+      <button class="sub-tab-btn" data-subtab="overview-insights" onclick="switchSubTab('overview', 'overview-insights'); loadInsights();">{% trans "インサイト" %} <span id="insight-badge" class="inline-flex items-center justify-center px-2 py-0.5 text-xs font-bold rounded-full bg-rose-500 text-white" style="display:none;">0</span></button>
+      <button class="sub-tab-btn" data-subtab="overview-kpi-score" onclick="switchSubTab('overview', 'overview-kpi-score'); loadKPIScorecard();">{% trans "KPIスコアカード" %}</button>
     </div>
     <div class="sub-tab-content active" id="subtab-overview-kpi">
       <div class="db-card">
-        <h3 class="text-lg font-semibold mb-3">予約KPI</h3>
+        <h3 class="text-lg font-semibold mb-3">{% trans "予約KPI" %}</h3>
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div class="text-center">
-            <span class="text-sm db-text-secondary">今後の予約数</span>
+            <span class="text-sm db-text-secondary">{% trans "今後の予約数" %}</span>
             <div id="future-count" class="text-3xl font-extrabold text-indigo-500">--</div>
           </div>
           <div class="text-center">
-            <span class="text-sm db-text-secondary">キャンセル率</span>
+            <span class="text-sm db-text-secondary">{% trans "キャンセル率" %}</span>
             <div id="cancel-rate" class="text-3xl font-extrabold text-rose-500">--%</div>
           </div>
           <div class="text-center">
-            <span class="text-sm db-text-secondary">過去90日の予約合計</span>
+            <span class="text-sm db-text-secondary">{% trans "過去90日の予約合計" %}</span>
             <div id="total-reservations-90" class="text-3xl font-extrabold text-emerald-500">--</div>
           </div>
         </div>
@@ -369,29 +369,29 @@
     </div>
     <div class="sub-tab-content" id="subtab-overview-chart">
       <div class="db-card">
-        <h3 class="text-lg font-semibold mb-3">日別予約数（過去90日）</h3>
+        <h3 class="text-lg font-semibold mb-3">{% trans "日別予約数（過去90日）" %}</h3>
         <div class="chart-viewport"><canvas id="reservationChart"></canvas></div>
       </div>
     </div>
     <div class="sub-tab-content" id="subtab-overview-insights">
       <div class="db-card">
         <div class="flex items-center justify-between mb-3">
-          <h3 class="text-lg font-semibold">ビジネスインサイト</h3>
+          <h3 class="text-lg font-semibold">{% trans "ビジネスインサイト" %}</h3>
           <div class="flex gap-2">
-            <button onclick="markAllInsightsRead()" class="px-3 py-1 text-xs bg-gray-200 hover:bg-gray-300 rounded">すべて既読</button>
-            <button onclick="generateInsights()" id="btn-generate-insights" class="px-3 py-1 text-xs bg-indigo-500 hover:bg-indigo-600 text-white rounded">分析実行</button>
+            <button onclick="markAllInsightsRead()" class="px-3 py-1 text-xs bg-gray-200 hover:bg-gray-300 rounded">{% trans "すべて既読" %}</button>
+            <button onclick="generateInsights()" id="btn-generate-insights" class="px-3 py-1 text-xs bg-indigo-500 hover:bg-indigo-600 text-white rounded">{% trans "分析実行" %}</button>
           </div>
         </div>
         <div id="insights-list" class="space-y-2">
-          <p class="text-gray-400 text-sm text-center">読み込み中...</p>
+          <p class="text-gray-400 text-sm text-center">{% trans "読み込み中..." %}</p>
         </div>
       </div>
     </div>
     <div class="sub-tab-content" id="subtab-overview-kpi-score">
       <div class="db-card">
-        <h3 class="text-lg font-semibold mb-4">KPIスコアカード</h3>
+        <h3 class="text-lg font-semibold mb-4">{% trans "KPIスコアカード" %}</h3>
         <div id="kpi-scorecard-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-          <p class="text-gray-400 text-sm text-center col-span-full">読み込み中...</p>
+          <p class="text-gray-400 text-sm text-center col-span-full">{% trans "読み込み中..." %}</p>
         </div>
       </div>
     </div>
@@ -400,32 +400,32 @@
   {# ===== Tab: 売上 ===== #}
   <div class="tab-content" id="tab-sales">
     <div class="sub-tab-bar" id="sales-sub-tabs">
-      <button class="sub-tab-btn active" data-subtab="sales-trend" onclick="switchSubTab('sales', 'sales-trend')">売上推移</button>
-      <button class="sub-tab-btn" data-subtab="sales-products" onclick="switchSubTab('sales', 'sales-products')">人気商品 TOP10</button>
-      <button class="sub-tab-btn" data-subtab="sales-menu-eng" onclick="switchSubTab('sales', 'sales-menu-eng'); loadMenuEngineering();">メニュー分析</button>
-      <button class="sub-tab-btn" data-subtab="sales-abc" onclick="switchSubTab('sales', 'sales-abc'); loadABCAnalysis();">ABC分析</button>
-      <button class="sub-tab-btn" data-subtab="sales-forecast" onclick="switchSubTab('sales', 'sales-forecast'); loadForecast();">売上予測</button>
-      <button class="sub-tab-btn" data-subtab="sales-heatmap" onclick="switchSubTab('sales', 'sales-heatmap'); loadSalesHeatmap();">時間帯別売上</button>
-      <button class="sub-tab-btn" data-subtab="sales-aov" onclick="switchSubTab('sales', 'sales-aov'); loadAOVTrend();">客単価推移</button>
-      <button class="sub-tab-btn" data-subtab="sales-channel" onclick="switchSubTab('sales', 'sales-channel'); loadChannelSales();">チャネル別売上</button>
+      <button class="sub-tab-btn active" data-subtab="sales-trend" onclick="switchSubTab('sales', 'sales-trend')">{% trans "売上推移" %}</button>
+      <button class="sub-tab-btn" data-subtab="sales-products" onclick="switchSubTab('sales', 'sales-products')">{% trans "人気商品 TOP10" %}</button>
+      <button class="sub-tab-btn" data-subtab="sales-menu-eng" onclick="switchSubTab('sales', 'sales-menu-eng'); loadMenuEngineering();">{% trans "メニュー分析" %}
+      <button class="sub-tab-btn" data-subtab="sales-abc" onclick="switchSubTab('sales', 'sales-abc'); loadABCAnalysis();">{% trans "ABC分析" %}
+      <button class="sub-tab-btn" data-subtab="sales-forecast" onclick="switchSubTab('sales', 'sales-forecast'); loadForecast();">{% trans "売上予測" %}
+      <button class="sub-tab-btn" data-subtab="sales-heatmap" onclick="switchSubTab('sales', 'sales-heatmap'); loadSalesHeatmap();">{% trans "時間帯別売上" %}
+      <button class="sub-tab-btn" data-subtab="sales-aov" onclick="switchSubTab('sales', 'sales-aov'); loadAOVTrend();">{% trans "客単価推移" %}
+      <button class="sub-tab-btn" data-subtab="sales-channel" onclick="switchSubTab('sales', 'sales-channel'); loadChannelSales();">{% trans "チャネル別売上" %}
     </div>
     <div class="sub-tab-content active" id="subtab-sales-trend">
       <div class="db-card">
-        <h3 class="text-lg font-semibold mb-3">売上推移</h3>
+        <h3 class="text-lg font-semibold mb-3">{% trans "売上推移" %}</h3>
         <div class="chart-viewport"><canvas id="salesTrendChart"></canvas></div>
         <div class="ai-analysis-panel mt-4 p-4 bg-gradient-to-r from-violet-50 to-indigo-50 rounded-xl border" id="sales-ai-trend" style="display:none;"></div>
       </div>
     </div>
     <div class="sub-tab-content" id="subtab-sales-products">
       <div class="db-card">
-        <h3 class="text-lg font-semibold mb-3">人気商品 TOP10</h3>
+        <h3 class="text-lg font-semibold mb-3">{% trans "人気商品 TOP10" %}</h3>
         <div class="chart-viewport"><canvas id="topProductsChart"></canvas></div>
       </div>
     </div>
     <div class="sub-tab-content" id="subtab-sales-menu-eng">
       <div class="db-card">
         <div class="flex items-center justify-between mb-3">
-          <h3 class="text-lg font-semibold">メニューエンジニアリング マトリクス</h3>
+          <h3 class="text-lg font-semibold">{% trans "メニューエンジニアリング マトリクス" %}</h3>
           <div class="flex items-center gap-3">
             <div class="flex flex-wrap gap-2 text-xs">
               <span class="inline-flex items-center gap-1"><span class="w-3 h-3 rounded-full" style="background: rgba(16,185,129,0.8);"></span> Star</span>
@@ -440,15 +440,15 @@
           <table class="w-full text-sm border border-gray-200 rounded">
             <thead>
               <tr class="bg-gray-50">
-                <th class="px-3 py-2 text-left">商品名</th>
-                <th class="px-3 py-2 text-right">販売数</th>
-                <th class="px-3 py-2 text-right">利益率</th>
-                <th class="px-3 py-2 text-right">売上</th>
-                <th class="px-3 py-2 text-center">分類</th>
+                <th class="px-3 py-2 text-left">{% trans "商品名" %}</th>
+                <th class="px-3 py-2 text-right">{% trans "販売数" %}</th>
+                <th class="px-3 py-2 text-right">{% trans "利益率" %}</th>
+                <th class="px-3 py-2 text-right">{% trans "売上" %}</th>
+                <th class="px-3 py-2 text-center">{% trans "分類" %}</th>
               </tr>
             </thead>
             <tbody id="menu-eng-tbody">
-              <tr><td colspan="5" class="px-3 py-2 text-gray-400 text-center">読み込み中...</td></tr>
+              <tr><td colspan="5" class="px-3 py-2 text-gray-400 text-center">{% trans "読み込み中..." %}</td></tr>
             </tbody>
           </table>
         </div>
@@ -458,9 +458,9 @@
     <div class="sub-tab-content" id="subtab-sales-abc">
       <div class="db-card">
         <div class="flex items-center justify-between mb-3">
-          <h3 class="text-lg font-semibold">ABC分析（パレート）</h3>
+          <h3 class="text-lg font-semibold">{% trans "ABC分析（パレート）" %}</h3>
           <div class="flex flex-wrap gap-2 text-xs">
-            <span class="inline-flex items-center gap-1"><span class="w-3 h-3 rounded-full bg-emerald-500"></span> A (上位80%)</span>
+            <span class="inline-flex items-center gap-1"><span class="w-3 h-3 rounded-full bg-emerald-500"></span> A ({% trans "上位80%" %})</span>
             <span class="inline-flex items-center gap-1"><span class="w-3 h-3 rounded-full bg-amber-500"></span> B (80-95%)</span>
             <span class="inline-flex items-center gap-1"><span class="w-3 h-3 rounded-full bg-gray-400"></span> C (95-100%)</span>
           </div>
@@ -470,15 +470,15 @@
           <table class="w-full text-sm border border-gray-200 rounded">
             <thead>
               <tr class="bg-gray-50">
-                <th class="px-3 py-2 text-left">商品名</th>
-                <th class="px-3 py-2 text-right">売上</th>
-                <th class="px-3 py-2 text-right">構成比</th>
-                <th class="px-3 py-2 text-right">累積</th>
-                <th class="px-3 py-2 text-center">ランク</th>
+                <th class="px-3 py-2 text-left">{% trans "商品名" %}</th>
+                <th class="px-3 py-2 text-right">{% trans "売上" %}</th>
+                <th class="px-3 py-2 text-right">{% trans "構成比" %}</th>
+                <th class="px-3 py-2 text-right">{% trans "累積" %}</th>
+                <th class="px-3 py-2 text-center">{% trans "ランク" %}</th>
               </tr>
             </thead>
             <tbody id="abc-tbody">
-              <tr><td colspan="5" class="px-3 py-2 text-gray-400 text-center">読み込み中...</td></tr>
+              <tr><td colspan="5" class="px-3 py-2 text-gray-400 text-center">{% trans "読み込み中..." %}</td></tr>
             </tbody>
           </table>
         </div>
@@ -488,7 +488,7 @@
     <div class="sub-tab-content" id="subtab-sales-forecast">
       <div class="db-card">
         <div class="flex items-center justify-between mb-3">
-          <h3 class="text-lg font-semibold">売上予測</h3>
+          <h3 class="text-lg font-semibold">{% trans "売上予測" %}</h3>
           <span id="forecast-method" class="text-xs px-2 py-1 bg-indigo-100 text-indigo-700 rounded-full font-medium"></span>
         </div>
         <div class="chart-viewport"><canvas id="forecastChart"></canvas></div>
@@ -498,8 +498,8 @@
     <div class="sub-tab-content" id="subtab-sales-heatmap">
       <div class="db-card">
         <div class="flex items-center justify-between mb-3">
-          <h3 class="text-lg font-semibold">時間帯別売上ヒートマップ</h3>
-          <span class="text-xs text-gray-400">曜日 × 時間帯（過去90日）</span>
+          <h3 class="text-lg font-semibold">{% trans "時間帯別売上ヒートマップ" %}</h3>
+          <span class="text-xs text-gray-400">{% trans "曜日 × 時間帯（過去90日）" %}</span>
         </div>
         <div class="chart-viewport" style="height:320px; min-height:280px;"><canvas id="salesHeatmapChart"></canvas></div>
         <div class="ai-analysis-panel mt-4 p-4 bg-gradient-to-r from-violet-50 to-indigo-50 rounded-xl border" id="sales-ai-heatmap" style="display:none;"></div>
@@ -508,12 +508,12 @@
     <div class="sub-tab-content" id="subtab-sales-aov">
       <div class="db-card">
         <div class="flex items-center justify-between mb-3">
-          <h3 class="text-lg font-semibold">客単価（AOV）推移</h3>
+          <h3 class="text-lg font-semibold">{% trans "客単価（AOV）推移" %}</h3>
           <select id="aov-period-select" onchange="loadAOVTrend(true)" class="text-sm border border-gray-300 rounded px-2 py-1">
-            <option value="daily">日別</option>
-            <option value="weekly">週別</option>
-            <option value="monthly">月別</option>
-            <option value="yearly">年別</option>
+            <option value="daily">{% trans "日別" %}</option>
+            <option value="weekly">{% trans "週別" %}</option>
+            <option value="monthly">{% trans "月別" %}</option>
+            <option value="yearly">{% trans "年別" %}</option>
           </select>
         </div>
         <div class="chart-viewport"><canvas id="aovTrendChart"></canvas></div>
@@ -523,12 +523,12 @@
     <div class="sub-tab-content" id="subtab-sales-channel">
       <div class="db-card">
         <div class="flex items-center justify-between mb-3">
-          <h3 class="text-lg font-semibold">チャネル別売上</h3>
+          <h3 class="text-lg font-semibold">{% trans "チャネル別売上" %}</h3>
           <select id="channel-period-select" onchange="loadChannelSales(true)" class="text-sm border border-gray-300 rounded px-2 py-1">
-            <option value="daily">日別</option>
-            <option value="weekly">週別</option>
-            <option value="monthly">月別</option>
-            <option value="yearly">年別</option>
+            <option value="daily">{% trans "日別" %}</option>
+            <option value="weekly">{% trans "週別" %}</option>
+            <option value="monthly">{% trans "月別" %}</option>
+            <option value="yearly">{% trans "年別" %}</option>
           </select>
         </div>
         <div class="chart-viewport"><canvas id="channelSalesChart"></canvas></div>
@@ -539,26 +539,26 @@
   {# ===== Tab: 顧客分析 ===== #}
   <div class="tab-content" id="tab-customers">
     <div class="sub-tab-bar" id="customers-sub-tabs">
-      <button class="sub-tab-btn active" data-subtab="cust-cohort" onclick="switchSubTab('customers', 'cust-cohort'); loadCohort();">コホート分析</button>
-      <button class="sub-tab-btn" data-subtab="cust-rfm" onclick="switchSubTab('customers', 'cust-rfm'); loadRFM();">RFM分析</button>
-      <button class="sub-tab-btn" data-subtab="cust-basket" onclick="switchSubTab('customers', 'cust-basket'); loadBasket();">バスケット分析</button>
-      <button class="sub-tab-btn" data-subtab="cust-nps" onclick="switchSubTab('customers', 'cust-nps'); loadNPS();">NPS・満足度</button>
+      <button class="sub-tab-btn active" data-subtab="cust-cohort" onclick="switchSubTab('customers', 'cust-cohort'); loadCohort();">{% trans "コホート分析" %}
+      <button class="sub-tab-btn" data-subtab="cust-rfm" onclick="switchSubTab('customers', 'cust-rfm'); loadRFM();">{% trans "RFM分析" %}
+      <button class="sub-tab-btn" data-subtab="cust-basket" onclick="switchSubTab('customers', 'cust-basket'); loadBasket();">{% trans "バスケット分析" %}
+      <button class="sub-tab-btn" data-subtab="cust-nps" onclick="switchSubTab('customers', 'cust-nps'); loadNPS();">{% trans "NPS・満足度" %}
     </div>
     <div class="sub-tab-content active" id="subtab-cust-cohort">
       <div class="db-card">
         <div class="flex items-center justify-between mb-3">
-          <h3 class="text-lg font-semibold">月別コホート リテンション</h3>
-          <span class="text-xs text-gray-400">初回来店月ごとの継続率</span>
+          <h3 class="text-lg font-semibold">{% trans "月別コホート リテンション" %}</h3>
+          <span class="text-xs text-gray-400">{% trans "初回来店月ごとの継続率" %}</span>
         </div>
         <div id="cohort-table" class="overflow-x-auto">
-          <p class="text-gray-400 text-center py-8">読み込み中...</p>
+          <p class="text-gray-400 text-center py-8">{% trans "読み込み中..." %}</p>
         </div>
       </div>
     </div>
     <div class="sub-tab-content" id="subtab-cust-rfm">
       <div class="db-card">
         <div class="flex items-center justify-between mb-3">
-          <h3 class="text-lg font-semibold">RFMセグメンテーション</h3>
+          <h3 class="text-lg font-semibold">{% trans "RFMセグメンテーション" %}</h3>
           <div class="flex flex-wrap gap-2 text-xs">
             <span class="inline-flex items-center gap-1"><span class="w-3 h-3 rounded-full bg-emerald-500"></span> Champion</span>
             <span class="inline-flex items-center gap-1"><span class="w-3 h-3 rounded-full bg-blue-500"></span> Loyal</span>
@@ -574,11 +574,11 @@
     <div class="sub-tab-content" id="subtab-cust-basket">
       <div class="db-card">
         <div class="flex items-center justify-between mb-3">
-          <h3 class="text-lg font-semibold">バスケット分析（併売ルール）</h3>
+          <h3 class="text-lg font-semibold">{% trans "バスケット分析（併売ルール）" %}</h3>
           <span id="basket-method" class="text-xs px-2 py-1 bg-purple-100 text-purple-700 rounded-full font-medium"></span>
         </div>
         <div id="basket-table" class="overflow-x-auto">
-          <p class="text-gray-400 text-center py-8">読み込み中...</p>
+          <p class="text-gray-400 text-center py-8">{% trans "読み込み中..." %}</p>
         </div>
         <p id="basket-total" class="text-xs text-gray-400 mt-2"></p>
       </div>
@@ -586,31 +586,31 @@
     <div class="sub-tab-content" id="subtab-cust-nps">
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
         <div class="db-card">
-          <h3 class="text-lg font-semibold mb-3">NPSスコア</h3>
+          <h3 class="text-lg font-semibold mb-3">{% trans "NPSスコア" %}</h3>
           <div id="nps-gauge" class="flex flex-col items-center py-4">
             <div id="nps-score-display" class="text-5xl font-bold mb-1">--</div>
             <div class="text-sm text-gray-500 mb-3">Net Promoter Score</div>
             <div id="nps-breakdown" class="flex gap-4 text-sm">
-              <span class="text-emerald-600">推奨者: <b id="nps-promoters">0</b></span>
-              <span class="text-gray-500">中立者: <b id="nps-passives">0</b></span>
-              <span class="text-rose-600">批判者: <b id="nps-detractors">0</b></span>
+              <span class="text-emerald-600">{% trans "推奨者" %}: <b id="nps-promoters">0</b></span>
+              <span class="text-gray-500">{% trans "中立者" %}: <b id="nps-passives">0</b></span>
+              <span class="text-rose-600">{% trans "批判者" %}: <b id="nps-detractors">0</b></span>
             </div>
-            <div class="text-xs text-gray-400 mt-2">回答数: <span id="nps-total">0</span></div>
+            <div class="text-xs text-gray-400 mt-2">{% trans "回答数" %}: <span id="nps-total">0</span></div>
           </div>
         </div>
         <div class="db-card">
-          <h3 class="text-lg font-semibold mb-3">カテゴリ別評価</h3>
+          <h3 class="text-lg font-semibold mb-3">{% trans "カテゴリ別評価" %}</h3>
           <div class="chart-viewport" style="max-height:250px;"><canvas id="npsRadarChart"></canvas></div>
         </div>
       </div>
       <div class="db-card mt-4">
-        <h3 class="text-lg font-semibold mb-3">NPS推移</h3>
+        <h3 class="text-lg font-semibold mb-3">{% trans "NPS推移" %}</h3>
         <div class="chart-viewport"><canvas id="npsTrendChart"></canvas></div>
       </div>
       <div class="db-card mt-4">
-        <h3 class="text-lg font-semibold mb-3">最新フィードバック</h3>
+        <h3 class="text-lg font-semibold mb-3">{% trans "最新フィードバック" %}</h3>
         <div id="feedback-list" class="space-y-2">
-          <p class="text-gray-400 text-sm text-center">読み込み中...</p>
+          <p class="text-gray-400 text-sm text-center">{% trans "読み込み中..." %}</p>
         </div>
       </div>
     </div>
@@ -619,29 +619,29 @@
   {# ===== Tab: キャスト ===== #}
   <div class="tab-content" id="tab-cast">
     <div class="sub-tab-bar">
-      <button class="sub-tab-btn active" data-subtab="cast-chart" onclick="switchSubTab('cast', 'cast-chart')">グラフ</button>
-      <button class="sub-tab-btn" data-subtab="cast-ranking" onclick="switchSubTab('cast', 'cast-ranking')">売上ランキング</button>
+      <button class="sub-tab-btn active" data-subtab="cast-chart" onclick="switchSubTab('cast', 'cast-chart')">{% trans "グラフ" %}</button>
+      <button class="sub-tab-btn" data-subtab="cast-ranking" onclick="switchSubTab('cast', 'cast-ranking')">{% trans "売上ランキング" %}</button>
     </div>
     <div class="sub-tab-content active" id="subtab-cast-chart">
       <div class="db-card">
-        <h3 class="text-lg font-semibold mb-3">キャスト別 予約数・売上比較</h3>
+        <h3 class="text-lg font-semibold mb-3">{% trans "キャスト別 予約数・売上比較" %}</h3>
         <div class="chart-viewport"><canvas id="castChart"></canvas></div>
       </div>
     </div>
     <div class="sub-tab-content" id="subtab-cast-ranking">
       <div class="db-card">
-        <h3 class="text-lg font-semibold mb-3">キャスト別 売上ランキング</h3>
+        <h3 class="text-lg font-semibold mb-3">{% trans "キャスト別 売上ランキング" %}</h3>
         <table class="w-full text-sm border border-gray-200 rounded">
           <thead>
             <tr class="bg-gray-50">
-              <th class="px-4 py-2 text-center">順位</th>
-              <th class="px-4 py-2 text-left">キャスト</th>
-              <th class="px-4 py-2 text-right">予約数</th>
-              <th class="px-4 py-2 text-right">売上 (円)</th>
+              <th class="px-4 py-2 text-center">{% trans "順位" %}</th>
+              <th class="px-4 py-2 text-left">{% trans "キャスト" %}</th>
+              <th class="px-4 py-2 text-right">{% trans "予約数" %}</th>
+              <th class="px-4 py-2 text-right">{% trans "売上 (円)" %}</th>
             </tr>
           </thead>
           <tbody id="cast-ranking-tbody">
-            <tr><td colspan="4" class="px-4 py-2 text-gray-400 text-center">読み込み中...</td></tr>
+            <tr><td colspan="4" class="px-4 py-2 text-gray-400 text-center">{% trans "読み込み中..." %}</td></tr>
           </tbody>
         </table>
       </div>
@@ -651,7 +651,7 @@
   {# ===== Tab: スタッフ ===== #}
   <div class="tab-content" id="tab-staff">
     <div class="db-card">
-      <h3 class="text-lg font-semibold mb-3">スタッフ別 予約数・売上比較</h3>
+      <h3 class="text-lg font-semibold mb-3">{% trans "スタッフ別 予約数・売上比較" %}</h3>
       <div class="chart-viewport"><canvas id="staffChart"></canvas></div>
     </div>
   </div>
@@ -659,23 +659,23 @@
   {# ===== Tab: ECショップ売上 ===== #}
   <div class="tab-content" id="tab-ec-sales">
     <div class="sub-tab-bar">
-      <button class="sub-tab-btn active" data-subtab="ec-trend" onclick="switchSubTab('ec-sales', 'ec-trend')">売上推移</button>
-      <button class="sub-tab-btn" data-subtab="ec-products" onclick="switchSubTab('ec-sales', 'ec-products')">人気商品 TOP10</button>
-      <button class="sub-tab-btn" data-subtab="ec-menu-eng" onclick="switchSubTab('ec-sales', 'ec-menu-eng'); ecSuite.loadMenuEng();">メニュー分析</button>
-      <button class="sub-tab-btn" data-subtab="ec-abc" onclick="switchSubTab('ec-sales', 'ec-abc'); ecSuite.loadABC();">ABC分析</button>
-      <button class="sub-tab-btn" data-subtab="ec-forecast" onclick="switchSubTab('ec-sales', 'ec-forecast'); ecSuite.loadForecast();">売上予測</button>
-      <button class="sub-tab-btn" data-subtab="ec-heatmap" onclick="switchSubTab('ec-sales', 'ec-heatmap'); ecSuite.loadHeatmap();">時間帯別売上</button>
-      <button class="sub-tab-btn" data-subtab="ec-aov" onclick="switchSubTab('ec-sales', 'ec-aov'); ecSuite.loadAOV();">客単価推移</button>
+      <button class="sub-tab-btn active" data-subtab="ec-trend" onclick="switchSubTab('ec-sales', 'ec-trend')">{% trans "売上推移" %}</button>
+      <button class="sub-tab-btn" data-subtab="ec-products" onclick="switchSubTab('ec-sales', 'ec-products')">{% trans "人気商品 TOP10" %}</button>
+      <button class="sub-tab-btn" data-subtab="ec-menu-eng" onclick="switchSubTab('ec-sales', 'ec-menu-eng'); ecSuite.loadMenuEng();">{% trans "メニュー分析" %}</button>
+      <button class="sub-tab-btn" data-subtab="ec-abc" onclick="switchSubTab('ec-sales', 'ec-abc'); ecSuite.loadABC();">{% trans "ABC分析" %}</button>
+      <button class="sub-tab-btn" data-subtab="ec-forecast" onclick="switchSubTab('ec-sales', 'ec-forecast'); ecSuite.loadForecast();">{% trans "売上予測" %}</button>
+      <button class="sub-tab-btn" data-subtab="ec-heatmap" onclick="switchSubTab('ec-sales', 'ec-heatmap'); ecSuite.loadHeatmap();">{% trans "時間帯別売上" %}</button>
+      <button class="sub-tab-btn" data-subtab="ec-aov" onclick="switchSubTab('ec-sales', 'ec-aov'); ecSuite.loadAOV();">{% trans "客単価推移" %}</button>
     </div>
     <div class="sub-tab-content active" id="subtab-ec-trend">
       <div class="db-card">
         <div class="flex items-center justify-between mb-3">
-          <h3 class="text-lg font-semibold">ECショップ 売上推移</h3>
+          <h3 class="text-lg font-semibold">{% trans "ECショップ 売上推移" %}</h3>
           <select id="ec-sales-period" onchange="loadECSales(true)" class="text-sm border border-gray-300 rounded px-2 py-1">
-            <option value="daily">日別</option>
-            <option value="weekly">週別</option>
-            <option value="monthly">月別</option>
-            <option value="yearly">年別</option>
+            <option value="daily">{% trans "日別" %}</option>
+            <option value="weekly">{% trans "週別" %}</option>
+            <option value="monthly">{% trans "月別" %}</option>
+            <option value="yearly">{% trans "年別" %}</option>
           </select>
         </div>
         <div class="chart-viewport"><canvas id="ecSalesTrendChart"></canvas></div>
@@ -683,14 +683,14 @@
     </div>
     <div class="sub-tab-content" id="subtab-ec-products">
       <div class="db-card">
-        <h3 class="text-lg font-semibold mb-3">ECショップ 人気商品 TOP10</h3>
+        <h3 class="text-lg font-semibold mb-3">{% trans "ECショップ 人気商品 TOP10" %}</h3>
         <div class="chart-viewport"><canvas id="ecTopProductsChart"></canvas></div>
       </div>
     </div>
     <div class="sub-tab-content" id="subtab-ec-menu-eng">
       <div class="db-card">
         <div class="flex items-center justify-between mb-3">
-          <h3 class="text-lg font-semibold">EC メニューエンジニアリング</h3>
+          <h3 class="text-lg font-semibold">{% trans "EC メニューエンジニアリング" %}</h3>
           <div class="flex flex-wrap gap-2 text-xs">
             <span class="inline-flex items-center gap-1"><span class="w-3 h-3 rounded-full" style="background: rgba(16,185,129,0.8);"></span> Star</span>
             <span class="inline-flex items-center gap-1"><span class="w-3 h-3 rounded-full" style="background: rgba(14,165,233,0.8);"></span> Plowhorse</span>
@@ -706,7 +706,7 @@
     <div class="sub-tab-content" id="subtab-ec-abc">
       <div class="db-card">
         <div class="flex items-center justify-between mb-3">
-          <h3 class="text-lg font-semibold">EC ABC分析（パレート）</h3>
+          <h3 class="text-lg font-semibold">{% trans "EC ABC分析（パレート）" %}</h3>
         </div>
         <div class="chart-viewport"><canvas id="ecAbcChart"></canvas></div>
         <div id="ec-abc-table" class="mt-4"></div>
@@ -716,7 +716,7 @@
     <div class="sub-tab-content" id="subtab-ec-forecast">
       <div class="db-card">
         <div class="flex items-center justify-between mb-3">
-          <h3 class="text-lg font-semibold">EC 売上予測</h3>
+          <h3 class="text-lg font-semibold">{% trans "EC 売上予測" %}</h3>
           <span id="ec-forecast-method" class="text-xs px-2 py-1 bg-blue-100 text-blue-700 rounded-full font-medium"></span>
         </div>
         <div class="chart-viewport"><canvas id="ecForecastChart"></canvas></div>
@@ -726,7 +726,7 @@
     <div class="sub-tab-content" id="subtab-ec-heatmap">
       <div class="db-card">
         <div class="flex items-center justify-between mb-3">
-          <h3 class="text-lg font-semibold">EC 時間帯別売上</h3>
+          <h3 class="text-lg font-semibold">{% trans "EC 時間帯別売上" %}</h3>
         </div>
         <div class="chart-viewport" style="height:320px; min-height:280px;"><canvas id="ecHeatmapChart"></canvas></div>
         <div class="ai-analysis-panel mt-4 p-4 bg-gradient-to-r from-violet-50 to-indigo-50 rounded-xl border" id="ec-ai-heatmap" style="display:none;"></div>
@@ -735,12 +735,12 @@
     <div class="sub-tab-content" id="subtab-ec-aov">
       <div class="db-card">
         <div class="flex items-center justify-between mb-3">
-          <h3 class="text-lg font-semibold">EC 客単価推移</h3>
+          <h3 class="text-lg font-semibold">{% trans "EC 客単価推移" %}</h3>
           <select id="ec-aov-period" onchange="ecSuite.loadAOV(true)" class="text-sm border border-gray-300 rounded px-2 py-1">
-            <option value="daily">日別</option>
-            <option value="weekly">週別</option>
-            <option value="monthly">月別</option>
-            <option value="yearly">年別</option>
+            <option value="daily">{% trans "日別" %}</option>
+            <option value="weekly">{% trans "週別" %}</option>
+            <option value="monthly">{% trans "月別" %}</option>
+            <option value="yearly">{% trans "年別" %}</option>
           </select>
         </div>
         <div class="chart-viewport"><canvas id="ecAovChart"></canvas></div>
@@ -752,23 +752,23 @@
   {# ===== Tab: 店内メニュー売上 ===== #}
   <div class="tab-content" id="tab-instore-sales">
     <div class="sub-tab-bar">
-      <button class="sub-tab-btn active" data-subtab="instore-trend" onclick="switchSubTab('instore-sales', 'instore-trend')">売上推移</button>
-      <button class="sub-tab-btn" data-subtab="instore-products" onclick="switchSubTab('instore-sales', 'instore-products')">人気商品 TOP10</button>
-      <button class="sub-tab-btn" data-subtab="instore-menu-eng" onclick="switchSubTab('instore-sales', 'instore-menu-eng'); instoreSuite.loadMenuEng();">メニュー分析</button>
-      <button class="sub-tab-btn" data-subtab="instore-abc" onclick="switchSubTab('instore-sales', 'instore-abc'); instoreSuite.loadABC();">ABC分析</button>
-      <button class="sub-tab-btn" data-subtab="instore-forecast" onclick="switchSubTab('instore-sales', 'instore-forecast'); instoreSuite.loadForecast();">売上予測</button>
-      <button class="sub-tab-btn" data-subtab="instore-heatmap" onclick="switchSubTab('instore-sales', 'instore-heatmap'); instoreSuite.loadHeatmap();">時間帯別売上</button>
-      <button class="sub-tab-btn" data-subtab="instore-aov" onclick="switchSubTab('instore-sales', 'instore-aov'); instoreSuite.loadAOV();">客単価推移</button>
+      <button class="sub-tab-btn active" data-subtab="instore-trend" onclick="switchSubTab('instore-sales', 'instore-trend')">{% trans "売上推移" %}</button>
+      <button class="sub-tab-btn" data-subtab="instore-products" onclick="switchSubTab('instore-sales', 'instore-products')">{% trans "人気商品 TOP10" %}</button>
+      <button class="sub-tab-btn" data-subtab="instore-menu-eng" onclick="switchSubTab('instore-sales', 'instore-menu-eng'); instoreSuite.loadMenuEng();">{% trans "メニュー分析" %}</button>
+      <button class="sub-tab-btn" data-subtab="instore-abc" onclick="switchSubTab('instore-sales', 'instore-abc'); instoreSuite.loadABC();">{% trans "ABC分析" %}</button>
+      <button class="sub-tab-btn" data-subtab="instore-forecast" onclick="switchSubTab('instore-sales', 'instore-forecast'); instoreSuite.loadForecast();">{% trans "売上予測" %}</button>
+      <button class="sub-tab-btn" data-subtab="instore-heatmap" onclick="switchSubTab('instore-sales', 'instore-heatmap'); instoreSuite.loadHeatmap();">{% trans "時間帯別売上" %}</button>
+      <button class="sub-tab-btn" data-subtab="instore-aov" onclick="switchSubTab('instore-sales', 'instore-aov'); instoreSuite.loadAOV();">{% trans "客単価推移" %}</button>
     </div>
     <div class="sub-tab-content active" id="subtab-instore-trend">
       <div class="db-card">
         <div class="flex items-center justify-between mb-3">
-          <h3 class="text-lg font-semibold">店内メニュー 売上推移</h3>
+          <h3 class="text-lg font-semibold">{% trans "店内メニュー 売上推移" %}</h3>
           <select id="instore-sales-period" onchange="loadInstoreSales(true)" class="text-sm border border-gray-300 rounded px-2 py-1">
-            <option value="daily">日別</option>
-            <option value="weekly">週別</option>
-            <option value="monthly">月別</option>
-            <option value="yearly">年別</option>
+            <option value="daily">{% trans "日別" %}</option>
+            <option value="weekly">{% trans "週別" %}</option>
+            <option value="monthly">{% trans "月別" %}</option>
+            <option value="yearly">{% trans "年別" %}</option>
           </select>
         </div>
         <div class="chart-viewport"><canvas id="instoreSalesTrendChart"></canvas></div>
@@ -776,14 +776,14 @@
     </div>
     <div class="sub-tab-content" id="subtab-instore-products">
       <div class="db-card">
-        <h3 class="text-lg font-semibold mb-3">店内メニュー 人気商品 TOP10</h3>
+        <h3 class="text-lg font-semibold mb-3">{% trans "店内メニュー 人気商品 TOP10" %}</h3>
         <div class="chart-viewport"><canvas id="instoreTopProductsChart"></canvas></div>
       </div>
     </div>
     <div class="sub-tab-content" id="subtab-instore-menu-eng">
       <div class="db-card">
         <div class="flex items-center justify-between mb-3">
-          <h3 class="text-lg font-semibold">店内 メニューエンジニアリング</h3>
+          <h3 class="text-lg font-semibold">{% trans "店内 メニューエンジニアリング" %}</h3>
           <div class="flex flex-wrap gap-2 text-xs">
             <span class="inline-flex items-center gap-1"><span class="w-3 h-3 rounded-full" style="background: rgba(16,185,129,0.8);"></span> Star</span>
             <span class="inline-flex items-center gap-1"><span class="w-3 h-3 rounded-full" style="background: rgba(14,165,233,0.8);"></span> Plowhorse</span>
@@ -799,7 +799,7 @@
     <div class="sub-tab-content" id="subtab-instore-abc">
       <div class="db-card">
         <div class="flex items-center justify-between mb-3">
-          <h3 class="text-lg font-semibold">店内 ABC分析（パレート）</h3>
+          <h3 class="text-lg font-semibold">{% trans "店内 ABC分析（パレート）" %}</h3>
         </div>
         <div class="chart-viewport"><canvas id="instoreAbcChart"></canvas></div>
         <div id="instore-abc-table" class="mt-4"></div>
@@ -809,7 +809,7 @@
     <div class="sub-tab-content" id="subtab-instore-forecast">
       <div class="db-card">
         <div class="flex items-center justify-between mb-3">
-          <h3 class="text-lg font-semibold">店内 売上予測</h3>
+          <h3 class="text-lg font-semibold">{% trans "店内 売上予測" %}</h3>
           <span id="instore-forecast-method" class="text-xs px-2 py-1 bg-blue-100 text-blue-700 rounded-full font-medium"></span>
         </div>
         <div class="chart-viewport"><canvas id="instoreForecastChart"></canvas></div>
@@ -819,7 +819,7 @@
     <div class="sub-tab-content" id="subtab-instore-heatmap">
       <div class="db-card">
         <div class="flex items-center justify-between mb-3">
-          <h3 class="text-lg font-semibold">店内 時間帯別売上</h3>
+          <h3 class="text-lg font-semibold">{% trans "店内 時間帯別売上" %}</h3>
         </div>
         <div class="chart-viewport" style="height:320px; min-height:280px;"><canvas id="instoreHeatmapChart"></canvas></div>
         <div class="ai-analysis-panel mt-4 p-4 bg-gradient-to-r from-violet-50 to-indigo-50 rounded-xl border" id="instore-ai-heatmap" style="display:none;"></div>
@@ -828,12 +828,12 @@
     <div class="sub-tab-content" id="subtab-instore-aov">
       <div class="db-card">
         <div class="flex items-center justify-between mb-3">
-          <h3 class="text-lg font-semibold">店内 客単価推移</h3>
+          <h3 class="text-lg font-semibold">{% trans "店内 客単価推移" %}</h3>
           <select id="instore-aov-period" onchange="instoreSuite.loadAOV(true)" class="text-sm border border-gray-300 rounded px-2 py-1">
-            <option value="daily">日別</option>
-            <option value="weekly">週別</option>
-            <option value="monthly">月別</option>
-            <option value="yearly">年別</option>
+            <option value="daily">{% trans "日別" %}</option>
+            <option value="weekly">{% trans "週別" %}</option>
+            <option value="monthly">{% trans "月別" %}</option>
+            <option value="yearly">{% trans "年別" %}</option>
           </select>
         </div>
         <div class="chart-viewport"><canvas id="instoreAovChart"></canvas></div>
@@ -846,37 +846,37 @@
   <div class="tab-content" id="tab-shift">
     <div class="db-card">
       <div class="flex items-center justify-between mb-3">
-        <h3 class="text-lg font-semibold">今月のシフト状況</h3>
+        <h3 class="text-lg font-semibold">{% trans "今月のシフト状況" %}</h3>
         <a href="/admin/shift/calendar/" class="inline-flex items-center gap-1 px-4 py-2 bg-indigo-500 text-white text-sm font-medium rounded-lg hover:bg-indigo-600 transition" style="text-decoration:none;">
-          <i class="fas fa-calendar-alt"></i> シフトカレンダーを開く
+          <i class="fas fa-calendar-alt"></i> {% trans "シフトカレンダーを開く" %}
         </a>
       </div>
       <div id="shift-summary" class="grid grid-cols-1 md:grid-cols-3 gap-4">
         <div class="text-center p-4 bg-indigo-50 rounded-lg">
-          <span class="text-sm text-gray-500">確定シフト数</span>
+          <span class="text-sm text-gray-500">{% trans "確定シフト数" %}</span>
           <div id="shift-total" class="text-3xl font-extrabold text-indigo-500">--</div>
         </div>
         <div class="text-center p-4 bg-emerald-50 rounded-lg">
-          <span class="text-sm text-gray-500">同期済み</span>
+          <span class="text-sm text-gray-500">{% trans "同期済み" %}</span>
           <div id="shift-synced" class="text-3xl font-extrabold text-emerald-500">--</div>
         </div>
         <div class="text-center p-4 bg-amber-50 rounded-lg">
-          <span class="text-sm text-gray-500">募集中の期間</span>
+          <span class="text-sm text-gray-500">{% trans "募集中の期間" %}</span>
           <div id="shift-open-periods" class="text-3xl font-extrabold text-amber-500">--</div>
         </div>
       </div>
       <div id="shift-staff-table" class="mt-6">
-        <h4 class="text-base font-semibold mb-2">スタッフ別シフト数</h4>
+        <h4 class="text-base font-semibold mb-2">{% trans "スタッフ別シフト数" %}</h4>
         <table class="w-full text-sm border border-gray-200 rounded">
           <thead>
             <tr class="bg-gray-50">
-              <th class="px-4 py-2 text-left">スタッフ</th>
-              <th class="px-4 py-2 text-right">確定シフト数</th>
-              <th class="px-4 py-2 text-right">同期済み</th>
+              <th class="px-4 py-2 text-left">{% trans "スタッフ" %}</th>
+              <th class="px-4 py-2 text-right">{% trans "確定シフト数" %}</th>
+              <th class="px-4 py-2 text-right">{% trans "同期済み" %}</th>
             </tr>
           </thead>
           <tbody id="shift-staff-tbody">
-            <tr><td colspan="3" class="px-4 py-2 text-gray-400 text-center">読み込み中...</td></tr>
+            <tr><td colspan="3" class="px-4 py-2 text-gray-400 text-center">{% trans "読み込み中..." %}</td></tr>
           </tbody>
         </table>
       </div>
@@ -887,41 +887,41 @@
   <div class="tab-content" id="tab-attendance">
     <div class="db-card">
       <div class="flex items-center justify-between mb-3">
-        <h3 class="text-lg font-semibold">本日の出退勤状況</h3>
+        <h3 class="text-lg font-semibold">{% trans "本日の出退勤状況" %}</h3>
         <div class="flex gap-2">
           <a href="/admin/attendance/board/" class="inline-flex items-center gap-1 px-3 py-1.5 bg-sky-500 text-white text-sm font-medium rounded-lg hover:bg-sky-600 transition" style="text-decoration:none;">
-            <i class="fas fa-clipboard-check"></i> 出退勤ボード
+            <i class="fas fa-clipboard-check"></i> {% trans "出退勤ボード" %}
           </a>
           <a href="/admin/attendance/qr/" class="inline-flex items-center gap-1 px-3 py-1.5 bg-emerald-500 text-white text-sm font-medium rounded-lg hover:bg-emerald-600 transition" style="text-decoration:none;">
-            <i class="fas fa-qrcode"></i> QR勤怠
+            <i class="fas fa-qrcode"></i> {% trans "QR勤怠" %}
           </a>
         </div>
       </div>
       <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
         <div class="text-center p-4 bg-emerald-50 rounded-lg">
-          <span class="text-sm text-gray-500">出勤中</span>
+          <span class="text-sm text-gray-500">{% trans "出勤中" %}</span>
           <div id="att-clocked-in" class="text-3xl font-extrabold text-emerald-500">--</div>
         </div>
         <div class="text-center p-4 bg-gray-50 rounded-lg">
-          <span class="text-sm text-gray-500">退勤済み</span>
+          <span class="text-sm text-gray-500">{% trans "退勤済み" %}</span>
           <div id="att-clocked-out" class="text-3xl font-extrabold text-gray-500">--</div>
         </div>
         <div class="text-center p-4 bg-amber-50 rounded-lg">
-          <span class="text-sm text-gray-500">未出勤</span>
+          <span class="text-sm text-gray-500">{% trans "未出勤" %}</span>
           <div id="att-not-yet" class="text-3xl font-extrabold text-amber-500">--</div>
         </div>
       </div>
       <table class="w-full text-sm border border-gray-200 rounded">
         <thead>
           <tr class="bg-gray-50">
-            <th class="px-4 py-2 text-left">スタッフ</th>
-            <th class="px-4 py-2 text-center">状態</th>
-            <th class="px-4 py-2 text-right">出勤</th>
-            <th class="px-4 py-2 text-right">退勤</th>
+            <th class="px-4 py-2 text-left">{% trans "スタッフ" %}</th>
+            <th class="px-4 py-2 text-center">{% trans "状態" %}</th>
+            <th class="px-4 py-2 text-right">{% trans "出勤" %}</th>
+            <th class="px-4 py-2 text-right">{% trans "退勤" %}</th>
           </tr>
         </thead>
         <tbody id="att-staff-tbody">
-          <tr><td colspan="4" class="px-4 py-2 text-gray-400 text-center">読み込み中...</td></tr>
+          <tr><td colspan="4" class="px-4 py-2 text-gray-400 text-center">{% trans "読み込み中..." %}</td></tr>
         </tbody>
       </table>
     </div>
@@ -933,18 +933,18 @@
       {# 来客分析サマリー #}
       <div class="db-card">
         <div class="flex items-center justify-between mb-3">
-          <h3 class="text-lg font-semibold">来客分析</h3>
+          <h3 class="text-lg font-semibold">{% trans "来客分析" %}</h3>
           <a href="/admin/analytics/visitors/" class="inline-flex items-center gap-1 px-3 py-1.5 bg-violet-500 text-white text-sm font-medium rounded-lg hover:bg-violet-600 transition" style="text-decoration:none;">
-            <i class="fas fa-chart-bar"></i> 詳細を見る
+            <i class="fas fa-chart-bar"></i> {% trans "詳細を見る" %}
           </a>
         </div>
         <div class="grid grid-cols-2 gap-4 mb-4">
           <div class="text-center p-4 bg-violet-50 rounded-lg">
-            <span class="text-sm text-gray-500">今日の来客数</span>
+            <span class="text-sm text-gray-500">{% trans "今日の来客数" %}</span>
             <div id="ops-visitors-today" class="text-3xl font-extrabold text-violet-500">--</div>
           </div>
           <div class="text-center p-4 bg-teal-50 rounded-lg">
-            <span class="text-sm text-gray-500">コンバージョン率</span>
+            <span class="text-sm text-gray-500">{% trans "コンバージョン率" %}</span>
             <div id="ops-conversion" class="text-3xl font-extrabold text-teal-500">--%</div>
           </div>
         </div>
@@ -953,18 +953,18 @@
       {# AI推薦サマリー #}
       <div class="db-card">
         <div class="flex items-center justify-between mb-3">
-          <h3 class="text-lg font-semibold">AI推薦</h3>
+          <h3 class="text-lg font-semibold">{% trans "AI推薦" %}</h3>
           <a href="/admin/ai/recommendation/" class="inline-flex items-center gap-1 px-3 py-1.5 bg-pink-500 text-white text-sm font-medium rounded-lg hover:bg-pink-600 transition" style="text-decoration:none;">
-            <i class="fas fa-robot"></i> 詳細を見る
+            <i class="fas fa-robot"></i> {% trans "詳細を見る" %}
           </a>
         </div>
         <div class="grid grid-cols-2 gap-4 mb-4">
           <div class="text-center p-4 bg-pink-50 rounded-lg">
-            <span class="text-sm text-gray-500">モデル精度</span>
+            <span class="text-sm text-gray-500">{% trans "モデル精度" %}</span>
             <div id="ops-ai-accuracy" class="text-3xl font-extrabold text-pink-500">--%</div>
           </div>
           <div class="text-center p-4 bg-indigo-50 rounded-lg">
-            <span class="text-sm text-gray-500">今日の推薦スタッフ数</span>
+            <span class="text-sm text-gray-500">{% trans "今日の推薦スタッフ数" %}</span>
             <div id="ops-ai-recommend" class="text-3xl font-extrabold text-indigo-500">--</div>
           </div>
         </div>
@@ -973,27 +973,27 @@
       {# リアルタイム注文 #}
       <div class="db-card">
         <div class="flex items-center justify-between mb-3">
-          <h3 class="text-lg font-semibold">進行中の注文</h3>
+          <h3 class="text-lg font-semibold">{% trans "進行中の注文" %}</h3>
           <div class="flex gap-2">
             <a href="/admin/pos/" class="inline-flex items-center gap-1 px-3 py-1.5 bg-amber-500 text-white text-sm font-medium rounded-lg hover:bg-amber-600 transition" style="text-decoration:none;">
-              <i class="fas fa-cash-register"></i> POS
+              <i class="fas fa-cash-register"></i> {% trans "POS" %}
             </a>
             <a href="/admin/pos/kitchen/" class="inline-flex items-center gap-1 px-3 py-1.5 bg-rose-500 text-white text-sm font-medium rounded-lg hover:bg-rose-600 transition" style="text-decoration:none;">
-              <i class="fas fa-utensils"></i> キッチン
+              <i class="fas fa-utensils"></i> {% trans "キッチン" %}
             </a>
           </div>
         </div>
         <div class="grid grid-cols-3 gap-4 mb-4">
           <div class="text-center p-4 bg-amber-50 rounded-lg">
-            <span class="text-sm text-gray-500">未処理</span>
+            <span class="text-sm text-gray-500">{% trans "未処理" %}</span>
             <div id="ops-orders-open" class="text-3xl font-extrabold text-amber-500">--</div>
           </div>
           <div class="text-center p-4 bg-sky-50 rounded-lg">
-            <span class="text-sm text-gray-500">調理中</span>
+            <span class="text-sm text-gray-500">{% trans "調理中" %}</span>
             <div id="ops-orders-preparing" class="text-3xl font-extrabold text-sky-500">--</div>
           </div>
           <div class="text-center p-4 bg-emerald-50 rounded-lg">
-            <span class="text-sm text-gray-500">配膳済み</span>
+            <span class="text-sm text-gray-500">{% trans "配膳済み" %}</span>
             <div id="ops-orders-served" class="text-3xl font-extrabold text-emerald-500">--</div>
           </div>
         </div>
@@ -1001,9 +1001,9 @@
 
       {# 在庫アラート #}
       <div class="db-card">
-        <h3 class="text-lg font-semibold mb-3">在庫アラート</h3>
+        <h3 class="text-lg font-semibold mb-3">{% trans "在庫アラート" %}</h3>
         <div id="ops-low-stock" class="space-y-2">
-          <p class="text-gray-400 text-sm text-center">読み込み中...</p>
+          <p class="text-gray-400 text-sm text-center">{% trans "読み込み中..." %}</p>
         </div>
       </div>
     </div>
@@ -1012,29 +1012,29 @@
   {# ===== Tab: チェックイン ===== #}
   <div class="tab-content" id="tab-checkin">
     <div class="sub-tab-bar" id="checkin-sub-tabs">
-      <button class="sub-tab-btn active" data-subtab="checkin-summary" onclick="switchSubTab('checkin', 'checkin-summary')">サマリー</button>
-      <button class="sub-tab-btn" data-subtab="checkin-daily" onclick="switchSubTab('checkin', 'checkin-daily')">日別推移</button>
-      <button class="sub-tab-btn" data-subtab="checkin-staff" onclick="switchSubTab('checkin', 'checkin-staff')">スタッフ別</button>
-      <button class="sub-tab-btn" data-subtab="checkin-hourly" onclick="switchSubTab('checkin', 'checkin-hourly')">時間帯別</button>
+      <button class="sub-tab-btn active" data-subtab="checkin-summary" onclick="switchSubTab('checkin', 'checkin-summary')">{% trans "サマリー" %}</button>
+      <button class="sub-tab-btn" data-subtab="checkin-daily" onclick="switchSubTab('checkin', 'checkin-daily')">{% trans "日別推移" %}</button>
+      <button class="sub-tab-btn" data-subtab="checkin-staff" onclick="switchSubTab('checkin', 'checkin-staff')">{% trans "スタッフ別" %}</button>
+      <button class="sub-tab-btn" data-subtab="checkin-hourly" onclick="switchSubTab('checkin', 'checkin-hourly')">{% trans "時間帯別" %}</button>
     </div>
 
     {# サマリー #}
     <div class="sub-tab-content active" id="subtab-checkin-summary">
       <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
         <div class="db-card text-center">
-          <span class="text-sm text-gray-500">総予約数</span>
+          <span class="text-sm text-gray-500">{% trans "総予約数" %}</span>
           <div id="ci-total" class="text-3xl font-extrabold text-indigo-500">--</div>
         </div>
         <div class="db-card text-center">
-          <span class="text-sm text-gray-500">チェックイン済</span>
+          <span class="text-sm text-gray-500">{% trans "チェックイン済" %}</span>
           <div id="ci-checked" class="text-3xl font-extrabold text-emerald-500">--</div>
         </div>
         <div class="db-card text-center">
-          <span class="text-sm text-gray-500">ノーショー</span>
+          <span class="text-sm text-gray-500">{% trans "ノーショー" %}</span>
           <div id="ci-noshow" class="text-3xl font-extrabold text-rose-500">--</div>
         </div>
         <div class="db-card text-center">
-          <span class="text-sm text-gray-500">チェックイン率</span>
+          <span class="text-sm text-gray-500">{% trans "チェックイン率" %}</span>
           <div id="ci-rate" class="text-3xl font-extrabold text-sky-500">--%</div>
         </div>
       </div>
@@ -1043,7 +1043,7 @@
     {# 日別推移 #}
     <div class="sub-tab-content" id="subtab-checkin-daily">
       <div class="db-card">
-        <h3 class="text-lg font-semibold mb-3">日別チェックイン推移</h3>
+        <h3 class="text-lg font-semibold mb-3">{% trans "日別チェックイン推移" %}</h3>
         <div class="chart-viewport" style="position:relative;height:calc(100vh - 380px);min-height:300px;">
           <canvas id="checkinDailyChart"></canvas>
         </div>
@@ -1053,7 +1053,7 @@
     {# スタッフ別 #}
     <div class="sub-tab-content" id="subtab-checkin-staff">
       <div class="db-card">
-        <h3 class="text-lg font-semibold mb-3">スタッフ別チェックイン率</h3>
+        <h3 class="text-lg font-semibold mb-3">{% trans "スタッフ別チェックイン率" %}</h3>
         <div class="chart-viewport" style="position:relative;height:calc(100vh - 380px);min-height:300px;">
           <canvas id="checkinStaffChart"></canvas>
         </div>
@@ -1063,7 +1063,7 @@
     {# 時間帯別 #}
     <div class="sub-tab-content" id="subtab-checkin-hourly">
       <div class="db-card">
-        <h3 class="text-lg font-semibold mb-3">時間帯別チェックイン分布</h3>
+        <h3 class="text-lg font-semibold mb-3">{% trans "時間帯別チェックイン分布" %}</h3>
         <div class="chart-viewport" style="position:relative;height:calc(100vh - 380px);min-height:300px;">
           <canvas id="checkinHourlyChart"></canvas>
         </div>
@@ -1075,6 +1075,138 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', function () {
+
+  var T = {
+    // Chart labels
+    reservations: "{% trans '予約数' %}",
+    cancellations: "{% trans 'キャンセル数' %}",
+    sales_yen: "{% trans '売上 (円)' %}",
+    sales_prefix: "{% trans '売上: ' %}",
+    yen_suffix: "{% trans ' 円' %}",
+    order_count: "{% trans '注文数' %}",
+    ec_sales_yen: "{% trans 'ECショップ売上 (円)' %}",
+    instore_sales_yen: "{% trans '店内メニュー売上 (円)' %}",
+    aov_yen: "{% trans '客単価 (円)' %}",
+    aov_prefix: "{% trans '客単価: ' %}",
+    cumulative_pct: "{% trans '累積構成比 (%)' %}",
+    cumulative_prefix: "{% trans '累積: ' %}",
+    sales_volume: "{% trans '販売数量 (人気度)' %}",
+    sales_volume_short: "{% trans '販売数量' %}",
+    margin_rate_pct: "{% trans '利益率 (%)' %}",
+    actual: "{% trans '実績' %}",
+    forecast_label: "{% trans '予測' %}",
+    upper_bound: "{% trans '上限' %}",
+    lower_bound: "{% trans '下限' %}",
+    time_slot: "{% trans '時間帯' %}",
+    weekday: "{% trans '曜日' %}",
+    avg_rating: "{% trans '平均評価' %}",
+    checkin_label: "{% trans 'チェックイン' %}",
+    noshow_label: "{% trans 'ノーショー' %}",
+    checkin_rate_pct: "{% trans 'チェックイン率 (%)' %}",
+    checkin_count: "{% trans 'チェックイン数' %}",
+    // Status messages
+    loading: "{% trans '読み込み中...' %}",
+    no_data: "{% trans 'データなし' %}",
+    fetch_error: "{% trans '取得エラー' %}",
+    data_fetch_error: "{% trans 'データ取得エラー' %}",
+    no_shift_data: "{% trans 'シフトデータなし' %}",
+    no_cast_data: "{% trans 'キャストデータなし' %}",
+    no_att_data: "{% trans '本日の勤怠データなし' %}",
+    no_stock_alerts: "{% trans '在庫アラートなし' %}",
+    remaining: "{% trans '残' %}",
+    no_feedback: "{% trans 'フィードバックがありません' %}",
+    no_data_available: "{% trans 'データがありません' %}",
+    loading_error: "{% trans '読み込みエラー' %}",
+    no_insights: "{% trans 'インサイトはありません。「分析実行」ボタンで最新の分析を行えます。' %}",
+    mark_read: "{% trans '既読にする' %}",
+    analyzing: "{% trans '分析中...' %}",
+    run_analysis: "{% trans '分析実行' %}",
+    // Attendance
+    clocked_out: "{% trans '退勤済み' %}",
+    clocked_in: "{% trans '出勤中' %}",
+    not_clocked_in: "{% trans '未出勤' %}",
+    // Forecast method
+    moving_avg: "{% trans '移動平均+曜日係数' %}",
+    // Pairwise
+    pairwise: "{% trans 'ペアワイズ分析' %}",
+    target_txn: "{% trans '対象トランザクション: ' %}",
+    unit_items: "{% trans '件' %}",
+    demo_label: "{% trans 'デモ' %}",
+    target_txn_demo: "{% trans '対象トランザクション: 100件（デモ）' %}",
+    // Basket table headers
+    th_antecedent: "{% trans '前提商品' %}",
+    th_consequent: "{% trans '結論商品' %}",
+    // Cohort
+    th_cohort: "{% trans 'コホート' %}",
+    th_size: "{% trans '人数' %}",
+    // Menu Engineering table headers
+    th_product: "{% trans '商品名' %}",
+    th_qty_sold: "{% trans '販売数' %}",
+    th_margin_rate: "{% trans '利益率' %}",
+    th_sales: "{% trans '売上' %}",
+    th_category: "{% trans '分類' %}",
+    th_share: "{% trans '構成比' %}",
+    th_cumulative: "{% trans '累積' %}",
+    th_rank: "{% trans 'ランク' %}",
+    // Tooltip formats
+    sold_prefix: "{% trans '販売: ' %}",
+    margin_prefix: "{% trans '利益率: ' %}",
+    order_prefix: "{% trans '注文数: ' %}",
+    // Severity/category labels
+    sev_critical: "{% trans '重要' %}",
+    sev_warning: "{% trans '注意' %}",
+    sev_info: "{% trans '情報' %}",
+    cat_sales: "{% trans '売上' %}",
+    cat_inventory: "{% trans '在庫' %}",
+    cat_staffing: "{% trans 'スタッフ' %}",
+    cat_menu: "{% trans 'メニュー' %}",
+    cat_customer: "{% trans '顧客' %}",
+    // KPI status
+    status_good: "{% trans '良好' %}",
+    status_warn: "{% trans '注意' %}",
+    status_bad: "{% trans '要改善' %}",
+    benchmark_prefix: "{% trans '基準: ' %}",
+    // AI analysis
+    ai_analysis: "{% trans 'AI分析' %}",
+    recommended_actions: "{% trans '推奨アクション' %}",
+    // NPS
+    food: "{% trans '料理' %}",
+    service: "{% trans 'サービス' %}",
+    ambiance: "{% trans '雰囲気' %}",
+    food_colon: "{% trans '料理:' %}",
+    service_colon: "{% trans 'サービス:' %}",
+    ambiance_colon: "{% trans '雰囲気:' %}",
+    // Weekday labels
+    sun: "{% trans '日' %}",
+    mon: "{% trans '月' %}",
+    tue: "{% trans '火' %}",
+    wed: "{% trans '水' %}",
+    thu: "{% trans '木' %}",
+    fri: "{% trans '金' %}",
+    sat: "{% trans '土' %}",
+    hour_suffix: "{% trans '時' %}",
+    // Channel
+    ch_ec: "{% trans 'ECショップ' %}",
+    ch_table: "{% trans 'テーブル注文' %}",
+    ch_reservation: "{% trans '予約' %}",
+    // Tour
+    tour_tab_nav_title: "{% trans 'タブナビゲーション' %}",
+    tour_tab_nav_text: "{% trans 'ここでダッシュボードの各セクションを切り替えます。概要・売上・顧客・スタッフ・シフト・勤怠・運営の7つのタブがあります。' %}",
+    tour_overview_title: "{% trans '概要タブ' %}",
+    tour_overview_text: "{% trans '予約KPI、日別予約グラフ、ビジネスインサイト、KPIスコアカードを確認できます。' %}",
+    tour_period_title: "{% trans '期間選択' %}",
+    tour_period_text: "{% trans '日別・週別・月別でデータの集計期間を切り替えられます。' %}",
+    tour_sales_title: "{% trans '売上タブ' %}",
+    tour_sales_text: "{% trans '売上推移、人気商品、メニュー分析、ABC分析、売上予測、時間帯別売上、客単価推移を確認できます。' %}",
+    tour_customers_title: "{% trans '顧客分析タブ' %}",
+    tour_customers_text: "{% trans 'コホート分析、RFMセグメンテーション、バスケット分析、NPS・顧客満足度を確認できます。' %}",
+    tour_ops_title: "{% trans '運営タブ' %}",
+    tour_ops_text: "{% trans '在庫アラートなど、日常の運営に必要な情報を確認できます。' %}",
+    tour_help_title: "{% trans 'ヘルプボタン' %}",
+    tour_help_text: "{% trans 'このボタンをクリックすると、いつでもこのヘルプを再表示できます。' %}",
+    // Instore label
+    instore: "{% trans '店内' %}",
+  };
 
   /* ------------------------------------------------------------------ */
   /*  Dark mode detection & Chart.js defaults                            */
@@ -1480,8 +1612,8 @@ document.addEventListener('DOMContentLoaded', function () {
         data: {
           labels: labels,
           datasets: [
-            { label: '予約数', data: counts, backgroundColor: COLORS.indigo, borderRadius: 4 },
-            { label: 'キャンセル数', data: cancelled, backgroundColor: COLORS.rose, borderRadius: 4 }
+            { label: T.reservations, data: counts, backgroundColor: COLORS.indigo, borderRadius: 4 },
+            { label: T.cancellations, data: cancelled, backgroundColor: COLORS.rose, borderRadius: 4 }
           ]
         },
         options: {
@@ -1519,7 +1651,7 @@ document.addEventListener('DOMContentLoaded', function () {
         data: {
           labels: trendLabels,
           datasets: [{
-            label: '売上 (円)', data: trendTotals,
+            label: T.sales_yen, data: trendTotals,
             borderColor: COLORS.emerald, backgroundColor: 'rgba(16,185,129,0.15)',
             fill: true, tension: 0.3, pointRadius: 2, pointHoverRadius: 5
           }]
@@ -1528,11 +1660,11 @@ document.addEventListener('DOMContentLoaded', function () {
           responsive: true, maintainAspectRatio: false,
           plugins: {
             legend: { position: 'top' },
-            tooltip: { callbacks: { label: function (ctx) { return '売上: ' + Number(ctx.parsed.y).toLocaleString() + ' 円'; } } }
+            tooltip: { callbacks: { label: function (ctx) { return T.sales_prefix + Number(ctx.parsed.y).toLocaleString() + T.yen_suffix; } } }
           },
           scales: {
             x: { ticks: { maxTicksLimit: 12, maxRotation: 45, font: { size: 10 } } },
-            y: { beginAtZero: true, ticks: { callback: function (v) { return Number(v).toLocaleString() + ' 円'; } } }
+            y: { beginAtZero: true, ticks: { callback: function (v) { return Number(v).toLocaleString() + T.yen_suffix; } } }
           }
         }
       });
@@ -1545,7 +1677,7 @@ document.addEventListener('DOMContentLoaded', function () {
         data: {
           labels: products.map(function (p) { return p.name; }),
           datasets: [{
-            label: '注文数', data: products.map(function (p) { return p.total; }),
+            label: T.order_count, data: products.map(function (p) { return p.total; }),
             backgroundColor: PALETTE.slice(0, products.length), borderRadius: 4
           }]
         },
@@ -1638,7 +1770,7 @@ document.addEventListener('DOMContentLoaded', function () {
               callbacks: {
                 label: function(context) {
                   var pt = context.raw;
-                  return pt.label + ' (販売: ' + pt.x + ', 利益率: ' + pt.y.toFixed(1) + '%)';
+                  return pt.label + ' (' + T.sold_prefix + pt.x + ', ' + T.margin_prefix + pt.y.toFixed(1) + '%)';
                 }
               }
             },
@@ -1646,12 +1778,12 @@ document.addEventListener('DOMContentLoaded', function () {
           },
           scales: {
             x: {
-              title: { display: true, text: '販売数量 (人気度)' },
+              title: { display: true, text: T.sales_volume },
               beginAtZero: true,
               grid: { color: function(context) { return context.tick && context.tick.value === Math.round(avgPop) ? 'rgba(107,114,128,0.4)' : 'rgba(229,231,235,0.5)'; } }
             },
             y: {
-              title: { display: true, text: '利益率 (%)' },
+              title: { display: true, text: T.margin_rate_pct },
               beginAtZero: true,
               grid: { color: function(context) { return context.tick && Math.abs(context.tick.value - avgMargin * 100) < 1 ? 'rgba(107,114,128,0.4)' : 'rgba(229,231,235,0.5)'; } }
             }
@@ -1662,7 +1794,7 @@ document.addEventListener('DOMContentLoaded', function () {
       // Table
       var tbody = document.getElementById('menu-eng-tbody');
       if (products.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="5" class="px-3 py-2 text-gray-400 text-center">データなし</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="5" class="px-3 py-2 text-gray-400 text-center">' + T.no_data + '</td></tr>';
       } else {
         tbody.innerHTML = products.sort(function(a,b) { return b.qty_sold - a.qty_sold; }).map(function(p) {
           var badge = quadBadge[p.quadrant] || '';
@@ -1670,7 +1802,7 @@ document.addEventListener('DOMContentLoaded', function () {
             + '<td class="px-3 py-2">' + escapeHtml(p.name) + '</td>'
             + '<td class="px-3 py-2 text-right">' + p.qty_sold + '</td>'
             + '<td class="px-3 py-2 text-right">' + (p.margin_rate * 100).toFixed(1) + '%</td>'
-            + '<td class="px-3 py-2 text-right">' + Number(p.revenue).toLocaleString() + ' 円</td>'
+            + '<td class="px-3 py-2 text-right">' + Number(p.revenue).toLocaleString() + T.yen_suffix + '</td>'
             + '<td class="px-3 py-2 text-center"><span class="px-2 py-0.5 rounded-full text-xs font-semibold ' + badge + '">' + (quadLabels[p.quadrant] || p.quadrant) + '</span></td>'
             + '</tr>';
         }).join('');
@@ -1678,7 +1810,7 @@ document.addEventListener('DOMContentLoaded', function () {
       apiFetch('/api/dashboard/analysis-text/?type=menu_engineering').then(function(t) { renderAnalysisTextPanel('sales-ai-menu-eng', t); }).catch(function(){});
     }).catch(function (err) {
       console.error('Failed to load menu engineering:', err);
-      document.getElementById('menu-eng-tbody').innerHTML = '<tr><td colspan="5" class="px-3 py-2 text-gray-400 text-center">取得エラー</td></tr>';
+      document.getElementById('menu-eng-tbody').innerHTML = '<tr><td colspan="5" class="px-3 py-2 text-gray-400 text-center">' + T.fetch_error + '</td></tr>';
     });
   };
 
@@ -1731,7 +1863,7 @@ document.addEventListener('DOMContentLoaded', function () {
           labels: labels,
           datasets: [
             {
-              label: '売上 (円)',
+              label: T.sales_yen,
               data: revenues,
               backgroundColor: barColors,
               borderRadius: 4,
@@ -1739,7 +1871,7 @@ document.addEventListener('DOMContentLoaded', function () {
               order: 2,
             },
             {
-              label: '累積構成比 (%)',
+              label: T.cumulative_pct,
               data: cumPcts,
               type: 'line',
               borderColor: COLORS.rose,
@@ -1760,8 +1892,8 @@ document.addEventListener('DOMContentLoaded', function () {
             tooltip: {
               callbacks: {
                 label: function(context) {
-                  if (context.dataset.yAxisID === 'y1') return '累積: ' + context.parsed.y.toFixed(1) + '%';
-                  return '売上: ' + Number(context.parsed.y).toLocaleString() + ' 円';
+                  if (context.dataset.yAxisID === 'y1') return T.cumulative_prefix + context.parsed.y.toFixed(1) + '%';
+                  return T.sales_prefix + Number(context.parsed.y).toLocaleString() + T.yen_suffix;
                 }
               }
             }
@@ -1770,12 +1902,12 @@ document.addEventListener('DOMContentLoaded', function () {
             x: { ticks: { maxRotation: 45, font: { size: 11 } } },
             y: {
               type: 'linear', position: 'left', beginAtZero: true,
-              title: { display: true, text: '売上 (円)' },
+              title: { display: true, text: T.sales_yen },
               ticks: { callback: function(v) { return Number(v).toLocaleString(); } }
             },
             y1: {
               type: 'linear', position: 'right', min: 0, max: 105,
-              title: { display: true, text: '累積構成比 (%)' },
+              title: { display: true, text: T.cumulative_pct },
               grid: { drawOnChartArea: false },
               ticks: { callback: function(v) { return v + '%'; } }
             }
@@ -1786,13 +1918,13 @@ document.addEventListener('DOMContentLoaded', function () {
       // Table
       var tbody = document.getElementById('abc-tbody');
       if (products.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="5" class="px-3 py-2 text-gray-400 text-center">データなし</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="5" class="px-3 py-2 text-gray-400 text-center">' + T.no_data + '</td></tr>';
       } else {
         tbody.innerHTML = products.map(function(p) {
           var badge = rankBadge[p.rank] || '';
           return '<tr class="border-t border-gray-100">'
             + '<td class="px-3 py-2">' + escapeHtml(p.name) + '</td>'
-            + '<td class="px-3 py-2 text-right">' + Number(p.revenue).toLocaleString() + ' 円</td>'
+            + '<td class="px-3 py-2 text-right">' + Number(p.revenue).toLocaleString() + T.yen_suffix + '</td>'
             + '<td class="px-3 py-2 text-right">' + p.share_pct + '%</td>'
             + '<td class="px-3 py-2 text-right">' + p.cumulative_pct + '%</td>'
             + '<td class="px-3 py-2 text-center"><span class="px-2 py-0.5 rounded-full text-xs font-bold ' + badge + '">' + p.rank + '</span></td>'
@@ -1802,7 +1934,7 @@ document.addEventListener('DOMContentLoaded', function () {
       apiFetch('/api/dashboard/analysis-text/?type=abc_analysis').then(function(t) { renderAnalysisTextPanel('sales-ai-abc', t); }).catch(function(){});
     }).catch(function (err) {
       console.error('Failed to load ABC analysis:', err);
-      document.getElementById('abc-tbody').innerHTML = '<tr><td colspan="5" class="px-3 py-2 text-gray-400 text-center">取得エラー</td></tr>';
+      document.getElementById('abc-tbody').innerHTML = '<tr><td colspan="5" class="px-3 py-2 text-gray-400 text-center">' + T.fetch_error + '</td></tr>';
     });
   };
 
@@ -1837,7 +1969,7 @@ document.addEventListener('DOMContentLoaded', function () {
         }
       }
 
-      document.getElementById('forecast-method').textContent = method === 'prophet' ? 'Prophet' : '移動平均+曜日係数';
+      document.getElementById('forecast-method').textContent = method === 'prophet' ? 'Prophet' : T.moving_avg;
 
       // Combine labels
       var allLabels = historical.map(function(h) { return h.date; }).concat(forecast.map(function(f) { return f.date; }));
@@ -1873,7 +2005,7 @@ document.addEventListener('DOMContentLoaded', function () {
           labels: allLabels,
           datasets: [
             {
-              label: '実績',
+              label: T.actual,
               data: histData,
               borderColor: COLORS.emerald,
               backgroundColor: 'rgba(16,185,129,0.1)',
@@ -1883,7 +2015,7 @@ document.addEventListener('DOMContentLoaded', function () {
               borderWidth: 2,
             },
             {
-              label: '予測',
+              label: T.forecast_label,
               data: predData,
               borderColor: COLORS.indigo,
               borderDash: [5, 5],
@@ -1893,7 +2025,7 @@ document.addEventListener('DOMContentLoaded', function () {
               borderWidth: 2,
             },
             {
-              label: '上限',
+              label: T.upper_bound,
               data: upperData,
               borderColor: 'transparent',
               backgroundColor: 'rgba(99,102,241,0.1)',
@@ -1902,7 +2034,7 @@ document.addEventListener('DOMContentLoaded', function () {
               borderWidth: 0,
             },
             {
-              label: '下限',
+              label: T.lower_bound,
               data: lowerData,
               borderColor: 'transparent',
               backgroundColor: 'rgba(99,102,241,0.1)',
@@ -1917,13 +2049,13 @@ document.addEventListener('DOMContentLoaded', function () {
           plugins: {
             legend: {
               position: 'top',
-              labels: { filter: function(item) { return item.text !== '上限' && item.text !== '下限'; } }
+              labels: { filter: function(item) { return item.text !== T.upper_bound && item.text !== T.lower_bound; } }
             },
             tooltip: {
               callbacks: {
                 label: function(context) {
-                  if (context.dataset.label === '上限' || context.dataset.label === '下限') return null;
-                  return context.dataset.label + ': ' + Number(context.parsed.y).toLocaleString() + ' 円';
+                  if (context.dataset.label === T.upper_bound || context.dataset.label === T.lower_bound) return null;
+                  return context.dataset.label + ': ' + Number(context.parsed.y).toLocaleString() + T.yen_suffix;
                 }
               }
             }
@@ -1932,7 +2064,7 @@ document.addEventListener('DOMContentLoaded', function () {
             x: { ticks: { maxTicksLimit: 12, maxRotation: 45, font: { size: 10 } } },
             y: {
               beginAtZero: true,
-              title: { display: true, text: '売上 (円)' },
+              title: { display: true, text: T.sales_yen },
               ticks: { callback: function(v) { return Number(v).toLocaleString(); } }
             }
           }
@@ -1954,7 +2086,7 @@ document.addEventListener('DOMContentLoaded', function () {
     if (salesHeatmapLoaded) return;
     salesHeatmapLoaded = true;
 
-    var WEEKDAY_LABELS = ['日', '月', '火', '水', '木', '金', '土'];
+    var WEEKDAY_LABELS = [T.sun, T.mon, T.tue, T.wed, T.thu, T.fri, T.sat];
 
     apiFetch('/api/dashboard/sales-heatmap/').then(function (data) {
       var heatmap = data.heatmap || [];
@@ -1993,7 +2125,7 @@ document.addEventListener('DOMContentLoaded', function () {
         type: 'bubble',
         data: {
           datasets: [{
-            label: '売上',
+            label: T.cat_sales,
             data: points,
             backgroundColor: points.map(function(p) {
               var i = p.revenue / maxRev;
@@ -2011,7 +2143,7 @@ document.addEventListener('DOMContentLoaded', function () {
               callbacks: {
                 label: function(ctx) {
                   var p = ctx.raw;
-                  return WEEKDAY_LABELS[p.y] + ' ' + p.x + '時 — ' + Number(p.revenue).toLocaleString() + '円 / ' + p.orders + '件';
+                  return WEEKDAY_LABELS[p.y] + ' ' + p.x + T.hour_suffix + ' — ' + Number(p.revenue).toLocaleString() + '円 / ' + p.orders + T.unit_items;
                 }
               }
             }
@@ -2019,13 +2151,13 @@ document.addEventListener('DOMContentLoaded', function () {
           scales: {
             x: {
               min: -0.5, max: 23.5,
-              title: { display: true, text: '時間帯' },
-              ticks: { stepSize: 1, callback: function(v) { return v + '時'; } }
+              title: { display: true, text: T.time_slot },
+              ticks: { stepSize: 1, callback: function(v) { return v + T.hour_suffix; } }
             },
             y: {
               min: -0.5, max: 6.5,
               reverse: true,
-              title: { display: true, text: '曜日' },
+              title: { display: true, text: T.weekday },
               ticks: { stepSize: 1, callback: function(v) { return WEEKDAY_LABELS[v] || ''; } }
             }
           }
@@ -2074,7 +2206,7 @@ document.addEventListener('DOMContentLoaded', function () {
           labels: labels,
           datasets: [
             {
-              label: '客単価 (円)',
+              label: T.aov_yen,
               data: aovData,
               borderColor: COLORS.indigo,
               backgroundColor: 'rgba(99,102,241,0.1)',
@@ -2085,7 +2217,7 @@ document.addEventListener('DOMContentLoaded', function () {
               yAxisID: 'y',
             },
             {
-              label: '注文数',
+              label: T.order_count,
               data: orderData,
               type: 'bar',
               backgroundColor: 'rgba(16,185,129,0.3)',
@@ -2103,8 +2235,8 @@ document.addEventListener('DOMContentLoaded', function () {
             tooltip: {
               callbacks: {
                 label: function(context) {
-                  if (context.dataset.yAxisID === 'y') return '客単価: ' + Number(context.parsed.y).toLocaleString() + ' 円';
-                  return '注文数: ' + context.parsed.y;
+                  if (context.dataset.yAxisID === 'y') return T.aov_prefix + Number(context.parsed.y).toLocaleString() + T.yen_suffix;
+                  return T.order_prefix + context.parsed.y;
                 }
               }
             }
@@ -2113,12 +2245,12 @@ document.addEventListener('DOMContentLoaded', function () {
             x: { ticks: { maxTicksLimit: 12, maxRotation: 45, font: { size: 10 } } },
             y: {
               type: 'linear', position: 'left', beginAtZero: true,
-              title: { display: true, text: '客単価 (円)' },
+              title: { display: true, text: T.aov_yen },
               ticks: { callback: function(v) { return Number(v).toLocaleString(); } }
             },
             y1: {
               type: 'linear', position: 'right', beginAtZero: true,
-              title: { display: true, text: '注文数' },
+              title: { display: true, text: T.order_count },
               grid: { drawOnChartArea: false },
               ticks: { precision: 0 }
             }
@@ -2188,7 +2320,7 @@ document.addEventListener('DOMContentLoaded', function () {
             tooltip: {
               callbacks: {
                 label: function(context) {
-                  return context.dataset.label + ': ' + Number(context.parsed.y).toLocaleString() + ' 円';
+                  return context.dataset.label + ': ' + Number(context.parsed.y).toLocaleString() + T.yen_suffix;
                 }
               }
             }
@@ -2197,7 +2329,7 @@ document.addEventListener('DOMContentLoaded', function () {
             x: { stacked: true, ticks: { maxTicksLimit: 12, maxRotation: 45, font: { size: 10 } } },
             y: {
               stacked: true, beginAtZero: true,
-              title: { display: true, text: '売上 (円)' },
+              title: { display: true, text: T.sales_yen },
               ticks: { callback: function(v) { return Number(v).toLocaleString(); } }
             }
           }
@@ -2244,7 +2376,7 @@ document.addEventListener('DOMContentLoaded', function () {
       });
 
       var html = '<table class="w-full text-sm border border-gray-200 rounded">';
-      html += '<thead><tr class="bg-gray-50"><th class="px-3 py-2 text-left">コホート</th><th class="px-3 py-2 text-right">人数</th>';
+      html += '<thead><tr class="bg-gray-50"><th class="px-3 py-2 text-left">' + T.th_cohort + '</th><th class="px-3 py-2 text-right">' + T.th_size + '</th>';
       for (var i = 0; i <= maxOffset; i++) {
         html += '<th class="px-3 py-2 text-center">M+' + i + '</th>';
       }
@@ -2272,7 +2404,7 @@ document.addEventListener('DOMContentLoaded', function () {
       container.innerHTML = html;
     }).catch(function(err) {
       console.error('Failed to load cohort:', err);
-      document.getElementById('cohort-table').innerHTML = '<p class="text-gray-400 text-center">データ取得エラー</p>';
+      document.getElementById('cohort-table').innerHTML = '<p class="text-gray-400 text-center">' + T.data_fetch_error + '</p>';
     });
   };
 
@@ -2406,8 +2538,8 @@ document.addEventListener('DOMContentLoaded', function () {
       var total = data.total_transactions || 0;
       var method = data.method || 'none';
 
-      document.getElementById('basket-method').textContent = method === 'apriori' ? 'Apriori' : method === 'pairwise' ? 'ペアワイズ分析' : '--';
-      document.getElementById('basket-total').textContent = '対象トランザクション: ' + total + '件';
+      document.getElementById('basket-method').textContent = method === 'apriori' ? 'Apriori' : method === 'pairwise' ? T.pairwise : '--';
+      document.getElementById('basket-total').textContent = T.target_txn + total + T.unit_items;
 
       var container = document.getElementById('basket-table');
 
@@ -2420,15 +2552,15 @@ document.addEventListener('DOMContentLoaded', function () {
           {antecedent: ['枝豆'], consequent: ['ビール'], support: 0.28, confidence: 0.55, lift: 1.6},
           {antecedent: ['サラダ'], consequent: ['ハイボール'], support: 0.15, confidence: 0.48, lift: 1.4},
         ];
-        document.getElementById('basket-method').textContent = 'デモ';
-        document.getElementById('basket-total').textContent = '対象トランザクション: 100件（デモ）';
+        document.getElementById('basket-method').textContent = T.demo_label;
+        document.getElementById('basket-total').textContent = T.target_txn_demo;
       }
 
       var html = '<table class="w-full text-sm border border-gray-200 rounded">';
       html += '<thead><tr class="bg-gray-50">';
-      html += '<th class="px-3 py-2 text-left">前提商品</th>';
+      html += '<th class="px-3 py-2 text-left">' + T.th_antecedent + '</th>';
       html += '<th class="px-3 py-2 text-center">→</th>';
-      html += '<th class="px-3 py-2 text-left">結論商品</th>';
+      html += '<th class="px-3 py-2 text-left">' + T.th_consequent + '</th>';
       html += '<th class="px-3 py-2 text-right">Support</th>';
       html += '<th class="px-3 py-2 text-right">Confidence</th>';
       html += '<th class="px-3 py-2 text-right">Lift</th>';
@@ -2453,7 +2585,7 @@ document.addEventListener('DOMContentLoaded', function () {
       container.innerHTML = html;
     }).catch(function(err) {
       console.error('Failed to load basket analysis:', err);
-      document.getElementById('basket-table').innerHTML = '<p class="text-gray-400 text-center">データ取得エラー</p>';
+      document.getElementById('basket-table').innerHTML = '<p class="text-gray-400 text-center">' + T.data_fetch_error + '</p>';
     });
   };
 
@@ -2473,8 +2605,8 @@ document.addEventListener('DOMContentLoaded', function () {
         data: {
           labels: staff.map(function (s) { return s.name; }),
           datasets: [
-            { label: '予約数', data: staff.map(function (s) { return s.reservations; }), backgroundColor: COLORS.sky, borderRadius: 4, yAxisID: 'y' },
-            { label: '売上 (円)', data: staff.map(function (s) { return s.sales; }), backgroundColor: COLORS.amber, borderRadius: 4, yAxisID: 'y1' }
+            { label: T.reservations, data: staff.map(function (s) { return s.reservations; }), backgroundColor: COLORS.sky, borderRadius: 4, yAxisID: 'y' },
+            { label: T.sales_yen, data: staff.map(function (s) { return s.sales; }), backgroundColor: COLORS.amber, borderRadius: 4, yAxisID: 'y1' }
           ]
         },
         options: {
@@ -2482,13 +2614,13 @@ document.addEventListener('DOMContentLoaded', function () {
           plugins: {
             legend: { position: 'top' },
             tooltip: { callbacks: { label: function (ctx) {
-              if (ctx.dataset.yAxisID === 'y1') return ctx.dataset.label + ': ' + Number(ctx.parsed.y).toLocaleString() + ' 円';
+              if (ctx.dataset.yAxisID === 'y1') return ctx.dataset.label + ': ' + Number(ctx.parsed.y).toLocaleString() + T.yen_suffix;
               return ctx.dataset.label + ': ' + ctx.parsed.y;
             } } }
           },
           scales: {
-            y: { type: 'linear', position: 'left', beginAtZero: true, title: { display: true, text: '予約数' }, ticks: { precision: 0 } },
-            y1: { type: 'linear', position: 'right', beginAtZero: true, title: { display: true, text: '売上 (円)' }, grid: { drawOnChartArea: false }, ticks: { callback: function (v) { return Number(v).toLocaleString(); } } }
+            y: { type: 'linear', position: 'left', beginAtZero: true, title: { display: true, text: T.reservations }, ticks: { precision: 0 } },
+            y1: { type: 'linear', position: 'right', beginAtZero: true, title: { display: true, text: T.sales_yen }, grid: { drawOnChartArea: false }, ticks: { callback: function (v) { return Number(v).toLocaleString(); } } }
           }
         }
       });
@@ -2513,8 +2645,8 @@ document.addEventListener('DOMContentLoaded', function () {
         data: {
           labels: staff.map(function (s) { return s.name; }),
           datasets: [
-            { label: '予約数', data: staff.map(function (s) { return s.reservations; }), backgroundColor: COLORS.violet, borderRadius: 4, yAxisID: 'y' },
-            { label: '売上 (円)', data: staff.map(function (s) { return s.sales; }), backgroundColor: COLORS.amber, borderRadius: 4, yAxisID: 'y1' }
+            { label: T.reservations, data: staff.map(function (s) { return s.reservations; }), backgroundColor: COLORS.violet, borderRadius: 4, yAxisID: 'y' },
+            { label: T.sales_yen, data: staff.map(function (s) { return s.sales; }), backgroundColor: COLORS.amber, borderRadius: 4, yAxisID: 'y1' }
           ]
         },
         options: {
@@ -2522,13 +2654,13 @@ document.addEventListener('DOMContentLoaded', function () {
           plugins: {
             legend: { position: 'top' },
             tooltip: { callbacks: { label: function (ctx) {
-              if (ctx.dataset.yAxisID === 'y1') return ctx.dataset.label + ': ' + Number(ctx.parsed.y).toLocaleString() + ' 円';
+              if (ctx.dataset.yAxisID === 'y1') return ctx.dataset.label + ': ' + Number(ctx.parsed.y).toLocaleString() + T.yen_suffix;
               return ctx.dataset.label + ': ' + ctx.parsed.y;
             } } }
           },
           scales: {
-            y: { type: 'linear', position: 'left', beginAtZero: true, title: { display: true, text: '予約数' }, ticks: { precision: 0 } },
-            y1: { type: 'linear', position: 'right', beginAtZero: true, title: { display: true, text: '売上 (円)' }, grid: { drawOnChartArea: false }, ticks: { callback: function (v) { return Number(v).toLocaleString(); } } }
+            y: { type: 'linear', position: 'left', beginAtZero: true, title: { display: true, text: T.reservations }, ticks: { precision: 0 } },
+            y1: { type: 'linear', position: 'right', beginAtZero: true, title: { display: true, text: T.sales_yen }, grid: { drawOnChartArea: false }, ticks: { callback: function (v) { return Number(v).toLocaleString(); } } }
           }
         }
       });
@@ -2537,7 +2669,7 @@ document.addEventListener('DOMContentLoaded', function () {
       var sorted = staff.slice().sort(function(a, b) { return b.sales - a.sales; });
       var tbody = document.getElementById('cast-ranking-tbody');
       if (sorted.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="4" class="px-4 py-2 text-gray-400 text-center">キャストデータなし</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="4" class="px-4 py-2 text-gray-400 text-center">' + T.no_cast_data + '</td></tr>';
       } else {
         tbody.innerHTML = sorted.map(function(s, i) {
           var medal = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : (i + 1);
@@ -2571,7 +2703,7 @@ document.addEventListener('DOMContentLoaded', function () {
         data: {
           labels: trendLabels,
           datasets: [{
-            label: 'ECショップ売上 (円)', data: trendTotals,
+            label: T.ec_sales_yen, data: trendTotals,
             borderColor: '#3B82F6', backgroundColor: 'rgba(59,130,246,0.15)',
             fill: true, tension: 0.3, pointRadius: 2, pointHoverRadius: 5
           }]
@@ -2580,11 +2712,11 @@ document.addEventListener('DOMContentLoaded', function () {
           responsive: true, maintainAspectRatio: false,
           plugins: {
             legend: { position: 'top' },
-            tooltip: { callbacks: { label: function (ctx) { return '売上: ' + Number(ctx.parsed.y).toLocaleString() + ' 円'; } } }
+            tooltip: { callbacks: { label: function (ctx) { return T.sales_prefix + Number(ctx.parsed.y).toLocaleString() + T.yen_suffix; } } }
           },
           scales: {
             x: { ticks: { maxTicksLimit: 12, maxRotation: 45, font: { size: 10 } } },
-            y: { beginAtZero: true, ticks: { callback: function (v) { return Number(v).toLocaleString() + ' 円'; } } }
+            y: { beginAtZero: true, ticks: { callback: function (v) { return Number(v).toLocaleString() + T.yen_suffix; } } }
           }
         }
       });
@@ -2597,7 +2729,7 @@ document.addEventListener('DOMContentLoaded', function () {
         data: {
           labels: products.map(function (p) { return p.name; }),
           datasets: [{
-            label: '注文数', data: products.map(function (p) { return p.total; }),
+            label: T.order_count, data: products.map(function (p) { return p.total; }),
             backgroundColor: '#3B82F6', borderRadius: 4
           }]
         },
@@ -2634,7 +2766,7 @@ document.addEventListener('DOMContentLoaded', function () {
         data: {
           labels: trendLabels,
           datasets: [{
-            label: '店内メニュー売上 (円)', data: trendTotals,
+            label: T.instore_sales_yen, data: trendTotals,
             borderColor: '#10B981', backgroundColor: 'rgba(16,185,129,0.15)',
             fill: true, tension: 0.3, pointRadius: 2, pointHoverRadius: 5
           }]
@@ -2643,11 +2775,11 @@ document.addEventListener('DOMContentLoaded', function () {
           responsive: true, maintainAspectRatio: false,
           plugins: {
             legend: { position: 'top' },
-            tooltip: { callbacks: { label: function (ctx) { return '売上: ' + Number(ctx.parsed.y).toLocaleString() + ' 円'; } } }
+            tooltip: { callbacks: { label: function (ctx) { return T.sales_prefix + Number(ctx.parsed.y).toLocaleString() + T.yen_suffix; } } }
           },
           scales: {
             x: { ticks: { maxTicksLimit: 12, maxRotation: 45, font: { size: 10 } } },
-            y: { beginAtZero: true, ticks: { callback: function (v) { return Number(v).toLocaleString() + ' 円'; } } }
+            y: { beginAtZero: true, ticks: { callback: function (v) { return Number(v).toLocaleString() + T.yen_suffix; } } }
           }
         }
       });
@@ -2660,7 +2792,7 @@ document.addEventListener('DOMContentLoaded', function () {
         data: {
           labels: products.map(function (p) { return p.name; }),
           datasets: [{
-            label: '注文数', data: products.map(function (p) { return p.total; }),
+            label: T.order_count, data: products.map(function (p) { return p.total; }),
             backgroundColor: '#10B981', borderRadius: 4
           }]
         },
@@ -2682,7 +2814,7 @@ document.addEventListener('DOMContentLoaded', function () {
     panel.style.display = 'block';
     var scoreBg = {'A+':'bg-emerald-500','A':'bg-emerald-400','B+':'bg-blue-500','B':'bg-blue-400','C':'bg-amber-500','D':'bg-rose-500'};
     var html = '<div class="flex items-center gap-2 mb-2">'
-      + '<span class="text-violet-600 font-bold text-sm">AI分析</span>'
+      + '<span class="text-violet-600 font-bold text-sm">' + T.ai_analysis + '</span>'
       + '<span class="px-2 py-0.5 rounded text-xs font-bold text-white ' + (scoreBg[data.score] || 'bg-gray-500') + '">' + escapeHtml(data.score) + '</span>'
       + '</div>'
       + '<p class="text-sm text-gray-700 mb-2">' + escapeHtml(data.summary) + '</p>';
@@ -2693,7 +2825,7 @@ document.addEventListener('DOMContentLoaded', function () {
     }
     if (data.recommendations && data.recommendations.length > 0) {
       html += '<div class="p-3 ai-reco-box rounded-lg">'
-        + '<div class="text-xs font-bold text-indigo-600 mb-1">推奨アクション</div>'
+        + '<div class="text-xs font-bold text-indigo-600 mb-1">' + T.recommended_actions + '</div>'
         + '<ul class="text-xs text-gray-700 space-y-1">';
       data.recommendations.forEach(function(r) { html += '<li>- ' + escapeHtml(r) + '</li>'; });
       html += '</ul></div>';
@@ -2725,15 +2857,15 @@ document.addEventListener('DOMContentLoaded', function () {
         data: {datasets: Object.values(datasets)},
         options: {
           responsive: true, maintainAspectRatio: false,
-          plugins: {legend: {position: 'top'}, tooltip: {callbacks: {label: function(ctx) { var pt = ctx.raw; return pt.label + ' (販売:' + pt.x + ', 利益率:' + pt.y.toFixed(1) + '%)'; }}}},
-          scales: {x: {title: {display: true, text: '販売数量'}, beginAtZero: true}, y: {title: {display: true, text: '利益率 (%)'}, beginAtZero: true}}
+          plugins: {legend: {position: 'top'}, tooltip: {callbacks: {label: function(ctx) { var pt = ctx.raw; return pt.label + ' (' + T.sold_prefix + pt.x + ', ' + T.margin_prefix + pt.y.toFixed(1) + '%)'; }}}},
+          scales: {x: {title: {display: true, text: T.sales_volume_short}, beginAtZero: true}, y: {title: {display: true, text: T.margin_rate_pct}, beginAtZero: true}}
         }
       });
     }
 
     var tc = document.getElementById(tableContainerId);
     if (tc && products.length > 0) {
-      var html = '<table class="w-full text-sm border border-gray-200 rounded"><thead><tr class="bg-gray-50"><th class="px-3 py-2 text-left">商品名</th><th class="px-3 py-2 text-right">販売数</th><th class="px-3 py-2 text-right">利益率</th><th class="px-3 py-2 text-right">売上</th><th class="px-3 py-2 text-center">分類</th></tr></thead><tbody>';
+      var html = '<table class="w-full text-sm border border-gray-200 rounded"><thead><tr class="bg-gray-50"><th class="px-3 py-2 text-left">'+T.th_product+'</th><th class="px-3 py-2 text-right">'+T.th_qty_sold+'</th><th class="px-3 py-2 text-right">'+T.th_margin_rate+'</th><th class="px-3 py-2 text-right">'+T.th_sales+'</th><th class="px-3 py-2 text-center">'+T.th_category+'</th></tr></thead><tbody>';
       products.sort(function(a,b){return b.qty_sold - a.qty_sold;}).forEach(function(p) {
         var badge = quadBadge[p.quadrant] || '';
         html += '<tr class="border-t border-gray-100"><td class="px-3 py-2">' + escapeHtml(p.name) + '</td><td class="px-3 py-2 text-right">' + p.qty_sold + '</td><td class="px-3 py-2 text-right">' + (p.margin_rate*100).toFixed(1) + '%</td><td class="px-3 py-2 text-right">' + Number(p.revenue).toLocaleString() + ' 円</td><td class="px-3 py-2 text-center"><span class="px-2 py-0.5 rounded-full text-xs font-semibold ' + badge + '">' + (quadLabels[p.quadrant]||p.quadrant) + '</span></td></tr>';
@@ -2762,8 +2894,8 @@ document.addEventListener('DOMContentLoaded', function () {
         data: {
           labels: labels,
           datasets: [
-            {label: '売上 (円)', data: revenues, backgroundColor: barColors, borderRadius: 4, yAxisID: 'y', order: 2},
-            {label: '累積構成比 (%)', data: cumPcts, type: 'line', borderColor: COLORS.rose, backgroundColor: 'transparent', borderWidth: 2, pointRadius: 4, tension: 0.2, yAxisID: 'y1', order: 1}
+            {label: T.sales_yen, data: revenues, backgroundColor: barColors, borderRadius: 4, yAxisID: 'y', order: 2},
+            {label: T.cumulative_pct, data: cumPcts, type: 'line', borderColor: COLORS.rose, backgroundColor: 'transparent', borderWidth: 2, pointRadius: 4, tension: 0.2, yAxisID: 'y1', order: 1}
           ]
         },
         options: {
@@ -2779,7 +2911,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     var tc = document.getElementById(tableContainerId);
     if (tc && products.length > 0) {
-      var html = '<table class="w-full text-sm border border-gray-200 rounded"><thead><tr class="bg-gray-50"><th class="px-3 py-2 text-left">商品名</th><th class="px-3 py-2 text-right">売上</th><th class="px-3 py-2 text-right">構成比</th><th class="px-3 py-2 text-right">累積</th><th class="px-3 py-2 text-center">ランク</th></tr></thead><tbody>';
+      var html = '<table class="w-full text-sm border border-gray-200 rounded"><thead><tr class="bg-gray-50"><th class="px-3 py-2 text-left">'+T.th_product+'</th><th class="px-3 py-2 text-right">'+T.th_sales+'</th><th class="px-3 py-2 text-right">'+T.th_share+'</th><th class="px-3 py-2 text-right">'+T.th_cumulative+'</th><th class="px-3 py-2 text-center">'+T.th_rank+'</th></tr></thead><tbody>';
       products.forEach(function(p) {
         var badge = rankBadge[p.rank] || '';
         html += '<tr class="border-t border-gray-100"><td class="px-3 py-2">' + escapeHtml(p.name) + '</td><td class="px-3 py-2 text-right">' + Number(p.revenue).toLocaleString() + ' 円</td><td class="px-3 py-2 text-right">' + p.share_pct + '%</td><td class="px-3 py-2 text-right">' + p.cumulative_pct + '%</td><td class="px-3 py-2 text-center"><span class="px-2 py-0.5 rounded-full text-xs font-bold ' + badge + '">' + p.rank + '</span></td></tr>';
@@ -2795,7 +2927,7 @@ document.addEventListener('DOMContentLoaded', function () {
     var method = data.method || 'moving_average';
 
     var methodEl = document.getElementById(methodElId);
-    if (methodEl) methodEl.textContent = method === 'prophet' ? 'Prophet' : '移動平均+曜日係数';
+    if (methodEl) methodEl.textContent = method === 'prophet' ? 'Prophet' : T.moving_avg;
 
     var allLabels = historical.map(function(h){return h.date;}).concat(forecast.map(function(f){return f.date;}));
     var histData = historical.map(function(h){return h.revenue;});
@@ -2818,15 +2950,15 @@ document.addEventListener('DOMContentLoaded', function () {
         data: {
           labels: allLabels,
           datasets: [
-            {label:'実績', data:histData, borderColor:COLORS.emerald, fill:false, tension:0.3, pointRadius:2, borderWidth:2},
-            {label:'予測', data:predData, borderColor:COLORS.indigo, borderDash:[5,5], fill:false, tension:0.3, pointRadius:3, borderWidth:2},
-            {label:'上限', data:upperData, borderColor:'transparent', backgroundColor:'rgba(99,102,241,0.1)', fill:'+1', pointRadius:0, borderWidth:0},
-            {label:'下限', data:lowerData, borderColor:'transparent', backgroundColor:'rgba(99,102,241,0.1)', fill:'-1', pointRadius:0, borderWidth:0}
+            {label:T.actual, data:histData, borderColor:COLORS.emerald, fill:false, tension:0.3, pointRadius:2, borderWidth:2},
+            {label:T.forecast_label, data:predData, borderColor:COLORS.indigo, borderDash:[5,5], fill:false, tension:0.3, pointRadius:3, borderWidth:2},
+            {label:T.upper_bound, data:upperData, borderColor:'transparent', backgroundColor:'rgba(99,102,241,0.1)', fill:'+1', pointRadius:0, borderWidth:0},
+            {label:T.lower_bound, data:lowerData, borderColor:'transparent', backgroundColor:'rgba(99,102,241,0.1)', fill:'-1', pointRadius:0, borderWidth:0}
           ]
         },
         options: {
           responsive:true, maintainAspectRatio:false,
-          plugins:{legend:{position:'top', labels:{filter:function(item){return item.text!=='上限'&&item.text!=='下限';}}}},
+          plugins:{legend:{position:'top', labels:{filter:function(item){return item.text!==T.upper_bound&&item.text!==T.lower_bound;}}}},
           scales:{x:{ticks:{maxTicksLimit:12}}, y:{beginAtZero:true, ticks:{callback:function(v){return Number(v).toLocaleString();}}}}
         }
       });
@@ -2834,7 +2966,7 @@ document.addEventListener('DOMContentLoaded', function () {
   }
 
   function renderHeatmapGeneric(canvasId, data) {
-    var WEEKDAY_LABELS = ['日','月','火','水','木','金','土'];
+    var WEEKDAY_LABELS = [T.sun, T.mon, T.tue, T.wed, T.thu, T.fri, T.sat];
     var heatmap = data.heatmap || [];
     var maxRev = 1;
     heatmap.forEach(function(c){if (c.revenue > maxRev) maxRev = c.revenue;});
@@ -2848,11 +2980,11 @@ document.addEventListener('DOMContentLoaded', function () {
       if (existing) existing.destroy();
       new Chart(canvas.getContext('2d'), {
         type:'bubble',
-        data:{datasets:[{label:'売上', data:points, backgroundColor:points.map(function(p){var i=p.revenue/maxRev; return 'rgba(79,70,229,'+(0.15+i*0.75)+')';}), borderColor:'rgba(79,70,229,0.3)', borderWidth:1}]},
+        data:{datasets:[{label:T.cat_sales, data:points, backgroundColor:points.map(function(p){var i=p.revenue/maxRev; return 'rgba(79,70,229,'+(0.15+i*0.75)+')';}), borderColor:'rgba(79,70,229,0.3)', borderWidth:1}]},
         options:{
           responsive:true, maintainAspectRatio:false,
-          plugins:{legend:{display:false}, tooltip:{callbacks:{label:function(ctx){var p=ctx.raw; return WEEKDAY_LABELS[p.y]+' '+p.x+'時 — '+Number(p.revenue).toLocaleString()+'円';}}}},
-          scales:{x:{min:-0.5,max:23.5, title:{display:true,text:'時間帯'}, ticks:{stepSize:1,callback:function(v){return v+'時';}}}, y:{min:-0.5,max:6.5,reverse:true, title:{display:true,text:'曜日'}, ticks:{stepSize:1,callback:function(v){return WEEKDAY_LABELS[v]||'';}}}}
+          plugins:{legend:{display:false}, tooltip:{callbacks:{label:function(ctx){var p=ctx.raw; return WEEKDAY_LABELS[p.y]+' '+p.x+T.hour_suffix+' — '+Number(p.revenue).toLocaleString()+'円';}}}},
+          scales:{x:{min:-0.5,max:23.5, title:{display:true,text:'時間帯'}, ticks:{stepSize:1,callback:function(v){return v+T.hour_suffix;}}}, y:{min:-0.5,max:6.5,reverse:true, title:{display:true,text:'曜日'}, ticks:{stepSize:1,callback:function(v){return WEEKDAY_LABELS[v]||'';}}}}
         }
       });
     }
@@ -2872,8 +3004,8 @@ document.addEventListener('DOMContentLoaded', function () {
         data:{
           labels:labels,
           datasets:[
-            {label:'客単価 (円)', data:aovData, borderColor:COLORS.indigo, backgroundColor:'rgba(99,102,241,0.1)', fill:true, tension:0.3, pointRadius:2, borderWidth:2, yAxisID:'y'},
-            {label:'注文数', data:orderData, type:'bar', backgroundColor:'rgba(16,185,129,0.3)', borderColor:COLORS.emerald, borderWidth:1, borderRadius:3, yAxisID:'y1'}
+            {label:T.aov_yen, data:aovData, borderColor:COLORS.indigo, backgroundColor:'rgba(99,102,241,0.1)', fill:true, tension:0.3, pointRadius:2, borderWidth:2, yAxisID:'y'},
+            {label:T.order_count, data:orderData, type:'bar', backgroundColor:'rgba(16,185,129,0.3)', borderColor:COLORS.emerald, borderWidth:1, borderRadius:3, yAxisID:'y1'}
           ]
         },
         options:{
@@ -2881,8 +3013,8 @@ document.addEventListener('DOMContentLoaded', function () {
           plugins:{legend:{position:'top'}},
           scales:{
             x:{ticks:{maxTicksLimit:12}},
-            y:{type:'linear', position:'left', beginAtZero:true, title:{display:true,text:'客単価 (円)'}, ticks:{callback:function(v){return Number(v).toLocaleString();}}},
-            y1:{type:'linear', position:'right', beginAtZero:true, title:{display:true,text:'注文数'}, grid:{drawOnChartArea:false}, ticks:{precision:0}}
+            y:{type:'linear', position:'left', beginAtZero:true, title:{display:true,text:T.aov_yen}, ticks:{callback:function(v){return Number(v).toLocaleString();}}},
+            y1:{type:'linear', position:'right', beginAtZero:true, title:{display:true,text:T.order_count}, grid:{drawOnChartArea:false}, ticks:{precision:0}}
           }
         }
       });
@@ -2985,7 +3117,7 @@ document.addEventListener('DOMContentLoaded', function () {
   }
 
   var ecSuite = createAnalysisSuite({prefix: 'ec', channelParam: 'ec', color: '#3B82F6', label: 'EC'});
-  var instoreSuite = createAnalysisSuite({prefix: 'instore', channelParam: 'pos,table', color: '#10B981', label: '店内'});
+  var instoreSuite = createAnalysisSuite({prefix: 'instore', channelParam: 'pos,table', color: '#10B981', label: T.instore});
 
   /* ------------------------------------------------------------------ */
   /*  4. Shift data (lazy loaded, no API needed - direct DB count)       */
@@ -3000,7 +3132,7 @@ document.addEventListener('DOMContentLoaded', function () {
       var tbody = document.getElementById('shift-staff-tbody');
       var staffData = data.staff_shifts || [];
       if (staffData.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="3" class="px-4 py-2 text-gray-400 text-center">シフトデータなし</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="3" class="px-4 py-2 text-gray-400 text-center">' + T.no_shift_data + '</td></tr>';
       } else {
         tbody.innerHTML = staffData.map(function(s) {
           return '<tr><td class="px-4 py-2">' + escapeHtml(s.name) + '</td><td class="px-4 py-2 text-right">' + s.total + '</td><td class="px-4 py-2 text-right">' + s.synced + '</td></tr>';
@@ -3027,15 +3159,15 @@ document.addEventListener('DOMContentLoaded', function () {
         var status = '--';
         var statusClass = 'text-gray-400';
         if (s.clock_out) {
-          status = '退勤済み';
+          status = T.clocked_out;
           statusClass = 'text-gray-500';
           clockedOut++;
         } else if (s.clock_in) {
-          status = '出勤中';
+          status = T.clocked_in;
           statusClass = 'text-emerald-600 font-bold';
           clockedIn++;
         } else {
-          status = '未出勤';
+          status = T.not_clocked_in;
           statusClass = 'text-amber-500';
           notYet++;
         }
@@ -3048,13 +3180,13 @@ document.addEventListener('DOMContentLoaded', function () {
       document.getElementById('att-clocked-out').textContent = clockedOut;
       document.getElementById('att-not-yet').textContent = notYet;
       var tbody = document.getElementById('att-staff-tbody');
-      tbody.innerHTML = rows.length > 0 ? rows.join('') : '<tr><td colspan="4" class="px-4 py-2 text-gray-400 text-center">本日の勤怠データなし</td></tr>';
+      tbody.innerHTML = rows.length > 0 ? rows.join('') : '<tr><td colspan="4" class="px-4 py-2 text-gray-400 text-center">' + T.no_att_data + '</td></tr>';
     }).catch(function (err) {
       console.error('Failed to load attendance:', err);
       document.getElementById('att-clocked-in').textContent = '0';
       document.getElementById('att-clocked-out').textContent = '0';
       document.getElementById('att-not-yet').textContent = '0';
-      document.getElementById('att-staff-tbody').innerHTML = '<tr><td colspan="4" class="px-4 py-2 text-gray-400 text-center">データ取得エラー</td></tr>';
+      document.getElementById('att-staff-tbody').innerHTML = '<tr><td colspan="4" class="px-4 py-2 text-gray-400 text-center">' + T.data_fetch_error + '</td></tr>';
     });
   }
 
@@ -3123,14 +3255,14 @@ document.addEventListener('DOMContentLoaded', function () {
         var items = data.products || [];
         var container = document.getElementById('ops-low-stock');
         if (items.length === 0) {
-          container.innerHTML = '<p class="text-emerald-500 text-sm text-center font-medium">在庫アラートなし</p>';
+          container.innerHTML = '<p class="text-emerald-500 text-sm text-center font-medium">' + T.no_stock_alerts + '</p>';
         } else {
           container.innerHTML = items.map(function (p) {
             var pct = p.low_stock_threshold > 0 ? Math.round((p.stock / p.low_stock_threshold) * 100) : 0;
             var color = pct <= 50 ? 'bg-rose-500' : 'bg-amber-400';
             return '<div class="flex items-center gap-3 p-2 border border-gray-100 rounded-lg">'
               + '<span class="text-sm font-medium flex-1">' + escapeHtml(p.name) + '</span>'
-              + '<span class="text-xs text-gray-500">残 ' + p.stock + '</span>'
+              + '<span class="text-xs text-gray-500">' + T.remaining + ' ' + p.stock + '</span>'
               + '<div class="w-20 h-2 bg-gray-200 rounded-full"><div class="h-2 rounded-full ' + color + '" style="width:' + Math.min(pct, 100) + '%"></div></div>'
               + '</div>';
           }).join('');
@@ -3174,23 +3306,23 @@ document.addEventListener('DOMContentLoaded', function () {
         }
         renderInsights(insights);
       }).catch(function() {
-        document.getElementById('insights-list').innerHTML = '<p class="text-gray-400 text-sm text-center">取得エラー</p>';
+        document.getElementById('insights-list').innerHTML = '<p class="text-gray-400 text-sm text-center">' + T.fetch_error + '</p>';
       });
   };
 
   function renderInsights(insights) {
     var container = document.getElementById('insights-list');
     if (insights.length === 0) {
-      container.innerHTML = '<p class="text-gray-400 text-sm text-center py-8">インサイトはありません。「分析実行」ボタンで最新の分析を行えます。</p>';
+      container.innerHTML = '<p class="text-gray-400 text-sm text-center py-8">' + T.no_insights + '</p>';
       return;
     }
-    var severityLabel = { critical: '重要', warning: '注意', info: '情報' };
+    var severityLabel = { critical: T.sev_critical, warning: T.sev_warning, info: T.sev_info };
     container.innerHTML = insights.map(function(ins) {
       var readClass = ins.is_read ? ' is-read' : '';
       var badge = '<span class="text-xs font-bold px-2 py-0.5 rounded ' +
         (ins.severity === 'critical' ? 'bg-rose-100 text-rose-700' : ins.severity === 'warning' ? 'bg-amber-100 text-amber-700' : 'bg-blue-100 text-blue-700') +
         '">' + (severityLabel[ins.severity] || ins.severity) + '</span>';
-      var catLabel = { sales: '売上', inventory: '在庫', staffing: 'スタッフ', menu: 'メニュー', customer: '顧客' };
+      var catLabel = { sales: T.cat_sales, inventory: T.cat_inventory, staffing: T.cat_staffing, menu: T.cat_menu, customer: T.cat_customer };
       return '<div class="insight-card severity-' + ins.severity + readClass + '" data-insight-id="' + ins.id + '">'
         + '<div class="flex items-center gap-2 mb-1">' + badge
         + '<span class="text-xs text-gray-500">' + (catLabel[ins.category] || ins.category) + '</span>'
@@ -3198,7 +3330,7 @@ document.addEventListener('DOMContentLoaded', function () {
         + '</div>'
         + '<div class="text-sm font-semibold">' + escapeHtml(ins.title) + '</div>'
         + '<div class="text-xs text-gray-600 mt-1">' + escapeHtml(ins.message) + '</div>'
-        + (!ins.is_read ? '<button onclick="markInsightRead(' + ins.id + ', this)" class="text-xs text-indigo-500 hover:underline mt-1">既読にする</button>' : '')
+        + (!ins.is_read ? '<button onclick="markInsightRead(' + ins.id + ', this)" class="text-xs text-indigo-500 hover:underline mt-1">' + T.mark_read + '</button>' : '')
         + '</div>';
     }).join('');
     // Update badge
@@ -3247,7 +3379,7 @@ document.addEventListener('DOMContentLoaded', function () {
   window.generateInsights = function() {
     var btn = document.getElementById('btn-generate-insights');
     btn.disabled = true;
-    btn.textContent = '分析中...';
+    btn.textContent = T.analyzing;
     fetch('/api/dashboard/insights/', {
       method: 'POST',
       credentials: 'same-origin',
@@ -3256,12 +3388,12 @@ document.addEventListener('DOMContentLoaded', function () {
     }).then(function(r) { return r.json(); })
     .then(function(data) {
       btn.disabled = false;
-      btn.textContent = '分析実行';
+      btn.textContent = T.run_analysis;
       insightsLoaded = false;
       loadInsights();
     }).catch(function() {
       btn.disabled = false;
-      btn.textContent = '分析実行';
+      btn.textContent = T.run_analysis;
     });
   };
 
@@ -3296,9 +3428,9 @@ document.addEventListener('DOMContentLoaded', function () {
           npsRadarChartInst = new Chart(radarCtx, {
             type: 'radar',
             data: {
-              labels: ['料理', 'サービス', '雰囲気'],
+              labels: [T.food, T.service, T.ambiance],
               datasets: [{
-                label: '平均評価',
+                label: T.avg_rating,
                 data: [data.avg_food, data.avg_service, data.avg_ambiance],
                 backgroundColor: 'rgba(99,102,241,0.2)',
                 borderColor: 'rgba(99,102,241,1)',
@@ -3346,7 +3478,7 @@ document.addEventListener('DOMContentLoaded', function () {
         var list = document.getElementById('feedback-list');
         if (!list) return;
         if (!data.feedbacks || data.feedbacks.length === 0) {
-          list.innerHTML = '<p class="text-gray-400 text-sm text-center">フィードバックがありません</p>';
+          list.innerHTML = '<p class="text-gray-400 text-sm text-center">' + T.no_feedback + '</p>';
           return;
         }
         var html = '';
@@ -3358,7 +3490,7 @@ document.addEventListener('DOMContentLoaded', function () {
           html += '<span class="font-bold" style="color:' + catColor + ';">NPS: ' + fb.nps_score + '</span>';
           html += '<span class="text-xs ' + sentBadge + ' px-2 py-0.5 rounded-full">' + (fb.sentiment || '-') + '</span>';
           html += '</div>';
-          html += '<div class="text-xs text-gray-500 mb-1">料理:' + fb.food_rating + ' サービス:' + fb.service_rating + ' 雰囲気:' + fb.ambiance_rating + '</div>';
+          html += '<div class="text-xs text-gray-500 mb-1">' + T.food_colon + fb.food_rating + ' ' + T.service_colon + fb.service_rating + ' ' + T.ambiance_colon + fb.ambiance_rating + '</div>';
           if (fb.comment) html += '<p class="text-sm text-gray-700">' + _esc(fb.comment) + '</p>';
           html += '<div class="text-xs text-gray-400 mt-1">' + fb.created_at.slice(0, 10) + '</div>';
           html += '</div>';
@@ -3375,20 +3507,20 @@ document.addEventListener('DOMContentLoaded', function () {
     kpiLoaded = true;
     var grid = document.getElementById('kpi-scorecard-grid');
     if (!grid) return;
-    grid.innerHTML = '<p class="text-gray-400 text-sm text-center col-span-full">読み込み中...</p>';
+    grid.innerHTML = '<p class="text-gray-400 text-sm text-center col-span-full">' + T.loading + '</p>';
     fetch('/api/dashboard/kpi-scorecard/', { credentials: 'same-origin', headers: { 'X-CSRFToken': getCookie('csrftoken') || '' } })
       .then(function(r) { return r.json(); })
       .then(function(raw) {
         var data = useDemo(raw, 'kpi', 'kpis');
         if (!data.kpis || data.kpis.length === 0) {
-          grid.innerHTML = '<p class="text-gray-400 text-sm text-center col-span-full">データがありません</p>';
+          grid.innerHTML = '<p class="text-gray-400 text-sm text-center col-span-full">' + T.no_data_available + '</p>';
           return;
         }
         var html = '';
         data.kpis.forEach(function(kpi) {
           var borderColor = kpi.status === 'good' ? '#10b981' : kpi.status === 'warn' ? '#f59e0b' : '#ef4444';
           var statusIcon = kpi.status === 'good' ? '&#9679;' : kpi.status === 'warn' ? '&#9650;' : '&#9660;';
-          var statusLabel = kpi.status === 'good' ? '良好' : kpi.status === 'warn' ? '注意' : '要改善';
+          var statusLabel = kpi.status === 'good' ? T.status_good : kpi.status === 'warn' ? T.status_warn : T.status_bad;
           var fmtValue = typeof kpi.value === 'number' ? (kpi.value % 1 !== 0 ? kpi.value.toFixed(1) : kpi.value.toLocaleString()) : kpi.value;
           html += '<div class="rounded-lg border-l-4 p-4 bg-white shadow-sm" style="border-color:' + borderColor + ';">';
           html += '<div class="text-xs text-gray-500 mb-1">' + _esc(kpi.label) + '</div>';
@@ -3396,14 +3528,14 @@ document.addEventListener('DOMContentLoaded', function () {
           html += '<div class="flex items-center justify-between">';
           html += '<span style="color:' + borderColor + '; font-size:12px;">' + statusIcon + ' ' + statusLabel + '</span>';
           if (kpi.benchmark !== undefined && kpi.benchmark !== null) {
-            html += '<span class="text-xs text-gray-400">基準: ' + kpi.benchmark + '</span>';
+            html += '<span class="text-xs text-gray-400">' + T.benchmark_prefix + kpi.benchmark + '</span>';
           }
           html += '</div>';
           html += '</div>';
         });
         grid.innerHTML = html;
       }).catch(function(err) {
-        grid.innerHTML = '<p class="text-red-400 text-sm text-center col-span-full">読み込みエラー</p>';
+        grid.innerHTML = '<p class="text-red-400 text-sm text-center col-span-full">' + T.loading_error + '</p>';
       });
   };
 
@@ -3420,41 +3552,41 @@ document.addEventListener('DOMContentLoaded', function () {
   window.TOUR_STEPS = [
     {
       selector: '#dashboard-tabs',
-      title: 'タブナビゲーション',
-      text: 'ここでダッシュボードの各セクションを切り替えます。概要・売上・顧客・スタッフ・シフト・勤怠・運営の7つのタブがあります。',
+      title: T.tour_tab_nav_title,
+      text: T.tour_tab_nav_text,
     },
     {
       selector: '[data-tab="overview"]',
-      title: '概要タブ',
-      text: '予約KPI、日別予約グラフ、ビジネスインサイト、KPIスコアカードを確認できます。',
+      title: T.tour_overview_title,
+      text: T.tour_overview_text,
     },
     {
       selector: '#sales-period',
-      title: '期間選択',
-      text: '日別・週別・月別でデータの集計期間を切り替えられます。',
+      title: T.tour_period_title,
+      text: T.tour_period_text,
     },
     {
       selector: '[data-tab="sales"]',
-      title: '売上タブ',
-      text: '売上推移、人気商品、メニュー分析、ABC分析、売上予測、時間帯別売上、客単価推移を確認できます。',
+      title: T.tour_sales_title,
+      text: T.tour_sales_text,
       action: function() { switchTab('sales'); }
     },
     {
       selector: '[data-tab="customers"]',
-      title: '顧客分析タブ',
-      text: 'コホート分析、RFMセグメンテーション、バスケット分析、NPS・顧客満足度を確認できます。',
+      title: T.tour_customers_title,
+      text: T.tour_customers_text,
       action: function() { switchTab('customers'); }
     },
     {
       selector: '[data-tab="operations"]',
-      title: '運営タブ',
-      text: '在庫アラートなど、日常の運営に必要な情報を確認できます。',
+      title: T.tour_ops_title,
+      text: T.tour_ops_text,
       action: function() { switchTab('operations'); }
     },
     {
       selector: '.tour-help-btn',
-      title: 'ヘルプボタン',
-      text: 'このボタンをクリックすると、いつでもこのヘルプを再表示できます。',
+      title: T.tour_help_title,
+      text: T.tour_help_text,
       action: function() { switchTab('overview'); }
     },
   ];
@@ -3490,12 +3622,12 @@ document.addEventListener('DOMContentLoaded', function () {
               labels: data.daily.map(function(d) { return d.date; }),
               datasets: [
                 {
-                  label: 'チェックイン',
+                  label: T.checkin_label,
                   data: data.daily.map(function(d) { return d.checked_in; }),
                   backgroundColor: 'rgba(16,185,129,0.7)',
                 },
                 {
-                  label: 'ノーショー',
+                  label: T.noshow_label,
                   data: data.daily.map(function(d) { return d.no_show; }),
                   backgroundColor: 'rgba(244,63,94,0.7)',
                 }
@@ -3519,7 +3651,7 @@ document.addEventListener('DOMContentLoaded', function () {
             data: {
               labels: data.by_staff.map(function(s) { return s.staff_name; }),
               datasets: [{
-                label: 'チェックイン率 (%)',
+                label: T.checkin_rate_pct,
                 data: data.by_staff.map(function(s) { return (s.checkin_rate * 100).toFixed(1); }),
                 backgroundColor: 'rgba(99,102,241,0.7)',
               }]
@@ -3542,7 +3674,7 @@ document.addEventListener('DOMContentLoaded', function () {
             data: {
               labels: data.hourly.map(function(h) { return h.hour + ':00'; }),
               datasets: [{
-                label: 'チェックイン数',
+                label: T.checkin_count,
                 data: data.hourly.map(function(h) { return h.count; }),
                 backgroundColor: 'rgba(14,165,233,0.7)',
               }]
