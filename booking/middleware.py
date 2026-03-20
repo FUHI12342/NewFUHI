@@ -69,8 +69,8 @@ class SecurityAuditMiddleware:
     def _get_client_ip(self, request):
         x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
         if x_forwarded_for:
-            # Nginx appends real client IP as the last entry
-            return x_forwarded_for.split(',')[-1].strip()
+            # First entry is the original client IP
+            return x_forwarded_for.split(',')[0].strip()
         return request.META.get('REMOTE_ADDR')
 
     def _check_rate_limit(self, request, ip):

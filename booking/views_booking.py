@@ -26,7 +26,7 @@ from django.http import (
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils import timezone
-from django.views import generic, View
+from django.views import View
 from django.views.decorators.csrf import csrf_exempt
 
 from rest_framework.permissions import IsAuthenticated
@@ -129,9 +129,13 @@ class LineCallbackView(View):
 
         if response_post.status_code != 200:
             logger.error('LINE token exchange failed: %s %s', response_post.status_code, response_post.text)
-            return HttpResponse(f'トークンの取得に失敗しました (LINE API: {response_post.status_code} {response_post.text})')
+            return HttpResponse('トークンの取得に失敗しました。しばらく後でお試しください。')
 
-        line_id_token = json.loads(response_post.text)["id_token"]
+        try:
+            line_id_token = json.loads(response_post.text)["id_token"]
+        except (json.JSONDecodeError, KeyError) as e:
+            logger.error('LINE token response parse error: %s', e)
+            return HttpResponse('トークンの取得に失敗しました。しばらく後でお試しください。')
 
         user_profile = jwt.decode(
             line_id_token,
@@ -268,7 +272,7 @@ class LineCallbackView(View):
 
                 # 顧客LINE通知（QR/バックアップコード含む）
                 qr_page_url = (
-                    f'https://timebaibai.com/reservation/'
+                    f'{settings.SITE_BASE_URL}/reservation/'
                     f'{reservation_number}/qr/'
                 )
                 backup_line = ''
@@ -503,9 +507,12 @@ class CancelReservationView(LoginRequiredMixin, View):
     def post(self, request, schedule_id):
         schedule = get_object_or_404(Schedule, id=schedule_id)
         # 本人またはスタッフ/管理者のみキャンセル可能
-        is_owner = (schedule.line_user_hash and
-                    schedule.line_user_hash == Schedule.make_line_user_hash(
-                        request.session.get('line_user_id', '')))
+        session_line_id = request.session.get('line_user_id', '')
+        is_owner = bool(
+            session_line_id
+            and schedule.line_user_hash
+            and schedule.line_user_hash == Schedule.make_line_user_hash(session_line_id)
+        )
         is_staff_or_admin = (request.user.is_staff or request.user.is_superuser)
         if not is_owner and not is_staff_or_admin:
             raise PermissionDenied
@@ -607,7 +614,7 @@ def process_payment(payment_response, request, order_id):
             timer_url = reverse('booking:LINETimerView', args=[user_id])
             encoded_timer_url = quote(timer_url)
             qr_page_url = (
-                f'https://timebaibai.com/reservation/'
+                f'{settings.SITE_BASE_URL}/reservation/'
                 f'{schedule.reservation_number}/qr/'
             )
             store = schedule.staff.store
@@ -623,7 +630,7 @@ def process_payment(payment_response, request, order_id):
                 '【予約確定】決済が完了しました。'
                 + backup_line
                 + '\n\n予約情報・タイマー: '
-                + '<' + 'https://timebaibai.com/' + encoded_timer_url + '>'
+                + '<' + settings.SITE_BASE_URL + '/' + encoded_timer_url + '>'
                 + access_lines
             )
             try:
@@ -638,7 +645,7 @@ def process_payment(payment_response, request, order_id):
             store = schedule.staff.store
             access_lines = _build_access_lines(store)
             email_qr_url = (
-                f'https://timebaibai.com/reservation/'
+                f'{settings.SITE_BASE_URL}/reservation/'
                 f'{schedule.reservation_number}/qr/'
             )
             email_backup = ''
@@ -663,10 +670,10 @@ def process_payment(payment_response, request, order_id):
                     ),
                     from_email=settings.DEFAULT_FROM_EMAIL,
                     recipient_list=[schedule.customer_email],
-                    fail_silently=True,
+                    fail_silently=False,
                 )
             except Exception as e:
-                logger.warning('メール予約確定通知の送信に失敗: %s', e)
+                logger.error('決済確定メール送信失敗 reservation=%s: %s', schedule.reservation_number, e)
 
     return JsonResponse({"status": "success"})
 
@@ -817,21 +824,22 @@ class CheckinAPIView(APIView):
                 status=400,
             )
 
-        # --- Already checked in ---
-        if schedule.is_checked_in:
-            return Response(
-                {'status': 'error', 'message': 'すでにチェックイン済みです'},
-                status=409,
-            )
-
-        # --- Execute checkin ---
+        # --- Atomic checkin (prevents race condition) ---
         checked_in_by = getattr(request.user, 'staff', None)
         now = timezone.now()
-        Schedule.objects.filter(pk=schedule.pk).update(
+        updated = Schedule.objects.filter(
+            pk=schedule.pk,
+            is_checked_in=False,
+        ).update(
             is_checked_in=True,
             checked_in_at=now,
             checked_in_by=checked_in_by,
         )
+        if not updated:
+            return Response(
+                {'status': 'error', 'message': 'すでにチェックイン済みです'},
+                status=409,
+            )
 
         # --- 顧客にチェックイン完了通知 ---
         self._notify_customer_checkin(schedule)

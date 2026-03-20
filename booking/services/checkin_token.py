@@ -20,18 +20,18 @@ def _get_secret() -> str:
 
 
 def make_qr_token(reservation_number: str, appointment_end: datetime) -> str:
-    """Generate a signed QR token: {res_num}|{expires_unix}|{hmac_hex[:16]}."""
+    """Generate a signed QR token: {res_num}|{expires_unix}|{hmac_hex}."""
     expires_unix = str(int(appointment_end.timestamp()))
     message = f"{reservation_number}|{expires_unix}"
     sig = hmac.new(
         _get_secret().encode('utf-8'),
         message.encode('utf-8'),
         hashlib.sha256,
-    ).hexdigest()[:16]
+    ).hexdigest()
     return f"{reservation_number}|{expires_unix}|{sig}"
 
 
-def verify_qr_token(token: str) -> tuple:
+def verify_qr_token(token: str) -> tuple[bool, str, str]:
     """Verify a signed QR token.
 
     Returns (valid, reservation_number, error_message).
@@ -48,7 +48,7 @@ def verify_qr_token(token: str) -> tuple:
         _get_secret().encode('utf-8'),
         message.encode('utf-8'),
         hashlib.sha256,
-    ).hexdigest()[:16]
+    ).hexdigest()
 
     if not hmac.compare_digest(provided_sig, expected_sig):
         return (False, '', 'QRコードの署名が無効です')

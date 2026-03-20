@@ -45,12 +45,6 @@ class ScheduleAdmin(admin.ModelAdmin):
     short_reservation_number.short_description = _('予約番号')
     short_reservation_number.admin_order_field = 'reservation_number'
 
-    def get_changeform_initial_data(self, request):
-        return super().get_changeform_initial_data(request)
-
-    class Media:
-        pass
-
     def changelist_view(self, request, extra_context=None):
         extra_context = extra_context or {}
         extra_context['add_button_label'] = _('予約を追加')

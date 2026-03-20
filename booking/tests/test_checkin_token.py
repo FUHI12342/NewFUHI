@@ -1,7 +1,5 @@
 """Unit tests for booking.services.checkin_token."""
 from datetime import timedelta
-from unittest.mock import patch
-
 from django.core.files.base import ContentFile
 from django.test import TestCase, override_settings
 from django.utils import timezone
@@ -28,7 +26,7 @@ class MakeQrTokenTests(TestCase):
         end = timezone.now() + timedelta(hours=1)
         token = make_qr_token('abc-123', end)
         sig = token.split('|')[2]
-        self.assertEqual(len(sig), 16)
+        self.assertEqual(len(sig), 64)
 
 
 class VerifyQrTokenTests(TestCase):
@@ -51,7 +49,7 @@ class VerifyQrTokenTests(TestCase):
         end = timezone.now() + timedelta(hours=1)
         token = make_qr_token('res-003', end)
         parts = token.split('|')
-        parts[2] = 'deadbeef12345678'
+        parts[2] = 'deadbeef12345678deadbeef12345678deadbeef12345678deadbeef12345678'
         tampered = '|'.join(parts)
         valid, _, error = verify_qr_token(tampered)
         self.assertFalse(valid)

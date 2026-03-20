@@ -854,7 +854,7 @@ class InsightsAPIView(APIView):
             })
         except Exception as e:
             logger.exception("Insight generation failed")
-            return Response({'detail': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            return Response({'detail': '内部エラーが発生しました'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 class KPIScoreCardAPIView(APIView):
@@ -1099,7 +1099,7 @@ class NPSStatsAPIView(APIView):
         if not request.user.is_authenticated:
             return Response({'detail': 'login required'}, status=status.HTTP_403_FORBIDDEN)
 
-        days = int(request.GET.get('days', 90))
+        days = _clamp_int(request.GET.get('days'), 90)
         now = timezone.now()
         since = now - timedelta(days=days)
 
@@ -1199,7 +1199,7 @@ class VisitorForecastAPIView(APIView):
             return Response(result)
         except Exception as e:
             logger.exception("来客予測の生成に失敗")
-            return Response({'detail': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            return Response({'detail': '内部エラーが発生しました'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 class CLVAnalysisAPIView(APIView):
@@ -1228,7 +1228,7 @@ class CLVAnalysisAPIView(APIView):
             return Response(result)
         except Exception as e:
             logger.exception("CLV分析の生成に失敗")
-            return Response({'detail': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            return Response({'detail': '内部エラーが発生しました'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 class AutoOrderRecommendationAPIView(APIView):
@@ -1255,7 +1255,7 @@ class AutoOrderRecommendationAPIView(APIView):
             return Response(result)
         except Exception as e:
             logger.exception("自動発注推奨の生成に失敗")
-            return Response({'detail': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            return Response({'detail': '内部エラーが発生しました'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 class ExternalDataAPIView(APIView):

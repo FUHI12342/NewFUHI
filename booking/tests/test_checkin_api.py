@@ -1,5 +1,4 @@
 """Integration tests for CheckinAPIView, checkin stats, and admin display."""
-import json
 from datetime import timedelta
 from unittest.mock import patch, MagicMock
 
@@ -90,7 +89,7 @@ class QrCheckinTests(CheckinAPITestBase):
         )
         # Tamper with signature
         parts = token.split('|')
-        parts[2] = 'aaaaaaaaaaaaaaaa'
+        parts[2] = 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'
         tampered = '|'.join(parts)
         resp = self.client.post(
             self.url,

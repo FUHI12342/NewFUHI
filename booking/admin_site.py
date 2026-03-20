@@ -94,6 +94,7 @@ SIDEBAR_CUSTOM_LINKS = {
     ],
     'reservation': [
         {'name': _('売上ダッシュボード'), 'admin_url': '/admin/dashboard/sales/', 'icon': 'fas fa-chart-line'},
+        {'name': _('チェックインスキャン'), 'admin_url': '/checkin/', 'icon': 'fas fa-qrcode'},
         {'name': _('顧客分析'), 'admin_url': '/admin/analytics/visitors/', 'icon': 'fas fa-chart-bar'},
         {'name': _('AI推薦'), 'admin_url': '/admin/ai/recommendation/', 'icon': 'fas fa-robot'},
     ],
