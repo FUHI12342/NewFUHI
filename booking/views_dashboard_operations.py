@@ -13,6 +13,7 @@ from rest_framework import status
 from .models import (
     Store, Schedule, OrderItem, Staff, Product, Order,
     ShiftPeriod, ShiftAssignment, CustomerFeedback, VisitorCount,
+    TableSeat,
 )
 from .views_dashboard_base import DashboardAuthMixin, PERIOD_TRUNC_MAP, _clamp_int
 
