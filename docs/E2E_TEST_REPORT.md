@@ -1,8 +1,9 @@
 # E2E テスト結果 — timebaibai.com
 
-日時: 2026-03-23 15:32
+日時: 2026-03-23 (最終更新: 18:30)
 テスター: Playwright (headless Chromium)
 環境: 本番 (https://timebaibai.com)
+テストスクリプト: `/tmp/e2e/run_e2e.py` (メイン25テスト), `/tmp/e2e/test_i18n_nav.py` (i18n 21テスト)
 
 ## サマリー
 
@@ -13,7 +14,20 @@
 | Phase 3: ロール間連動 | 3 | 3 | 0 | 0 |
 | Phase 4: 権限境界 | 4 | 4 | 0 | 0 |
 | Phase 5: 公開ページ | 2 | 2 | 0 | 0 |
-| **合計** | **25** | **25** | **0** | **0** |
+| **メインE2E合計** | **25** | **25** | **0** | **0** |
+
+### i18n ナビゲーションテスト (追加)
+
+| Phase | テスト数 | PASS | FAIL |
+|---|---|---|---|
+| 公開ページ zh-hant | 7 | 7 | 0 |
+| 言語切替: ページ維持 | 1 | 1 | 0 |
+| Admin zh-hant ナビ | 6 | 6 | 0 |
+| 旧URLリダイレクト | 2 | 2 | 0 |
+| ページ間遷移 言語維持 | 5 | 5 | 0 |
+| **i18n合計** | **21** | **21** | **0** |
+
+### 総合計: 46テスト / 46 PASS / 0 FAIL
 
 ## 詳細結果
 
@@ -45,96 +59,53 @@
 | T5.1 | 公開7ページ確認 | PASS | トップ:200, 店舗:200, 占い師:200, カレンダー:200, ショップ:200, ニュース:200, ヘルプ:200 | public_T5.1.png |
 | T5.2 | 中国語切替 | PASS | Top: 200, Stores: 200, ZH: True | i18n_T5.2_stores.png |
 
-## 発見事項
+## i18n ナビゲーション詳細結果
 
-- [INFO] 全テスト正常完了、問題なし
-
-## 修正履歴 (2026-03-23)
-
-以下の3点を修正し、全テスト PASS を確認:
-
-### 1. CSP `unsafe-eval` 追加 (MEDIUM → 解決済)
-- **問題**: FullCalendar等のライブラリが `eval()` を使用し、CSP違反が発生
-- **修正**: `/etc/nginx/snippets/security-headers.conf` の `script-src` に `'unsafe-eval'` 追加
-- **ローカル**: `config/nginx/snippets/security-headers.conf` に同期済み
-- **注意**: 将来的にライブラリのCSP対応版に移行できれば `'unsafe-eval'` を削除推奨
-
-### 2. Tailwind CDN → ビルド済みCSS (MEDIUM → 解決済)
-- **問題**: 4つの管理画面テンプレートが `cdn.tailwindcss.com` のCDN版を使用
-- **修正**: 2つのTailwind設定ファイルで個別ビルド
-  - `tailwind-admin-debug.config.js` (`tw-` prefix) → `admin-debug.css` (7KB)
-  - `tailwind-admin-dashboard.config.js` (no prefix) → `admin-dashboard.css` (16KB)
-- **対象テンプレート**: `debug_panel.html`, `iot_device_debug.html`, `restaurant_dashboard.html`, `ec_dashboard.html`
-- **ビルドコマンド**: `npm run css:build:admin` / `npm run css:build:all`
-
-### 3. favicon 404 修正 (LOW → 解決済)
-- **問題**: `/favicon.ico` が404を返し、JSエラーとして検出
-- **修正**: SVG favicon (`booking/static/images/favicon.svg`) を作成し、`base.html` と `table_base.html` にリンク追加
-
-### 4. EC注文管理 500エラー修正 (再テスト中に発見)
-- **問題**: `ec_dashboard.html` で `{% load static %}` が不足し、テンプレートエラー
-- **修正**: `{% load i18n %}` → `{% load i18n static %}`
-
-## nginx CSP設定の構造
-
-本番のCSPは以下の構造で管理されている:
-
-```
-/etc/nginx/snippets/security-headers.conf  ← CSP定義の唯一のソース
-  ↓ include
-/etc/nginx/sites-enabled/timebaibai.conf   ← 各locationブロックでinclude
-  - location /
-  - location /login/
-  - location /api/
-  - location /api/iot/
-  - etc.
-```
-
-**注意**: `sites-available/timebaibai.conf` と `sites-enabled/timebaibai.conf` は別ファイル（シンボリックリンクではない）。実際に使われるのは `sites-enabled` 版。
-
-## テスト実行方法
-
-```bash
-# 前提: Playwright がインストール済み
-# pip install playwright && playwright install chromium
-
-# テスト実行
-/Library/Developer/CommandLineTools/usr/bin/python3 /tmp/e2e/run_e2e.py
-
-# レポート出力先: /Users/adon/NewFUHI/docs/E2E_TEST_REPORT.md
-# スクリーンショット: /tmp/e2e/*.png
-# JSON結果: /tmp/e2e/results.json
-```
-
-### デモアカウント
-
-| Username | Password | Role | 確認可能範囲 |
+| ID | テスト名 | 結果 | 備考 |
 |---|---|---|---|
-| demo_fortune | demo1234 | Cast | シフト希望、マイページ、勤怠PIN |
-| demo_staff | demo1234 | Staff | Cast と同等 |
-| demo_manager | demo1234 | Manager | 売上、POS、EC、予約管理 |
-| demo_owner | demo1234 | Owner | 全機能（デバッグ、給与、物件含む） |
+| P1 | 公開: トップ (zh-hant) | PASS | URL: /zh-hant/, Status: 200 |
+| P2 | 公開: 店舗一覧 (zh-hant) | PASS | URL: /zh-hant/stores/, Status: 200 |
+| P3 | 公開: 占い師一覧 (zh-hant) | PASS | URL: /zh-hant/fortune-tellers/, Status: 200 |
+| P4 | 公開: カレンダー (zh-hant) | PASS | URL: /zh-hant/date-calendar/, Status: 200 |
+| P5 | 公開: ショップ (zh-hant) | PASS | URL: /zh-hant/shop/, Status: 200 |
+| P6 | 公開: ニュース (zh-hant) | PASS | URL: /zh-hant/news/, Status: 200 |
+| P7 | 公開: ヘルプ (zh-hant) | PASS | URL: /zh-hant/help/, Status: 200 |
+| LS1 | 言語切替: ページ維持 | PASS | /stores/ → /stores/ (同ページ維持) |
+| A1 | Admin: zh-hant ホーム | PASS | URL: /zh-hant/admin/ |
+| A2 | Admin: zh-hant ダッシュボード | PASS | URL: /zh-hant/admin/dashboard/sales/ |
+| A3 | Dashboard→シフトカレンダー | PASS | href=/zh-hant/admin/shift/calendar/ |
+| A4 | Dashboard→POS | PASS | href=/zh-hant/admin/pos/ |
+| A5 | Dashboard→勤怠ボード | PASS | href=/zh-hant/admin/attendance/board/ |
+| A6 | Shift Calendar: 管理メニュー | PASS | 全リンクにzh-hantプレフィックスあり |
+| L1 | Legacy: 旧prebooking URL | PASS | 301→/ にリダイレクト |
+| L2 | Legacy: 旧MQ9 URL | PASS | 301→/ にリダイレクト |
+| N1 | ナビ遷移: 店舗一覧 | PASS | /zh-hant/stores/ |
+| N2 | ナビ遷移: 占い師一覧 | PASS | /zh-hant/fortune-tellers/ |
+| N3 | ナビ遷移: ショップ | PASS | /zh-hant/shop/ |
+| N4 | ナビ遷移: ヘルプ | PASS | /zh-hant/help/ |
+| N5 | ナビ遷移: ニュース | PASS | /zh-hant/news/staff-recruiting/ |
 
-### テスト実行上の注意
-- Gunicornワーカー数が2のため、ログイン間に15秒の待機が必要
-- セッション状態をファイルに保存して再利用し、ログイン回数を最小化
-- CSP警告・404リソースエラーはフィルタリング済み
+## 発見事項・修正履歴
 
-## ロール別権限マトリクス (参考)
+### 修正済み (今回セッション)
 
-| 機能 | Cast | Staff | Manager | Owner |
-|---|---|---|---|---|
-| シフト希望登録 | view/add | view | view/add/change | all |
-| 管理シフトカレンダー | view | view | view/add/change | all |
-| 売上ダッシュボード | - | - | view | all |
-| POS | - | - | view/add/change | all |
-| EC注文管理 | - | - | view/add/change | all |
-| デバッグパネル | - | - | - | all |
-| 給与管理 | - | - | - | all |
-| スタッフ追加 | - | - | - | all |
-| スタッフ削除 | - | - | - | all |
+- [FIXED] **i18n言語維持**: 管理画面のダッシュボードからリンクをクリックするとzh-hantが消える問題
+  - 原因: テンプレート内のハードコードURL (`/admin/shift/calendar/` 等)
+  - 修正: `{% url %}` タグに置換（restaurant_dashboard.html: 14箇所, shift_calendar.html: 5箇所, inventory_dashboard.html: 1箇所）
+- [FIXED] **ForceLanguageMiddleware未適用**: セッション経由の言語維持ミドルウェアがMIDDLEWAREに登録されていなかった
+  - 修正: `project/settings.py` の MIDDLEWARE に追加
+- [FIXED] **言語切替時のリダイレクト先**: `next="/"` でトップに戻ってしまう
+  - 修正: `base.html` で `next="{{ request.path }}"` に変更
+- [FIXED] **旧URL 404**: クローラーが `/staff/*/prebooking/*/*.html` にアクセスして404
+  - 修正: `project/urls.py` に301リダイレクト追加（i18n_patterns外）
+- [FIXED] **EC注文管理500エラー**: `{% load static %}` 漏れ
+  - 修正: `ec_dashboard.html` に `{% load i18n static %}` 追加
 
-定義元: `booking/admin_site.py` (`ROLE_VISIBLE_GROUPS`, `_ROLE_PERMS`)
+### 情報
+
+- [INFO] 全46テスト正常完了
+- [INFO] デモアカウント4ロール全て正常動作
+- [INFO] 権限境界テスト正常（不正アクセスは403/リダイレクト）
 
 ## スクリーンショット
 
@@ -165,3 +136,37 @@
 - `perm_T4.4.png` — T4.4 未認証→リダイレクト
 - `public_T5.1.png` — T5.1 公開7ページ確認
 - `i18n_T5.2_stores.png` — T5.2 中国語切替
+
+## テスト実行方法
+
+```bash
+# メインE2Eテスト (25テスト: ログイン, ワークフロー, 権限, 公開ページ)
+/usr/bin/python3 /tmp/e2e/run_e2e.py
+
+# i18nナビゲーションテスト (21テスト: 多言語遷移, リダイレクト)
+/usr/bin/python3 /tmp/e2e/test_i18n_nav.py
+```
+
+前提: `pip install playwright && python -m playwright install chromium`
+
+## デモアカウント
+
+| Username | Password | Role |
+|---|---|---|
+| demo_owner | demo1234 | Owner (superuser) |
+| demo_manager | demo1234 | Manager |
+| demo_staff | demo1234 | Staff |
+| demo_fortune | demo1234 | Cast |
+
+## 修正ファイル一覧
+
+| ファイル | 修正内容 |
+|---|---|
+| `project/settings.py` | ForceLanguageMiddleware追加 |
+| `project/urls.py` | 旧URL 301リダイレクト追加 |
+| `booking/templates/booking/base.html` | 言語切替の`next`フィールド修正 |
+| `templates/admin/booking/restaurant_dashboard.html` | 14箇所のURL→`{% url %}`タグ化 |
+| `templates/admin/booking/shift_calendar.html` | 5箇所のURL→`{% url %}`タグ化 |
+| `templates/admin/booking/inventory_dashboard.html` | 1箇所のURL→`{% url %}`タグ化 |
+| `templates/admin/booking/ec_dashboard.html` | `{% load static %}` 追加 |
+| `config/nginx/snippets/security-headers.conf` | CSP `unsafe-eval` 追加 |
