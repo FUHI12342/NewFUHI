@@ -125,12 +125,21 @@
 | `booking/templates/booking/base.html` | 言語切替のnextフィールド修正 |
 | `project/urls.py` | 旧URL 301リダイレクト追加 |
 | `docs/E2E_TEST_REPORT.md` | テスト結果レポート |
+| `project/holidays.py` | **新規** PUBLIC_HOLIDAYSデータ (settings.pyから外部化) |
+| `project/settings.py` | Sentry設定追加、import整理、PUBLIC_HOLIDAYS外部化 |
+| `requirements.txt` | 42脆弱性修正 (Django 4.2.29等)、sentry-sdk追加 |
+| `booking/views_booking.py` | coiney_webhook Content-Typeチェック追加 |
+| `booking/models/cms.py` | 未使用Decimal import削除 |
+| `.gitignore` | *.bak, *.orig, #*, アーカイブディレクトリ追加 |
 
 ---
 
 ## 4. コミット履歴
 
 ```
+9e385ca refactor: 不要ファイル削除 + Sentry導入 + セキュリティ改修
+be53da8 fix: 依存パッケージ42脆弱性修正 + settings.pyリファクタ
+c283c05 docs: 作業記録 CHANGELOG_2026-03-23
 cf4a452 security: セキュリティレビュー全19件対応
 11d4d8d docs: E2Eテストレポート最終版 — 177/177 PASS (3スイート統合)
 7309cb0 fix: KPIScoreCardAPIView 500エラー修正 — Storeフィルタ修正
@@ -148,16 +157,76 @@ f1a2278 fix: i18n言語維持修正 + 旧URL 404リダイレクト
 | 項目 | 内容 |
 |---|---|
 | `.env` に追加 | `CHECKIN_QR_SECRET` (64文字hex) |
+| `.env` に追加予定 | `SENTRY_DSN` (Sentryプロジェクト作成後) |
 | Nginx設定更新 | CSP統一 + 敏感ファイルブロック |
-| 依存パッケージ追加 | `bleach>=6.0.0` |
+| 依存パッケージ追加 | `bleach>=6.0.0`, `sentry-sdk[django]>=2.0.0` |
+| 依存パッケージ更新 | Django 4.2.29, cryptography 46.0.5, Pillow 12.1.1, PyJWT 2.12.1, lxml-html-clean 0.4.4, Jinja2 3.1.6 |
 
 ---
 
-## 6. 残タスク・今後の検討事項
+## 6. 追加作業: 本番リスク管理・依存更新・リファクタ
+
+### 6.1 依存パッケージ脆弱性修正 (pip-audit: 42件)
+
+| パッケージ | 旧バージョン | 新バージョン | CVE数 |
+|---|---|---|---|
+| Django | 4.2.25 | 4.2.29 | 12 |
+| cryptography | 43.0.3 | 46.0.5 | 1 |
+| Pillow | 10.4.0 | 12.1.1 | 1 |
+| PyJWT | 2.10.1 | 2.12.1 | 1 |
+| lxml-html-clean | 0.4.3 | 0.4.4 | 2 |
+| Jinja2 | (未ピン) | 3.1.6 | 5 |
+| filelock | 3.19.1 | 3.25.2 | 2 |
+| social-auth-app-django | 5.4.3 | 5.4.3維持 | 1(Django 4.2互換なし) |
+
+### 6.2 settings.py リファクタ
+
+- `import sys` をファイル先頭に移動
+- `PUBLIC_HOLIDAYS` を `project/holidays.py` に外部化 (settings.py -40行)
+- CHECKIN_QR_SECRET のコメント修正
+
+### 6.3 Sentry エラー監視導入
+
+- `sentry-sdk[django]>=2.0.0` 追加
+- settings.py: `SENTRY_DSN` 環境変数で制御 (DEBUG=False時のみ初期化)
+- `send_default_pii=False` でPII送信無効化
+
+### 6.4 不要ファイル削除 (17,805行削減)
+
+| 対象 | ファイル数 | 説明 |
+|---|---|---|
+| pico_backups/ | 22 | IoTデバイス旧バックアップ |
+| pico_device__ARCHIVE_*/ | 9 | IoTデバイス旧アーカイブ |
+| project/settings/ | 5 | 未使用の分割設定パターン |
+| project/#settings.py, *.orig | 2 | 旧設定バックアップ |
+| *.bak | 2 | テンプレートバックアップ |
+| staticfiles/css/#style.css | 1 | 旧CSSバックアップ |
+
+### 6.5 追加セキュリティ改修
+
+- `coiney_webhook`: Content-Type チェック追加 (全CSRF exemptビュー完了)
+- `booking/models/cms.py`: 未使用 `Decimal` import 削除
+- `.gitignore`: `*.bak`, `*.orig`, `#*` パターン追加
+
+### 6.6 インフラ確認結果
+
+| 項目 | 状態 | 詳細 |
+|---|---|---|
+| バックアップ | 正常 | cron 3本 (02:00/03:00/18:00), S3同期含む |
+| SSL証明書 | 正常 | certbot.timer 1日2回、残33日 (2026-04-26) |
+| Celery | 正常 | newfuhi-celery, newfuhi-celerybeat 共にactive |
+| DB | SQLite 34MB | 82テーブル, ~90,000行。現規模では問題なし |
+
+---
+
+## 7. 残タスク・今後の検討事項
 
 | 項目 | 優先度 | 説明 |
 |---|---|---|
+| Sentry DSN設定 | 高 | sentry.io でプロジェクト作成→DSN取得→.envに `SENTRY_DSN` 追加 |
+| social-auth-app-django更新 | 中 | Django 5.x移行時に5.6.0+に更新 (現在Django 4.2 LTSでは5.4.3が最新互換) |
 | Alpine.js CSPビルド移行 | 低 | `@alpinejs/csp` に移行すれば `unsafe-eval` 削除可能。6テンプレートのリファクタ必要 |
 | CSP nonce化 | 低 | `unsafe-inline` を nonce ベースに移行すればCSPが完全に機能する |
 | E2Eテストの自動化 | 中 | CI/CDパイプラインに組み込み、デプロイ前に自動実行 |
 | テストスクリプトのリポジトリ管理 | 中 | `/tmp/e2e/` から `tests/e2e/` に移動してgit管理 |
+| 大規模ファイルリファクタ | 低 | seed_mock_data.py(2,286行), views_booking.py(887行)等12ファイルが800行超 |
