@@ -239,11 +239,11 @@ class KPIScoreCardAPIView(DashboardAuthMixin, APIView):
         repeat_rate = round(repeat_customers / total_customers * 100, 1) if total_customers > 0 else 0
 
         total_reservations = Schedule.objects.filter(
-            staff__store__in=Store.objects.filter(**scope) if scope else Store.objects.all(),
+            staff__store__in=Store.objects.filter(id=store.id) if store else Store.objects.all(),
             start__gte=since,
         ).count()
         cancelled = Schedule.objects.filter(
-            staff__store__in=Store.objects.filter(**scope) if scope else Store.objects.all(),
+            staff__store__in=Store.objects.filter(id=store.id) if store else Store.objects.all(),
             start__gte=since,
             is_cancelled=True,
         ).count()
@@ -257,8 +257,7 @@ class KPIScoreCardAPIView(DashboardAuthMixin, APIView):
             .distinct()
             .count()
         )
-        from .models import TableSeat
-        stores = Store.objects.filter(**scope) if scope else Store.objects.all()
+        stores = Store.objects.filter(id=store.id) if store else Store.objects.all()
         table_count = TableSeat.objects.filter(store__in=stores).count() or 1
         table_turnover = round(total_orders / (unique_days * table_count), 2) if unique_days > 0 else 0
 
