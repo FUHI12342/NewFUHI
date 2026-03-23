@@ -62,7 +62,8 @@
     // Checkout
     let checkout = await fetch('/api/pos/checkout/', {method:'POST', headers:{'Content-Type':'application/json','X-CSRFToken':getCookie('csrftoken')}, body:JSON.stringify({order_id:order.id, payment_method_id:methodId})});
     let result = await checkout.json();
-    window.open('/admin/pos/receipt/' + result.receipt_number + '/', '_blank', 'width=400,height=700');
+    const receiptBase = '{% url "admin_pos_receipt" receipt_number="__RN__" %}'.replace('__RN__', result.receipt_number);
+    window.open(receiptBase, '_blank', 'width=400,height=700');
     this.cart = [];
   }
 }">

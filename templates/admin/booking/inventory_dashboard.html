@@ -177,7 +177,7 @@
      onclick="if(event.target===this) this.classList.remove('open')">
   <div class="inv-modal">
     <h3>{% trans "入荷登録" %}</h3>
-    <form method="post" action="/admin/inventory/stock-in/">
+    <form method="post" action="{% url 'admin_inventory_stock_in' %}">
       {% csrf_token %}
       <div class="inv-form-group">
         <label for="id_product">{% trans "商品" %}</label>
