@@ -117,6 +117,30 @@ def _to_float_or_none(value: Any) -> Optional[float]:
         return None
 
 
+# センサー値の許容範囲（異常値フィルタ）
+SENSOR_RANGES = {
+    'mq9': (0.0, 10000.0),
+    'light': (0.0, 65535.0),
+    'sound': (0.0, 65535.0),
+    'temp': (-40.0, 125.0),
+    'hum': (0.0, 100.0),
+}
+
+# 許可されるイベントタイプ
+ALLOWED_EVENT_TYPES = {'sensor', 'sensor_reading', 'mq9_alarm', 'ir_learned', 'button_press', 'heartbeat'}
+
+
+def _validate_sensor_value(value: Optional[float], sensor_type: str) -> Optional[float]:
+    """Validate sensor value is within acceptable range. Returns None if out of range."""
+    if value is None:
+        return None
+    min_val, max_val = SENSOR_RANGES.get(sensor_type, (0.0, 65535.0))
+    if min_val <= value <= max_val:
+        return value
+    logger.warning("Sensor value out of range: %s=%s (expected %s-%s)", sensor_type, value, min_val, max_val)
+    return None
+
+
 # --------------------------------------------------
 # LINE Push通知ヘルパー（指数バックオフリトライ付き）
 # --------------------------------------------------
@@ -143,8 +167,14 @@ class IoTDeviceThrottle(SimpleRateThrottle):
     rate = '10/min'
 
     def get_cache_key(self, request, view):
-        device_name = request.data.get('device', '')
-        return f'iot_throttle_{device_name}'
+        api_key = request.headers.get('X-API-KEY', '')
+        if api_key:
+            key_hash = IoTDevice.hash_api_key(api_key)
+            return f'iot_throttle_{key_hash[:32]}'
+        return self.cache_format % {
+            'scope': self.scope or 'iot',
+            'ident': self.get_ident(request),
+        }
 
 
 class IoTEventAPIView(APIView):
@@ -168,6 +198,8 @@ class IoTEventAPIView(APIView):
             return Response({"detail": "device not found"}, status=status.HTTP_404_NOT_FOUND)
 
         event_type = request.data.get("event_type", "sensor")
+        if event_type not in ALLOWED_EVENT_TYPES:
+            return Response({"detail": "invalid event_type"}, status=status.HTTP_400_BAD_REQUEST)
         incoming_payload = request.data.get("payload", None)
 
         payload_raw_dict, sensors_dict = _normalize_payload(incoming_payload)
@@ -184,14 +216,26 @@ class IoTEventAPIView(APIView):
             if mq9_alt is not None:
                 payload_dict["mq9"] = mq9_alt
 
-        mq9_value = _to_float_or_none(payload_dict["mq9"])
-        light_value = _to_float_or_none(payload_dict.get("light"))
-        sound_value = _to_float_or_none(payload_dict.get("sound"))
+        mq9_value = _validate_sensor_value(_to_float_or_none(payload_dict["mq9"]), 'mq9')
+        light_value = _validate_sensor_value(_to_float_or_none(payload_dict.get("light")), 'light')
+        sound_value = _validate_sensor_value(_to_float_or_none(payload_dict.get("sound")), 'sound')
+
+        # Validate temp/hum before storing in payload JSON
+        for key in ('temp', 'hum'):
+            raw_val = _to_float_or_none(payload_dict.get(key))
+            payload_dict[key] = _validate_sensor_value(raw_val, key)
 
         pir_raw = _pick_value(request.data, sensors_dict, payload_raw_dict, "pir")
         pir_triggered = None
         if pir_raw is not None:
-            pir_triggered = bool(pir_raw)
+            if isinstance(pir_raw, bool):
+                pir_triggered = pir_raw
+            elif isinstance(pir_raw, (int, float)):
+                pir_triggered = bool(pir_raw)
+            elif isinstance(pir_raw, str) and pir_raw.lower() in ('true', '1', 'false', '0'):
+                pir_triggered = pir_raw.lower() in ('true', '1')
+            else:
+                pir_triggered = None
 
         evt = IoTEvent.objects.create(
             device=device,
@@ -331,7 +375,7 @@ class IoTMQ9GraphView(LoginRequiredMixin, generic.TemplateView):
         return context
 
 
-class IoTSensorDashboardView(generic.TemplateView):
+class IoTSensorDashboardView(LoginRequiredMixin, generic.TemplateView):
     template_name = 'booking/iot_sensor_dashboard.html'
 
     def get_context_data(self, **kwargs):

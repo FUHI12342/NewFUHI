@@ -48,12 +48,11 @@ class TestIoTSensorDashboardView:
 
     @pytest.mark.django_db
     def test_dashboard_unauthenticated_redirect(self, api_client):
-        """Unauthenticated user is redirected from dashboard."""
+        """Unauthenticated user is redirected to login."""
         url = reverse('booking:iot_sensor_dashboard')
         resp = api_client.get(url)
-        # TemplateView without LoginRequiredMixin may return 200
-        # IoTSensorDashboardView has no login required, so 200 is expected
-        assert resp.status_code == 200
+        # LoginRequiredMixin redirects to login page
+        assert resp.status_code == 302
 
 
 # ==============================

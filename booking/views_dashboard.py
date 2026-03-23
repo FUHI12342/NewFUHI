@@ -5,7 +5,7 @@ from datetime import timedelta
 
 from django.db.models import Avg
 from django.utils import timezone
-from django.views.generic import TemplateView
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
@@ -15,18 +15,9 @@ from .models import IoTDevice, IoTEvent
 logger = logging.getLogger(__name__)
 
 
-class IoTSensorDashboardView(TemplateView):
-    """Task-manager style IoT sensor dashboard."""
-    template_name = 'booking/iot_sensor_dashboard.html'
-
-    def get_context_data(self, **kwargs):
-        ctx = super().get_context_data(**kwargs)
-        ctx['devices'] = IoTDevice.objects.filter(is_active=True).select_related('store')
-        return ctx
-
-
 class SensorDataAPIView(APIView):
     """GET /api/iot/sensors/data/ — time-series sensor data for Chart.js."""
+    permission_classes = [IsAuthenticated]
 
     RANGE_MAP = {
         '1h': timedelta(hours=1),
@@ -87,6 +78,7 @@ class SensorDataAPIView(APIView):
 
 class PIRStatusAPIView(APIView):
     """GET /api/iot/sensors/pir-status/ — real-time PIR active status."""
+    permission_classes = [IsAuthenticated]
 
     def get(self, request):
         device_id = request.GET.get('device_id')
@@ -110,6 +102,7 @@ class PIRStatusAPIView(APIView):
 
 class PIREventsAPIView(APIView):
     """GET /api/iot/sensors/pir-events/ — PIR motion events bucketed by hour."""
+    permission_classes = [IsAuthenticated]
 
     RANGE_MAP = {
         '1h': timedelta(hours=1),

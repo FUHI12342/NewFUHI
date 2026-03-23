@@ -1,11 +1,14 @@
 """IoT models: IoTDevice, IoTEvent, VentilationAutoControl, IRCode, Property."""
+import hashlib
+import logging
+from typing import Optional
+
 from django.conf import settings
+from django.core.exceptions import ImproperlyConfigured
 from django.db import models
 from django.utils.translation import gettext_lazy as _
-from django.core.exceptions import ImproperlyConfigured
 
-import hashlib
-from typing import Optional
+logger = logging.getLogger(__name__)
 
 try:
     from cryptography.fernet import Fernet
@@ -184,7 +187,8 @@ class VentilationAutoControl(models.Model):
             f = self._get_fernet()
             return f.decrypt(self.switchbot_token.encode('utf-8')).decode('utf-8')
         except Exception:
-            return self.switchbot_token  # fallback: 未暗号化の値
+            logger.error("Failed to decrypt switchbot_token for rule %s", self.pk)
+            return None
 
     def set_switchbot_secret(self, plain_secret: str) -> None:
         if not plain_secret:
@@ -200,7 +204,8 @@ class VentilationAutoControl(models.Model):
             f = self._get_fernet()
             return f.decrypt(self.switchbot_secret.encode('utf-8')).decode('utf-8')
         except Exception:
-            return self.switchbot_secret  # fallback: 未暗号化の値
+            logger.error("Failed to decrypt switchbot_secret for rule %s", self.pk)
+            return None
 
 
 class IRCode(models.Model):

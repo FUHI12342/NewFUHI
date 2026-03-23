@@ -144,6 +144,7 @@ _REQUIRED_SECRETS = [
     "LINE_CHANNEL_SECRET",
     "LINE_USER_ID_ENCRYPTION_KEY",
     "LINE_USER_ID_HASH_PEPPER",
+    "IOT_ENCRYPTION_KEY",
 ]
 _missing = [k for k in _REQUIRED_SECRETS if not os.getenv(k)]
 if _missing:
@@ -156,7 +157,6 @@ _WARN_SECRETS = [
     "PAYMENT_API_KEY",
     "COINEY_WEBHOOK_SECRET",
     "GEMINI_API_KEY",
-    "IOT_ENCRYPTION_KEY",
 ]
 _warn_missing = [k for k in _WARN_SECRETS if not os.getenv(k)]
 if _warn_missing:
