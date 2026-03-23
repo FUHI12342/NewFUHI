@@ -7,6 +7,7 @@ User=ubuntu
 Group=ubuntu
 WorkingDirectory=/home/ubuntu/NewFUHI
 EnvironmentFile=/home/ubuntu/NewFUHI/.env
+Environment=ENV=production
 Environment=DJANGO_ENVIRONMENT=production
 Environment=DJANGO_SETTINGS_MODULE=project.settings
 ExecStart=/home/ubuntu/NewFUHI/.venv/bin/gunicorn project.wsgi:application \

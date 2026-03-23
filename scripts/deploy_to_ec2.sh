@@ -129,7 +129,7 @@ echo -e "${YELLOW}  DBバックアップ中...${NC}"
 BACKUP_FILE="$REMOTE_PATH/backups/pre_deploy_$(date +%Y%m%d_%H%M%S).json"
 $SSH_CMD "mkdir -p '$REMOTE_PATH/backups' && cd '$REMOTE_PATH' && \
     source .venv/bin/activate && \
-    DJANGO_SETTINGS_MODULE=project.settings.production python manage.py dumpdata \
+    python manage.py dumpdata \
         --natural-foreign --natural-primary --exclude=contenttypes --exclude=auth.permission \
         -o '$BACKUP_FILE' 2>/dev/null && \
     echo '  バックアップ完了: $BACKUP_FILE' || echo '  バックアップスキップ（初回デプロイ）'"
@@ -137,13 +137,17 @@ $SSH_CMD "mkdir -p '$REMOTE_PATH/backups' && cd '$REMOTE_PATH' && \
 # SQLiteファイルもコピー
 $SSH_CMD "cp '$REMOTE_PATH/db.sqlite3' '$REMOTE_PATH/backups/db_pre_deploy_$(date +%Y%m%d_%H%M%S).sqlite3' 2>/dev/null || true"
 
+# 古いバックアップを削除（直近3件のみ保持）
+$SSH_CMD "cd '$REMOTE_PATH/backups' && ls -1t db_pre_deploy_*.sqlite3 2>/dev/null | tail -n +4 | xargs rm -f 2>/dev/null; \
+    ls -1t pre_deploy_*.json 2>/dev/null | tail -n +4 | xargs rm -f 2>/dev/null"
+
 $SSH_CMD "cd '$REMOTE_PATH' && \
     source .venv/bin/activate && \
     pip install -q -r requirements.txt && \
-    DJANGO_SETTINGS_MODULE=project.settings.production python manage.py migrate --noinput && \
-    DJANGO_SETTINGS_MODULE=project.settings.production python manage.py compilemessages 2>/dev/null && \
-    DJANGO_SETTINGS_MODULE=project.settings.production python manage.py collectstatic --noinput && \
-    DJANGO_SETTINGS_MODULE=project.settings.production python manage.py sync_menu_config"
+    python manage.py migrate --noinput && \
+    python manage.py compilemessages 2>/dev/null && \
+    python manage.py collectstatic --noinput && \
+    python manage.py sync_menu_config"
 echo -e "${GREEN}  完了${NC}"
 echo ""
 

@@ -219,14 +219,48 @@ f1a2278 fix: i18n言語維持修正 + 旧URL 404リダイレクト
 
 ---
 
-## 7. 残タスク・今後の検討事項
+## 7. 本番ハードニング (追加作業)
+
+### 7.1 クリティカル修正
+
+| 発見 | 修正内容 |
+|---|---|
+| **本番DEBUG=True** | `.env` DEBUG=False に修正、systemd に `ENV=production` 追加 |
+| **project/settings/ 残存** | サーバーから旧ディレクトリ削除 (Python がパッケージ優先で誤ったsettings読込) |
+| **デプロイスクリプト旧参照** | `DJANGO_SETTINGS_MODULE=project.settings.production` → 削除 |
+
+### 7.2 インフラ改善
+
+| 項目 | 修正内容 |
+|---|---|
+| ログローテーション | `/etc/logrotate.d/newfuhi` 作成 (14日保持、日次圧縮) |
+| ディスク空き | 89%→79% (旧バックアップ・journal削除) |
+| バックアップ保持 | deploy_to_ec2.sh にpre_deploy直近3件保持ポリシー追加 |
+| pip | 25.3→26.0.1 |
+| systemd | `ENV=production` 追加、リポジトリ版も更新 |
+
+### 7.3 E2Eテスト移行
+
+`/tmp/e2e/` → `tests/e2e/` (177テスト3ファイル + README)
+
+### 7.4 追加コミット
+
+```
+c3ee002 chore: 本番ハードニング + E2Eテストリポジトリ化
+```
+
+---
+
+## 8. 残タスク・今後の検討事項
 
 | 項目 | 優先度 | 説明 |
 |---|---|---|
 | Sentry DSN設定 | 高 | sentry.io でプロジェクト作成→DSN取得→.envに `SENTRY_DSN` 追加 |
-| social-auth-app-django更新 | 中 | Django 5.x移行時に5.6.0+に更新 (現在Django 4.2 LTSでは5.4.3が最新互換) |
-| Alpine.js CSPビルド移行 | 低 | `@alpinejs/csp` に移行すれば `unsafe-eval` 削除可能。6テンプレートのリファクタ必要 |
-| CSP nonce化 | 低 | `unsafe-inline` を nonce ベースに移行すればCSPが完全に機能する |
-| E2Eテストの自動化 | 中 | CI/CDパイプラインに組み込み、デプロイ前に自動実行 |
-| テストスクリプトのリポジトリ管理 | 中 | `/tmp/e2e/` から `tests/e2e/` に移動してgit管理 |
-| 大規模ファイルリファクタ | 低 | seed_mock_data.py(2,286行), views_booking.py(887行)等12ファイルが800行超 |
+| メモリ監視 | 高 | 911MBは限界的。負荷増加時にインスタンス拡張検討 |
+| Django 5.x 移行計画 | 中 | Django 4.2 LTS サポートは2026-04終了 |
+| social-auth-app-django更新 | 中 | Django 5.x移行時に5.6.0+に更新 |
+| E2Eテスト CI/CD化 | 中 | CI/CDパイプラインに組み込み |
+| Alpine.js CSPビルド移行 | 低 | `@alpinejs/csp` に移行すれば `unsafe-eval` 削除可能 |
+| CSP nonce化 | 低 | `unsafe-inline` を nonce ベースに移行 |
+| 大規模ファイルリファクタ | 低 | 12ファイルが800行超 |
+| PostgreSQL 移行 | 低 | 同時書き込み負荷増加時に検討 |
