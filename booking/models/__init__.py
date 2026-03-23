@@ -96,4 +96,5 @@ from .cms import (  # noqa: F401
     VisitorAnalyticsConfig,
     StaffRecommendationModel,
     StaffRecommendationResult,
+    ErrorReport,
 )

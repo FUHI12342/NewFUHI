@@ -109,6 +109,16 @@ def check_property_alerts():
                             message=f'{device.name} ({pd.location_label}): MQ-9がthreshold({device.mq9_threshold})を超過しました',
                         )
                         created += 1
+                        # ガス漏れ通知
+                        try:
+                            send_event_notification.delay(
+                                'iot_alert', 'critical',
+                                f'ガス漏れ検知: {device.name}',
+                                f'{device.name} ({pd.location_label}): MQ-9がthreshold({device.mq9_threshold})を超過',
+                                '',
+                            )
+                        except Exception:
+                            pass
 
             # --- No motion detection (3 days) ---
             last_pir = IoTEvent.objects.filter(
@@ -125,6 +135,16 @@ def check_property_alerts():
                         message=f'{device.name} ({pd.location_label}): 3日以上動体未検知',
                     )
                     created += 1
+                    # 長期不在通知
+                    try:
+                        send_event_notification.delay(
+                            'iot_alert', 'warning',
+                            f'長期不在検知: {device.name}',
+                            f'{device.name} ({pd.location_label}): 3日以上動体未検知',
+                            '',
+                        )
+                    except Exception:
+                        pass
 
             # --- Device offline (30 min) ---
             if device.last_seen_at and (now - device.last_seen_at).total_seconds() > 1800:
@@ -180,3 +200,10 @@ def aggregate_visitor_data():
         count = aggregate_visitor_counts(store, today, today)
         total += count
     logger.info('Visitor data aggregation completed: %d records for %d stores', total, len(stores))
+
+
+@shared_task
+def send_event_notification(event_type, severity, title, detail='', admin_url=''):
+    """イベント通知送信（Celeryワーカーで非同期実行）"""
+    from booking.services.event_notifications import dispatch_event_notification
+    dispatch_event_notification(event_type, severity, title, detail, admin_url)

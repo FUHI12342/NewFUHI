@@ -75,6 +75,19 @@ class SecurityAuditMiddleware:
 
         response = self.get_response(request)
 
+        # 5xxサーバーエラー通知
+        if response.status_code >= 500:
+            try:
+                from booking.tasks import send_event_notification
+                send_event_notification.delay(
+                    'server_error', 'critical',
+                    f'サーバーエラー {response.status_code}',
+                    f'パス: {request.path}\nメソッド: {request.method}',
+                    '',
+                )
+            except Exception:
+                pass
+
         # ログイン結果の判定
         if request.method == 'POST' and request.path.endswith('/login/'):
             self._handle_login_result(request, response, ip)
@@ -198,5 +211,18 @@ class SecurityAuditMiddleware:
                 method=request.method,
                 detail=detail,
             )
+
+            # 重要イベントは通知を送信
+            if severity in ('critical', 'warning'):
+                try:
+                    from booking.tasks import send_event_notification
+                    send_event_notification.delay(
+                        'security_event', severity,
+                        f'セキュリティ: {event_type}',
+                        detail[:500],
+                        '',
+                    )
+                except Exception:
+                    pass
         except Exception as e:
             logger.error('SecurityLog記録失敗: %s', e)

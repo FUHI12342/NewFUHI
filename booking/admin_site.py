@@ -49,7 +49,7 @@ GROUPS = [
     {'slug': 'page_settings', 'name': _('メインページ設定'), 'models': ['sitesettings', 'notice']},
     {'slug': 'page_settings_sub', 'name': _('ページ設定(サブ)'), 'models': ['company', 'media', 'homepagecustomblock', 'herobanner', 'bannerad', 'externallink'], 'hidden': True},
     {'slug': 'system', 'name': _('システム'), 'models': ['systemconfig', 'admintheme', 'dashboardlayout', 'adminmenuconfig', 'adminsidebarsettings']},
-    {'slug': 'security', 'name': _('セキュリティ'), 'models': ['securityaudit', 'securitylog', 'costreport']},
+    {'slug': 'security', 'name': _('セキュリティ'), 'models': ['securityaudit', 'securitylog', 'costreport', 'errorreport']},
     {'slug': 'user_account', 'name': _('ユーザーアカウント管理'), 'models': ['user', 'group']},
 ]
 
@@ -133,6 +133,9 @@ SIDEBAR_CUSTOM_LINKS = {
     ],
     'iot': [
         {'name': _('センサーグラフ'), 'admin_url': '/admin/iot/sensors/', 'icon': 'fas fa-chart-area'},
+    ],
+    'security': [
+        {'name': _('エラー報告'), 'admin_url': '/admin/booking/errorreport/add/', 'icon': 'fas fa-bug'},
     ],
     'system': [
         {'name': _('デバッグパネル'), 'admin_url': '/admin/debug/', 'icon': 'fas fa-bug'},

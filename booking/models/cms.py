@@ -362,6 +362,21 @@ class SiteSettings(models.Model):
     tokushoho_html = models.TextField(_('特定商取引法に基づく表記'), blank=True, default='',
         help_text=_('HTMLで記述。空の場合はデフォルトテンプレートが表示されます。'))
 
+    # 通知設定
+    notification_emails = models.TextField(
+        _('通知先メールアドレス'), blank=True, default='',
+        help_text=_('カンマ区切りで複数アドレス指定可'),
+    )
+    notification_enabled = models.BooleanField(_('メール通知を有効化'), default=False)
+    notification_rate_limit = models.IntegerField(
+        _('通知レート制限'), default=10,
+        help_text=_('1時間あたりの最大通知送信数'),
+    )
+    shanon_notification_enabled = models.BooleanField(_('SHANON通知を有効化'), default=False)
+    shanon_api_url = models.URLField(
+        _('SHANON API URL'), blank=True, default='http://localhost:8765',
+    )
+
     class Meta:
         app_label = 'booking'
         verbose_name = _('メインサイト設定')
@@ -750,3 +765,57 @@ class StaffRecommendationResult(models.Model):
 
     def __str__(self):
         return f'{self.store.name} {self.date} {self.hour}時 推薦:{self.recommended_staff_count}人'
+
+
+class ErrorReport(models.Model):
+    """管理者エラー報告"""
+    SEVERITY_CHOICES = [
+        ('critical', _('緊急')),
+        ('high', _('高')),
+        ('medium', _('中')),
+        ('low', _('低')),
+    ]
+    STATUS_CHOICES = [
+        ('open', _('未対応')),
+        ('in_progress', _('対応中')),
+        ('resolved', _('解決済み')),
+        ('closed', _('クローズ')),
+    ]
+
+    reporter = models.ForeignKey(
+        settings.AUTH_USER_MODEL, verbose_name=_('報告者'),
+        on_delete=models.SET_NULL, null=True, blank=True,
+        related_name='reported_errors',
+    )
+    title = models.CharField(_('エラー概要'), max_length=300)
+    description = models.TextField(_('詳細説明'))
+    severity = models.CharField(
+        _('重要度'), max_length=10, choices=SEVERITY_CHOICES, default='medium',
+    )
+    status = models.CharField(
+        _('ステータス'), max_length=20, choices=STATUS_CHOICES, default='open',
+    )
+    steps_to_reproduce = models.TextField(_('再現手順'), blank=True, default='')
+    screenshot = models.ImageField(
+        _('スクリーンショット'), upload_to='error_reports/', blank=True,
+    )
+    page_url = models.CharField(_('発生ページURL'), max_length=500, blank=True, default='')
+    browser_info = models.CharField(_('ブラウザ情報'), max_length=300, blank=True, default='')
+    assigned_to = models.ForeignKey(
+        settings.AUTH_USER_MODEL, verbose_name=_('担当者'),
+        on_delete=models.SET_NULL, null=True, blank=True,
+        related_name='assigned_error_reports',
+    )
+    resolved_at = models.DateTimeField(_('解決日時'), null=True, blank=True)
+    resolution_note = models.TextField(_('解決メモ'), blank=True, default='')
+    created_at = models.DateTimeField(_('作成日時'), auto_now_add=True, db_index=True)
+    updated_at = models.DateTimeField(_('更新日時'), auto_now=True)
+
+    class Meta:
+        app_label = 'booking'
+        verbose_name = _('エラー報告')
+        verbose_name_plural = _('エラー報告')
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f'[{self.get_severity_display()}] {self.title}'

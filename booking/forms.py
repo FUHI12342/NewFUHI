@@ -45,6 +45,7 @@ MODEL_JAPANESE_LABELS = {
     'salarystructure': _('給与体系'),
     'user': _('ユーザー'),
     'group': _('グループ'),
+    'errorreport': _('エラー報告'),
 }
 
 

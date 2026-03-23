@@ -2460,7 +2460,7 @@ document.addEventListener('DOMContentLoaded', function () {
         datasets[seg].push({
           x: c.f_score,
           y: c.r_score,
-          r: Math.max(4, Math.sqrt(c.monetary / 1000) * 3),
+          r: Math.max(2, Math.sqrt(c.monetary / 5000)),
           monetary: c.monetary,
           customer_id: c.customer_id,
         });
@@ -2485,7 +2485,7 @@ document.addEventListener('DOMContentLoaded', function () {
         options: {
           responsive: true, maintainAspectRatio: false,
           plugins: {
-            legend: { position: 'top' },
+            legend: { position: 'top', labels: { font: { size: 12 }, usePointStyle: true, pointStyle: 'circle' } },
             tooltip: {
               callbacks: {
                 label: function(context) {
@@ -2498,13 +2498,15 @@ document.addEventListener('DOMContentLoaded', function () {
           scales: {
             x: {
               min: 0.5, max: 5.5,
-              title: { display: true, text: 'Frequency Score' },
-              ticks: { stepSize: 1 }
+              title: { display: true, text: 'Frequency Score', font: { size: 14, weight: 'bold' } },
+              ticks: { stepSize: 1, font: { size: 12 } },
+              grid: { color: 'rgba(0,0,0,0.08)' }
             },
             y: {
               min: 0.5, max: 5.5,
-              title: { display: true, text: 'Recency Score' },
-              ticks: { stepSize: 1 }
+              title: { display: true, text: 'Recency Score', font: { size: 14, weight: 'bold' } },
+              ticks: { stepSize: 1, font: { size: 12 } },
+              grid: { color: 'rgba(0,0,0,0.08)' }
             }
           }
         }

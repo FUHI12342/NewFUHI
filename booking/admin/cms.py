@@ -24,6 +24,7 @@ from ..models import (
     StaffRecommendationModel, StaffRecommendationResult,
     BusinessInsight, CustomerFeedback,
     EvaluationCriteria, StaffEvaluation,
+    ErrorReport,
 )
 from .helpers import _is_owner_or_super
 
@@ -106,6 +107,14 @@ class SiteSettingsAdmin(admin.ModelAdmin):
         (_('法定ページ'), {
             'fields': ('privacy_policy_html', 'tokushoho_html'),
             'description': _('HTMLで記述できます。空の場合はデフォルトの内容が表示されます。'),
+        }),
+        (_('通知設定'), {
+            'fields': (
+                'notification_enabled', 'notification_emails',
+                'notification_rate_limit',
+                'shanon_notification_enabled', 'shanon_api_url',
+            ),
+            'description': _('エラー報告やセキュリティイベント発生時のメール・SHANON通知設定'),
         }),
     )
 
@@ -502,6 +511,51 @@ class StaffEvaluationAdmin(admin.ModelAdmin):
             return qs.none()
 
 
+# ==============================
+# エラー報告
+# ==============================
+class ErrorReportAdmin(admin.ModelAdmin):
+    list_display = ('severity', 'title', 'status', 'reporter', 'assigned_to', 'created_at')
+    list_filter = ('severity', 'status')
+    search_fields = ('title', 'description')
+    readonly_fields = ('reporter', 'created_at', 'updated_at', 'resolved_at')
+    date_hierarchy = 'created_at'
+    list_per_page = 50
+
+    fieldsets = (
+        (None, {'fields': ('title', 'description', 'severity', 'status')}),
+        (_('再現情報'), {
+            'fields': ('steps_to_reproduce', 'page_url', 'browser_info', 'screenshot'),
+            'classes': ('collapse',),
+        }),
+        (_('対応'), {
+            'fields': ('assigned_to', 'resolution_note', 'resolved_at'),
+        }),
+        (_('メタ情報'), {
+            'fields': ('reporter', 'created_at', 'updated_at'),
+        }),
+    )
+
+    def save_model(self, request, obj, form, change):
+        if not change:
+            obj.reporter = request.user
+        if obj.status == 'resolved' and not obj.resolved_at:
+            from django.utils import timezone
+            obj.resolved_at = timezone.now()
+        super().save_model(request, obj, form, change)
+        # Trigger notification for new error reports
+        if not change:
+            try:
+                from booking.tasks import send_event_notification
+                admin_url = f'/admin/booking/errorreport/{obj.pk}/change/'
+                send_event_notification.delay(
+                    'error_report', obj.severity, obj.title,
+                    obj.description[:500], admin_url,
+                )
+            except Exception:
+                pass
+
+
 # Registration
 custom_site.register(Notice, NoticeAdmin)
 custom_site.register(Company, CompanyAdmin)
@@ -525,3 +579,4 @@ custom_site.register(BusinessInsight, BusinessInsightAdmin)
 custom_site.register(CustomerFeedback, CustomerFeedbackAdmin)
 custom_site.register(EvaluationCriteria, EvaluationCriteriaAdmin)
 custom_site.register(StaffEvaluation, StaffEvaluationAdmin)
+custom_site.register(ErrorReport, ErrorReportAdmin)
