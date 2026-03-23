@@ -158,8 +158,10 @@ myvenv/
 .venv/
 
 # Backup files
+*.bak
 *.bak_*
-*.bak_*
+*.orig
+\#*
 
 # macOS
 .DS_Store
@@ -209,6 +211,14 @@ repo_snapshot/
 # IoTデバイス秘匿情報（WiFi認証情報等）
 MB_IoT_device_main/secrets.py
 pico_device/secrets.py
+
+# Archive / backup directories
+pico_backups/
+pico_device__ARCHIVE_*/
+
+# Stale settings patterns
+project/settings/
+project/settings.py.orig
 .gstack/
 node_modules/
 package-lock.json

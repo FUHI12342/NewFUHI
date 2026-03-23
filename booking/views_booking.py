@@ -682,6 +682,8 @@ def process_payment(payment_response, request, order_id):
 def coiney_webhook(request, orderId):
     if request.method != 'POST':
         return JsonResponse({"error": "Method not allowed"}, status=405)
+    if not request.content_type or not request.content_type.startswith('application/json'):
+        return JsonResponse({"error": "Content-Type must be application/json"}, status=400)
 
     # Webhook署名検証
     webhook_secret = getattr(settings, 'COINEY_WEBHOOK_SECRET', None)

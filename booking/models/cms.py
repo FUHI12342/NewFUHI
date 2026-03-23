@@ -5,7 +5,6 @@ from django.utils.translation import gettext_lazy as _
 
 import uuid
 import textwrap
-from decimal import Decimal
 from newspaper import Article
 
 

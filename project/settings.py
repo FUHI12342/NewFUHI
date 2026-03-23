@@ -9,6 +9,10 @@ import datetime
 import logging
 import sys
 
+try:
+    import sentry_sdk
+except ImportError:
+    sentry_sdk = None
 from django.utils.translation import gettext_lazy as _
 from dotenv import load_dotenv
 
@@ -425,3 +429,17 @@ JAZZMIN_UI_TWEAKS = {
         "success": "btn-success",
     },
 }
+
+
+# ====================================
+# Sentry Error Monitoring
+# ====================================
+SENTRY_DSN = os.getenv("SENTRY_DSN", "")
+if SENTRY_DSN and not DEBUG and sentry_sdk is not None:
+    sentry_sdk.init(
+        dsn=SENTRY_DSN,
+        traces_sample_rate=0.1,
+        profiles_sample_rate=0.1,
+        send_default_pii=False,
+        environment=ENV,
+    )
