@@ -1,6 +1,6 @@
 # E2E テスト結果 — timebaibai.com
 
-日時: 2026-03-23 15:27
+日時: 2026-03-23 15:32
 テスター: Playwright (headless Chromium)
 環境: 本番 (https://timebaibai.com)
 
@@ -9,11 +9,11 @@
 | Phase | テスト数 | PASS | FAIL | BLOCKED |
 |---|---|---|---|---|
 | Phase 1: ログイン | 4 | 4 | 0 | 0 |
-| Phase 2: ワークフロー | 12 | 11 | 1 | 0 |
+| Phase 2: ワークフロー | 12 | 12 | 0 | 0 |
 | Phase 3: ロール間連動 | 3 | 3 | 0 | 0 |
 | Phase 4: 権限境界 | 4 | 4 | 0 | 0 |
 | Phase 5: 公開ページ | 2 | 2 | 0 | 0 |
-| **合計** | **25** | **24** | **1** | **0** |
+| **合計** | **25** | **25** | **0** | **0** |
 
 ## 詳細結果
 
@@ -31,7 +31,7 @@
 | T2.3b | Cast: 本日のシフト | PASS | Status: 200 | cast_T2.3b.png |
 | T2.6 | Manager: 売上ダッシュボード | PASS | Status: 200, Found: ['売上', 'ダッシュボード'] | manager_T2.6.png |
 | T2.7 | Manager: POS画面 | PASS | Status: 200, Found: ['POS', '商品'] | manager_T2.7.png |
-| T2.8 | Manager: EC注文管理 | FAIL | Status: 500, Found: ['EC'] | manager_T2.8.png |
+| T2.8 | Manager: EC注文管理 | PASS | Status: 200, Found: ['注文', 'EC'] | manager_T2.8.png |
 | T2.9 | Owner: デバッグパネル | PASS | Status: 200, Found: ['デバイス', 'IoT', 'デバッグ'] | owner_T2.9.png |
 | T2.10 | Owner: 給与管理 | PASS | Status: 200, Found: ['追加', '給与'] | owner_T2.10.png |
 | T2.11 | Owner: 物件管理 | PASS | Status: 200 | owner_T2.11.png |
@@ -47,7 +47,94 @@
 
 ## 発見事項
 
-- [HIGH] T2.8 Manager: EC注文管理: Status: 500, Found: ['EC']
+- [INFO] 全テスト正常完了、問題なし
+
+## 修正履歴 (2026-03-23)
+
+以下の3点を修正し、全テスト PASS を確認:
+
+### 1. CSP `unsafe-eval` 追加 (MEDIUM → 解決済)
+- **問題**: FullCalendar等のライブラリが `eval()` を使用し、CSP違反が発生
+- **修正**: `/etc/nginx/snippets/security-headers.conf` の `script-src` に `'unsafe-eval'` 追加
+- **ローカル**: `config/nginx/snippets/security-headers.conf` に同期済み
+- **注意**: 将来的にライブラリのCSP対応版に移行できれば `'unsafe-eval'` を削除推奨
+
+### 2. Tailwind CDN → ビルド済みCSS (MEDIUM → 解決済)
+- **問題**: 4つの管理画面テンプレートが `cdn.tailwindcss.com` のCDN版を使用
+- **修正**: 2つのTailwind設定ファイルで個別ビルド
+  - `tailwind-admin-debug.config.js` (`tw-` prefix) → `admin-debug.css` (7KB)
+  - `tailwind-admin-dashboard.config.js` (no prefix) → `admin-dashboard.css` (16KB)
+- **対象テンプレート**: `debug_panel.html`, `iot_device_debug.html`, `restaurant_dashboard.html`, `ec_dashboard.html`
+- **ビルドコマンド**: `npm run css:build:admin` / `npm run css:build:all`
+
+### 3. favicon 404 修正 (LOW → 解決済)
+- **問題**: `/favicon.ico` が404を返し、JSエラーとして検出
+- **修正**: SVG favicon (`booking/static/images/favicon.svg`) を作成し、`base.html` と `table_base.html` にリンク追加
+
+### 4. EC注文管理 500エラー修正 (再テスト中に発見)
+- **問題**: `ec_dashboard.html` で `{% load static %}` が不足し、テンプレートエラー
+- **修正**: `{% load i18n %}` → `{% load i18n static %}`
+
+## nginx CSP設定の構造
+
+本番のCSPは以下の構造で管理されている:
+
+```
+/etc/nginx/snippets/security-headers.conf  ← CSP定義の唯一のソース
+  ↓ include
+/etc/nginx/sites-enabled/timebaibai.conf   ← 各locationブロックでinclude
+  - location /
+  - location /login/
+  - location /api/
+  - location /api/iot/
+  - etc.
+```
+
+**注意**: `sites-available/timebaibai.conf` と `sites-enabled/timebaibai.conf` は別ファイル（シンボリックリンクではない）。実際に使われるのは `sites-enabled` 版。
+
+## テスト実行方法
+
+```bash
+# 前提: Playwright がインストール済み
+# pip install playwright && playwright install chromium
+
+# テスト実行
+/Library/Developer/CommandLineTools/usr/bin/python3 /tmp/e2e/run_e2e.py
+
+# レポート出力先: /Users/adon/NewFUHI/docs/E2E_TEST_REPORT.md
+# スクリーンショット: /tmp/e2e/*.png
+# JSON結果: /tmp/e2e/results.json
+```
+
+### デモアカウント
+
+| Username | Password | Role | 確認可能範囲 |
+|---|---|---|---|
+| demo_fortune | demo1234 | Cast | シフト希望、マイページ、勤怠PIN |
+| demo_staff | demo1234 | Staff | Cast と同等 |
+| demo_manager | demo1234 | Manager | 売上、POS、EC、予約管理 |
+| demo_owner | demo1234 | Owner | 全機能（デバッグ、給与、物件含む） |
+
+### テスト実行上の注意
+- Gunicornワーカー数が2のため、ログイン間に15秒の待機が必要
+- セッション状態をファイルに保存して再利用し、ログイン回数を最小化
+- CSP警告・404リソースエラーはフィルタリング済み
+
+## ロール別権限マトリクス (参考)
+
+| 機能 | Cast | Staff | Manager | Owner |
+|---|---|---|---|---|
+| シフト希望登録 | view/add | view | view/add/change | all |
+| 管理シフトカレンダー | view | view | view/add/change | all |
+| 売上ダッシュボード | - | - | view | all |
+| POS | - | - | view/add/change | all |
+| EC注文管理 | - | - | view/add/change | all |
+| デバッグパネル | - | - | - | all |
+| 給与管理 | - | - | - | all |
+| スタッフ追加 | - | - | - | all |
+| スタッフ削除 | - | - | - | all |
+
+定義元: `booking/admin_site.py` (`ROLE_VISIBLE_GROUPS`, `_ROLE_PERMS`)
 
 ## スクリーンショット
 
