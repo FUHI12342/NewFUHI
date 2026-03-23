@@ -1,7 +1,7 @@
 """project URL Configuration"""
 
 from django.contrib import admin
-from django.urls import path, include
+from django.urls import path, include, re_path
 from django.conf import settings
 from django.conf.urls.static import static
 from django.conf.urls.i18n import i18n_patterns
@@ -13,6 +13,7 @@ from booking.views_debug import AdminDebugPanelView, IoTDeviceDebugView
 from booking.views_restaurant_dashboard import RestaurantDashboardView
 from booking.views_shift_manager import ManagerShiftCalendarView, TodayShiftTimelineView
 from django.views.generic import RedirectView
+from django.http import HttpResponsePermanentRedirect
 from booking.views_attendance import AttendanceQRDisplayView, AttendanceBoardView, AttendancePINDisplayView
 from booking.views_pos import POSView, POSReceiptView, KitchenDisplayView
 from booking.views_analytics import VisitorAnalyticsDashboardView
@@ -23,8 +24,18 @@ from booking.views_performance_dashboard import StaffPerformanceDashboardView
 from booking.views_ec_dashboard import ECOrderDashboardView
 import booking.admin
 
-# Non-i18n URLs (APIs, health check)
+# Non-i18n URLs (APIs, health check, legacy redirects)
 urlpatterns = [
+    # Legacy URL redirects (crawlers hitting old .html paths)
+    re_path(
+        r"^staff/\d+/prebooking/\d+/\d+/\d+/\d+/list_\w+\.html$",
+        lambda request: HttpResponsePermanentRedirect("/"),
+    ),
+    re_path(
+        r"^booking/mq\d+/$",
+        lambda request: HttpResponsePermanentRedirect("/"),
+    ),
+
     # Health check endpoint (no auth required)
     path("healthz", healthz, name="healthz"),
 
