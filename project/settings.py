@@ -355,6 +355,7 @@ if not DEBUG:
     SECURE_SSL_REDIRECT = True
     # HSTS is managed by Nginx (production.conf) to avoid duplicate headers.
     # Do not set SECURE_HSTS_* here.
+    SILENCED_SYSTEM_CHECKS = ["security.W004"]
 
 
 # ====================================
