@@ -9,6 +9,7 @@ from django.utils import timezone
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
+from rest_framework.throttling import AnonRateThrottle
 
 from .models import (
     Store, Schedule, OrderItem, Staff, Product, Order,
@@ -296,9 +297,14 @@ class KPIScoreCardAPIView(DashboardAuthMixin, APIView):
         })
 
 
+class _FeedbackThrottle(AnonRateThrottle):
+    rate = '10/hour'
+
+
 class CustomerFeedbackAPIView(DashboardAuthMixin, APIView):
     """POST: submit feedback (public), GET: list feedbacks (admin)."""
     permission_classes = []
+    throttle_classes = [_FeedbackThrottle]
 
     def post(self, request):
         """Submit customer feedback — no auth required (QR survey)."""
@@ -452,8 +458,11 @@ class ExternalDataAPIView(DashboardAuthMixin, APIView):
             return Response(result)
 
         if service == 'google_reviews':
-            place_id = request.GET.get('place_id')
-            result = get_google_reviews(place_id=place_id)
+            import re
+            place_id = request.GET.get('place_id', '')
+            if place_id and not re.match(r'^[A-Za-z0-9_\-]{10,200}$', place_id):
+                return Response({'detail': 'invalid place_id'}, status=status.HTTP_400_BAD_REQUEST)
+            result = get_google_reviews(place_id=place_id or None)
             return Response(result)
 
         integrations = get_integration_status()

@@ -12,10 +12,14 @@ from django.utils import timezone
 
 
 def _get_secret() -> str:
-    """Return CHECKIN_QR_SECRET, falling back to SECRET_KEY."""
+    """Return CHECKIN_QR_SECRET. Raises if not configured."""
     secret = getattr(settings, 'CHECKIN_QR_SECRET', '') or ''
     if not secret:
-        secret = settings.SECRET_KEY
+        from django.core.exceptions import ImproperlyConfigured
+        raise ImproperlyConfigured(
+            "CHECKIN_QR_SECRET must be set in environment. "
+            "Generate with: python -c \"import secrets; print(secrets.token_hex(32))\""
+        )
     return secret
 
 

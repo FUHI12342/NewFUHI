@@ -13,9 +13,11 @@ import os
 import random
 import uuid
 from datetime import date, time, timedelta, datetime as dt_cls
+
+from django.conf import settings as django_settings
 from decimal import Decimal
 
-from django.core.management.base import BaseCommand
+from django.core.management.base import BaseCommand, CommandError
 from django.contrib.auth.models import User
 from django.db import models
 from django.utils import timezone
@@ -56,6 +58,10 @@ class Command(BaseCommand):
         )
 
     def handle(self, *args, **options):
+        if not django_settings.DEBUG:
+            raise CommandError(
+                'seed_mock_data は DEBUG=True の環境でのみ実行できます。'
+            )
         if options['reset']:
             self._reset()
 

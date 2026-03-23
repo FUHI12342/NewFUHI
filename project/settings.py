@@ -373,6 +373,10 @@ else:
 # ====================================
 # Security (production hardening)
 # ====================================
+# Always enforce HttpOnly cookies (prevent JS access to session/csrf tokens)
+SESSION_COOKIE_HTTPONLY = True
+CSRF_COOKIE_HTTPONLY = True
+
 if not DEBUG:
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True
@@ -382,9 +386,8 @@ if not DEBUG:
 
     SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
     SECURE_SSL_REDIRECT = True
-    SECURE_HSTS_SECONDS = 31536000
-    SECURE_HSTS_INCLUDE_SUBDOMAINS = True
-    SECURE_HSTS_PRELOAD = True
+    # HSTS is managed by Nginx (production.conf) to avoid duplicate headers.
+    # Do not set SECURE_HSTS_* here.
 
 
 # ====================================

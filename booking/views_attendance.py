@@ -266,6 +266,8 @@ class AttendancePINStampAPIView(LoginRequiredMixin, View):
     """PIN検証 → 打刻API（CSRF免除: PIN認証で保護）"""
 
     def post(self, request):
+        if not request.content_type or not request.content_type.startswith('application/json'):
+            return JsonResponse({'error': 'Content-Type must be application/json'}, status=400)
         try:
             data = json.loads(request.body)
         except json.JSONDecodeError:
@@ -465,6 +467,8 @@ class QRStampAPIView(View):
     """QRスキャン打刻API（ログイン不要、TOTP+PINで認証）"""
 
     def post(self, request):
+        if not request.content_type or not request.content_type.startswith('application/json'):
+            return JsonResponse({'error': 'Content-Type must be application/json'}, status=400)
         try:
             data = json.loads(request.body)
         except json.JSONDecodeError:

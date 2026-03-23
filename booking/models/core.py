@@ -88,6 +88,12 @@ class Store(models.Model):
         verbose_name = _('店舗一覧')
         verbose_name_plural = _('店舗一覧')
 
+    def save(self, *args, **kwargs):
+        if self.google_maps_embed:
+            from booking.services.html_sanitizer import sanitize_embed
+            self.google_maps_embed = sanitize_embed(self.google_maps_embed)
+        super().save(*args, **kwargs)
+
     def __str__(self):
         return self.name
 

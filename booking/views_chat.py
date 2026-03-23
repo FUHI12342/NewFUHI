@@ -21,6 +21,8 @@ class AdminChatAPIView(View):
     RATE_WINDOW = 300  # 5 minutes
 
     def post(self, request):
+        if not request.content_type or not request.content_type.startswith('application/json'):
+            return JsonResponse({'error': 'Content-Type must be application/json'}, status=400)
         if not request.user.is_authenticated or not request.user.is_staff:
             return JsonResponse({'error': 'Unauthorized'}, status=403)
 

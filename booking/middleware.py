@@ -115,10 +115,15 @@ class SecurityAuditMiddleware:
         return response
 
     def _get_client_ip(self, request):
+        # Nginx sets X-Forwarded-For to $remote_addr (overwrites, not appends).
+        # Use REMOTE_ADDR as primary — it's the actual TCP peer (Nginx).
+        # X-Forwarded-For is only trusted because Nginx overwrites it.
         x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
         if x_forwarded_for:
-            # First entry is the original client IP
-            return x_forwarded_for.split(',')[0].strip()
+            ip = x_forwarded_for.split(',')[0].strip()
+            # Basic validation: reject obviously spoofed values
+            if ip and ip.replace('.', '').replace(':', '').isalnum():
+                return ip
         return request.META.get('REMOTE_ADDR')
 
     def _check_rate_limit(self, request, ip):

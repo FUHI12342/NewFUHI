@@ -14,7 +14,7 @@ set -e
 # ========== 設定 ==========
 EC2_HOST="52.198.72.13"
 EC2_USER="ubuntu"
-SSH_KEY="$(dirname "$0")/../newfuhi-key.pem"
+SSH_KEY="$HOME/.ssh/newfuhi-key.pem"
 REMOTE_PATH="/home/ubuntu/NewFUHI-dev"
 BRANCH="dev"
 REPO_URL="https://github.com/FUHI12342/NewFUHI.git"

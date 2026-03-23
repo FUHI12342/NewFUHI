@@ -53,6 +53,9 @@ class Notice(models.Model):
             import uuid as _uuid
             base = slugify(self.title, allow_unicode=True) or 'notice'
             self.slug = f'{base}-{_uuid.uuid4().hex[:8]}'
+        if self.content:
+            from booking.services.html_sanitizer import sanitize_rich_text
+            self.content = sanitize_rich_text(self.content)
         super().save(*args, **kwargs)
 
     def get_absolute_url(self):
@@ -387,6 +390,15 @@ class SiteSettings(models.Model):
 
     def save(self, *args, **kwargs):
         self.pk = 1
+        from booking.services.html_sanitizer import sanitize_rich_text, sanitize_url
+        if self.privacy_policy_html:
+            self.privacy_policy_html = sanitize_rich_text(self.privacy_policy_html)
+        if self.tokushoho_html:
+            self.tokushoho_html = sanitize_rich_text(self.tokushoho_html)
+        if self.twitter_url:
+            self.twitter_url = sanitize_url(self.twitter_url)
+        if self.instagram_url:
+            self.instagram_url = sanitize_url(self.instagram_url)
         super().save(*args, **kwargs)
 
     @classmethod
@@ -424,6 +436,12 @@ class HomepageCustomBlock(models.Model):
         verbose_name = _('カスタムブロック')
         verbose_name_plural = _('カスタムブロック')
         ordering = ['position', 'sort_order']
+
+    def save(self, *args, **kwargs):
+        if self.content:
+            from booking.services.html_sanitizer import sanitize_rich_text
+            self.content = sanitize_rich_text(self.content)
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return f'{self.title} ({self.get_position_display()})'
