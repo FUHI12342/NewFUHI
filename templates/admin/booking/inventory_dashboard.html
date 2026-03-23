@@ -147,7 +147,7 @@
         {% endif %}
       </td>
       <td>
-        <a href="/admin/booking/product/{{ product.id }}/change/" style="color:#8c876c;font-weight:500;">
+        <a href="{% url 'admin:booking_product_change' product.id %}" style="color:#8c876c;font-weight:500;">
           {{ product.name }}
         </a>
       </td>

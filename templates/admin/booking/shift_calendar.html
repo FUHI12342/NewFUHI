@@ -647,14 +647,14 @@
       <i class="fas fa-cog"></i> {% trans "管理メニュー" %} ▾
     </button>
     <div x-show="openMenu" @click.outside="openMenu = false" x-cloak class="admin-menu-drop">
-      <a href="/admin/booking/shiftperiod/"><i class="fas fa-calendar-alt" style="width:16px;margin-right:6px;"></i>{% trans "シフト募集期間" %}</a>
-      <a href="/admin/booking/shiftrequest/"><i class="fas fa-hand-paper" style="width:16px;margin-right:6px;"></i>{% trans "シフト希望一覧" %}</a>
-      <a href="/admin/booking/shiftassignment/"><i class="fas fa-user-check" style="width:16px;margin-right:6px;"></i>{% trans "確定シフト一覧" %}</a>
+      <a href="{% url 'admin:booking_shiftperiod_changelist' %}"><i class="fas fa-calendar-alt" style="width:16px;margin-right:6px;"></i>{% trans "シフト募集期間" %}</a>
+      <a href="{% url 'admin:booking_shiftrequest_changelist' %}"><i class="fas fa-hand-paper" style="width:16px;margin-right:6px;"></i>{% trans "シフト希望一覧" %}</a>
+      <a href="{% url 'admin:booking_shiftassignment_changelist' %}"><i class="fas fa-user-check" style="width:16px;margin-right:6px;"></i>{% trans "確定シフト一覧" %}</a>
       <div class="menu-divider"></div>
       <a href="#" @click.prevent="openMenu = false; openTemplateModal()"><i class="fas fa-puzzle-piece" style="width:16px;margin-right:6px;"></i>{% trans "シフトテンプレート" %}</a>
       <div class="menu-divider"></div>
-      <a href="/admin/booking/shiftpublishhistory/"><i class="fas fa-history" style="width:16px;margin-right:6px;"></i>{% trans "公開履歴" %}</a>
-      <a href="/admin/booking/storecloseddate/"><i class="fas fa-store-slash" style="width:16px;margin-right:6px;"></i>{% trans "休業日一覧" %}</a>
+      <a href="{% url 'admin:booking_shiftpublishhistory_changelist' %}"><i class="fas fa-history" style="width:16px;margin-right:6px;"></i>{% trans "公開履歴" %}</a>
+      <a href="{% url 'admin:booking_storecloseddate_changelist' %}"><i class="fas fa-store-slash" style="width:16px;margin-right:6px;"></i>{% trans "休業日一覧" %}</a>
     </div>
   </div>
 

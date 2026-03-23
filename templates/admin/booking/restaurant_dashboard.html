@@ -280,31 +280,31 @@
 
   {# ===== Quick Links ===== #}
   <div class="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-2 mb-4">
-    <a href="/admin/shift/calendar/" class="quick-link-card">
+    <a href="{% url 'admin_shift_calendar' %}" class="quick-link-card">
       <i class="fas fa-calendar-alt text-indigo-500"></i>
       <span>{% trans "シフトカレンダー" %}</span>
     </a>
-    <a href="/admin/attendance/qr/" class="quick-link-card">
+    <a href="{% url 'admin_attendance_qr' %}" class="quick-link-card">
       <i class="fas fa-qrcode text-emerald-500"></i>
       <span>{% trans "QR勤怠" %}</span>
     </a>
-    <a href="/admin/attendance/board/" class="quick-link-card">
+    <a href="{% url 'admin_attendance_board' %}" class="quick-link-card">
       <i class="fas fa-clipboard-check text-sky-500"></i>
       <span>{% trans "出退勤ボード" %}</span>
     </a>
-    <a href="/admin/pos/" class="quick-link-card">
+    <a href="{% url 'admin_pos' %}" class="quick-link-card">
       <i class="fas fa-cash-register text-amber-500"></i>
       <span>{% trans "POS" %}</span>
     </a>
-    <a href="/admin/pos/kitchen/" class="quick-link-card">
+    <a href="{% url 'admin_kitchen_display' %}" class="quick-link-card">
       <i class="fas fa-utensils text-rose-500"></i>
       <span>{% trans "キッチン" %}</span>
     </a>
-    <a href="/admin/analytics/visitors/" class="quick-link-card">
+    <a href="{% url 'admin_visitor_analytics' %}" class="quick-link-card">
       <i class="fas fa-chart-bar text-violet-500"></i>
       <span>{% trans "来客分析" %}</span>
     </a>
-    <a href="/admin/ai/recommendation/" class="quick-link-card">
+    <a href="{% url 'admin_ai_recommendation' %}" class="quick-link-card">
       <i class="fas fa-robot text-pink-500"></i>
       <span>{% trans "AI推薦" %}</span>
     </a>
@@ -846,7 +846,7 @@
     <div class="db-card">
       <div class="flex items-center justify-between mb-3">
         <h3 class="text-lg font-semibold">{% trans "今月のシフト状況" %}</h3>
-        <a href="/admin/shift/calendar/" class="inline-flex items-center gap-1 px-4 py-2 bg-indigo-500 text-white text-sm font-medium rounded-lg hover:bg-indigo-600 transition" style="text-decoration:none;">
+        <a href="{% url 'admin_shift_calendar' %}" class="inline-flex items-center gap-1 px-4 py-2 bg-indigo-500 text-white text-sm font-medium rounded-lg hover:bg-indigo-600 transition" style="text-decoration:none;">
           <i class="fas fa-calendar-alt"></i> {% trans "シフトカレンダーを開く" %}
         </a>
       </div>
@@ -888,10 +888,10 @@
       <div class="flex items-center justify-between mb-3">
         <h3 class="text-lg font-semibold">{% trans "本日の出退勤状況" %}</h3>
         <div class="flex gap-2">
-          <a href="/admin/attendance/board/" class="inline-flex items-center gap-1 px-3 py-1.5 bg-sky-500 text-white text-sm font-medium rounded-lg hover:bg-sky-600 transition" style="text-decoration:none;">
+          <a href="{% url 'admin_attendance_board' %}" class="inline-flex items-center gap-1 px-3 py-1.5 bg-sky-500 text-white text-sm font-medium rounded-lg hover:bg-sky-600 transition" style="text-decoration:none;">
             <i class="fas fa-clipboard-check"></i> {% trans "出退勤ボード" %}
           </a>
-          <a href="/admin/attendance/qr/" class="inline-flex items-center gap-1 px-3 py-1.5 bg-emerald-500 text-white text-sm font-medium rounded-lg hover:bg-emerald-600 transition" style="text-decoration:none;">
+          <a href="{% url 'admin_attendance_qr' %}" class="inline-flex items-center gap-1 px-3 py-1.5 bg-emerald-500 text-white text-sm font-medium rounded-lg hover:bg-emerald-600 transition" style="text-decoration:none;">
             <i class="fas fa-qrcode"></i> {% trans "QR勤怠" %}
           </a>
         </div>
@@ -933,7 +933,7 @@
       <div class="db-card">
         <div class="flex items-center justify-between mb-3">
           <h3 class="text-lg font-semibold">{% trans "来客分析" %}</h3>
-          <a href="/admin/analytics/visitors/" class="inline-flex items-center gap-1 px-3 py-1.5 bg-violet-500 text-white text-sm font-medium rounded-lg hover:bg-violet-600 transition" style="text-decoration:none;">
+          <a href="{% url 'admin_visitor_analytics' %}" class="inline-flex items-center gap-1 px-3 py-1.5 bg-violet-500 text-white text-sm font-medium rounded-lg hover:bg-violet-600 transition" style="text-decoration:none;">
             <i class="fas fa-chart-bar"></i> {% trans "詳細を見る" %}
           </a>
         </div>
@@ -953,7 +953,7 @@
       <div class="db-card">
         <div class="flex items-center justify-between mb-3">
           <h3 class="text-lg font-semibold">{% trans "AI推薦" %}</h3>
-          <a href="/admin/ai/recommendation/" class="inline-flex items-center gap-1 px-3 py-1.5 bg-pink-500 text-white text-sm font-medium rounded-lg hover:bg-pink-600 transition" style="text-decoration:none;">
+          <a href="{% url 'admin_ai_recommendation' %}" class="inline-flex items-center gap-1 px-3 py-1.5 bg-pink-500 text-white text-sm font-medium rounded-lg hover:bg-pink-600 transition" style="text-decoration:none;">
             <i class="fas fa-robot"></i> {% trans "詳細を見る" %}
           </a>
         </div>
@@ -974,10 +974,10 @@
         <div class="flex items-center justify-between mb-3">
           <h3 class="text-lg font-semibold">{% trans "進行中の注文" %}</h3>
           <div class="flex gap-2">
-            <a href="/admin/pos/" class="inline-flex items-center gap-1 px-3 py-1.5 bg-amber-500 text-white text-sm font-medium rounded-lg hover:bg-amber-600 transition" style="text-decoration:none;">
+            <a href="{% url 'admin_pos' %}" class="inline-flex items-center gap-1 px-3 py-1.5 bg-amber-500 text-white text-sm font-medium rounded-lg hover:bg-amber-600 transition" style="text-decoration:none;">
               <i class="fas fa-cash-register"></i> {% trans "POS" %}
             </a>
-            <a href="/admin/pos/kitchen/" class="inline-flex items-center gap-1 px-3 py-1.5 bg-rose-500 text-white text-sm font-medium rounded-lg hover:bg-rose-600 transition" style="text-decoration:none;">
+            <a href="{% url 'admin_kitchen_display' %}" class="inline-flex items-center gap-1 px-3 py-1.5 bg-rose-500 text-white text-sm font-medium rounded-lg hover:bg-rose-600 transition" style="text-decoration:none;">
               <i class="fas fa-utensils"></i> {% trans "キッチン" %}
             </a>
           </div>

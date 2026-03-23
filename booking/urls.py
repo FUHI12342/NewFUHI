@@ -35,6 +35,7 @@ from .views import (
 )
 from .views_attendance import AttendanceStampPageView
 from .views_ec_payment import ECPaymentView, ECOrderConfirmationView
+from django.views.generic import RedirectView
 
 
 app_name = 'booking'
@@ -168,4 +169,14 @@ urlpatterns = [
     # お知らせ
     path('news/', NoticeListView.as_view(), name='notice_list'),
     re_path(r'^news/(?P<slug>[\w-]+)/$', NoticeDetailView.as_view(), name='notice_detail'),
+
+    # Legacy URL redirects (old prebooking paths with .html suffix from crawlers)
+    re_path(
+        r'^staff/\d+/prebooking/\d+/\d+/\d+/\d+/list_\w+\.html$',
+        RedirectView.as_view(pattern_name='booking_top', permanent=True),
+    ),
+    re_path(
+        r'^booking/mq\d+/$',
+        RedirectView.as_view(pattern_name='booking_top', permanent=True),
+    ),
 ]
