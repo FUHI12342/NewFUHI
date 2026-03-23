@@ -7,6 +7,8 @@
   },
   "scripts": {
     "css:build": "npx tailwindcss -i booking/static/css/tailwind-input.css -o booking/static/css/tailwind.css --minify",
+    "css:build:admin": "npx tailwindcss -c tailwind-admin-debug.config.js -i booking/static/css/admin-input.css -o booking/static/css/admin-debug.css --minify && npx tailwindcss -c tailwind-admin-dashboard.config.js -i booking/static/css/admin-input.css -o booking/static/css/admin-dashboard.css --minify",
+    "css:build:all": "npm run css:build && npm run css:build:admin",
     "css:watch": "npx tailwindcss -i booking/static/css/tailwind-input.css -o booking/static/css/tailwind.css --watch"
   }
 }

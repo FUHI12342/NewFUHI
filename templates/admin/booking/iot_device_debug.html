@@ -2,8 +2,7 @@
 {% load i18n static %}
 
 {% block extrahead %}
-<script src="https://cdn.tailwindcss.com"></script>
-<script>tailwind.config = { prefix: 'tw-' }</script>
+<link rel="stylesheet" href="{% static 'css/admin-debug.css' %}">
 <style>
   #content { max-width: 100%; }
   .debug-badge {
