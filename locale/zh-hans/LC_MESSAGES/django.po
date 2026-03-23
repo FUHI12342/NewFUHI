@@ -1,0 +1,43 @@
+# Chinese Simplified translations for NewFUHI.
+msgid ""
+msgstr ""
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Language: zh-hans\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+
+msgid "メニュー"
+msgstr "菜单"
+
+msgid "カート"
+msgstr "购物车"
+
+msgid "注文履歴"
+msgstr "订单记录"
+
+msgid "お会計"
+msgstr "结账"
+
+msgid "追加"
+msgstr "加入"
+
+msgid "すべて"
+msgstr "全部"
+
+msgid "番号で検索（例: SH-001）"
+msgstr "按编号搜索（例：SH-001）"
+
+msgid "カートに追加しました"
+msgstr "已加入购物车"
+
+msgid "エラーが発生しました"
+msgstr "发生错误"
+
+msgid "通信エラーが発生しました"
+msgstr "通信错误"
+
+msgid "該当するメニューが見つかりません"
+msgstr "找不到匹配的菜单"
+
+msgid "メニューはまだ登録されていません"
+msgstr "菜单尚未登录"
