@@ -344,3 +344,77 @@ server {
 6. Monitor logs for issues
 
 The IoT API is now accessible without Basic authentication, relying on Django's API key validation for security.
+
+---
+
+## Rate Limiting Configuration
+
+> Updated: 2026-03-23
+
+### Current Rate Limit Zones (nginx.conf)
+
+```nginx
+limit_req_zone $binary_remote_addr zone=iot_api:10m rate=10r/s;   # IoTデバイス向け
+limit_req_zone $binary_remote_addr zone=login:10m rate=5r/m;       # ブルートフォース対策
+limit_req_zone $binary_remote_addr zone=api:10m rate=10r/s;        # 一般API (2026-03-23: 30r/m→10r/sに緩和)
+```
+
+### Rate Limit Burst Settings (timebaibai.conf)
+
+```nginx
+location /api/ {
+    limit_req zone=api burst=30 nodelay;  # 2026-03-23: burst=5/10→30に緩和
+}
+```
+
+### Rate Limit変更履歴
+
+| 日付 | 変更前 | 変更後 | 理由 |
+|------|--------|--------|------|
+| 2026-03-23 | `rate=30r/m, burst=5/10` | `rate=10r/s, burst=30` | ダッシュボードの並列API呼び出しで503エラー多発 |
+
+### 注意事項
+- ダッシュボードページは一度に10-20個のAPIエンドポイントを並列呼び出しする
+- `rate=30r/m` では毎秒0.5リクエストしか許可されず不足
+- `rate=10r/s` でダッシュボードの正常動作を確保しつつ、DDoS保護も維持
+
+---
+
+## Security Headers Configuration
+
+> Updated: 2026-03-23
+
+### 現在の設定状態
+
+| ヘッダー | 状態 | 設定値 |
+|----------|------|--------|
+| `server_tokens` | **off** (2026-03-23 有効化) | バージョン番号非表示 |
+| `X-Frame-Options` | 設定済 | `DENY` |
+| `X-Content-Type-Options` | 設定済 | `nosniff` |
+| `Strict-Transport-Security` | 設定済 | `max-age=31536000; includeSubDomains` |
+| `Referrer-Policy` | 設定済 | `strict-origin-when-cross-origin` |
+| `Content-Security-Policy` | **設定済** (2026-03-23) | `default-src 'self'; script-src 'self' 'unsafe-inline' ...` |
+| `Permissions-Policy` | **設定済** (2026-03-23) | `camera=(), microphone=(), geolocation=(), payment=()` |
+
+### セキュリティヘッダー スニペット
+
+全locationブロックで共有するヘッダーは `/etc/nginx/snippets/security-headers.conf` に集約:
+
+```nginx
+# /etc/nginx/snippets/security-headers.conf
+add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;
+add_header X-Frame-Options "DENY" always;
+add_header X-Content-Type-Options "nosniff" always;
+add_header Referrer-Policy "strict-origin-when-cross-origin" always;
+add_header Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://unpkg.com https://platform.twitter.com; style-src 'self' 'unsafe-inline'; img-src 'self' https://www.google.com data:; connect-src 'self'; font-src 'self'; frame-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self';" always;
+add_header Permissions-Policy "camera=(), microphone=(), geolocation=(), payment=()" always;
+```
+
+各locationブロックから `include /etc/nginx/snippets/security-headers.conf;` で読み込み。
+
+**注意**: Tailwind CDN → ビルド済みCSS移行後、CSPから `https://cdn.tailwindcss.com` を削除済み。
+
+### バックアップファイル
+- `/etc/nginx/nginx.conf.bak.20260323`
+- `/etc/nginx/timebaibai.conf.bak.20260323`
+- `/etc/nginx/timebaibai.conf.bak.20260323-csp`

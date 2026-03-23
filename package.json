@@ -1,0 +1,12 @@
+{
+  "dependencies": {
+    "playwright": "^1.58.2"
+  },
+  "devDependencies": {
+    "tailwindcss": "^3.4.19"
+  },
+  "scripts": {
+    "css:build": "npx tailwindcss -i booking/static/css/tailwind-input.css -o booking/static/css/tailwind.css --minify",
+    "css:watch": "npx tailwindcss -i booking/static/css/tailwind-input.css -o booking/static/css/tailwind.css --watch"
+  }
+}

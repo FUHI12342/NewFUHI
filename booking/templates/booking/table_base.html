@@ -1,24 +1,12 @@
-{% load i18n %}
+{% load i18n static %}
 <!DOCTYPE html>
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>{% block title %}{{ store.name }}{% endblock %}</title>
-<script src="https://cdn.tailwindcss.com"></script>
-<script>
-tailwind.config = {
-    theme: {
-        extend: {
-            colors: {
-                'salon-brown': '#8c876c',
-                'salon-beige': '#f1f0ec',
-                'salon-dark': '#333333',
-            }
-        }
-    }
-}
-</script>
+<!-- Tailwind CSS (built) -->
+<link rel="stylesheet" href="{% static 'css/tailwind.css' %}">
 {% block extra_css %}{% endblock %}
 </head>
 <body class="bg-gray-50 text-salon-dark min-h-screen flex flex-col">

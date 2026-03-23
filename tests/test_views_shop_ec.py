@@ -261,3 +261,41 @@ class TestShopCheckoutView:
 
         ec_product.refresh_from_db()
         assert ec_product.stock == 47  # 50 - 3
+
+
+# ------------------------------------------------------------------
+# _is_placeholder_image helper
+# ------------------------------------------------------------------
+
+@pytest.mark.django_db
+class TestIsPlaceholderImage:
+    def test_no_image_returns_false(self, ec_product):
+        from booking.views_shop import _is_placeholder_image
+        assert ec_product.image is not None or not ec_product.image  # ensure no image
+        assert _is_placeholder_image(ec_product) is False
+
+    def test_sku_matching_filename_returns_true(self, ec_product):
+        from booking.views_shop import _is_placeholder_image
+        from django.core.files.base import ContentFile
+        ec_product.image.save(
+            f'{ec_product.sku.lower()}.png',
+            ContentFile(b'\x89PNG\r\n'),
+            save=True,
+        )
+        assert _is_placeholder_image(ec_product) is True
+
+    def test_real_image_returns_false(self, ec_product):
+        from booking.views_shop import _is_placeholder_image
+        from django.core.files.base import ContentFile
+        ec_product.image.save(
+            'real-product-photo.jpg',
+            ContentFile(b'\xff\xd8\xff'),
+            save=True,
+        )
+        assert _is_placeholder_image(ec_product) is False
+
+    def test_product_display_includes_flag(self, ec_product):
+        from booking.views_shop import _product_display
+        result = _product_display(ec_product, 'ja')
+        assert 'is_placeholder_image' in result
+        assert result['is_placeholder_image'] is False

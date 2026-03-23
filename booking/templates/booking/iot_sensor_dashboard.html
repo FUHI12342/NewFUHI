@@ -307,7 +307,9 @@
      data-stale-warning="{% trans 'データの取得に失敗しています。接続を確認してください。' %}"
      data-pir-active="{% trans '人感センサー反応中' %}"
      data-pir-inactive="{% trans '静止中' %}"
-     data-no-device="{% trans 'デバイスが登録されていません。管理画面からIoTデバイスを追加してください。' %}"></div>
+     data-no-device="{% trans 'デバイスが登録されていません。管理画面からIoTデバイスを追加してください。' %}"
+     data-load-error="{% trans 'デバイス一覧の取得に失敗しました。' %}"
+     data-retry="{% trans '再試行' %}"></div>
 <script>
 (function() {
   'use strict';
@@ -640,8 +642,13 @@
   }
 
   // ── Load device list ───────────────────────────────────
+  var deviceLoadRetries = 0;
+  var maxDeviceRetries = 3;
+
   function loadDevices() {
+    deviceSelect.innerHTML = '<option value="">Loading...</option>';
     fetchJSON('/api/iot/sensors/data/?list_devices=1').then(function(d) {
+      deviceLoadRetries = 0;
       var devices = d.devices || d || [];
       deviceSelect.innerHTML = '';
 
@@ -665,8 +672,27 @@
       // 最初のデバイスを自動選択
       currentDevice = deviceSelect.value;
       startPolling();
-    }).catch(function() {
-      deviceSelect.innerHTML = '<option value="">' + iotI18n.noDevice + '</option>';
+    }).catch(function(err) {
+      console.error('IoT device load failed:', err.message || err);
+      deviceLoadRetries++;
+      if (deviceLoadRetries < maxDeviceRetries) {
+        // 自動リトライ (2秒後)
+        deviceSelect.innerHTML = '<option value="">' + iotI18n.loadError + ' (' + deviceLoadRetries + '/' + maxDeviceRetries + ')</option>';
+        setTimeout(loadDevices, 2000);
+      } else {
+        // リトライ上限到達 — 手動リトライボタン表示
+        deviceSelect.innerHTML = '<option value="">' + iotI18n.loadError + '</option>';
+        var retryBtn = document.createElement('button');
+        retryBtn.textContent = iotI18n.retry;
+        retryBtn.className = 'range-btn';
+        retryBtn.style.marginLeft = '8px';
+        retryBtn.onclick = function() {
+          deviceLoadRetries = 0;
+          retryBtn.remove();
+          loadDevices();
+        };
+        deviceSelect.parentNode.insertBefore(retryBtn, deviceSelect.nextSibling);
+      }
     });
   }
 

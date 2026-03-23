@@ -27,6 +27,22 @@ def _resolve_lang(request, store) -> str:
     return store_lang or "ja"
 
 
+def _is_placeholder_image(product) -> bool:
+    """seed コマンドで生成されたプレースホルダー画像かどうかを判定。
+    seed は '{sku.lower()}.png' で保存するが、Django Storage が
+    重複回避で '{sku.lower()}_{hash}.png' にリネームする場合がある。
+    """
+    if not product.image:
+        return False
+    filename = product.image.name.rsplit("/", 1)[-1] if product.image.name else ""
+    sku_lower = product.sku.lower()
+    # 完全一致 or Django Storage のランダムサフィックス付き
+    return (
+        filename == f"{sku_lower}.png"
+        or filename.startswith(f"{sku_lower}_") and filename.endswith(".png")
+    )
+
+
 def _product_display(product, lang: str) -> dict:
     tr = product.translations.filter(lang=lang).first()
     return {
@@ -39,6 +55,7 @@ def _product_display(product, lang: str) -> dict:
         "is_sold_out": (product.stock <= 0),
         "category_id": product.category_id,
         "image_url": product.image.url if product.image else "",
+        "is_placeholder_image": _is_placeholder_image(product),
     }
 
 
