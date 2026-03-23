@@ -72,6 +72,55 @@ $SSH_CMD "cd '$REMOTE_PATH' && git fetch origin && git reset --hard 'origin/$BRA
 echo -e "${GREEN}  pull 完了${NC}"
 echo ""
 
+# ========== Step 2.5: 環境変数の整合性チェック ==========
+echo -e "${GREEN}[2.5/6] 環境変数チェック...${NC}"
+ENV_CHECK=$($SSH_CMD "cd '$REMOTE_PATH' && \
+    source .venv/bin/activate && \
+    set -a && source .env && set +a && \
+    python -c \"
+import os, sys
+required = ['SECRET_KEY', 'LINE_CHANNEL_ID', 'LINE_CHANNEL_SECRET',
+            'LINE_USER_ID_ENCRYPTION_KEY', 'LINE_USER_ID_HASH_PEPPER',
+            'IOT_ENCRYPTION_KEY']
+missing = [k for k in required if not os.getenv(k)]
+if missing:
+    print('MISSING:' + ','.join(missing))
+    sys.exit(1)
+print('OK')
+\"" 2>&1)
+
+if echo "$ENV_CHECK" | grep -q "^MISSING:"; then
+    MISSING_VARS=$(echo "$ENV_CHECK" | grep "^MISSING:" | sed 's/^MISSING://')
+    echo -e "${RED}  .env に必須環境変数が不足しています: ${MISSING_VARS}${NC}"
+    echo -e "${RED}  デプロイを中止します。サーバーの .env を確認してください。${NC}"
+    exit 1
+fi
+echo -e "${GREEN}  環境変数 OK${NC}"
+echo ""
+
+# ========== Step 2.7: systemd サービスファイル同期 ==========
+echo -e "${GREEN}[2.7/6] systemd サービスファイル同期...${NC}"
+SYSTEMD_CHANGED=0
+for SVC_FILE in newfuhi.service newfuhi-celery.service newfuhi-celerybeat.service; do
+    LOCAL_SVC="$(dirname "$0")/systemd/$SVC_FILE"
+    if [ -f "$LOCAL_SVC" ]; then
+        DIFF=$($SSH_CMD "cat /etc/systemd/system/$SVC_FILE 2>/dev/null" | diff - "$LOCAL_SVC" 2>/dev/null || true)
+        if [ -n "$DIFF" ]; then
+            scp -i "$SSH_KEY" -q "$LOCAL_SVC" "$EC2_USER@$EC2_HOST:/tmp/$SVC_FILE"
+            $SSH_CMD "sudo cp /tmp/$SVC_FILE /etc/systemd/system/$SVC_FILE && rm /tmp/$SVC_FILE"
+            echo -e "  ${YELLOW}更新: $SVC_FILE${NC}"
+            SYSTEMD_CHANGED=1
+        else
+            echo -e "  変更なし: $SVC_FILE"
+        fi
+    fi
+done
+if [ "$SYSTEMD_CHANGED" = "1" ]; then
+    $SSH_CMD "sudo systemctl daemon-reload"
+    echo -e "${GREEN}  daemon-reload 完了${NC}"
+fi
+echo ""
+
 # ========== Step 3: 依存関係インストール & マイグレーション ==========
 echo -e "${GREEN}[3/6] 依存関係 & マイグレーション...${NC}"
 
@@ -125,8 +174,15 @@ fi
 if [ "$HTTP_CODE" = "200" ] || [ "$HTTP_CODE" = "301" ] || [ "$HTTP_CODE" = "302" ]; then
     echo -e "${GREEN}  HTTP $HTTP_CODE - 正常${NC}"
 else
-    echo -e "${RED}  HTTP $HTTP_CODE - 問題あり。ログを確認してください:${NC}"
-    echo -e "  $SSH_CMD \"tail -20 /var/log/newfuhi/django.log\""
+    echo -e "${RED}  HTTP $HTTP_CODE - 問題あり!${NC}"
+    echo -e "${RED}  サービス状態:${NC}"
+    $SSH_CMD "sudo systemctl status newfuhi --no-pager 2>/dev/null | head -5" || true
+    echo ""
+    echo -e "${RED}  直近のエラー:${NC}"
+    $SSH_CMD "sudo journalctl -u newfuhi --since '1 min ago' --no-pager 2>/dev/null | grep -i 'error\|missing\|RuntimeError' | tail -5" || true
+    echo ""
+    echo -e "${YELLOW}  ロールバック: $SSH_CMD \"cd $REMOTE_PATH && git reset --hard HEAD~1 && sudo systemctl restart newfuhi\"${NC}"
+    exit 1
 fi
 
 echo ""

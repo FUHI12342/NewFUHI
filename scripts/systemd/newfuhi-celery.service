@@ -1,0 +1,17 @@
+[Unit]
+Description=NewFUHI Celery Worker
+After=network.target redis-server.service
+
+[Service]
+User=ubuntu
+Group=ubuntu
+WorkingDirectory=/home/ubuntu/NewFUHI
+EnvironmentFile=/home/ubuntu/NewFUHI/.env
+Environment=DJANGO_ENVIRONMENT=production
+Environment=DJANGO_SETTINGS_MODULE=project.settings
+ExecStart=/home/ubuntu/NewFUHI/.venv/bin/celery -A celery_config worker --loglevel=info
+Restart=always
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target
