@@ -71,7 +71,7 @@ def _llm_judge_check(draft_post, context=''):
 JSON形式で回答してください:
 {{"accuracy": 0.9, "quality": 0.8, "marketing": 0.7, "platform_fit": 0.8, "feedback": "具体的なフィードバック"}}"""
 
-    result_text = _call_gemini_for_draft(eval_prompt, max_tokens=256, temperature=0.2)
+    result_text = _call_gemini_for_draft(eval_prompt, max_tokens=2048, temperature=0.2)
     if not result_text:
         return None, ''
 
