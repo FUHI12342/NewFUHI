@@ -123,6 +123,9 @@ INSTALLED_APPS = [
 
     # DRF
     "rest_framework",
+
+    # SNSブラウザ投稿（Playwright不要で登録、実行時にPlaywrightが必要）
+    "social_browser.apps.SocialBrowserConfig",
 ]
 
 MIDDLEWARE = [
@@ -287,6 +290,11 @@ PAYMENT_API_URL = env_required("PAYMENT_API_URL")
 
 WEBHOOK_URL_BASE = env_required("WEBHOOK_URL_BASE")
 CANCEL_URL = env_required("CANCEL_URL")
+
+# X (Twitter) API
+X_CLIENT_ID = os.getenv("X_CLIENT_ID", "")
+X_CLIENT_SECRET = os.getenv("X_CLIENT_SECRET", "")
+X_REDIRECT_URI = os.getenv("X_REDIRECT_URI", "")
 
 # Gemini AI Chat
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "")

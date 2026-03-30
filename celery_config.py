@@ -44,9 +44,38 @@ app.conf.beat_schedule = {
         "task": "booking.tasks.check_aws_costs",
         "schedule": crontab(hour=6, minute=0),  # 毎日 06:00
     },
+    # SNS自動投稿
+    "post-daily-staff": {
+        "task": "booking.tasks.task_post_daily_staff",
+        "schedule": crontab(hour=9, minute=30),
+    },
+    "post-weekly-schedule": {
+        "task": "booking.tasks.task_post_weekly_schedule",
+        "schedule": crontab(hour=10, minute=0, day_of_week=1),
+    },
+    "refresh-social-tokens": {
+        "task": "booking.tasks.task_refresh_social_tokens",
+        "schedule": crontab(hour=3, minute=30),
+    },
+    # SNS 下書き自動生成（毎日 08:00）
+    "generate-daily-drafts": {
+        "task": "booking.tasks.task_generate_daily_drafts",
+        "schedule": crontab(hour=8, minute=0),
+    },
+    # 予約投稿チェック（5分ごと）
+    "check-scheduled-posts": {
+        "task": "booking.tasks.task_check_scheduled_posts",
+        "schedule": 300.0,
+    },
 }
 
 # 互換のため明示（settings.py 側で CELERY_TASK_SERIALIZER などを設定しているなら不要）
 app.conf.task_serializer = "json"
 app.conf.accept_content = ["json"]
 app.conf.broker_connection_retry_on_startup = True
+
+# タスクルーティング
+app.conf.task_routes = {
+    'booking.tasks.task_post_to_x': {'queue': 'x_api'},
+    'social_browser.tasks.task_browser_post': {'queue': 'browser_posting'},
+}

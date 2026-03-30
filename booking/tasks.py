@@ -207,3 +207,120 @@ def send_event_notification(event_type, severity, title, detail='', admin_url=''
     """イベント通知送信（Celeryワーカーで非同期実行）"""
     from booking.services.event_notifications import dispatch_event_notification
     dispatch_event_notification(event_type, severity, title, detail, admin_url)
+
+
+# ==============================
+# SNS自動投稿タスク
+# ==============================
+
+@shared_task(
+    bind=True,
+    max_retries=2,
+    default_retry_delay=120,
+)
+def task_post_to_x(self, store_id, trigger_type, context_json):
+    """X API投稿タスク。専用キュー x_api で単一ワーカー実行。"""
+    from booking.services.post_dispatcher import dispatch_post
+    try:
+        dispatch_post(store_id, trigger_type, context_json)
+    except Exception as exc:
+        logger.error("task_post_to_x failed: %s", exc)
+        raise self.retry(exc=exc)
+
+
+@shared_task
+def task_post_shift_published(period_id):
+    """シフト公開時のSNS投稿をキューイング"""
+    from booking.models import ShiftPeriod
+    try:
+        period = ShiftPeriod.objects.select_related('store').get(id=period_id)
+    except ShiftPeriod.DoesNotExist:
+        logger.error("ShiftPeriod not found: %s", period_id)
+        return
+    task_post_to_x.apply_async(
+        args=[period.store_id, 'shift_publish', {'period_id': period_id}],
+        queue='x_api',
+    )
+
+
+@shared_task
+def task_post_daily_staff():
+    """毎日09:30: 各店舗の本日スタッフを投稿"""
+    from booking.models import SocialAccount
+    for account in SocialAccount.objects.filter(is_active=True, platform='x'):
+        task_post_to_x.apply_async(
+            args=[account.store_id, 'daily_staff', {}],
+            queue='x_api',
+        )
+
+
+@shared_task
+def task_post_weekly_schedule():
+    """毎週月曜10:00: 週間スケジュールを投稿"""
+    from booking.models import SocialAccount
+    for account in SocialAccount.objects.filter(is_active=True, platform='x'):
+        task_post_to_x.apply_async(
+            args=[account.store_id, 'weekly_schedule', {}],
+            queue='x_api',
+        )
+
+
+@shared_task
+def task_refresh_social_tokens():
+    """毎日03:30: 期限が近いトークンをリフレッシュ"""
+    from booking.models import SocialAccount
+    from booking.services.x_posting_service import refresh_x_token
+    threshold = timezone.now() + timezone.timedelta(hours=6)
+    for account in SocialAccount.objects.filter(
+        is_active=True, token_expires_at__lte=threshold,
+    ):
+        try:
+            refresh_x_token(account)
+        except Exception as e:
+            logger.warning("Token refresh failed for store %s: %s", account.store_id, e)
+
+
+@shared_task
+def task_generate_daily_drafts():
+    """毎日08:00: 各店舗の下書き自動生成"""
+    from booking.models import Store, SocialAccount
+    from booking.services.sns_draft_service import generate_daily_draft
+    from booking.services.sns_evaluation_service import evaluate_draft_quality
+
+    # アクティブな SocialAccount がある店舗のみ対象
+    store_ids = SocialAccount.objects.filter(
+        is_active=True,
+    ).values_list('store_id', flat=True).distinct()
+
+    for store in Store.objects.filter(id__in=store_ids):
+        try:
+            draft = generate_daily_draft(store)
+            if draft:
+                evaluate_draft_quality(draft)
+                logger.info("Daily draft generated for store %s (score=%.2f)", store.name, draft.quality_score or 0)
+        except Exception as e:
+            logger.error("Daily draft generation failed for store %s: %s", store.name, e)
+
+
+@shared_task
+def task_check_scheduled_posts():
+    """5分ごと: 予約投稿の時刻チェック → 投稿実行"""
+    from booking.models import DraftPost
+    from booking.services.post_dispatcher import dispatch_post
+
+    now = timezone.now()
+    scheduled_drafts = DraftPost.objects.filter(
+        status='scheduled',
+        scheduled_at__lte=now,
+    ).select_related('store')
+
+    for draft in scheduled_drafts:
+        try:
+            context_json = {'content': draft.content, 'draft_id': draft.pk}
+            dispatch_post(draft.store_id, 'manual', context_json)
+            draft.status = 'posted'
+            draft.posted_at = now
+            draft.save(update_fields=['status', 'posted_at', 'updated_at'])
+            logger.info("Scheduled post dispatched: draft_id=%d", draft.pk)
+        except Exception as e:
+            logger.error("Scheduled post failed for draft %d: %s", draft.pk, e)

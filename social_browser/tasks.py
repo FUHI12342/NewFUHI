@@ -1,0 +1,87 @@
+"""ブラウザ自動投稿 Celery タスク"""
+import logging
+
+from celery import shared_task
+
+logger = logging.getLogger(__name__)
+
+
+@shared_task(bind=True, max_retries=1, default_retry_delay=300)
+def task_browser_post(self, session_id, draft_post_id, content, platform):
+    """ブラウザ経由で SNS に投稿
+
+    queue='browser_posting', pool=solo で実行。
+    """
+    from social_browser.models import BrowserSession, BrowserPostLog
+    from booking.models import DraftPost, SystemConfig
+
+    # フィーチャーフラグチェック
+    if SystemConfig.get('browser_posting_enabled', 'false') != 'true':
+        logger.info("Browser posting is disabled via SystemConfig")
+        return
+
+    try:
+        session = BrowserSession.objects.get(id=session_id)
+    except BrowserSession.DoesNotExist:
+        logger.error("BrowserSession not found: %s", session_id)
+        return
+
+    if session.status != 'active':
+        logger.warning("Session %s is not active (status=%s)", session_id, session.status)
+        return
+
+    draft = None
+    if draft_post_id:
+        try:
+            draft = DraftPost.objects.get(id=draft_post_id)
+        except DraftPost.DoesNotExist:
+            pass
+
+    success = False
+    screenshot_path = ''
+    error = ''
+
+    try:
+        if platform == 'x':
+            from social_browser.services.x_browser_poster import post_to_x_browser
+            success, screenshot_path, error = post_to_x_browser(
+                content, session.profile_dir,
+            )
+        elif platform == 'instagram':
+            from social_browser.services.instagram_poster import post_to_instagram_browser
+            image_path = draft.image.path if draft and draft.image else ''
+            success, screenshot_path, error = post_to_instagram_browser(
+                content, image_path, session.profile_dir,
+            )
+        elif platform == 'gbp':
+            from social_browser.services.gbp_poster import post_to_gbp_browser
+            success, screenshot_path, error = post_to_gbp_browser(
+                content, session.profile_dir,
+            )
+        else:
+            error = f"Unknown platform: {platform}"
+
+    except Exception as exc:
+        error = str(exc)
+        logger.error("Browser post error: %s", exc)
+
+    # ログ記録
+    log = BrowserPostLog.objects.create(
+        session=session,
+        draft_post=draft,
+        content=content,
+        success=success,
+        error_message=error,
+    )
+    if screenshot_path:
+        log.screenshot.name = screenshot_path
+        log.save(update_fields=['screenshot'])
+
+    # BAN検出: セッションを無効化
+    if not success and 'suspended' in error.lower():
+        session.status = 'expired'
+        session.save(update_fields=['status', 'updated_at'])
+        logger.critical("Account suspended for session %s, disabling", session_id)
+
+    if not success:
+        raise self.retry(exc=Exception(error))

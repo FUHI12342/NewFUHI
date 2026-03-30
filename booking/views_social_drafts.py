@@ -1,0 +1,184 @@
+"""SNS 下書き管理ビュー — AI生成、編集、即時投稿、予約投稿"""
+import json
+import logging
+
+from django.contrib import messages
+from django.contrib.auth.mixins import LoginRequiredMixin
+from django.http import JsonResponse, HttpResponseBadRequest
+from django.shortcuts import get_object_or_404, redirect
+from django.utils import timezone
+from django.views import View
+from django.views.generic import ListView, TemplateView
+
+from booking.models import DraftPost, Store, SocialAccount
+
+logger = logging.getLogger(__name__)
+
+
+class StaffRequiredMixin(LoginRequiredMixin):
+    """管理スタッフ権限チェック"""
+
+    def dispatch(self, request, *args, **kwargs):
+        if not request.user.is_authenticated:
+            return self.handle_no_permission()
+        if not (request.user.is_superuser or hasattr(request.user, 'staff')):
+            return self.handle_no_permission()
+        return super().dispatch(request, *args, **kwargs)
+
+
+class DraftListView(StaffRequiredMixin, ListView):
+    """下書き一覧"""
+    template_name = 'admin/booking/social_drafts/list.html'
+    context_object_name = 'drafts'
+    paginate_by = 20
+
+    def get_queryset(self):
+        qs = DraftPost.objects.select_related('store', 'created_by')
+        status = self.request.GET.get('status')
+        if status:
+            qs = qs.filter(status=status)
+        store_id = self.request.GET.get('store')
+        if store_id:
+            qs = qs.filter(store_id=store_id)
+        return qs.order_by('-created_at')
+
+    def get_context_data(self, **kwargs):
+        ctx = super().get_context_data(**kwargs)
+        ctx['stores'] = Store.objects.all()
+        ctx['status_choices'] = DraftPost._meta.get_field('status').choices
+        ctx['current_status'] = self.request.GET.get('status', '')
+        ctx['current_store'] = self.request.GET.get('store', '')
+        return ctx
+
+
+class DraftEditView(StaffRequiredMixin, View):
+    """HTMX インライン編集 (POST)"""
+
+    def post(self, request, pk):
+        draft = get_object_or_404(DraftPost, pk=pk)
+        content = request.POST.get('content', '').strip()
+        if not content:
+            return HttpResponseBadRequest("Content is required")
+
+        draft.content = content
+        if draft.status == 'generated':
+            draft.status = 'reviewed'
+        draft.save(update_fields=['content', 'status', 'updated_at'])
+        messages.success(request, '下書きを更新しました。')
+        return redirect('social_draft_list')
+
+
+class DraftPostView(StaffRequiredMixin, View):
+    """即時投稿"""
+
+    def post(self, request, pk):
+        draft = get_object_or_404(DraftPost, pk=pk)
+
+        platforms = request.POST.getlist('platforms')
+        if not platforms:
+            platforms = draft.platforms or ['x']
+
+        from booking.services.post_dispatcher import dispatch_post
+        for platform in platforms:
+            try:
+                context_json = {'content': draft.content, 'draft_id': draft.pk}
+                dispatch_post(draft.store_id, 'manual', context_json)
+            except Exception as e:
+                logger.error("Draft post failed: %s", e)
+                messages.error(request, f'{platform} への投稿に失敗: {e}')
+                return redirect('social_draft_list')
+
+        draft.status = 'posted'
+        draft.posted_at = timezone.now()
+        draft.save(update_fields=['status', 'posted_at', 'updated_at'])
+        messages.success(request, '投稿しました。')
+        return redirect('social_draft_list')
+
+
+class DraftScheduleView(StaffRequiredMixin, View):
+    """予約投稿 (POST)"""
+
+    def post(self, request, pk):
+        draft = get_object_or_404(DraftPost, pk=pk)
+        scheduled_at = request.POST.get('scheduled_at')
+        if not scheduled_at:
+            return HttpResponseBadRequest("scheduled_at is required")
+
+        try:
+            from django.utils.dateparse import parse_datetime
+            dt = parse_datetime(scheduled_at)
+            if dt is None:
+                return HttpResponseBadRequest("Invalid datetime format")
+        except (ValueError, TypeError):
+            return HttpResponseBadRequest("Invalid datetime format")
+
+        platforms = request.POST.getlist('platforms')
+        if platforms:
+            draft.platforms = platforms
+
+        draft.scheduled_at = dt
+        draft.status = 'scheduled'
+        draft.save(update_fields=['scheduled_at', 'status', 'platforms', 'updated_at'])
+        messages.success(request, f'予約投稿を設定しま��た: {dt}')
+        return redirect('social_draft_list')
+
+
+class DraftGenerateView(StaffRequiredMixin, View):
+    """AI 下書き新規生成"""
+
+    def get(self, request):
+        """生成フォーム表示"""
+        from django.template.response import TemplateResponse
+        stores = Store.objects.all()
+        return TemplateResponse(request, 'admin/booking/social_drafts/generate.html', {
+            'stores': stores,
+        })
+
+    def post(self, request):
+        store_id = request.POST.get('store_id')
+        target_date_str = request.POST.get('target_date', '')
+        platforms = request.POST.getlist('platforms') or ['x']
+
+        store = get_object_or_404(Store, pk=store_id)
+
+        target_date = None
+        if target_date_str:
+            from django.utils.dateparse import parse_date
+            target_date = parse_date(target_date_str)
+
+        from booking.services.sns_draft_service import generate_daily_draft
+        draft = generate_daily_draft(store, target_date, platforms)
+
+        if draft:
+            # 品質評価も実行
+            from booking.services.sns_evaluation_service import evaluate_draft_quality
+            evaluate_draft_quality(draft)
+            messages.success(request, f'下書きを生成しました (スコア: {draft.quality_score})')
+        else:
+            messages.error(request, 'AI下書きの生成に失敗しました。GEMINI_API_KEY を確認してください。')
+
+        return redirect('social_draft_list')
+
+
+class DraftRegenerateView(StaffRequiredMixin, View):
+    """AI 再生成"""
+
+    def post(self, request, pk):
+        draft = get_object_or_404(DraftPost, pk=pk)
+
+        from booking.services.sns_draft_service import generate_daily_draft
+        new_draft = generate_daily_draft(
+            draft.store, draft.target_date, draft.platforms,
+        )
+
+        if new_draft:
+            from booking.services.sns_evaluation_service import evaluate_draft_quality
+            evaluate_draft_quality(new_draft)
+            # 旧ドラフトを却下
+            draft.status = 'rejected'
+            draft.save(update_fields=['status', 'updated_at'])
+            messages.success(request, f'再生成しました (新スコア: {new_draft.quality_score})')
+        else:
+            messages.error(request, 'AI再生成に失敗しました。')
+
+        return redirect('social_draft_list')
