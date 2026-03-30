@@ -39,7 +39,7 @@ def _call_gemini(system_prompt, knowledge, user_message, conversation_history=No
         logger.error('GEMINI_API_KEY is not configured in settings / .env')
         return 'AI チャットは現在利用できません。API キーが設定されていません。'
 
-    url = f'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key={api_key}'
+    url = f'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={api_key}'
 
     # Build conversation contents
     contents = []

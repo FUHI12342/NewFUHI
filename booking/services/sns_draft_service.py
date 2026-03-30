@@ -32,7 +32,7 @@ def _call_gemini_for_draft(prompt, max_tokens=512, temperature=0.8):
 
     url = (
         'https://generativelanguage.googleapis.com/v1beta/models/'
-        f'gemini-2.0-flash:generateContent?key={api_key}'
+        f'gemini-2.5-flash:generateContent?key={api_key}'
     )
 
     payload = json.dumps({
