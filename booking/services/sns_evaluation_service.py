@@ -10,6 +10,13 @@ logger = logging.getLogger(__name__)
 # 禁止ワード
 BANNED_WORDS = ['死', '殺', '自殺', '暴力', 'エロ', 'セックス', 'ギャンブル']
 
+# プラットフォーム別文字数制限
+PLATFORM_CHAR_LIMITS = {
+    'x': {'max_weighted': 280, 'label': 'X'},
+    'instagram': {'max_chars': 2200, 'label': 'Instagram'},
+    'gbp': {'max_chars': 1500, 'label': 'Google Business Profile'},
+}
+
 
 def _rule_based_check(draft_post):
     """同期ルールベースチェック
@@ -20,12 +27,27 @@ def _rule_based_check(draft_post):
     issues = []
     deductions = 0.0
     content = draft_post.content
+    platforms = draft_post.platforms or []
 
-    # 1. 文字数チェック
-    wlen = weighted_length(content)
-    if 'x' in draft_post.platforms and wlen > MAX_WEIGHTED_LENGTH:
-        issues.append(f"X向けの加重文字数が{wlen}/{MAX_WEIGHTED_LENGTH}を超過")
-        deductions += 0.2
+    # 1. プラットフォーム別文字数チェック
+    for platform in platforms:
+        limit = PLATFORM_CHAR_LIMITS.get(platform)
+        if not limit:
+            continue
+        if 'max_weighted' in limit:
+            wlen = weighted_length(content)
+            if wlen > limit['max_weighted']:
+                issues.append(
+                    f"{limit['label']}向けの加重文字数が{wlen}/{limit['max_weighted']}を超過"
+                )
+                deductions += 0.2
+        elif 'max_chars' in limit:
+            clen = len(content)
+            if clen > limit['max_chars']:
+                issues.append(
+                    f"{limit['label']}向けの文字数が{clen}/{limit['max_chars']}を超過"
+                )
+                deductions += 0.15
 
     # 2. 空コンテンツ
     if not content.strip():
@@ -42,6 +64,13 @@ def _rule_based_check(draft_post):
     if draft_post.store.name not in content:
         issues.append("店舗名が含まれていません")
         deductions += 0.1
+
+    # 5. Instagram ハッシュタグチェック
+    if 'instagram' in platforms:
+        hashtag_count = content.count('#')
+        if hashtag_count < 3:
+            issues.append(f"Instagramのハッシュタグが少なすぎます ({hashtag_count}個、推奨: 5-10個)")
+            deductions += 0.05
 
     return issues, min(deductions, 1.0)
 

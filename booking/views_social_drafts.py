@@ -52,7 +52,7 @@ class DraftListView(StaffRequiredMixin, ListView):
 
 
 class DraftEditView(StaffRequiredMixin, View):
-    """HTMX インライン編集 (POST)"""
+    """インライン編集 (POST) — 内容 + プラットフォーム更新"""
 
     def post(self, request, pk):
         draft = get_object_or_404(DraftPost, pk=pk)
@@ -61,10 +61,23 @@ class DraftEditView(StaffRequiredMixin, View):
             return HttpResponseBadRequest("Content is required")
 
         draft.content = content
+
+        # プラットフォーム更新
+        platforms = request.POST.getlist('platforms')
+        if platforms:
+            draft.platforms = platforms
+
         if draft.status == 'generated':
             draft.status = 'reviewed'
-        draft.save(update_fields=['content', 'status', 'updated_at'])
-        messages.success(request, '下書きを更新しました。')
+
+        update_fields = ['content', 'status', 'platforms', 'updated_at']
+        draft.save(update_fields=update_fields)
+
+        # 再評価
+        from booking.services.sns_evaluation_service import evaluate_draft_quality
+        evaluate_draft_quality(draft)
+
+        messages.success(request, f'下書きを更新しました (スコア: {draft.quality_score})')
         return redirect('social_draft_list')
 
 
