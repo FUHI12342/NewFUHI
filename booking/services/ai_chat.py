@@ -63,7 +63,7 @@ def _call_gemini(system_prompt, knowledge, user_message, conversation_history=No
     payload = json.dumps({
         'contents': contents,
         'generationConfig': {
-            'maxOutputTokens': 1024,
+            'maxOutputTokens': 4096,
             'temperature': 0.7,
         },
     }).encode('utf-8')
