@@ -565,6 +565,13 @@ class ShiftPublishAPIView(View):
         except Exception as e:
             logger.warning("Failed to send shift notification: %s", e)
 
+        # SNS自動投稿: シフト公開をトリガー
+        try:
+            from booking.tasks import task_post_shift_published
+            transaction.on_commit(lambda: task_post_shift_published.delay(period.id))
+        except Exception as e:
+            logger.warning("Failed to queue social posting task: %s", e)
+
         if request.headers.get('HX-Request'):
             # ステータスが変わるので全体リロード
             return HttpResponse(

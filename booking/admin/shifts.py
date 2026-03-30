@@ -1,8 +1,12 @@
 """Shifts admin: ShiftPeriod, ShiftRequest, ShiftAssignment, ShiftChangeLog,
 ShiftVacancy, ShiftSwapRequest, ShiftTemplate, ShiftPublishHistory,
 StoreClosedDate, ShiftStaffRequirement, ShiftStaffRequirementOverride."""
+import logging
+
 from django.contrib import admin, messages
 from django.utils.translation import gettext_lazy as _
+
+logger = logging.getLogger(__name__)
 
 from ..admin_site import custom_site
 from ..models import (
@@ -58,6 +62,12 @@ class ShiftPeriodAdmin(admin.ModelAdmin):
             count = sync_assignments_to_schedule(period)
             total += count
             notify_shift_approved(period)
+            # SNS自動投稿: シフト公開をトリガー
+            try:
+                from booking.tasks import task_post_shift_published
+                task_post_shift_published.delay(period.id)
+            except Exception as e:
+                logger.warning("Failed to queue social posting: %s", e)
         self.message_user(request, f'{total} 件のScheduleを同期しました。')
 
 
