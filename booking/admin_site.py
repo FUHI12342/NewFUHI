@@ -60,17 +60,17 @@ ROLE_VISIBLE_GROUPS = {
     'developer': [
         'pin_clock', 'reservation', 'staff_manage',
         'menu_manage', 'inventory', 'order', 'pos', 'kitchen',
-        'ec_shop', 'iot', 'system',
+        'ec_shop', 'iot', 'system', 'sns_posting',
     ],
     'owner': None,      # 全表示
     'manager': [
         'pin_clock', 'reservation', 'shift', 'staff_manage',
         'menu_manage', 'inventory', 'order', 'pos', 'kitchen',
         'ec_shop', 'table_order', 'page_settings',
-        'user_account', 'security', 'iot',
+        'user_account', 'security', 'iot', 'sns_posting',
     ],
     'staff': [
-        'pin_clock', 'shift', 'staff_manage', 'iot',
+        'pin_clock', 'shift', 'staff_manage', 'iot', 'sns_posting',
     ],
 }
 
