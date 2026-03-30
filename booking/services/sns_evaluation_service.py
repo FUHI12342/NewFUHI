@@ -68,10 +68,12 @@ def _llm_judge_check(draft_post, context=''):
 3. 集客効果 (0.0-1.0, 配点20%): CTAの有無、魅力的な表現
 4. プラットフォーム適合 (0.0-1.0, 配点20%): 文字数、ハッシュタグ等
 
-JSON形式で回答してください:
-{{"accuracy": 0.9, "quality": 0.8, "marketing": 0.7, "platform_fit": 0.8, "feedback": "具体的なフィードバック"}}"""
+JSON形式のみで回答してください（説明不要、JSONのみ出力）。feedbackは1-2文で簡潔に:
+{{"accuracy": 0.9, "quality": 0.8, "marketing": 0.7, "platform_fit": 0.8, "feedback": "簡潔なフィードバック"}}"""
 
-    result_text = _call_gemini_for_draft(eval_prompt, max_tokens=2048, temperature=0.2)
+    result_text = _call_gemini_for_draft(
+        eval_prompt, max_tokens=1024, temperature=0.2, disable_thinking=True,
+    )
     if not result_text:
         return None, ''
 
