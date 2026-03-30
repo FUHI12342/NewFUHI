@@ -76,8 +76,9 @@ JSON形式で回答してください:
         return None, ''
 
     try:
-        # JSON部分を抽出
-        json_match = re.search(r'\{[^}]+\}', result_text, re.DOTALL)
+        # マークダウンコードブロックを除去してJSON部分を抽出
+        cleaned = re.sub(r'```(?:json)?\s*', '', result_text).strip()
+        json_match = re.search(r'\{.*\}', cleaned, re.DOTALL)
         if not json_match:
             return None, result_text
         data = json.loads(json_match.group())
