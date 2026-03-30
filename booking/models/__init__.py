@@ -98,3 +98,12 @@ from .cms import (  # noqa: F401
     StaffRecommendationResult,
     ErrorReport,
 )
+
+# Social posting
+from .social_posting import (  # noqa: F401
+    SocialAccount,
+    PostTemplate,
+    PostHistory,
+    KnowledgeEntry,
+    DraftPost,
+)
