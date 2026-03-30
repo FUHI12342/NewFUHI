@@ -82,7 +82,7 @@ class DraftEditView(StaffRequiredMixin, View):
 
 
 class DraftPostView(StaffRequiredMixin, View):
-    """即時投稿"""
+    """即時投稿 — プラットフォームごとにAPI/ブラウザを振り分け"""
 
     def post(self, request, pk):
         draft = get_object_or_404(DraftPost, pk=pk)
@@ -91,21 +91,98 @@ class DraftPostView(StaffRequiredMixin, View):
         if not platforms:
             platforms = draft.platforms or ['x']
 
-        from booking.services.post_dispatcher import dispatch_post
+        post_method = request.POST.get('post_method', 'api')  # 'api' or 'browser'
+        errors = []
+        successes = []
+
         for platform in platforms:
             try:
-                context_json = {'content': draft.content, 'draft_id': draft.pk}
-                dispatch_post(draft.store_id, 'manual', context_json)
-            except Exception as e:
-                logger.error("Draft post failed: %s", e)
-                messages.error(request, f'{platform} への投稿に失敗: {e}')
-                return redirect('social_draft_list')
+                if post_method == 'browser':
+                    ok, msg = self._post_via_browser(draft, platform)
+                else:
+                    ok, msg = self._post_via_api(draft, platform)
 
-        draft.status = 'posted'
-        draft.posted_at = timezone.now()
-        draft.save(update_fields=['status', 'posted_at', 'updated_at'])
-        messages.success(request, '投稿しました。')
+                if ok:
+                    successes.append(f'{platform}: {msg}')
+                else:
+                    errors.append(f'{platform}: {msg}')
+            except Exception as e:
+                logger.error("Draft post failed for %s: %s", platform, e)
+                errors.append(f'{platform}: {e}')
+
+        if successes:
+            draft.status = 'posted'
+            draft.posted_at = timezone.now()
+            draft.save(update_fields=['status', 'posted_at', 'updated_at'])
+            messages.success(request, '投稿しました: ' + '; '.join(successes))
+
+        if errors:
+            messages.error(request, '投稿失敗: ' + '; '.join(errors))
+
         return redirect('social_draft_list')
+
+    def _post_via_api(self, draft, platform):
+        """API経由で投稿（X のみ対応）"""
+        if platform != 'x':
+            return False, f'{platform}はAPI投稿に非対応（ブラウザ投稿を使用）'
+
+        from booking.services.post_dispatcher import dispatch_post
+        context_json = {'content': draft.content, 'draft_id': draft.pk}
+        dispatch_post(draft.store_id, 'manual', context_json)
+        return True, '投稿完了'
+
+    def _post_via_browser(self, draft, platform):
+        """ブラウザ経由で投稿（全プラットフォーム対応）"""
+        try:
+            from social_browser.models import BrowserSession, BrowserPostLog
+            from social_browser.services.browser_service import get_profile_dir
+        except ImportError:
+            return False, 'social_browser モジュールが利用できません'
+
+        # BrowserSession を取得 or 作成
+        session, _ = BrowserSession.objects.get_or_create(
+            store=draft.store, platform=platform,
+            defaults={
+                'profile_dir': get_profile_dir(draft.store_id, platform),
+                'status': 'setup_required',
+            },
+        )
+
+        if session.status == 'setup_required':
+            return False, 'ブラウザセッション未設定（管理者がログインしてください）'
+
+        # プラットフォーム別ブラウザ投稿
+        if platform == 'x':
+            from social_browser.services.x_browser_poster import post_to_x_browser
+            success, screenshot, error = post_to_x_browser(
+                draft.content, session.profile_dir, headless=True,
+            )
+        elif platform == 'instagram':
+            from social_browser.services.instagram_poster import post_to_instagram_browser
+            image_path = draft.image.path if draft.image else None
+            success, screenshot, error = post_to_instagram_browser(
+                draft.content, image_path, session.profile_dir, headless=True,
+            )
+        elif platform == 'gbp':
+            from social_browser.services.gbp_poster import post_to_gbp_browser
+            success, screenshot, error = post_to_gbp_browser(
+                draft.content, session.profile_dir, headless=True,
+            )
+        else:
+            return False, f'未対応プラットフォーム: {platform}'
+
+        # ログ記録
+        BrowserPostLog.objects.create(
+            session=session,
+            draft_post=draft,
+            content=draft.content,
+            success=success,
+            error_message=error or '',
+        )
+
+        if success:
+            return True, 'ブラウザ投稿完了'
+        return False, error or 'ブラウザ投稿に失敗'
 
 
 class DraftScheduleView(StaffRequiredMixin, View):
