@@ -528,9 +528,11 @@ class RoleBasedAdminSite(AdminSite):
                 continue
             # EC未有効時はスキップ
             if slug == 'ec_shop' and not ec_enabled:
+                used_keys.update(k for k in model_keys if k in all_models)
                 continue
             # SiteSettings トグルでサイドバー非表示
             if slug in sidebar_flags and not sidebar_flags[slug]:
+                used_keys.update(k for k in model_keys if k in all_models)
                 continue
             hidden_in_group = set(g.get('hidden_models', []))
             group_models = []
@@ -563,12 +565,13 @@ class RoleBasedAdminSite(AdminSite):
                     'models': group_models,
                 })
 
-        # GROUPS に含まれないモデルは「その他」グループに
+        # GROUPS に含まれないモデルは「その他」グループに（スーパーユーザーのみ）
         other_models = []
-        for key, model in all_models.items():
-            if key not in used_keys:
-                other_models.append(model)
-                used_keys.add(key)
+        if request and request.user.is_superuser:
+            for key, model in all_models.items():
+                if key not in used_keys:
+                    other_models.append(model)
+                    used_keys.add(key)
         if other_models:
             result.append({
                 'name': _('その他'),
