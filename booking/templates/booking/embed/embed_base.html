@@ -1,0 +1,21 @@
+{% load i18n %}
+{% load static %}
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{% block title %}{% trans "予約" %}{% endblock %}</title>
+<link rel="stylesheet" href="{% static 'css/tailwind.css' %}">
+<style>
+  body { margin: 0; padding: 0; font-family: 'Noto Sans JP', 'Hiragino Kaku Gothic ProN', sans-serif; }
+</style>
+{% block extra_css %}{% endblock %}
+</head>
+<body class="bg-white text-gray-800 text-sm">
+  <div class="max-w-2xl mx-auto p-3">
+    {% block content %}{% endblock %}
+  </div>
+{% block extra_js %}{% endblock %}
+</body>
+</html>

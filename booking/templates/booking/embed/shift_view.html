@@ -1,0 +1,50 @@
+{% extends 'booking/embed/embed_base.html' %}
+{% load i18n %}
+
+{% block title %}{% trans "本日のシフト" %} - {{ store.name }}{% endblock %}
+
+{% block content %}
+<div class="space-y-4">
+  <h2 class="text-lg font-bold text-center">{{ store.name }}</h2>
+  <p class="text-center text-gray-500 text-xs">
+    {{ today|date:"Y年n月j日" }} {% trans "のシフト" %}
+  </p>
+
+  {% if assignments %}
+  <table class="w-full border-collapse">
+    <thead>
+      <tr class="bg-gray-50 border-b">
+        <th class="text-left px-3 py-2 text-xs font-medium text-gray-500">{% trans "占い師" %}</th>
+        <th class="text-left px-3 py-2 text-xs font-medium text-gray-500">{% trans "時間" %}</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for a in assignments %}
+      <tr class="border-b border-gray-100 hover:bg-gray-50">
+        <td class="px-3 py-2">
+          <div class="flex items-center gap-2">
+            {% if a.staff.thumbnail %}
+            <img src="{{ a.staff.thumbnail.url }}" alt="{{ a.staff.name }}"
+                 class="w-8 h-8 rounded-full object-cover">
+            {% endif %}
+            <span class="font-medium">{{ a.staff.name }}</span>
+          </div>
+        </td>
+        <td class="px-3 py-2 text-xs text-gray-600">
+          {{ a.start_hour }}:00 - {{ a.end_hour }}:00
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <p class="text-center text-gray-400 py-8">
+    {% if period %}
+      {% trans "本日のシフトは登録されていません" %}
+    {% else %}
+      {% trans "公開中のシフト期間がありません" %}
+    {% endif %}
+  </p>
+  {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>NewFUHI 埋め込みテスト</title>
+<style>
+  body { font-family: sans-serif; max-width: 800px; margin: 40px auto; padding: 0 20px; }
+  h1 { font-size: 1.5em; }
+  h2 { font-size: 1.2em; margin-top: 2em; }
+  .embed-container { border: 1px solid #ddd; border-radius: 8px; overflow: hidden; margin: 1em 0; }
+  iframe { border: none; display: block; }
+  code { background: #f4f4f4; padding: 2px 6px; border-radius: 4px; font-size: 0.9em; }
+  pre { background: #f4f4f4; padding: 16px; border-radius: 8px; overflow-x: auto; }
+</style>
+</head>
+<body>
+
+<h1>NewFUHI 埋め込みサンプル</h1>
+<p>このページは WordPress 等に埋め込む前の動作確認用です。</p>
+
+<h2>1. 予約カレンダー</h2>
+<p>WordPress ショートコード: <code>[newfuhi_booking store_id="1" api_key="YOUR_API_KEY"]</code></p>
+<div class="embed-container">
+  <iframe src="https://timebaibai.com/embed/booking/1/?api_key=YOUR_API_KEY"
+          width="100%" height="600" loading="lazy" title="予約カレンダー"></iframe>
+</div>
+
+<h2>2. 本日のシフト</h2>
+<p>WordPress ショートコード: <code>[newfuhi_shift store_id="1" api_key="YOUR_API_KEY"]</code></p>
+<div class="embed-container">
+  <iframe src="https://timebaibai.com/embed/shift/1/?api_key=YOUR_API_KEY"
+          width="100%" height="400" loading="lazy" title="本日のシフト"></iframe>
+</div>
+
+<h2>3. HTML 直接埋め込み（WordPress 不要の場合）</h2>
+<pre>&lt;iframe
+  src="https://timebaibai.com/embed/booking/1/?api_key=YOUR_API_KEY"
+  width="100%"
+  height="600"
+  style="border: none; max-width: 100%;"
+  loading="lazy"
+  title="予約カレンダー"
+&gt;&lt;/iframe&gt;</pre>
+
+<h2>設定手順</h2>
+<ol>
+  <li>Timebaibai 管理画面 → メインページ設定 → 「外部埋め込みを有効化」を ON</li>
+  <li>店舗管理 → 対象店舗 → 「外部埋め込み」セクション → 「APIキー生成」アクション実行</li>
+  <li>生成された API キーを <code>YOUR_API_KEY</code> に置き換え</li>
+  <li>（任意）「埋め込み許可ドメイン」に WordPress サイトのドメインを入力</li>
+</ol>
+
+</body>
+</html>

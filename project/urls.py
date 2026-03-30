@@ -24,8 +24,11 @@ from booking.views_performance_dashboard import StaffPerformanceDashboardView
 from booking.views_ec_dashboard import ECOrderDashboardView
 import booking.admin
 
-# Non-i18n URLs (APIs, health check, legacy redirects)
+# Non-i18n URLs (APIs, health check, legacy redirects, embed)
 urlpatterns = [
+    # Embed views (no i18n prefix, iframe-friendly)
+    path("embed/", include("booking.embed_urls")),
+
     # Legacy URL redirects (crawlers hitting old .html paths)
     re_path(
         r"^staff/\d+/prebooking/\d+/\d+/\d+/\d+/list_\w+\.html$",
@@ -183,6 +186,9 @@ urlpatterns += i18n_patterns(
         custom_site.admin_view(StockInFormView.as_view()),
         name="admin_inventory_stock_in",
     ),
+
+    # SNS OAuth
+    path("admin/social/", include("booking.social_urls")),
 
     # Admin site
     path("admin/", custom_site.urls),

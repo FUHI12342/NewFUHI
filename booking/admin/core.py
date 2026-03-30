@@ -268,7 +268,19 @@ class StoreAdmin(admin.ModelAdmin):
         (None, {'fields': ('name', 'address', 'business_hours', 'nearest_station', 'regular_holiday', 'is_recommended', 'default_language')}),
         (_('店舗紹介'), {'fields': ('description', 'access_info', 'map_url', 'google_maps_embed')}),
         (_('店舗写真'), {'fields': ('thumbnail', 'photo_2', 'photo_3')}),
+        (_('外部埋め込み'), {'fields': ('embed_api_key', 'embed_allowed_domains'), 'classes': ('collapse',)}),
     )
+    actions = ['generate_embed_api_key']
+
+    @admin.action(description=_('選択した店舗の埋め込みAPIキーを生成'))
+    def generate_embed_api_key(self, request, queryset):
+        from booking.views_embed import generate_embed_api_key
+        updated = 0
+        for store in queryset:
+            store.embed_api_key = generate_embed_api_key()
+            store.save(update_fields=['embed_api_key'])
+            updated += 1
+        self.message_user(request, _(f'{updated}件の店舗にAPIキーを生成しました。'), messages.SUCCESS)
 
     def get_queryset(self, request):
         qs = super().get_queryset(request)

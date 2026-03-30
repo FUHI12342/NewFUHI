@@ -83,6 +83,16 @@ class Store(models.Model):
         _('既定言語'), max_length=10, default='ja', blank=True, choices=LANG_CHOICES,
     )
 
+    # 外部埋め込み設定
+    embed_api_key = models.CharField(
+        _('埋め込みAPIキー'), max_length=64, blank=True, default='',
+        help_text=_('WordPress等の外部サイトにiframe埋め込みする際のAPIキー'),
+    )
+    embed_allowed_domains = models.TextField(
+        _('埋め込み許可ドメイン'), blank=True, default='',
+        help_text=_('iframe埋め込みを許可するドメイン（1行1ドメイン）。空の場合は全ドメイン許可'),
+    )
+
     class Meta:
         app_label = 'booking'
         verbose_name = _('店舗一覧')
