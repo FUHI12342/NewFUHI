@@ -116,6 +116,11 @@ class SiteSettingsAdmin(admin.ModelAdmin):
             ),
             'description': _('エラー報告やセキュリティイベント発生時のメール・SHANON通知設定'),
         }),
+        (_('外部埋め込み'), {
+            'fields': ('embed_enabled',),
+            'description': _('WordPress等の外部サイトからiframeで予約カレンダー・シフト表示を埋め込む機能'),
+            'classes': ('collapse',),
+        }),
     )
 
     def has_view_permission(self, request, obj=None):
@@ -175,6 +180,8 @@ class AdminSidebarSettingsAdmin(admin.ModelAdmin):
                 'show_admin_menu_manage', 'show_admin_inventory',
                 'show_admin_order', 'show_admin_pos', 'show_admin_kitchen',
                 'show_admin_ec_shop', 'show_admin_table_order', 'show_admin_iot',
+                'show_admin_pin_clock', 'show_admin_page_settings', 'show_admin_system',
+                'show_admin_sns_posting', 'show_admin_security', 'show_admin_user_account',
             ),
             'description': _('管理画面サイドバーに表示する機能を選択します。業態に合わせて使わない機能はOFFにして非表示にできます。'),
         }),

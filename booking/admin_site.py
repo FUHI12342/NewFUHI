@@ -49,6 +49,7 @@ GROUPS = [
     {'slug': 'page_settings', 'name': _('メインページ設定'), 'models': ['sitesettings', 'notice']},
     {'slug': 'page_settings_sub', 'name': _('ページ設定(サブ)'), 'models': ['company', 'media', 'homepagecustomblock', 'herobanner', 'bannerad', 'externallink'], 'hidden': True},
     {'slug': 'system', 'name': _('システム'), 'models': ['systemconfig', 'admintheme', 'dashboardlayout', 'adminmenuconfig', 'adminsidebarsettings']},
+    {'slug': 'sns_posting', 'name': _('SNS自動投稿'), 'models': ['socialaccount', 'posttemplate', 'posthistory', 'knowledgeentry', 'draftpost']},
     {'slug': 'security', 'name': _('セキュリティ'), 'models': ['securityaudit', 'securitylog', 'costreport', 'errorreport']},
     {'slug': 'user_account', 'name': _('ユーザーアカウント管理'), 'models': ['user', 'group']},
 ]
@@ -133,6 +134,9 @@ SIDEBAR_CUSTOM_LINKS = {
     ],
     'iot': [
         {'name': _('センサーグラフ'), 'admin_url': '/admin/iot/sensors/', 'icon': 'fas fa-chart-area'},
+    ],
+    'sns_posting': [
+        {'name': _('SNS下書き管理'), 'admin_url': '/admin/social/drafts/', 'icon': 'fas fa-edit'},
     ],
     'security': [
         {'name': _('エラー報告'), 'admin_url': '/admin/booking/errorreport/add/', 'icon': 'fas fa-bug'},
@@ -481,6 +485,12 @@ class RoleBasedAdminSite(AdminSite):
                 'ec_shop': site_cfg.show_admin_ec_shop,
                 'table_order': site_cfg.show_admin_table_order,
                 'iot': site_cfg.show_admin_iot,
+                'pin_clock': site_cfg.show_admin_pin_clock,
+                'page_settings': site_cfg.show_admin_page_settings,
+                'system': site_cfg.show_admin_system,
+                'sns_posting': site_cfg.show_admin_sns_posting,
+                'security': site_cfg.show_admin_security,
+                'user_account': site_cfg.show_admin_user_account,
             }
         except Exception:
             sidebar_flags = {}

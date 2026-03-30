@@ -357,6 +357,24 @@ class SiteSettings(models.Model):
         help_text=_('管理サイドバーに「店舗管理」を表示するかどうか'))
     show_admin_iot = models.BooleanField(_('IoT管理を表示'), default=True,
         help_text=_('管理サイドバーに「IoT管理」を表示するかどうか'))
+    show_admin_pin_clock = models.BooleanField(_('タイムカードを表示'), default=True,
+        help_text=_('管理サイドバーに「タイムカード打刻」を表示するかどうか'))
+    show_admin_page_settings = models.BooleanField(_('ページ設定を表示'), default=True,
+        help_text=_('管理サイドバーに「メインページ設定」を表示するかどうか'))
+    show_admin_system = models.BooleanField(_('システムを表示'), default=True,
+        help_text=_('管理サイドバーに「システム」を表示するかどうか'))
+    show_admin_sns_posting = models.BooleanField(_('SNS投稿を表示'), default=True,
+        help_text=_('管理サイドバーに「SNS自動投稿」を表示するかどうか'))
+    show_admin_security = models.BooleanField(_('セキュリティを表示'), default=True,
+        help_text=_('管理サイドバーに「セキュリティ」を表示するかどうか'))
+    show_admin_user_account = models.BooleanField(_('ユーザー管理を表示'), default=True,
+        help_text=_('管理サイドバーに「ユーザーアカウント管理」を表示するかどうか'))
+
+    # 外部埋め込みグローバル設定
+    embed_enabled = models.BooleanField(
+        _('外部埋め込みを有効化'), default=False,
+        help_text=_('ONにするとWordPress等からのiframe埋め込みが利用可能になります'),
+    )
 
     # 法定ページ（HTML編集可能）
     privacy_policy_html = models.TextField(_('プライバシーポリシー'), blank=True, default='',
