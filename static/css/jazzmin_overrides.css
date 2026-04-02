@@ -598,28 +598,20 @@
     white-space: nowrap;
 }
 /*
- * 長いテキストセルにホバーでマーキースクロール表示
+ * 長いテキストセルに自動マーキースクロール表示（一方通行）
  * admin_marquee.js が溢れているセルに .admin-marquee-ready を付与し、
  * 内部テキストを <span class="admin-marquee-inner"> で囲む。
- * ホバー時: 2秒の静止後 → 5秒かけて左にスクロールを繰り返す。
+ * 3秒静止 → 左方向に一方通行スクロールを繰り返す。
  */
 #result_list td.admin-marquee-ready {
     cursor: default;
+    text-overflow: clip;
 }
 #result_list td.admin-marquee-ready .admin-marquee-inner {
     display: inline-block;
     white-space: nowrap;
-    padding-right: 2em; /* スクロール終端の余白 */
-}
-#result_list td.admin-marquee-ready:hover {
-    text-overflow: clip;
-}
-#result_list td.admin-marquee-ready:hover .admin-marquee-inner {
-    animation: admin-marquee-scroll 5s linear 2s infinite;
-}
-/* ホバーしていないときはリセット */
-#result_list td.admin-marquee-ready .admin-marquee-inner {
-    animation: none;
+    padding-right: 2em;
+    animation: admin-marquee-scroll 8s linear 3s infinite;
 }
 /* 編集可能フィールド（input/checkbox）は省略しない */
 #result_list td input,
@@ -627,9 +619,10 @@
     white-space: normal;
 }
 
-/* ---- 管理画面: マーキースクロール キーフレーム ---- */
+/* ---- 管理画面: マーキースクロール キーフレーム（一方通行） ---- */
 @keyframes admin-marquee-scroll {
     0%   { transform: translateX(0); }
+    10%  { transform: translateX(0); }
     100% { transform: translateX(-100%); }
 }
 
