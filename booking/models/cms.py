@@ -99,15 +99,17 @@ class Media(models.Model):
         return True
 
     def save(self, *args, **kwargs):
-        if self.link and self._is_safe_url(self.link):
+        # 初回作成時のみ（title未設定の場合のみ）URLからメタ情報を取得
+        if self.link and not self.title and self._is_safe_url(self.link):
             try:
                 article = Article(self.link)
                 article.download()
                 article.parse()
-                self.title = article.title[:10] + '...' if len(article.title) > 10 else article.title
-                wrapped_text = textwrap.wrap(article.text, width=12)
-                self.description = '\n'.join(wrapped_text[:3])
-                if article.top_image:
+                if article.title:
+                    self.title = article.title[:200]
+                if article.text and not self.description:
+                    self.description = article.text[:300]
+                if article.top_image and not self.cached_thumbnail_url:
                     self.cached_thumbnail_url = article.top_image
             except Exception:
                 pass  # 外部URLの取得失敗時もsave自体は成功させる
