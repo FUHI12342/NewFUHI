@@ -3642,11 +3642,17 @@ document.addEventListener('DOMContentLoaded', function () {
           }
           renderMenuEngGeneric(config.prefix, config.prefix + 'MenuEngChart', config.prefix + '-menu-eng-table', data);
           apiFetch('/api/dashboard/analysis-text/?type=menu_engineering&channel=' + config.channelParam).then(function(t) { renderAnalysisTextPanel(config.prefix + '-ai-menu-eng', t); }).catch(function(){});
-        }).catch(function(err) { console.error('Failed to load ' + config.prefix + ' menu eng:', err); });
+        }).catch(function(err) {
+          console.error('Failed to load ' + config.prefix + ' menu eng:', err);
+          var tc = document.getElementById(config.prefix + '-menu-eng-table');
+          if (tc) tc.innerHTML = '<p class="text-rose-500 text-sm p-4">読み込みエラー: ' + err + '</p>';
+        });
       },
       loadABC: function() {
         if (loaded.abc) return;
         loaded.abc = true;
+        var tableEl = document.getElementById(config.prefix + '-abc-table');
+        if (tableEl) tableEl.innerHTML = '<p class="text-gray-400 text-sm p-4">読み込み中...</p>';
         apiFetch('/api/dashboard/abc-analysis/?channel=' + config.channelParam).then(function(data) {
           var products = data.products || [];
           if (products.length === 0) {
@@ -3654,7 +3660,10 @@ document.addEventListener('DOMContentLoaded', function () {
           }
           renderABCGeneric(config.prefix, config.prefix + 'AbcChart', config.prefix + '-abc-table', data);
           apiFetch('/api/dashboard/analysis-text/?type=abc_analysis&channel=' + config.channelParam).then(function(t) { renderAnalysisTextPanel(config.prefix + '-ai-abc', t); }).catch(function(){});
-        }).catch(function(err) { console.error('Failed to load ' + config.prefix + ' ABC:', err); });
+        }).catch(function(err) {
+          console.error('Failed to load ' + config.prefix + ' ABC:', err);
+          if (tableEl) tableEl.innerHTML = '<p class="text-rose-500 text-sm p-4">読み込みエラー: ' + err + '</p>';
+        });
       },
       loadForecast: function() {
         if (loaded.forecast) return;
@@ -3674,7 +3683,11 @@ document.addEventListener('DOMContentLoaded', function () {
           }
           renderForecastGeneric(config.prefix + 'ForecastChart', config.prefix + '-forecast-method', data);
           apiFetch('/api/dashboard/analysis-text/?type=forecast&channel=' + config.channelParam).then(function(t) { renderAnalysisTextPanel(config.prefix + '-ai-forecast', t); }).catch(function(){});
-        }).catch(function(err) { console.error('Failed to load ' + config.prefix + ' forecast:', err); });
+        }).catch(function(err) {
+          console.error('Failed to load ' + config.prefix + ' forecast:', err);
+          var el = document.getElementById(config.prefix + 'ForecastChart');
+          if (el && el.parentNode) el.parentNode.insertAdjacentHTML('afterend', '<p class="text-rose-500 text-sm p-4">予測読み込みエラー: ' + err + '</p>');
+        });
       },
       loadHeatmap: function() {
         if (loaded.heatmap) return;
