@@ -22,7 +22,7 @@
                 </div>
                 {% endif %}
                 <div class="flex-1 min-w-0">
-                    <h2 class="text-lg font-semibold text-salon-dark mb-1 truncate">{{ notice.title }}</h2>
+                    <h2 class="text-lg font-semibold text-salon-dark mb-1 text-marquee" style="max-width:100%" title="{{ notice.title }}">{{ notice.title }}</h2>
                     <p class="text-xs text-gray-400 mb-2">{{ notice.updated_at|date:"Y/m/d" }}</p>
                     <p class="text-sm text-gray-600 line-clamp-2">{{ notice.excerpt }}</p>
                 </div>

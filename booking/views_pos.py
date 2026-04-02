@@ -20,6 +20,7 @@ from booking.models import (
     StockMovement, apply_stock_movement,
     TaxServiceCharge,
 )
+from booking.tasks import check_low_stock_and_notify
 
 logger = logging.getLogger(__name__)
 
@@ -263,6 +264,13 @@ class POSCheckoutAPIView(LoginRequiredMixin, View):
                         note=f'POS決済 #{receipt_number}',
                     )
                     apply_stock_movement(product, StockMovement.TYPE_OUT, item.qty)
+                    # リアルタイム在庫アラート: 閾値以下なら即時通知をトリガー
+                    product.refresh_from_db(fields=['stock', 'low_stock_threshold'])
+                    if (
+                        product.low_stock_threshold is not None
+                        and product.stock <= product.low_stock_threshold
+                    ):
+                        check_low_stock_and_notify.delay()
                 except ValueError:
                     pass  # 在庫不足でもPOS決済は通す
 

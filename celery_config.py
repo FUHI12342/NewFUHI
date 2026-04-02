@@ -24,9 +24,9 @@ app.conf.beat_schedule = {
         "task": "booking.tasks.delete_temporary_schedules",
         "schedule": 60.0,
     },
-    "check-low-stock-daily": {
+    "check-low-stock-hourly": {
         "task": "booking.tasks.check_low_stock_and_notify",
-        "schedule": crontab(hour=9, minute=0),  # 毎日 09:00
+        "schedule": crontab(minute=0),  # 毎時 00分
     },
     "check-property-alerts": {
         "task": "booking.tasks.check_property_alerts",

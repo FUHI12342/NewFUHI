@@ -163,3 +163,17 @@
     init();
   }
 })();
+
+// =============================================
+// Load additional admin modules
+// =============================================
+(function () {
+  'use strict';
+  var EXTRA_SCRIPTS = ['/static/js/admin_marquee.js'];
+  EXTRA_SCRIPTS.forEach(function (src) {
+    var s = document.createElement('script');
+    s.src = src;
+    s.defer = true;
+    document.head.appendChild(s);
+  });
+})();

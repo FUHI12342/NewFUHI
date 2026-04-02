@@ -370,6 +370,16 @@ class SiteSettings(models.Model):
     show_admin_user_account = models.BooleanField(_('ユーザー管理を表示'), default=True,
         help_text=_('管理サイドバーに「ユーザーアカウント管理」を表示するかどうか'))
 
+    # メンテナンスモード
+    maintenance_mode = models.BooleanField(
+        _('メンテナンスモード'), default=False,
+        help_text=_('ONにするとログイン済みスタッフ以外にメンテナンス画面を表示'),
+    )
+    maintenance_message = models.TextField(
+        _('メンテナンスメッセージ'), blank=True, default='',
+        help_text=_('カスタムメッセージ（空の場合はデフォルト表示）'),
+    )
+
     # 外部埋め込みグローバル設定
     embed_enabled = models.BooleanField(
         _('外部埋め込みを有効化'), default=False,

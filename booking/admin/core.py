@@ -26,6 +26,7 @@ class ScheduleAdmin(admin.ModelAdmin):
         'start',
         'end',
         'staff',
+        'store',
         'is_temporary',
         'is_cancelled',
         'refund_status',
@@ -33,7 +34,7 @@ class ScheduleAdmin(admin.ModelAdmin):
         'price',
         'has_line_user',
     )
-    list_filter = ('is_checked_in', 'is_temporary', 'is_cancelled', 'refund_status')
+    list_filter = ('is_checked_in', 'is_temporary', 'is_cancelled', 'refund_status', 'store')
     search_fields = ('customer_name', 'hashed_id', 'reservation_number', 'line_user_hash', 'checkin_backup_code')
     ordering = ('-start',)
 

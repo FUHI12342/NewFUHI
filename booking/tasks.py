@@ -43,12 +43,12 @@ def trigger_gas_alert(device_id, mq9_value, event_id):
 def check_low_stock_and_notify():
     """
     在庫閾値チェックとLINE通知。
-    連続通知を避けるため、24h以内の再通知はスキップ。
+    連続通知を避けるため、4h以内の再通知はスキップ。
     """
     now = timezone.now()
-    cutoff = now - timezone.timedelta(hours=24)
+    cutoff = now - timezone.timedelta(hours=4)
 
-    # 閾値設定済み + 在庫割れ + 通知未済 or 24h以上経過
+    # 閾値設定済み + 在庫割れ + 通知未済 or 4h以上経過
     products = Product.objects.filter(
         low_stock_threshold__isnull=False,
         stock__lte=models.F('low_stock_threshold')

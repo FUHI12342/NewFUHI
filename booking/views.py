@@ -328,8 +328,37 @@ class StaffList(generic.ListView):
         return context
 
     def get_queryset(self):
+        from booking.models.shifts import ShiftAssignment
         self.store = get_object_or_404(Store, pk=self.kwargs['pk'])
-        return super().get_queryset().filter(store=self.store, staff_type='fortune_teller')
+        today = datetime.date.today()
+
+        # 1. 主店舗がこの店舗のキャスト
+        primary_staff_ids = set(
+            Staff.objects.filter(store=self.store, staff_type='fortune_teller')
+            .values_list('id', flat=True)
+        )
+
+        # 2. 今日のシフトがこの店舗に入っているキャスト
+        shift_staff_ids = set(
+            ShiftAssignment.objects.filter(
+                store=self.store, date=today,
+            ).values_list('staff_id', flat=True)
+        )
+
+        # 3. 主店舗がここだが、今日は他店舗にシフトが入っている → 除外
+        away_staff_ids = set(
+            ShiftAssignment.objects.filter(
+                staff__store=self.store, date=today,
+            ).exclude(store=self.store).exclude(store__isnull=True)
+            .values_list('staff_id', flat=True)
+        )
+
+        # (主店舗 - 他店舗出勤) + シフト出勤
+        visible_ids = (primary_staff_ids - away_staff_ids) | shift_staff_ids
+
+        return Staff.objects.filter(
+            id__in=visible_ids, staff_type='fortune_teller'
+        ).select_related('store')
 
 
 class StaffCalendar(generic.TemplateView):
@@ -350,8 +379,15 @@ class StaffCalendar(generic.TemplateView):
         start_day = days[0]
         end_day = days[-1]
 
-        # 動的タイムスロット
-        time_slots_list, open_h, close_h, duration = get_time_slots(staff.store)
+        # 表示元店舗（store_idクエリパラメータがある場合はその店舗の設定を使用）
+        display_store_id = self.request.GET.get('store_id')
+        if display_store_id:
+            display_store = Store.objects.filter(pk=display_store_id).first() or staff.store
+        else:
+            display_store = staff.store
+
+        # 動的タイムスロット（表示元店舗の設定を使用）
+        time_slots_list, open_h, close_h, duration = get_time_slots(display_store)
 
         calendar = {}
         for slot in time_slots_list:
@@ -372,6 +408,7 @@ class StaffCalendar(generic.TemplateView):
                 calendar[booking_label][booking_date] = 'Temp' if schedule.is_temporary else 'Booked'
 
         context['staff'] = staff
+        context['display_store'] = display_store
         context['calendar'] = calendar
         context['days'] = days
         context['start_day'] = start_day
@@ -436,6 +473,14 @@ class PreBooking(generic.CreateView):
         schedule.price = price
         schedule.temporary_booked_at = datetime.datetime.now(tz)
 
+        # 予約店舗を設定（store_idクエリパラメータがあればその店舗、なければ主店舗）
+        store_id = self.request.GET.get('store_id')
+        if store_id:
+            booking_store = Store.objects.filter(pk=store_id).first()
+            schedule.store = booking_store or staff.store
+        else:
+            schedule.store = staff.store
+
         tz_jst = pytz.timezone('Asia/Tokyo')
         self.request.session['temporary_booking'] = {
             'reservation_number': str(schedule.reservation_number),
@@ -446,6 +491,7 @@ class PreBooking(generic.CreateView):
             'is_temporary': schedule.is_temporary,
             'staff_id': staff.id,
             'staff_name': staff.name,
+            'store_id': schedule.store_id,
         }
 
         return redirect('booking:channel_choice')

@@ -29,6 +29,12 @@ class Schedule(models.Model):
     start = models.DateTimeField(_('開始時間'), db_index=True)
     end = models.DateTimeField(_('終了時間'))
     staff = models.ForeignKey('Staff', verbose_name=_('キャスト'), on_delete=models.CASCADE, db_index=True)
+    store = models.ForeignKey(
+        'Store', verbose_name=_('予約店舗'),
+        on_delete=models.CASCADE, null=True, blank=True,
+        related_name='schedules',
+        help_text=_('未設定の場合はスタッフの主店舗'),
+    )
 
     customer_name = models.CharField(_('予約者名'), max_length=255, null=True, blank=True)
     hashed_id = models.CharField(max_length=255, null=True, blank=True, db_index=True)
@@ -181,3 +187,7 @@ class Schedule(models.Model):
     @property
     def has_line_user(self) -> bool:
         return bool(self.line_user_enc)
+
+    def get_store(self):
+        """予約店舗を返す（未設定なら主店舗）"""
+        return self.store or self.staff.store

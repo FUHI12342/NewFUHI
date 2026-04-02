@@ -24,8 +24,14 @@ PERIOD_TRUNC_MAP = {
 }
 
 
-def _get_since_for_period(period, default_days=90):
-    """Return appropriate 'since' datetime based on period type."""
+def _get_since_for_period(period, default_days=90, days_override=None):
+    """Return appropriate 'since' datetime based on period type.
+
+    If *days_override* is provided (and is not None), it takes precedence
+    over the period-based default so callers can pass an explicit window.
+    """
+    if days_override is not None:
+        return timezone.now() - timedelta(days=days_override)
     if period == 'yearly':
         return timezone.now() - timedelta(days=1095)  # 3 years
     return timezone.now() - timedelta(days=default_days)

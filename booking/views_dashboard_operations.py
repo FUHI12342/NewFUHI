@@ -70,14 +70,15 @@ class ReservationStatsAPIView(DashboardAuthMixin, APIView):
 
 
 class StaffPerformanceAPIView(DashboardAuthMixin, APIView):
-    """GET /api/dashboard/staff-performance/ — staff metrics."""
+    """GET /api/dashboard/staff-performance/?days=30 — staff metrics."""
 
     def get(self, request):
         store, err = self.get_user_store(request)
         if err:
             return err
 
-        since = timezone.now() - timedelta(days=30)
+        days = _clamp_int(request.GET.get('days'), 30, lo=7, hi=365)
+        since = timezone.now() - timedelta(days=days)
         scope = self.build_scope(store, 'store')
 
         staff_type_param = request.GET.get('staff_type', '')
@@ -489,7 +490,7 @@ class CheckinStatsAPIView(DashboardAuthMixin, APIView):
         if err:
             return err
 
-        days = _clamp_int(request.GET.get('days'), 30, lo=7, hi=90)
+        days = _clamp_int(request.GET.get('days'), 30, lo=7, hi=365)
         now = timezone.now()
         since = now - timedelta(days=days)
         scope = self.build_scope(store, 'staff__store')

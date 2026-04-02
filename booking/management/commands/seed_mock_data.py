@@ -1579,8 +1579,8 @@ class Command(BaseCommand):
             return
         links = [
             ('Instagram', 'https://www.instagram.com/timebaibai/', 'お店の最新情報はこちら', 0),
-            ('LINE公式アカウント', 'https://lin.ee/example', 'ご予約はLINEが便利です', 1),
-            ('Googleマップ', 'https://maps.google.com/?q=渋谷区道玄坂', '店舗へのアクセス', 2),
+            ('LINE公式アカウント', 'https://lin.ee/REPLACE_ME', 'ご予約はLINEが便利です', 1),
+            ('Googleマップ', 'https://www.google.com/maps/search/渋谷区道玄坂', '店舗へのアクセス', 2),
         ]
         for title, url, desc, sort in links:
             ExternalLink.objects.create(

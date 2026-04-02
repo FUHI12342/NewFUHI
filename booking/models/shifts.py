@@ -93,6 +93,12 @@ class ShiftAssignment(models.Model):
     end_hour = models.IntegerField(_('終了時間'), validators=[MinValueValidator(1), MaxValueValidator(24)])
     start_time = models.TimeField(_('開始時刻'), null=True, blank=True)
     end_time = models.TimeField(_('終了時刻'), null=True, blank=True)
+    store = models.ForeignKey(
+        'Store', verbose_name=_('出勤店舗'),
+        on_delete=models.CASCADE, null=True, blank=True,
+        related_name='shift_assignments',
+        help_text=_('未設定の場合はスタッフの主店舗'),
+    )
     color = models.CharField(_('表示色'), max_length=7, default='#3B82F6')
     note = models.TextField(_('備考'), blank=True, default='')
     is_synced = models.BooleanField(_('Schedule同期済み'), default=False)
@@ -107,10 +113,15 @@ class ShiftAssignment(models.Model):
             models.Index(fields=['period', 'date'], name='idx_shiftasgn_period_date'),
             models.Index(fields=['staff', 'date'], name='idx_shiftasgn_staff_date'),
             models.Index(fields=['is_synced'], name='idx_shiftasgn_synced'),
+            models.Index(fields=['store', 'date'], name='idx_shiftasgn_store_date'),
         ]
 
     def __str__(self):
         return f"{self.staff.name} {self.date} {self.start_hour}:00-{self.end_hour}:00"
+
+    def get_store(self):
+        """出勤店舗を返す（未設定なら主店舗）"""
+        return self.store or self.staff.store
 
 
 class ShiftTemplate(models.Model):

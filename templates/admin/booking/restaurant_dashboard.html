@@ -59,6 +59,10 @@
   .insight-card.severity-info { border-left-color: #3b82f6; background: #eff6ff; }
   .insight-card.is-read { opacity: 0.6; }
 
+  /* Spinner animation for AI analysis loading */
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .animate-spin { animation: spin 1s linear infinite; }
+
   /* ===== CSS variables ===== */
   :root {
     --bg-primary: #ffffff;
@@ -464,17 +468,26 @@
     <div class="sub-tab-bar" id="sales-sub-tabs">
       <button class="sub-tab-btn active" data-subtab="sales-trend" onclick="switchSubTab('sales', 'sales-trend')">{% trans "売上推移" %}</button>
       <button class="sub-tab-btn" data-subtab="sales-products" onclick="switchSubTab('sales', 'sales-products')">{% trans "人気商品 TOP10" %}</button>
-      <button class="sub-tab-btn" data-subtab="sales-menu-eng" onclick="switchSubTab('sales', 'sales-menu-eng'); loadMenuEngineering();">{% trans "メニュー分析" %}
-      <button class="sub-tab-btn" data-subtab="sales-abc" onclick="switchSubTab('sales', 'sales-abc'); loadABCAnalysis();">{% trans "ABC分析" %}
-      <button class="sub-tab-btn" data-subtab="sales-forecast" onclick="switchSubTab('sales', 'sales-forecast'); loadForecast();">{% trans "売上予測" %}
-      <button class="sub-tab-btn" data-subtab="sales-heatmap" onclick="switchSubTab('sales', 'sales-heatmap'); loadSalesHeatmap();">{% trans "時間帯別売上" %}
-      <button class="sub-tab-btn" data-subtab="sales-aov" onclick="switchSubTab('sales', 'sales-aov'); loadAOVTrend();">{% trans "客単価推移" %}
-      <button class="sub-tab-btn" data-subtab="sales-channel" onclick="switchSubTab('sales', 'sales-channel'); loadChannelSales();">{% trans "チャネル別売上" %}
+      <button class="sub-tab-btn" data-subtab="sales-menu-eng" onclick="switchSubTab('sales', 'sales-menu-eng'); loadMenuEngineering();">{% trans "メニュー分析" %}</button>
+      <button class="sub-tab-btn" data-subtab="sales-abc" onclick="switchSubTab('sales', 'sales-abc'); loadABCAnalysis();">{% trans "ABC分析" %}</button>
+      <button class="sub-tab-btn" data-subtab="sales-forecast" onclick="switchSubTab('sales', 'sales-forecast'); loadForecast();">{% trans "売上予測" %}</button>
+      <button class="sub-tab-btn" data-subtab="sales-heatmap" onclick="switchSubTab('sales', 'sales-heatmap'); loadSalesHeatmap();">{% trans "時間帯別売上" %}</button>
+      <button class="sub-tab-btn" data-subtab="sales-aov" onclick="switchSubTab('sales', 'sales-aov'); loadAOVTrend();">{% trans "客単価推移" %}</button>
+      <button class="sub-tab-btn" data-subtab="sales-channel" onclick="switchSubTab('sales', 'sales-channel'); loadChannelSales();">{% trans "チャネル別売上" %}</button>
     </div>
     <div class="sub-tab-content active" id="subtab-sales-trend">
       <div class="db-card">
-        <h3 class="text-lg font-semibold mb-3">{% trans "売上推移" %}</h3>
+        <div class="flex items-center justify-between mb-3">
+          <h3 class="text-lg font-semibold" id="sales-trend-chart-title">{% trans "売上推移（過去30日）" %}</h3>
+          <span id="sales-trend-days-badge" class="text-xs bg-emerald-100 text-emerald-700 px-2 py-1 rounded-full font-medium">30{% trans "日" %}</span>
+        </div>
         <div class="chart-viewport"><canvas id="salesTrendChart"></canvas></div>
+        <div class="flex justify-center gap-2 mt-4">
+          <button onclick="window.loadSalesTrend(30)" class="sales-trend-range-btn px-3 py-1 text-xs rounded-full font-medium bg-indigo-500 text-white" data-days="30">30{% trans "日" %}</button>
+          <button onclick="window.loadSalesTrend(90)" class="sales-trend-range-btn px-3 py-1 text-xs rounded-full font-medium bg-gray-200 hover:bg-gray-300 text-gray-700" data-days="90">90{% trans "日" %}</button>
+          <button onclick="window.loadSalesTrend(180)" class="sales-trend-range-btn px-3 py-1 text-xs rounded-full font-medium bg-gray-200 hover:bg-gray-300 text-gray-700" data-days="180">180{% trans "日" %}</button>
+          <button onclick="window.loadSalesTrend(365)" class="sales-trend-range-btn px-3 py-1 text-xs rounded-full font-medium bg-gray-200 hover:bg-gray-300 text-gray-700" data-days="365">365{% trans "日" %}</button>
+        </div>
         <div class="ai-analysis-panel mt-4 p-4 bg-gradient-to-r from-violet-50 to-indigo-50 rounded-xl border" id="sales-ai-trend" style="display:none;"></div>
       </div>
     </div>
@@ -489,6 +502,10 @@
         <div class="flex items-center justify-between mb-3">
           <h3 class="text-lg font-semibold">{% trans "メニューエンジニアリング マトリクス" %}</h3>
           <div class="flex items-center gap-3">
+            <button onclick="requestAIAnalysis('menu_engineering')" class="px-3 py-1 text-xs bg-indigo-500 hover:bg-indigo-600 text-white rounded flex items-center gap-1">
+              <svg style="width:14px;height:14px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/></svg>
+              {% trans "AI分析" %}
+            </button>
             <div class="flex flex-wrap gap-2 text-xs">
               <span class="inline-flex items-center gap-1"><span class="w-3 h-3 rounded-full" style="background: rgba(16,185,129,0.8);"></span> Star</span>
               <span class="inline-flex items-center gap-1"><span class="w-3 h-3 rounded-full" style="background: rgba(14,165,233,0.8);"></span> Plowhorse</span>
@@ -497,6 +514,7 @@
             </div>
           </div>
         </div>
+        <p class="text-sm text-gray-500 mb-3">{% trans "商品を人気度×利益率の4象限に分類。★スター（高人気・高利益）を維持、犬（低人気・低利益）は見直しを検討" %}</p>
         <div class="chart-viewport"><canvas id="menuEngChart"></canvas></div>
         <div id="menu-eng-table" class="mt-4" style="overflow-x:auto;">
           <table class="w-full text-sm border border-gray-200 rounded" style="min-width:480px;">
@@ -521,12 +539,19 @@
       <div class="db-card">
         <div class="flex items-center justify-between mb-3">
           <h3 class="text-lg font-semibold">{% trans "ABC分析（パレート）" %}</h3>
-          <div class="flex flex-wrap gap-2 text-xs">
-            <span class="inline-flex items-center gap-1"><span class="w-3 h-3 rounded-full bg-emerald-500"></span> A ({% trans "上位80%" %})</span>
-            <span class="inline-flex items-center gap-1"><span class="w-3 h-3 rounded-full bg-amber-500"></span> B (80-95%)</span>
-            <span class="inline-flex items-center gap-1"><span class="w-3 h-3 rounded-full bg-gray-400"></span> C (95-100%)</span>
+          <div class="flex items-center gap-3">
+            <button onclick="requestAIAnalysis('abc_analysis')" class="px-3 py-1 text-xs bg-indigo-500 hover:bg-indigo-600 text-white rounded flex items-center gap-1">
+              <svg style="width:14px;height:14px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/></svg>
+              {% trans "AI分析" %}
+            </button>
+            <div class="flex flex-wrap gap-2 text-xs">
+              <span class="inline-flex items-center gap-1"><span class="w-3 h-3 rounded-full bg-emerald-500"></span> A ({% trans "上位80%" %})</span>
+              <span class="inline-flex items-center gap-1"><span class="w-3 h-3 rounded-full bg-amber-500"></span> B (80-95%)</span>
+              <span class="inline-flex items-center gap-1"><span class="w-3 h-3 rounded-full bg-gray-400"></span> C (95-100%)</span>
+            </div>
           </div>
         </div>
+        <p class="text-sm text-gray-500 mb-3">{% trans "売上貢献度で商品をA（上位80%）/B（80-95%）/C（残り）にランク付け。A商品の在庫切れを防ぎ、C商品の見直しを" %}</p>
         <div class="chart-viewport"><canvas id="abcChart"></canvas></div>
         <div id="abc-table" class="mt-4" style="overflow-x:auto;">
           <table class="w-full text-sm border border-gray-200 rounded" style="min-width:480px;">
@@ -551,8 +576,15 @@
       <div class="db-card">
         <div class="flex items-center justify-between mb-3">
           <h3 class="text-lg font-semibold">{% trans "売上予測" %}</h3>
-          <span id="forecast-method" class="text-xs px-2 py-1 bg-indigo-100 text-indigo-700 rounded-full font-medium"></span>
+          <div class="flex items-center gap-3">
+            <button onclick="requestAIAnalysis('forecast')" class="px-3 py-1 text-xs bg-indigo-500 hover:bg-indigo-600 text-white rounded flex items-center gap-1">
+              <svg style="width:14px;height:14px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/></svg>
+              {% trans "AI分析" %}
+            </button>
+            <span id="forecast-method" class="text-xs px-2 py-1 bg-indigo-100 text-indigo-700 rounded-full font-medium"></span>
+          </div>
         </div>
+        <p class="text-sm text-gray-500 mb-3">{% trans "過去の売上トレンドから今後14日間の売上を予測。週末・祝日の需要増に備えた在庫・シフト計画に活用" %}</p>
         <div class="chart-viewport"><canvas id="forecastChart"></canvas></div>
         <div class="ai-analysis-panel mt-4 p-4 bg-gradient-to-r from-violet-50 to-indigo-50 rounded-xl border" id="sales-ai-forecast" style="display:none;"></div>
       </div>
@@ -561,8 +593,15 @@
       <div class="db-card">
         <div class="flex items-center justify-between mb-3">
           <h3 class="text-lg font-semibold">{% trans "時間帯別売上ヒートマップ" %}</h3>
-          <span class="text-xs text-gray-400">{% trans "曜日 × 時間帯（過去90日）" %}</span>
+          <div class="flex items-center gap-3">
+            <button onclick="requestAIAnalysis('heatmap')" class="px-3 py-1 text-xs bg-indigo-500 hover:bg-indigo-600 text-white rounded flex items-center gap-1">
+              <svg style="width:14px;height:14px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/></svg>
+              {% trans "AI分析" %}
+            </button>
+            <span class="text-xs text-gray-400">{% trans "曜日 × 時間帯（過去90日）" %}</span>
+          </div>
         </div>
+        <p class="text-sm text-gray-500 mb-3">{% trans "曜日×時間帯の売上ヒートマップ。ピーク時間帯のスタッフ配置最適化に活用" %}</p>
         <div class="chart-viewport" style="height:320px; min-height:280px;"><canvas id="salesHeatmapChart"></canvas></div>
         <div class="ai-analysis-panel mt-4 p-4 bg-gradient-to-r from-violet-50 to-indigo-50 rounded-xl border" id="sales-ai-heatmap" style="display:none;"></div>
       </div>
@@ -571,13 +610,20 @@
       <div class="db-card">
         <div class="flex items-center justify-between mb-3">
           <h3 class="text-lg font-semibold">{% trans "客単価（AOV）推移" %}</h3>
-          <select id="aov-period-select" onchange="loadAOVTrend(true)" class="text-sm border border-gray-300 rounded px-2 py-1">
+          <div class="flex items-center gap-3">
+            <button onclick="requestAIAnalysis('aov')" class="px-3 py-1 text-xs bg-indigo-500 hover:bg-indigo-600 text-white rounded flex items-center gap-1">
+              <svg style="width:14px;height:14px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/></svg>
+              {% trans "AI分析" %}
+            </button>
+            <select id="aov-period-select" onchange="loadAOVTrend(true)" class="text-sm border border-gray-300 rounded px-2 py-1">
             <option value="daily">{% trans "日別" %}</option>
             <option value="weekly">{% trans "週別" %}</option>
             <option value="monthly">{% trans "月別" %}</option>
             <option value="yearly">{% trans "年別" %}</option>
           </select>
+          </div>
         </div>
+        <p class="text-sm text-gray-500 mb-3">{% trans "1注文あたりの平均金額の推移。セットメニューやアップセル施策の効果測定に" %}</p>
         <div class="chart-viewport"><canvas id="aovTrendChart"></canvas></div>
         <div class="ai-analysis-panel mt-4 p-4 bg-gradient-to-r from-violet-50 to-indigo-50 rounded-xl border" id="sales-ai-aov" style="display:none;"></div>
       </div>
@@ -686,8 +732,17 @@
     </div>
     <div class="sub-tab-content active" id="subtab-cast-chart">
       <div class="db-card">
-        <h3 class="text-lg font-semibold mb-3">{% trans "キャスト別 予約数・売上比較" %}</h3>
+        <div class="flex items-center justify-between mb-3">
+          <h3 class="text-lg font-semibold" id="cast-chart-title">{% trans "キャスト別 予約数・売上比較（過去30日）" %}</h3>
+          <span id="cast-days-badge" class="text-xs bg-violet-100 text-violet-700 px-2 py-1 rounded-full font-medium">30{% trans "日" %}</span>
+        </div>
         <div class="chart-viewport"><canvas id="castChart"></canvas></div>
+        <div class="flex justify-center gap-2 mt-4">
+          <button onclick="window.loadCastPerformance(30)" class="cast-range-btn px-3 py-1 text-xs rounded-full font-medium bg-indigo-500 text-white" data-days="30">30{% trans "日" %}</button>
+          <button onclick="window.loadCastPerformance(90)" class="cast-range-btn px-3 py-1 text-xs rounded-full font-medium bg-gray-200 hover:bg-gray-300 text-gray-700" data-days="90">90{% trans "日" %}</button>
+          <button onclick="window.loadCastPerformance(180)" class="cast-range-btn px-3 py-1 text-xs rounded-full font-medium bg-gray-200 hover:bg-gray-300 text-gray-700" data-days="180">180{% trans "日" %}</button>
+          <button onclick="window.loadCastPerformance(365)" class="cast-range-btn px-3 py-1 text-xs rounded-full font-medium bg-gray-200 hover:bg-gray-300 text-gray-700" data-days="365">365{% trans "日" %}</button>
+        </div>
       </div>
     </div>
     <div class="sub-tab-content" id="subtab-cast-ranking">
@@ -715,8 +770,17 @@
   {# ===== Tab: スタッフ ===== #}
   <div class="tab-content" id="tab-staff">
     <div class="db-card">
-      <h3 class="text-lg font-semibold mb-3">{% trans "スタッフ別 予約数・売上比較" %}</h3>
+      <div class="flex items-center justify-between mb-3">
+        <h3 class="text-lg font-semibold" id="staff-chart-title">{% trans "スタッフ別 予約数・売上比較（過去30日）" %}</h3>
+        <span id="staff-days-badge" class="text-xs bg-sky-100 text-sky-700 px-2 py-1 rounded-full font-medium">30{% trans "日" %}</span>
+      </div>
       <div class="chart-viewport"><canvas id="staffChart"></canvas></div>
+      <div class="flex justify-center gap-2 mt-4">
+        <button onclick="window.loadStaffPerformance(30)" class="staff-range-btn px-3 py-1 text-xs rounded-full font-medium bg-indigo-500 text-white" data-days="30">30{% trans "日" %}</button>
+        <button onclick="window.loadStaffPerformance(90)" class="staff-range-btn px-3 py-1 text-xs rounded-full font-medium bg-gray-200 hover:bg-gray-300 text-gray-700" data-days="90">90{% trans "日" %}</button>
+        <button onclick="window.loadStaffPerformance(180)" class="staff-range-btn px-3 py-1 text-xs rounded-full font-medium bg-gray-200 hover:bg-gray-300 text-gray-700" data-days="180">180{% trans "日" %}</button>
+        <button onclick="window.loadStaffPerformance(365)" class="staff-range-btn px-3 py-1 text-xs rounded-full font-medium bg-gray-200 hover:bg-gray-300 text-gray-700" data-days="365">365{% trans "日" %}</button>
+      </div>
     </div>
   </div>
 
@@ -734,15 +798,16 @@
     <div class="sub-tab-content active" id="subtab-ec-trend">
       <div class="db-card">
         <div class="flex items-center justify-between mb-3">
-          <h3 class="text-lg font-semibold">{% trans "ECショップ 売上推移" %}</h3>
-          <select id="ec-sales-period" onchange="loadECSales(true)" class="text-sm border border-gray-300 rounded px-2 py-1">
-            <option value="daily">{% trans "日別" %}</option>
-            <option value="weekly">{% trans "週別" %}</option>
-            <option value="monthly">{% trans "月別" %}</option>
-            <option value="yearly">{% trans "年別" %}</option>
-          </select>
+          <h3 class="text-lg font-semibold" id="ec-sales-chart-title">{% trans "ECショップ 売上推移（過去30日）" %}</h3>
+          <span id="ec-sales-days-badge" class="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded-full font-medium">30{% trans "日" %}</span>
         </div>
         <div class="chart-viewport"><canvas id="ecSalesTrendChart"></canvas></div>
+        <div class="flex justify-center gap-2 mt-4">
+          <button onclick="window.loadECSales(30)" class="ec-sales-range-btn px-3 py-1 text-xs rounded-full font-medium bg-indigo-500 text-white" data-days="30">30{% trans "日" %}</button>
+          <button onclick="window.loadECSales(90)" class="ec-sales-range-btn px-3 py-1 text-xs rounded-full font-medium bg-gray-200 hover:bg-gray-300 text-gray-700" data-days="90">90{% trans "日" %}</button>
+          <button onclick="window.loadECSales(180)" class="ec-sales-range-btn px-3 py-1 text-xs rounded-full font-medium bg-gray-200 hover:bg-gray-300 text-gray-700" data-days="180">180{% trans "日" %}</button>
+          <button onclick="window.loadECSales(365)" class="ec-sales-range-btn px-3 py-1 text-xs rounded-full font-medium bg-gray-200 hover:bg-gray-300 text-gray-700" data-days="365">365{% trans "日" %}</button>
+        </div>
       </div>
     </div>
     <div class="sub-tab-content" id="subtab-ec-products">
@@ -827,15 +892,16 @@
     <div class="sub-tab-content active" id="subtab-instore-trend">
       <div class="db-card">
         <div class="flex items-center justify-between mb-3">
-          <h3 class="text-lg font-semibold">{% trans "店内メニュー 売上推移" %}</h3>
-          <select id="instore-sales-period" onchange="loadInstoreSales(true)" class="text-sm border border-gray-300 rounded px-2 py-1">
-            <option value="daily">{% trans "日別" %}</option>
-            <option value="weekly">{% trans "週別" %}</option>
-            <option value="monthly">{% trans "月別" %}</option>
-            <option value="yearly">{% trans "年別" %}</option>
-          </select>
+          <h3 class="text-lg font-semibold" id="instore-sales-chart-title">{% trans "店内メニュー 売上推移（過去30日）" %}</h3>
+          <span id="instore-sales-days-badge" class="text-xs bg-emerald-100 text-emerald-700 px-2 py-1 rounded-full font-medium">30{% trans "日" %}</span>
         </div>
         <div class="chart-viewport"><canvas id="instoreSalesTrendChart"></canvas></div>
+        <div class="flex justify-center gap-2 mt-4">
+          <button onclick="window.loadInstoreSales(30)" class="instore-sales-range-btn px-3 py-1 text-xs rounded-full font-medium bg-indigo-500 text-white" data-days="30">30{% trans "日" %}</button>
+          <button onclick="window.loadInstoreSales(90)" class="instore-sales-range-btn px-3 py-1 text-xs rounded-full font-medium bg-gray-200 hover:bg-gray-300 text-gray-700" data-days="90">90{% trans "日" %}</button>
+          <button onclick="window.loadInstoreSales(180)" class="instore-sales-range-btn px-3 py-1 text-xs rounded-full font-medium bg-gray-200 hover:bg-gray-300 text-gray-700" data-days="180">180{% trans "日" %}</button>
+          <button onclick="window.loadInstoreSales(365)" class="instore-sales-range-btn px-3 py-1 text-xs rounded-full font-medium bg-gray-200 hover:bg-gray-300 text-gray-700" data-days="365">365{% trans "日" %}</button>
+        </div>
       </div>
     </div>
     <div class="sub-tab-content" id="subtab-instore-products">
@@ -1067,7 +1133,9 @@
 
       {# 在庫アラート #}
       <div class="db-card">
-        <h3 class="text-lg font-semibold mb-3">{% trans "在庫アラート" %}</h3>
+        <h3 class="text-lg font-semibold mb-3">{% trans "在庫アラート" %}
+          <span id="ops-stock-badges" class="ml-2"></span>
+        </h3>
         <div id="ops-low-stock" class="space-y-2">
           <p class="text-gray-400 text-sm text-center">{% trans "読み込み中..." %}</p>
         </div>
@@ -1109,9 +1177,18 @@
     {# 日別推移 #}
     <div class="sub-tab-content" id="subtab-checkin-daily">
       <div class="db-card">
-        <h3 class="text-lg font-semibold mb-3">{% trans "日別チェックイン推移" %}</h3>
+        <div class="flex items-center justify-between mb-3">
+          <h3 class="text-lg font-semibold" id="checkin-chart-title">{% trans "日別チェックイン推移（過去30日）" %}</h3>
+          <span id="checkin-days-badge" class="text-xs bg-sky-100 text-sky-700 px-2 py-1 rounded-full font-medium">30{% trans "日" %}</span>
+        </div>
         <div class="chart-viewport" style="position:relative;height:calc(100vh - 380px);min-height:300px;">
           <canvas id="checkinDailyChart"></canvas>
+        </div>
+        <div class="flex justify-center gap-2 mt-4">
+          <button onclick="window.loadCheckinStats(30)" class="checkin-range-btn px-3 py-1 text-xs rounded-full font-medium bg-indigo-500 text-white" data-days="30">30{% trans "日" %}</button>
+          <button onclick="window.loadCheckinStats(90)" class="checkin-range-btn px-3 py-1 text-xs rounded-full font-medium bg-gray-200 hover:bg-gray-300 text-gray-700" data-days="90">90{% trans "日" %}</button>
+          <button onclick="window.loadCheckinStats(180)" class="checkin-range-btn px-3 py-1 text-xs rounded-full font-medium bg-gray-200 hover:bg-gray-300 text-gray-700" data-days="180">180{% trans "日" %}</button>
+          <button onclick="window.loadCheckinStats(365)" class="checkin-range-btn px-3 py-1 text-xs rounded-full font-medium bg-gray-200 hover:bg-gray-300 text-gray-700" data-days="365">365{% trans "日" %}</button>
         </div>
       </div>
     </div>
@@ -1179,6 +1256,8 @@ document.addEventListener('DOMContentLoaded', function () {
     no_cast_data: "{% filter escapejs %}{% trans 'キャストデータなし' %}{% endfilter %}",
     no_att_data: "{% filter escapejs %}{% trans '本日の勤怠データなし' %}{% endfilter %}",
     no_stock_alerts: "{% filter escapejs %}{% trans '在庫アラートなし' %}{% endfilter %}",
+    stock_critical: "{% filter escapejs %}{% trans '欠品' %}{% endfilter %}",
+    stock_warning: "{% filter escapejs %}{% trans '残少' %}{% endfilter %}",
     remaining: "{% filter escapejs %}{% trans '残' %}{% endfilter %}",
     no_feedback: "{% filter escapejs %}{% trans 'フィードバックがありません' %}{% endfilter %}",
     no_data_available: "{% filter escapejs %}{% trans 'データがありません' %}{% endfilter %}",
@@ -1454,52 +1533,75 @@ document.addEventListener('DOMContentLoaded', function () {
     },
     ec_sales: {
       trend: (function() {
-        var MONTHLY_COEFF = [0.80,0.85,0.90,0.95,1.00,0.85,0.90,0.85,0.95,1.10,1.15,1.25];
-        var WEEKDAY_COEFF = [0.80,1.10,1.15,1.10,1.05,0.90,0.75];
+        // EC: weekday shoppers (office hours), holiday gift spikes in Nov-Dec, summer lull
+        var MONTHLY_COEFF = [0.85,0.80,0.82,0.88,0.92,0.78,0.75,0.73,0.90,1.05,1.20,1.35];
+        var WEEKDAY_COEFF = [0.72,1.12,1.18,1.15,1.08,0.88,0.68];
         var result = [];
         var now = new Date();
+        var seed = 137;
+        function prng() { seed = (seed * 16807 + 0) % 2147483647; return (seed - 1) / 2147483646; }
         for (var i = 364; i >= 0; i--) {
           var d = new Date(now);
           d.setDate(d.getDate() - i);
           var month = d.getMonth();
           var weekday = d.getDay();
-          var base = 15000;
-          var total = Math.floor(base * MONTHLY_COEFF[month] * WEEKDAY_COEFF[weekday] + (Math.random() - 0.5) * 6000);
-          result.push({date: d.toISOString().slice(0, 10), total: Math.max(2000, total)});
+          var growthFactor = 1.0 + (364 - i) / 364 * 0.18;
+          var base = 18000;
+          var noise = (prng() - 0.5) * 7000;
+          var total = Math.floor(base * MONTHLY_COEFF[month] * WEEKDAY_COEFF[weekday] * growthFactor + noise);
+          result.push({date: d.toISOString().slice(0, 10), total: Math.max(3000, total)});
         }
         return result;
       })(),
       top_products: [
-        {name: 'オリジナルブレンドティー', total: 82}, {name: 'シーシャフレーバーセット', total: 65},
-        {name: 'アロマキャンドル', total: 54}, {name: 'ハーブティーギフト', total: 48},
-        {name: 'オリジナルマグカップ', total: 42}, {name: 'チャイスパイスセット', total: 36},
-        {name: 'ルームフレグランス', total: 28}, {name: 'ティーポット', total: 22},
-        {name: 'ギフトカード', total: 18}, {name: 'コースター 4枚セット', total: 15}
+        {name: 'シーシャフレーバーセット(3種)', total: 94},
+        {name: 'オリジナルブレンドチャイ 200g', total: 82},
+        {name: 'アロマキャンドル(ウード)', total: 67},
+        {name: 'ハーブティーギフトBOX', total: 58},
+        {name: 'チャイスパイスセット', total: 52},
+        {name: 'オリジナルマグカップ', total: 45},
+        {name: 'ルームフレグランス(サンダルウッド)', total: 38},
+        {name: 'ティーポット(耐熱ガラス)', total: 31},
+        {name: 'ギフトカード ¥5,000', total: 24},
+        {name: 'コースター 4枚セット(レザー)', total: 19}
       ]
     },
     instore_sales: {
       trend: (function() {
-        var MONTHLY_COEFF = [0.65,0.70,0.80,0.90,1.00,0.75,0.85,0.80,0.90,1.05,1.10,1.20];
-        var WEEKDAY_COEFF = [0.55,0.60,0.65,0.75,1.15,1.45,1.10];
+        // Shisha cafe: winter peak (warm indoor hangout), summer dip, strong Fri-Sat nights
+        var MONTHLY_COEFF = [0.95,0.88,0.82,0.78,0.75,0.68,0.72,0.70,0.80,0.92,1.05,1.15];
+        var WEEKDAY_COEFF = [0.70,0.52,0.55,0.62,0.78,1.35,1.48];
+        // Gradual business growth: +12% per year trend
         var result = [];
         var now = new Date();
+        var seed = 42;
+        function prng() { seed = (seed * 16807 + 0) % 2147483647; return (seed - 1) / 2147483646; }
         for (var i = 364; i >= 0; i--) {
           var d = new Date(now);
           d.setDate(d.getDate() - i);
           var month = d.getMonth();
           var weekday = d.getDay();
-          var base = 30000;
-          var total = Math.floor(base * MONTHLY_COEFF[month] * WEEKDAY_COEFF[weekday] + (Math.random() - 0.5) * 10000);
-          result.push({date: d.toISOString().slice(0, 10), total: Math.max(5000, total)});
+          var growthFactor = 1.0 + (364 - i) / 364 * 0.12;
+          var base = 42000;
+          // Shisha cafes peak evenings; special events (random ~3% of days get a boost)
+          var eventBoost = prng() < 0.03 ? 1.25 : 1.0;
+          var noise = (prng() - 0.5) * 12000;
+          var total = Math.floor(base * MONTHLY_COEFF[month] * WEEKDAY_COEFF[weekday] * growthFactor * eventBoost + noise);
+          result.push({date: d.toISOString().slice(0, 10), total: Math.max(8000, total)});
         }
         return result;
       })(),
       top_products: [
-        {name: 'シーシャ(ミント)', total: 128}, {name: 'チャイ', total: 105},
-        {name: 'シーシャ(ダブルアップル)', total: 92}, {name: 'カフェラテ', total: 78},
-        {name: 'シーシャ(ブルーベリー)', total: 65}, {name: 'マサラチャイ', total: 58},
-        {name: 'シーシャ(グレープ)', total: 48}, {name: 'ジンジャーエール', total: 42},
-        {name: 'ハーブティー', total: 36}, {name: 'スムージー', total: 30}
+        {name: 'シーシャ(ミント)', total: 187},
+        {name: 'シーシャ(ダブルアップル)', total: 156},
+        {name: 'チャイ', total: 143},
+        {name: 'シーシャ(ブルーベリー)', total: 112},
+        {name: 'カフェラテ', total: 98},
+        {name: 'シーシャ(レモンミント)', total: 89},
+        {name: 'マサラチャイ', total: 76},
+        {name: 'シーシャ(グレープ)', total: 72},
+        {name: 'シーシャ(ピーチ)', total: 64},
+        {name: 'バクラヴァ', total: 58}
       ]
     },
     channel_sales: {
@@ -1528,12 +1630,99 @@ document.addEventListener('DOMContentLoaded', function () {
     },
     attendance: {
       stamps: [
-        {staff_name: '田中 太郎', clock_in: '09:00', clock_out: '17:30'},
-        {staff_name: '佐藤 花子', clock_in: '10:00', clock_out: null},
-        {staff_name: '鈴木 一郎', clock_in: '09:30', clock_out: '18:00'},
-        {staff_name: '高橋 美咲', clock_in: null, clock_out: null},
-        {staff_name: '月宮 あゆ', clock_in: '11:00', clock_out: null}
+        {staff_name: '田中 太郎', clock_in: '09:02', clock_out: '17:35'},
+        {staff_name: '佐藤 花子', clock_in: '09:58', clock_out: null},
+        {staff_name: '鈴木 一郎', clock_in: '09:31', clock_out: '18:05'},
+        {staff_name: '高橋 美咲', clock_in: '10:15', clock_out: null},
+        {staff_name: '月宮 あゆ', clock_in: '11:03', clock_out: null},
+        {staff_name: '星野 ルリ', clock_in: '12:00', clock_out: null},
+        {staff_name: '藤原 千花', clock_in: null, clock_out: null},
+        {staff_name: '桜庭 ひかり', clock_in: '10:45', clock_out: '19:10'}
       ]
+    },
+    visitor_analytics: {
+      data: (function() {
+        var now = new Date();
+        var todayStr = now.toISOString().slice(0, 10);
+        var currentHour = now.getHours();
+        var result = [];
+        var HOUR_BASE = {
+          10: 3, 11: 5, 12: 8, 13: 7, 14: 4, 15: 3, 16: 4,
+          17: 6, 18: 9, 19: 11, 20: 10, 21: 8, 22: 5, 23: 2
+        };
+        for (var h = 10; h <= Math.min(currentHour, 23); h++) {
+          var base = HOUR_BASE[h] || 3;
+          var visitors = Math.max(1, Math.floor(base + (Math.random() - 0.3) * 3));
+          var orders = Math.max(1, Math.floor(visitors * (0.55 + Math.random() * 0.25)));
+          result.push({
+            date: todayStr,
+            hour: h,
+            pir_count: visitors + Math.floor(Math.random() * 4),
+            estimated_visitors: visitors,
+            order_count: orders
+          });
+        }
+        return result;
+      })()
+    },
+    active_orders: {
+      orders: (function() {
+        var now = new Date();
+        return [
+          {
+            id: 9001,
+            table_label: 'A-3',
+            status: 'OPEN',
+            payment_status: 'UNPAID',
+            items: [
+              {id: 101, product_name: 'シーシャ(ミント)', qty: 2, unit_price: 1800, subtotal: 3600, status: 'preparing'},
+              {id: 102, product_name: 'チャイ', qty: 2, unit_price: 650, subtotal: 1300, status: 'served'},
+              {id: 103, product_name: 'バクラヴァ', qty: 1, unit_price: 580, subtotal: 580, status: 'ordered'}
+            ],
+            total: 5480,
+            created_at: new Date(now - 23 * 60000).toISOString()
+          },
+          {
+            id: 9002,
+            table_label: 'B-1',
+            status: 'OPEN',
+            payment_status: 'UNPAID',
+            items: [
+              {id: 104, product_name: 'シーシャ(ダブルアップル)', qty: 1, unit_price: 1800, subtotal: 1800, status: 'preparing'},
+              {id: 105, product_name: 'マサラチャイ', qty: 1, unit_price: 700, subtotal: 700, status: 'preparing'},
+              {id: 106, product_name: 'ナッツ盛り合わせ', qty: 1, unit_price: 480, subtotal: 480, status: 'served'}
+            ],
+            total: 2980,
+            created_at: new Date(now - 14 * 60000).toISOString()
+          },
+          {
+            id: 9003,
+            table_label: 'C-2',
+            status: 'OPEN',
+            payment_status: 'UNPAID',
+            items: [
+              {id: 107, product_name: 'シーシャ(ブルーベリー)', qty: 1, unit_price: 1800, subtotal: 1800, status: 'ordered'},
+              {id: 108, product_name: 'カフェラテ', qty: 2, unit_price: 550, subtotal: 1100, status: 'ordered'},
+              {id: 109, product_name: 'ティラミス', qty: 1, unit_price: 620, subtotal: 620, status: 'ordered'}
+            ],
+            total: 3520,
+            created_at: new Date(now - 5 * 60000).toISOString()
+          },
+          {
+            id: 9004,
+            table_label: 'A-1',
+            status: 'OPEN',
+            payment_status: 'UNPAID',
+            items: [
+              {id: 110, product_name: 'シーシャ(グレープ)', qty: 1, unit_price: 1800, subtotal: 1800, status: 'served'},
+              {id: 111, product_name: 'ジンジャーエール', qty: 2, unit_price: 450, subtotal: 900, status: 'served'},
+              {id: 112, product_name: 'フムス', qty: 1, unit_price: 520, subtotal: 520, status: 'preparing'}
+            ],
+            total: 3220,
+            created_at: new Date(now - 38 * 60000).toISOString()
+          }
+        ];
+      })()
     },
     nps: {
       nps_score: 42,
@@ -1608,6 +1797,120 @@ document.addEventListener('DOMContentLoaded', function () {
         }
         return result;
       })()
+    },
+    /* ----- Analysis sub-tab demo data ----- */
+    menu_engineering: {
+      products: [
+        {name: 'シーシャ(ミント)', qty_sold: 180, revenue: 396000, margin_rate: 0.65, quadrant: 'star'},
+        {name: 'シーシャ(ダブルアップル)', qty_sold: 150, revenue: 330000, margin_rate: 0.60, quadrant: 'star'},
+        {name: 'チャイ', qty_sold: 220, revenue: 132000, margin_rate: 0.75, quadrant: 'plowhorse'},
+        {name: 'カフェラテ', qty_sold: 160, revenue: 104000, margin_rate: 0.55, quadrant: 'plowhorse'},
+        {name: 'マサラチャイ', qty_sold: 130, revenue: 91000, margin_rate: 0.58, quadrant: 'plowhorse'},
+        {name: 'バクラヴァ', qty_sold: 40, revenue: 20000, margin_rate: 0.80, quadrant: 'puzzle'},
+        {name: 'ナッツ盛り合わせ', qty_sold: 30, revenue: 24000, margin_rate: 0.85, quadrant: 'puzzle'},
+        {name: 'モヒート(ノンアル)', qty_sold: 45, revenue: 31500, margin_rate: 0.70, quadrant: 'puzzle'},
+        {name: 'ティラミス', qty_sold: 25, revenue: 16250, margin_rate: 0.40, quadrant: 'dog'},
+        {name: 'クッキー', qty_sold: 18, revenue: 7200, margin_rate: 0.35, quadrant: 'dog'}
+      ],
+      avg_popularity: 100,
+      avg_margin: 0.62
+    },
+    abc_analysis: {
+      total_revenue: 1151950,
+      products: [
+        {name: 'シーシャ(ミント)', revenue: 396000, share_pct: 34.4, cumulative_pct: 34.4, rank: 'A'},
+        {name: 'シーシャ(ダブルアップル)', revenue: 330000, share_pct: 28.6, cumulative_pct: 63.0, rank: 'A'},
+        {name: 'チャイ', revenue: 132000, share_pct: 11.5, cumulative_pct: 74.5, rank: 'A'},
+        {name: 'カフェラテ', revenue: 104000, share_pct: 9.0, cumulative_pct: 83.5, rank: 'B'},
+        {name: 'マサラチャイ', revenue: 91000, share_pct: 7.9, cumulative_pct: 91.4, rank: 'B'},
+        {name: 'モヒート(ノンアル)', revenue: 31500, share_pct: 2.7, cumulative_pct: 94.1, rank: 'B'},
+        {name: 'ナッツ盛り合わせ', revenue: 24000, share_pct: 2.1, cumulative_pct: 96.2, rank: 'C'},
+        {name: 'バクラヴァ', revenue: 20000, share_pct: 1.7, cumulative_pct: 97.9, rank: 'C'},
+        {name: 'ティラミス', revenue: 16250, share_pct: 1.4, cumulative_pct: 99.3, rank: 'C'},
+        {name: 'クッキー', revenue: 7200, share_pct: 0.6, cumulative_pct: 100.0, rank: 'C'}
+      ]
+    },
+    forecast: {
+      method: 'moving_average',
+      historical: (function() {
+        var WEEKDAY_COEFF = [0.70,0.52,0.55,0.62,0.78,1.35,1.48];
+        var result = [];
+        var now = new Date();
+        var seed = 77;
+        function prng() { seed = (seed * 16807 + 0) % 2147483647; return (seed - 1) / 2147483646; }
+        for (var i = 29; i >= 0; i--) {
+          var d = new Date(now); d.setDate(d.getDate() - i);
+          var weekday = d.getDay();
+          var base = 38000;
+          var growthFactor = 1.0 + (29 - i) / 29 * 0.05;
+          var noise = (prng() - 0.5) * 12000;
+          var revenue = Math.max(12000, Math.floor(base * WEEKDAY_COEFF[weekday] * growthFactor + noise));
+          result.push({date: d.toISOString().slice(0, 10), revenue: revenue});
+        }
+        return result;
+      })(),
+      forecast: (function() {
+        var WEEKDAY_COEFF = [0.70,0.52,0.55,0.62,0.78,1.35,1.48];
+        var result = [];
+        var now = new Date();
+        var seed = 99;
+        function prng() { seed = (seed * 16807 + 0) % 2147483647; return (seed - 1) / 2147483646; }
+        for (var j = 1; j <= 14; j++) {
+          var fd = new Date(now); fd.setDate(fd.getDate() + j);
+          var weekday = fd.getDay();
+          var base = 40000;
+          var predicted = Math.max(12000, Math.floor(base * WEEKDAY_COEFF[weekday] + (prng() - 0.5) * 8000));
+          result.push({date: fd.toISOString().slice(0, 10), predicted: predicted, lower: Math.round(predicted * 0.75), upper: Math.round(predicted * 1.25)});
+        }
+        return result;
+      })()
+    },
+    sales_heatmap: {
+      heatmap: (function() {
+        // Shisha cafe: open 12-24, peak evenings, strong Fri/Sat
+        var HOUR_BASE = {
+          0:500, 1:200, 2:100, 3:0, 4:0, 5:0, 6:0, 7:0, 8:0, 9:0, 10:0, 11:800,
+          12:3500, 13:4200, 14:3800, 15:2500, 16:2800, 17:4500,
+          18:8500, 19:11000, 20:12500, 21:11500, 22:9000, 23:4500
+        };
+        var WEEKDAY_MULT = [0.75, 0.55, 0.58, 0.62, 0.80, 1.40, 1.55]; // Sun-Sat
+        var result = [];
+        var seed = 31;
+        function prng() { seed = (seed * 16807 + 0) % 2147483647; return (seed - 1) / 2147483646; }
+        for (var wd = 1; wd <= 7; wd++) {
+          var jsDay = wd % 7; // convert Mon=1..Sun=7 to JS Sun=0..Sat=6
+          for (var hr = 0; hr < 24; hr++) {
+            var base = HOUR_BASE[hr] || 0;
+            var rev = Math.max(0, Math.floor(base * WEEKDAY_MULT[jsDay] + (prng() - 0.5) * base * 0.4));
+            var orders = rev > 0 ? Math.max(1, Math.floor(rev / 2200 + prng() * 3)) : 0;
+            result.push({weekday: wd, hour: hr, revenue: rev, orders: orders});
+          }
+        }
+        return result;
+      })()
+    },
+    aov_trend: {
+      trend: (function() {
+        var WEEKDAY_COEFF = [0.90,0.85,0.88,0.92,0.95,1.10,1.15];
+        var result = [];
+        var now = new Date();
+        var seed = 53;
+        function prng() { seed = (seed * 16807 + 0) % 2147483647; return (seed - 1) / 2147483646; }
+        for (var i = 29; i >= 0; i--) {
+          var d = new Date(now); d.setDate(d.getDate() - i);
+          var weekday = d.getDay();
+          var baseAOV = 2200;
+          var aov = Math.floor(baseAOV * WEEKDAY_COEFF[weekday] + (prng() - 0.5) * 600);
+          var orderCount = Math.floor(12 * WEEKDAY_COEFF[weekday] + prng() * 8);
+          result.push({
+            date: d.toISOString().slice(0, 10),
+            aov: aov,
+            order_count: Math.max(3, orderCount),
+            total_revenue: aov * Math.max(3, orderCount)
+          });
+        }
+        return result;
+      })()
     }
   };
 
@@ -1659,7 +1962,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
   var currentResDays = 30;
 
-  function loadReservations(days) {
+  window.loadReservations = function loadReservations(days) {
     days = days || 30;
     currentResDays = days;
     var url = '/api/dashboard/reservations/?days=' + days;
@@ -1711,7 +2014,7 @@ document.addEventListener('DOMContentLoaded', function () {
         }
       });
     }).catch(function (err) { console.error('Failed to load reservations:', err); });
-  }
+  };
 
   loadReservations(30);
 
@@ -1720,9 +2023,30 @@ document.addEventListener('DOMContentLoaded', function () {
   /* ------------------------------------------------------------------ */
   var salesTrendChart = null;
   var topProductsChart = null;
+  var currentSalesDays = 30;
 
-  function loadSales(period) {
-    apiFetch('/api/dashboard/sales/?period=' + encodeURIComponent(period)).then(function (raw) {
+  window.loadSalesTrend = function(days) {
+    days = days || 30;
+    currentSalesDays = days;
+    var period = document.getElementById('sales-period').value;
+    var url = '/api/dashboard/sales/?period=' + encodeURIComponent(period) + '&days=' + days;
+
+    /* Update title and badge */
+    var titleEl = document.getElementById('sales-trend-chart-title');
+    if (titleEl) titleEl.textContent = '\u58F2\u4E0A\u63A8\u79FB\uFF08\u904E\u53BB' + days + '\u65E5\uFF09';
+    var badgeEl = document.getElementById('sales-trend-days-badge');
+    if (badgeEl) badgeEl.textContent = days + '\u65E5';
+
+    /* Highlight active range button */
+    document.querySelectorAll('.sales-trend-range-btn').forEach(function (btn) {
+      if (parseInt(btn.dataset.days) === days) {
+        btn.className = 'sales-trend-range-btn px-3 py-1 text-xs rounded-full font-medium bg-indigo-500 text-white';
+      } else {
+        btn.className = 'sales-trend-range-btn px-3 py-1 text-xs rounded-full font-medium bg-gray-200 hover:bg-gray-300 text-gray-700';
+      }
+    });
+
+    apiFetch(url).then(function (raw) {
       var data = useDemo(raw, 'sales', 'trend');
       var trend = data.trend || [];
       var trendLabels = trend.map(function (d) { return d.date; });
@@ -1747,7 +2071,7 @@ document.addEventListener('DOMContentLoaded', function () {
             tooltip: { callbacks: { label: function (ctx) { return T.sales_prefix + Number(ctx.parsed.y).toLocaleString() + T.yen_suffix; } } }
           },
           scales: {
-            x: { ticks: { maxTicksLimit: 12, maxRotation: 45, font: { size: 10 } } },
+            x: { ticks: { maxTicksLimit: days <= 30 ? 15 : (days <= 90 ? 12 : 10), maxRotation: 45, font: { size: 10 } } },
             y: { beginAtZero: true, ticks: { callback: function (v) { return Number(v).toLocaleString() + T.yen_suffix; } } }
           }
         }
@@ -1773,10 +2097,14 @@ document.addEventListener('DOMContentLoaded', function () {
       });
       apiFetch('/api/dashboard/analysis-text/?type=sales_trend').then(function(t) { renderAnalysisTextPanel('sales-ai-trend', t); }).catch(function(){});
     }).catch(function (err) { console.error('Failed to load sales:', err); });
+  };
+
+  function loadSales(period) {
+    window.loadSalesTrend(currentSalesDays);
   }
 
   document.getElementById('sales-period').addEventListener('change', function () {
-    loadSales(this.value);
+    window.loadSalesTrend(currentSalesDays);
     salesLoaded = true;
   });
 
@@ -1790,26 +2118,10 @@ document.addEventListener('DOMContentLoaded', function () {
     if (menuEngLoaded) return;
     menuEngLoaded = true;
 
-    apiFetch('/api/dashboard/menu-engineering/').then(function (data) {
+    function renderMenuEng(data) {
       var products = data.products || [];
       var avgPop = data.avg_popularity || 0;
       var avgMargin = data.avg_margin || 0;
-
-      // Demo data if empty
-      if (products.length === 0) {
-        avgPop = 60; avgMargin = 0.35;
-        products = [
-          {name: 'ビール', qty_sold: 156, margin_rate: 0.45, revenue: 62400, quadrant: 'star'},
-          {name: 'ハイボール', qty_sold: 132, margin_rate: 0.50, revenue: 52800, quadrant: 'star'},
-          {name: '枝豆', qty_sold: 98, margin_rate: 0.60, revenue: 29400, quadrant: 'star'},
-          {name: '唐揚げ', qty_sold: 87, margin_rate: 0.30, revenue: 43500, quadrant: 'plowhorse'},
-          {name: '焼き鳥', qty_sold: 76, margin_rate: 0.25, revenue: 38000, quadrant: 'plowhorse'},
-          {name: 'ワイン', qty_sold: 32, margin_rate: 0.55, revenue: 32000, quadrant: 'puzzle'},
-          {name: '刺身', qty_sold: 28, margin_rate: 0.40, revenue: 42000, quadrant: 'puzzle'},
-          {name: 'サラダ', qty_sold: 38, margin_rate: 0.15, revenue: 11400, quadrant: 'dog'},
-          {name: 'ポテトフライ', qty_sold: 48, margin_rate: 0.20, revenue: 14400, quadrant: 'dog'}
-        ];
-      }
 
       // Color map
       var quadColors = {star: COLORS.emerald, plowhorse: COLORS.sky, puzzle: COLORS.amber, dog: COLORS.rose};
@@ -1892,9 +2204,14 @@ document.addEventListener('DOMContentLoaded', function () {
         }).join('');
       }
       apiFetch('/api/dashboard/analysis-text/?type=menu_engineering').then(function(t) { renderAnalysisTextPanel('sales-ai-menu-eng', t); }).catch(function(){});
+    }
+
+    apiFetch('/api/dashboard/menu-engineering/').then(function (raw) {
+      var data = useDemo(raw, 'menu_engineering', 'products');
+      renderMenuEng(data);
     }).catch(function (err) {
       console.error('Failed to load menu engineering:', err);
-      document.getElementById('menu-eng-tbody').innerHTML = '<tr><td colspan="5" class="px-3 py-2 text-gray-400 text-center">' + T.fetch_error + '</td></tr>';
+      renderMenuEng(DEMO.menu_engineering);
     });
   };
 
@@ -1908,24 +2225,9 @@ document.addEventListener('DOMContentLoaded', function () {
     if (abcLoaded) return;
     abcLoaded = true;
 
-    apiFetch('/api/dashboard/abc-analysis/').then(function (data) {
+    function renderABC(data) {
       var products = data.products || [];
       var totalRevenue = data.total_revenue || 0;
-
-      // Demo data if empty
-      if (products.length === 0) {
-        totalRevenue = 289200;
-        products = [
-          {name: 'ビール', revenue: 78000, share_pct: 27.0, cumulative_pct: 27.0, rank: 'A'},
-          {name: 'ハイボール', revenue: 52800, share_pct: 18.3, cumulative_pct: 45.3, rank: 'A'},
-          {name: '刺身盛り', revenue: 42000, share_pct: 14.5, cumulative_pct: 59.8, rank: 'A'},
-          {name: '唐揚げ', revenue: 43500, share_pct: 15.0, cumulative_pct: 74.8, rank: 'A'},
-          {name: '焼き鳥', revenue: 30400, share_pct: 10.5, cumulative_pct: 85.3, rank: 'B'},
-          {name: '枝豆', revenue: 19600, share_pct: 6.8, cumulative_pct: 92.1, rank: 'B'},
-          {name: 'サラダ', revenue: 11400, share_pct: 3.9, cumulative_pct: 96.0, rank: 'C'},
-          {name: 'ポテトフライ', revenue: 11500, share_pct: 4.0, cumulative_pct: 100.0, rank: 'C'}
-        ];
-      }
 
       var rankColors = {A: COLORS.emerald, B: COLORS.amber, C: 'rgba(156,163,175,0.6)'};
       var rankBadge = {
@@ -2016,9 +2318,14 @@ document.addEventListener('DOMContentLoaded', function () {
         }).join('');
       }
       apiFetch('/api/dashboard/analysis-text/?type=abc_analysis').then(function(t) { renderAnalysisTextPanel('sales-ai-abc', t); }).catch(function(){});
+    }
+
+    apiFetch('/api/dashboard/abc-analysis/').then(function (raw) {
+      var data = useDemo(raw, 'abc_analysis', 'products');
+      renderABC(data);
     }).catch(function (err) {
       console.error('Failed to load ABC analysis:', err);
-      document.getElementById('abc-tbody').innerHTML = '<tr><td colspan="5" class="px-3 py-2 text-gray-400 text-center">' + T.fetch_error + '</td></tr>';
+      renderABC(DEMO.abc_analysis);
     });
   };
 
@@ -2032,26 +2339,10 @@ document.addEventListener('DOMContentLoaded', function () {
     if (forecastLoaded) return;
     forecastLoaded = true;
 
-    apiFetch('/api/dashboard/forecast/?days=14').then(function (data) {
+    function renderForecast(data) {
       var historical = data.historical || [];
       var forecast = data.forecast || [];
       var method = data.method || 'moving_average';
-
-      // Demo data if empty
-      if (historical.length === 0 && forecast.length === 0) {
-        method = 'moving_average';
-        var now = new Date();
-        for (var i = 29; i >= 0; i--) {
-          var d = new Date(now); d.setDate(d.getDate() - i);
-          historical.push({date: d.toISOString().slice(0,10), revenue: Math.floor(Math.random()*50000)+20000});
-        }
-        var lastRev = historical[historical.length-1].revenue;
-        for (var j = 1; j <= 14; j++) {
-          var fd = new Date(now); fd.setDate(fd.getDate() + j);
-          var pred = lastRev + Math.floor(Math.random()*10000-5000);
-          forecast.push({date: fd.toISOString().slice(0,10), predicted: pred, lower: Math.round(pred*0.7), upper: Math.round(pred*1.3)});
-        }
-      }
 
       document.getElementById('forecast-method').textContent = method === 'prophet' ? 'Prophet' : T.moving_avg;
 
@@ -2155,8 +2446,14 @@ document.addEventListener('DOMContentLoaded', function () {
         }
       });
       apiFetch('/api/dashboard/analysis-text/?type=forecast').then(function(t) { renderAnalysisTextPanel('sales-ai-forecast', t); }).catch(function(){});
+    }
+
+    apiFetch('/api/dashboard/forecast/?days=14').then(function (raw) {
+      var data = useDemo(raw, 'forecast', 'historical');
+      renderForecast(data);
     }).catch(function (err) {
       console.error('Failed to load forecast:', err);
+      renderForecast(DEMO.forecast);
     });
   };
 
@@ -2172,19 +2469,8 @@ document.addEventListener('DOMContentLoaded', function () {
 
     var WEEKDAY_LABELS = [T.sun, T.mon, T.tue, T.wed, T.thu, T.fri, T.sat];
 
-    apiFetch('/api/dashboard/sales-heatmap/').then(function (data) {
+    function renderHeatmap(data) {
       var heatmap = data.heatmap || [];
-
-      // Demo data if empty
-      if (heatmap.length === 0) {
-        for (var wd = 1; wd <= 7; wd++) {
-          for (var hr = 0; hr < 24; hr++) {
-            var base = (hr >= 11 && hr <= 14) || (hr >= 17 && hr <= 22) ? 15000 : 2000;
-            if (wd >= 6) base *= 1.3;
-            heatmap.push({weekday: wd, hour: hr, revenue: Math.floor(base + Math.random()*10000), orders: Math.floor(Math.random()*10)});
-          }
-        }
-      }
 
       // Find max revenue for color scaling
       var maxRev = 1;
@@ -2247,10 +2533,16 @@ document.addEventListener('DOMContentLoaded', function () {
           }
         }
       });
+      apiFetch('/api/dashboard/analysis-text/?type=heatmap').then(function(t) { renderAnalysisTextPanel('sales-ai-heatmap', t); }).catch(function(){});
+    }
+
+    apiFetch('/api/dashboard/sales-heatmap/').then(function (raw) {
+      var data = useDemo(raw, 'sales_heatmap', 'heatmap');
+      renderHeatmap(data);
     }).catch(function(err) {
       console.error('Failed to load sales heatmap:', err);
+      renderHeatmap(DEMO.sales_heatmap);
     });
-    apiFetch('/api/dashboard/analysis-text/?type=heatmap').then(function(t) { renderAnalysisTextPanel('sales-ai-heatmap', t); }).catch(function(){});
   };
 
   /* ------------------------------------------------------------------ */
@@ -2265,18 +2557,8 @@ document.addEventListener('DOMContentLoaded', function () {
 
     var period = document.getElementById('aov-period-select').value;
 
-    apiFetch('/api/dashboard/aov-trend/?period=' + period).then(function (data) {
+    function renderAOV(data) {
       var trend = data.trend || [];
-
-      // Demo data if empty
-      if (trend.length === 0) {
-        var now = new Date();
-        for (var i = 29; i >= 0; i--) {
-          var d = new Date(now); d.setDate(d.getDate() - i);
-          var aov = 1500 + Math.floor(Math.random()*1000);
-          trend.push({date: d.toISOString().slice(0,10), aov: aov, order_count: Math.floor(Math.random()*20)+5, total_revenue: aov * (Math.floor(Math.random()*20)+5)});
-        }
-      }
 
       var labels = trend.map(function(t) { return t.date; });
       var aovData = trend.map(function(t) { return t.aov; });
@@ -2342,8 +2624,14 @@ document.addEventListener('DOMContentLoaded', function () {
         }
       });
       apiFetch('/api/dashboard/analysis-text/?type=aov').then(function(t) { renderAnalysisTextPanel('sales-ai-aov', t); }).catch(function(){});
+    }
+
+    apiFetch('/api/dashboard/aov-trend/?period=' + period).then(function (raw) {
+      var data = useDemo(raw, 'aov_trend', 'trend');
+      renderAOV(data);
     }).catch(function(err) {
       console.error('Failed to load AOV trend:', err);
+      renderAOV(DEMO.aov_trend);
     });
   };
 
@@ -2679,9 +2967,28 @@ document.addEventListener('DOMContentLoaded', function () {
   /*  3. Staff Performance (lazy loaded)                                 */
   /* ------------------------------------------------------------------ */
   var staffChart = null;
+  var currentStaffDays = 30;
 
-  function loadStaffPerformance() {
-    apiFetch('/api/dashboard/staff-performance/').then(function (raw) {
+  window.loadStaffPerformance = function(days) {
+    days = days || 30;
+    currentStaffDays = days;
+
+    /* Update title and badge */
+    var titleEl = document.getElementById('staff-chart-title');
+    if (titleEl) titleEl.textContent = '\u30B9\u30BF\u30C3\u30D5\u5225 \u4E88\u7D04\u6570\u30FB\u58F2\u4E0A\u6BD4\u8F03\uFF08\u904E\u53BB' + days + '\u65E5\uFF09';
+    var badgeEl = document.getElementById('staff-days-badge');
+    if (badgeEl) badgeEl.textContent = days + '\u65E5';
+
+    /* Highlight active range button */
+    document.querySelectorAll('.staff-range-btn').forEach(function (btn) {
+      if (parseInt(btn.dataset.days) === days) {
+        btn.className = 'staff-range-btn px-3 py-1 text-xs rounded-full font-medium bg-indigo-500 text-white';
+      } else {
+        btn.className = 'staff-range-btn px-3 py-1 text-xs rounded-full font-medium bg-gray-200 hover:bg-gray-300 text-gray-700';
+      }
+    });
+
+    apiFetch('/api/dashboard/staff-performance/?days=' + days).then(function (raw) {
       var data = useDemo(raw, 'staff', 'staff');
       var staff = data.staff || [];
       if (staffChart) staffChart.destroy();
@@ -2711,15 +3018,34 @@ document.addEventListener('DOMContentLoaded', function () {
         }
       });
     }).catch(function (err) { console.error('Failed to load staff performance:', err); });
-  }
+  };
 
   /* ------------------------------------------------------------------ */
   /*  3b. Cast Performance (fortune_teller only)                         */
   /* ------------------------------------------------------------------ */
   var castChart = null;
+  var currentCastDays = 30;
 
-  function loadCastPerformance() {
-    apiFetch('/api/dashboard/staff-performance/?staff_type=fortune_teller').then(function (raw) {
+  window.loadCastPerformance = function(days) {
+    days = days || 30;
+    currentCastDays = days;
+
+    /* Update title and badge */
+    var titleEl = document.getElementById('cast-chart-title');
+    if (titleEl) titleEl.textContent = '\u30AD\u30E3\u30B9\u30C8\u5225 \u4E88\u7D04\u6570\u30FB\u58F2\u4E0A\u6BD4\u8F03\uFF08\u904E\u53BB' + days + '\u65E5\uFF09';
+    var badgeEl = document.getElementById('cast-days-badge');
+    if (badgeEl) badgeEl.textContent = days + '\u65E5';
+
+    /* Highlight active range button */
+    document.querySelectorAll('.cast-range-btn').forEach(function (btn) {
+      if (parseInt(btn.dataset.days) === days) {
+        btn.className = 'cast-range-btn px-3 py-1 text-xs rounded-full font-medium bg-indigo-500 text-white';
+      } else {
+        btn.className = 'cast-range-btn px-3 py-1 text-xs rounded-full font-medium bg-gray-200 hover:bg-gray-300 text-gray-700';
+      }
+    });
+
+    apiFetch('/api/dashboard/staff-performance/?staff_type=fortune_teller&days=' + days).then(function (raw) {
       var data = useDemo(raw, 'cast', 'staff');
       var staff = data.staff || [];
 
@@ -2763,20 +3089,39 @@ document.addEventListener('DOMContentLoaded', function () {
         }).join('');
       }
     }).catch(function (err) { console.error('Failed to load cast performance:', err); });
-  }
+  };
 
   /* ------------------------------------------------------------------ */
   /*  3c. EC Shop Sales (channel=ec)                                     */
   /* ------------------------------------------------------------------ */
   var ecSalesTrendChart = null;
   var ecTopProductsChart = null;
+  var currentECSalesDays = 30;
 
-  window.loadECSales = function(forceReload) {
-    if (ecSalesLoaded && !forceReload) return;
+  window.loadECSales = function(days) {
+    if (typeof days === 'boolean') days = currentECSalesDays;
+    days = days || 30;
+    currentECSalesDays = days;
     ecSalesLoaded = true;
-    var period = document.getElementById('ec-sales-period').value;
 
-    apiFetch('/api/dashboard/sales/?period=' + period + '&channel=ec').then(function (raw) {
+    var period = days <= 90 ? 'daily' : (days <= 180 ? 'weekly' : 'monthly');
+
+    /* Update title and badge */
+    var titleEl = document.getElementById('ec-sales-chart-title');
+    if (titleEl) titleEl.textContent = 'EC\u30B7\u30E7\u30C3\u30D7 \u58F2\u4E0A\u63A8\u79FB\uFF08\u904E\u53BB' + days + '\u65E5\uFF09';
+    var badgeEl = document.getElementById('ec-sales-days-badge');
+    if (badgeEl) badgeEl.textContent = days + '\u65E5';
+
+    /* Highlight active range button */
+    document.querySelectorAll('.ec-sales-range-btn').forEach(function (btn) {
+      if (parseInt(btn.dataset.days) === days) {
+        btn.className = 'ec-sales-range-btn px-3 py-1 text-xs rounded-full font-medium bg-indigo-500 text-white';
+      } else {
+        btn.className = 'ec-sales-range-btn px-3 py-1 text-xs rounded-full font-medium bg-gray-200 hover:bg-gray-300 text-gray-700';
+      }
+    });
+
+    apiFetch('/api/dashboard/sales/?period=' + period + '&days=' + days + '&channel=ec').then(function (raw) {
       var data = useDemo(raw, 'ec_sales', 'trend');
       var trend = data.trend || [];
       var trendLabels = trend.map(function (d) { return d.date; });
@@ -2801,7 +3146,7 @@ document.addEventListener('DOMContentLoaded', function () {
             tooltip: { callbacks: { label: function (ctx) { return T.sales_prefix + Number(ctx.parsed.y).toLocaleString() + T.yen_suffix; } } }
           },
           scales: {
-            x: { ticks: { maxTicksLimit: 12, maxRotation: 45, font: { size: 10 } } },
+            x: { ticks: { maxTicksLimit: days <= 30 ? 15 : (days <= 90 ? 12 : 10), maxRotation: 45, font: { size: 10 } } },
             y: { beginAtZero: true, ticks: { callback: function (v) { return Number(v).toLocaleString() + T.yen_suffix; } } }
           }
         }
@@ -2833,13 +3178,32 @@ document.addEventListener('DOMContentLoaded', function () {
   /* ------------------------------------------------------------------ */
   var instoreSalesTrendChart = null;
   var instoreTopProductsChart = null;
+  var currentInstoreSalesDays = 30;
 
-  window.loadInstoreSales = function(forceReload) {
-    if (instoreSalesLoaded && !forceReload) return;
+  window.loadInstoreSales = function(days) {
+    if (typeof days === 'boolean') days = currentInstoreSalesDays;
+    days = days || 30;
+    currentInstoreSalesDays = days;
     instoreSalesLoaded = true;
-    var period = document.getElementById('instore-sales-period').value;
 
-    apiFetch('/api/dashboard/sales/?period=' + period + '&channel=pos,table').then(function (raw) {
+    var period = days <= 90 ? 'daily' : (days <= 180 ? 'weekly' : 'monthly');
+
+    /* Update title and badge */
+    var titleEl = document.getElementById('instore-sales-chart-title');
+    if (titleEl) titleEl.textContent = '\u5E97\u5185\u30E1\u30CB\u30E5\u30FC \u58F2\u4E0A\u63A8\u79FB\uFF08\u904E\u53BB' + days + '\u65E5\uFF09';
+    var badgeEl = document.getElementById('instore-sales-days-badge');
+    if (badgeEl) badgeEl.textContent = days + '\u65E5';
+
+    /* Highlight active range button */
+    document.querySelectorAll('.instore-sales-range-btn').forEach(function (btn) {
+      if (parseInt(btn.dataset.days) === days) {
+        btn.className = 'instore-sales-range-btn px-3 py-1 text-xs rounded-full font-medium bg-indigo-500 text-white';
+      } else {
+        btn.className = 'instore-sales-range-btn px-3 py-1 text-xs rounded-full font-medium bg-gray-200 hover:bg-gray-300 text-gray-700';
+      }
+    });
+
+    apiFetch('/api/dashboard/sales/?period=' + period + '&days=' + days + '&channel=pos,table').then(function (raw) {
       var data = useDemo(raw, 'instore_sales', 'trend');
       var trend = data.trend || [];
       var trendLabels = trend.map(function (d) { return d.date; });
@@ -2864,7 +3228,7 @@ document.addEventListener('DOMContentLoaded', function () {
             tooltip: { callbacks: { label: function (ctx) { return T.sales_prefix + Number(ctx.parsed.y).toLocaleString() + T.yen_suffix; } } }
           },
           scales: {
-            x: { ticks: { maxTicksLimit: 12, maxRotation: 45, font: { size: 10 } } },
+            x: { ticks: { maxTicksLimit: days <= 30 ? 15 : (days <= 90 ? 12 : 10), maxRotation: 45, font: { size: 10 } } },
             y: { beginAtZero: true, ticks: { callback: function (v) { return Number(v).toLocaleString() + T.yen_suffix; } } }
           }
         }
@@ -2918,6 +3282,43 @@ document.addEventListener('DOMContentLoaded', function () {
     }
     panel.innerHTML = html;
   }
+
+  /* ------------------------------------------------------------------ */
+  /*  AI Analysis request (button-triggered)                             */
+  /* ------------------------------------------------------------------ */
+  var AI_PANEL_MAP = {
+    menu_engineering: 'sales-ai-menu-eng',
+    abc_analysis: 'sales-ai-abc',
+    forecast: 'sales-ai-forecast',
+    heatmap: 'sales-ai-heatmap',
+    aov: 'sales-ai-aov'
+  };
+
+  window.requestAIAnalysis = function(analysisType) {
+    var panelId = AI_PANEL_MAP[analysisType];
+    if (!panelId) return;
+    var panel = document.getElementById(panelId);
+    if (!panel) return;
+
+    // Show loading state
+    panel.style.display = 'block';
+    panel.innerHTML = '<div class="flex items-center gap-2">'
+      + '<svg class="animate-spin" style="width:16px;height:16px;color:rgb(99,102,241);" fill="none" viewBox="0 0 24 24">'
+      + '<circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>'
+      + '<path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>'
+      + '</svg>'
+      + '<span class="text-sm text-gray-500">' + T.analyzing + '</span></div>';
+
+    apiFetch('/api/dashboard/analysis-text/?type=' + analysisType).then(function(data) {
+      if (data && data.summary) {
+        renderAnalysisTextPanel(panelId, data);
+      } else {
+        panel.innerHTML = '<p class="text-sm text-gray-400">' + T.no_data + '</p>';
+      }
+    }).catch(function() {
+      panel.innerHTML = '<p class="text-sm text-rose-500">' + T.data_fetch_error + '</p>';
+    });
+  };
 
   function renderMenuEngGeneric(prefix, canvasId, tableContainerId, data, aiPanelId) {
     var products = data.products || [];
@@ -3110,21 +3511,16 @@ document.addEventListener('DOMContentLoaded', function () {
   function createAnalysisSuite(config) {
     // config: {prefix, channelParam, color, label}
     var loaded = {};
+    var demoBank = ANALYSIS_DEMO[config.prefix] || {};
     return {
       loadMenuEng: function() {
         if (loaded.menuEng) return;
         loaded.menuEng = true;
         apiFetch('/api/dashboard/menu-engineering/?channel=' + config.channelParam).then(function(data) {
           var products = data.products || [];
-          // Demo if empty
+          // Demo if empty — use channel-specific data from ANALYSIS_DEMO
           if (products.length === 0) {
-            data = {avg_popularity: 60, avg_margin: 0.35, products: [
-              {name:'商品A', qty_sold:120, margin_rate:0.45, revenue:48000, quadrant:'star'},
-              {name:'商品B', qty_sold:80, margin_rate:0.50, revenue:32000, quadrant:'star'},
-              {name:'商品C', qty_sold:65, margin_rate:0.25, revenue:19500, quadrant:'plowhorse'},
-              {name:'商品D', qty_sold:30, margin_rate:0.55, revenue:15000, quadrant:'puzzle'},
-              {name:'商品E', qty_sold:25, margin_rate:0.20, revenue:7500, quadrant:'dog'}
-            ]};
+            data = demoBank.menuEng || {avg_popularity: 60, avg_margin: 0.35, products: []};
           }
           renderMenuEngGeneric(config.prefix, config.prefix + 'MenuEngChart', config.prefix + '-menu-eng-table', data);
           apiFetch('/api/dashboard/analysis-text/?type=menu_engineering&channel=' + config.channelParam).then(function(t) { renderAnalysisTextPanel(config.prefix + '-ai-menu-eng', t); }).catch(function(){});
@@ -3136,13 +3532,7 @@ document.addEventListener('DOMContentLoaded', function () {
         apiFetch('/api/dashboard/abc-analysis/?channel=' + config.channelParam).then(function(data) {
           var products = data.products || [];
           if (products.length === 0) {
-            data = {total_revenue: 120000, products: [
-              {name:'商品A', revenue:42000, share_pct:35.0, cumulative_pct:35.0, rank:'A'},
-              {name:'商品B', revenue:30000, share_pct:25.0, cumulative_pct:60.0, rank:'A'},
-              {name:'商品C', revenue:24000, share_pct:20.0, cumulative_pct:80.0, rank:'A'},
-              {name:'商品D', revenue:15000, share_pct:12.5, cumulative_pct:92.5, rank:'B'},
-              {name:'商品E', revenue:9000, share_pct:7.5, cumulative_pct:100.0, rank:'C'}
-            ]};
+            data = demoBank.abc || {total_revenue: 0, products: []};
           }
           renderABCGeneric(config.prefix, config.prefix + 'AbcChart', config.prefix + '-abc-table', data);
           apiFetch('/api/dashboard/analysis-text/?type=abc_analysis&channel=' + config.channelParam).then(function(t) { renderAnalysisTextPanel(config.prefix + '-ai-abc', t); }).catch(function(){});
@@ -3155,10 +3545,14 @@ document.addEventListener('DOMContentLoaded', function () {
           var hist = data.historical || [];
           var fc = data.forecast || [];
           if (hist.length === 0 && fc.length === 0) {
-            var now = new Date();
-            for (var i=29;i>=0;i--){var d=new Date(now);d.setDate(d.getDate()-i); hist.push({date:d.toISOString().slice(0,10), revenue:Math.floor(Math.random()*30000)+10000});}
-            for (var j=1;j<=14;j++){var fd=new Date(now);fd.setDate(fd.getDate()+j);var pred=20000+Math.floor(Math.random()*10000); fc.push({date:fd.toISOString().slice(0,10), predicted:pred, lower:Math.round(pred*0.7), upper:Math.round(pred*1.3)});}
-            data = {historical:hist, forecast:fc, method:'moving_average'};
+            if (typeof demoBank.forecast === 'function') {
+              data = demoBank.forecast();
+            } else {
+              var now = new Date();
+              for (var i=29;i>=0;i--){var d=new Date(now);d.setDate(d.getDate()-i); hist.push({date:d.toISOString().slice(0,10), revenue:Math.floor(Math.random()*30000)+10000});}
+              for (var j=1;j<=14;j++){var fd=new Date(now);fd.setDate(fd.getDate()+j);var pred=20000+Math.floor(Math.random()*10000); fc.push({date:fd.toISOString().slice(0,10), predicted:pred, lower:Math.round(pred*0.7), upper:Math.round(pred*1.3)});}
+              data = {historical:hist, forecast:fc, method:'moving_average'};
+            }
           }
           renderForecastGeneric(config.prefix + 'ForecastChart', config.prefix + '-forecast-method', data);
           apiFetch('/api/dashboard/analysis-text/?type=forecast&channel=' + config.channelParam).then(function(t) { renderAnalysisTextPanel(config.prefix + '-ai-forecast', t); }).catch(function(){});
@@ -3170,11 +3564,15 @@ document.addEventListener('DOMContentLoaded', function () {
         apiFetch('/api/dashboard/sales-heatmap/?channel=' + config.channelParam).then(function(data) {
           var heatmap = data.heatmap || [];
           if (heatmap.length === 0) {
-            for (var wd=1;wd<=7;wd++) for (var hr=0;hr<24;hr++){
-              var base=(hr>=11&&hr<=14)||(hr>=17&&hr<=22)?10000:1500; if(wd>=6)base*=1.3;
-              heatmap.push({weekday:wd, hour:hr, revenue:Math.floor(base+Math.random()*8000), orders:Math.floor(Math.random()*8)});
+            if (typeof demoBank.heatmap === 'function') {
+              data = demoBank.heatmap();
+            } else {
+              for (var wd=1;wd<=7;wd++) for (var hr=0;hr<24;hr++){
+                var base=(hr>=11&&hr<=14)||(hr>=17&&hr<=22)?10000:1500; if(wd>=6)base*=1.3;
+                heatmap.push({weekday:wd, hour:hr, revenue:Math.floor(base+Math.random()*8000), orders:Math.floor(Math.random()*8)});
+              }
+              data = {heatmap: heatmap};
             }
-            data = {heatmap: heatmap};
           }
           renderHeatmapGeneric(config.prefix + 'HeatmapChart', data);
           apiFetch('/api/dashboard/analysis-text/?type=heatmap&channel=' + config.channelParam).then(function(t) { renderAnalysisTextPanel(config.prefix + '-ai-heatmap', t); }).catch(function(){});
@@ -3188,12 +3586,16 @@ document.addEventListener('DOMContentLoaded', function () {
         apiFetch('/api/dashboard/aov-trend/?period=' + period + '&channel=' + config.channelParam).then(function(data) {
           var trend = data.trend || [];
           if (trend.length === 0) {
-            var now = new Date();
-            for (var i=29;i>=0;i--){var d=new Date(now);d.setDate(d.getDate()-i);
-              var aov=1200+Math.floor(Math.random()*800);
-              trend.push({date:d.toISOString().slice(0,10), aov:aov, order_count:Math.floor(Math.random()*15)+3, total_revenue:aov*(Math.floor(Math.random()*15)+3)});
+            if (typeof demoBank.aov === 'function') {
+              data = demoBank.aov(period);
+            } else {
+              var now = new Date();
+              for (var i=29;i>=0;i--){var d=new Date(now);d.setDate(d.getDate()-i);
+                var aov=1200+Math.floor(Math.random()*800);
+                trend.push({date:d.toISOString().slice(0,10), aov:aov, order_count:Math.floor(Math.random()*15)+3, total_revenue:aov*(Math.floor(Math.random()*15)+3)});
+              }
+              data = {trend:trend, period:period};
             }
-            data = {trend:trend, period:period};
           }
           renderAOVGeneric(config.prefix + 'AovChart', data);
           apiFetch('/api/dashboard/analysis-text/?type=aov&channel=' + config.channelParam).then(function(t) { renderAnalysisTextPanel(config.prefix + '-ai-aov', t); }).catch(function(){});
@@ -3281,17 +3683,25 @@ document.addEventListener('DOMContentLoaded', function () {
   /* ------------------------------------------------------------------ */
   function loadOperations() {
     // 来客データ
-    apiFetch('/api/analytics/visitors/?range=today').then(function (data) {
+    apiFetch('/api/analytics/visitors/?range=today').then(function (raw) {
+      var records = (raw && raw.data) ? raw.data : (Array.isArray(raw) ? raw : []);
+      if (records.length === 0) records = DEMO.visitor_analytics.data;
       var total = 0;
-      (data.data || []).forEach(function (d) { total += (d.estimated_visitors || 0); });
+      records.forEach(function (d) { total += (d.estimated_visitors || 0); });
       document.getElementById('ops-visitors-today').textContent = total;
-      var orders = 0;
-      (data.data || []).forEach(function (d) { orders += (d.order_count || 0); });
-      var conv = total > 0 ? ((orders / total) * 100).toFixed(1) : '0.0';
+      var orderCount = 0;
+      records.forEach(function (d) { orderCount += (d.order_count || 0); });
+      var conv = total > 0 ? ((orderCount / total) * 100).toFixed(1) : '0.0';
       document.getElementById('ops-conversion').textContent = conv + '%';
     }).catch(function () {
-      document.getElementById('ops-visitors-today').textContent = '42';
-      document.getElementById('ops-conversion').textContent = '68.5%';
+      var demoVis = DEMO.visitor_analytics.data;
+      var total = 0;
+      demoVis.forEach(function (d) { total += (d.estimated_visitors || 0); });
+      document.getElementById('ops-visitors-today').textContent = total;
+      var orderCount = 0;
+      demoVis.forEach(function (d) { orderCount += (d.order_count || 0); });
+      var conv = total > 0 ? ((orderCount / total) * 100).toFixed(1) : '0.0';
+      document.getElementById('ops-conversion').textContent = conv + '%';
     });
 
     // AI推薦
@@ -3311,8 +3721,9 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 
     // 進行中注文
-    apiFetch('/api/pos/orders/?status=open').then(function (data) {
-      var orders = data.orders || [];
+    apiFetch('/api/pos/orders/?status=open').then(function (raw) {
+      var orders = (raw && raw.orders) ? raw.orders : (Array.isArray(raw) ? raw : []);
+      if (orders.length === 0) orders = DEMO.active_orders.orders;
       var open = 0, preparing = 0, served = 0;
       orders.forEach(function (o) {
         (o.items || []).forEach(function (item) {
@@ -3325,9 +3736,18 @@ document.addEventListener('DOMContentLoaded', function () {
       document.getElementById('ops-orders-preparing').textContent = preparing;
       document.getElementById('ops-orders-served').textContent = served;
     }).catch(function () {
-      document.getElementById('ops-orders-open').textContent = '3';
-      document.getElementById('ops-orders-preparing').textContent = '5';
-      document.getElementById('ops-orders-served').textContent = '12';
+      var demoOrders = DEMO.active_orders.orders;
+      var open = 0, preparing = 0, served = 0;
+      demoOrders.forEach(function (o) {
+        (o.items || []).forEach(function (item) {
+          if (item.status === 'ordered') open++;
+          else if (item.status === 'preparing') preparing++;
+          else if (item.status === 'served') served++;
+        });
+      });
+      document.getElementById('ops-orders-open').textContent = open;
+      document.getElementById('ops-orders-preparing').textContent = preparing;
+      document.getElementById('ops-orders-served').textContent = served;
     });
 
     // 在庫アラート
@@ -3340,32 +3760,64 @@ document.addEventListener('DOMContentLoaded', function () {
       .then(function (data) {
         var items = data.products || [];
         var container = document.getElementById('ops-low-stock');
+        var badges = document.getElementById('ops-stock-badges');
         if (items.length === 0) {
           container.innerHTML = '<p class="text-emerald-500 text-sm text-center font-medium">' + T.no_stock_alerts + '</p>';
+          badges.innerHTML = '';
         } else {
+          var criticalCount = items.filter(function (p) { return p.stock <= 0; }).length;
+          var warningCount = items.filter(function (p) { return p.stock > 0; }).length;
+          var badgeHtml = '';
+          if (criticalCount > 0) {
+            badgeHtml += '<span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-bold bg-rose-600 text-white">' + T.stock_critical + ' ' + criticalCount + '</span> ';
+          }
+          if (warningCount > 0) {
+            badgeHtml += '<span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-bold bg-amber-500 text-white">' + T.stock_warning + ' ' + warningCount + '</span>';
+          }
+          badges.innerHTML = badgeHtml;
           container.innerHTML = items.map(function (p) {
+            var isCritical = p.stock <= 0;
             var pct = p.low_stock_threshold > 0 ? Math.round((p.stock / p.low_stock_threshold) * 100) : 0;
-            var color = pct <= 50 ? 'bg-rose-500' : 'bg-amber-400';
-            return '<div class="flex items-center gap-3 p-2 border border-gray-100 rounded-lg">'
+            var barColor = isCritical ? 'bg-rose-600' : 'bg-amber-400';
+            var bgColor = isCritical ? 'bg-rose-50 border-rose-300' : 'bg-amber-50 border-amber-200';
+            var label = isCritical ? T.stock_critical : T.remaining + ' ' + p.stock;
+            var labelColor = isCritical ? 'text-rose-600 font-bold' : 'text-gray-500';
+            return '<div class="flex items-center gap-3 p-2 border rounded-lg ' + bgColor + '">'
               + '<span class="text-sm font-medium flex-1">' + escapeHtml(p.name) + '</span>'
-              + '<span class="text-xs text-gray-500">' + T.remaining + ' ' + p.stock + '</span>'
-              + '<div class="w-20 h-2 bg-gray-200 rounded-full"><div class="h-2 rounded-full ' + color + '" style="width:' + Math.min(pct, 100) + '%"></div></div>'
+              + '<span class="text-xs ' + labelColor + '">' + label + '</span>'
+              + '<div class="w-20 h-2 bg-gray-200 rounded-full"><div class="h-2 rounded-full ' + barColor + '" style="width:' + Math.min(pct, 100) + '%"></div></div>'
               + '</div>';
           }).join('');
         }
       }).catch(function () {
         var demoStock = [
-          {name: 'ミントフレーバー', stock: 3, low_stock_threshold: 10},
+          {name: 'ミントフレーバー', stock: 0, low_stock_threshold: 10},
           {name: 'チャイスパイス', stock: 5, low_stock_threshold: 15},
           {name: '紙コップ (M)', stock: 12, low_stock_threshold: 50}
         ];
-        document.getElementById('ops-low-stock').innerHTML = demoStock.map(function(p) {
+        var container = document.getElementById('ops-low-stock');
+        var badges = document.getElementById('ops-stock-badges');
+        var criticalCount = demoStock.filter(function (p) { return p.stock <= 0; }).length;
+        var warningCount = demoStock.filter(function (p) { return p.stock > 0; }).length;
+        var badgeHtml = '';
+        if (criticalCount > 0) {
+          badgeHtml += '<span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-bold bg-rose-600 text-white">' + T.stock_critical + ' ' + criticalCount + '</span> ';
+        }
+        if (warningCount > 0) {
+          badgeHtml += '<span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-bold bg-amber-500 text-white">' + T.stock_warning + ' ' + warningCount + '</span>';
+        }
+        badges.innerHTML = badgeHtml;
+        container.innerHTML = demoStock.map(function(p) {
+          var isCritical = p.stock <= 0;
           var pct = p.low_stock_threshold > 0 ? Math.round((p.stock / p.low_stock_threshold) * 100) : 0;
-          var color = pct <= 50 ? 'bg-rose-500' : 'bg-amber-400';
-          return '<div class="flex items-center gap-3 p-2 border border-gray-100 rounded-lg">'
+          var barColor = isCritical ? 'bg-rose-600' : 'bg-amber-400';
+          var bgColor = isCritical ? 'bg-rose-50 border-rose-300' : 'bg-amber-50 border-amber-200';
+          var label = isCritical ? T.stock_critical : '残 ' + p.stock;
+          var labelColor = isCritical ? 'text-rose-600 font-bold' : 'text-gray-500';
+          return '<div class="flex items-center gap-3 p-2 border rounded-lg ' + bgColor + '">'
             + '<span class="text-sm font-medium flex-1">' + escapeHtml(p.name) + '</span>'
-            + '<span class="text-xs text-gray-500">残 ' + p.stock + '</span>'
-            + '<div class="w-20 h-2 bg-gray-200 rounded-full"><div class="h-2 rounded-full ' + color + '" style="width:' + Math.min(pct, 100) + '%"></div></div>'
+            + '<span class="text-xs ' + labelColor + '">' + label + '</span>'
+            + '<div class="w-20 h-2 bg-gray-200 rounded-full"><div class="h-2 rounded-full ' + barColor + '" style="width:' + Math.min(pct, 100) + '%"></div></div>'
             + '</div>';
         }).join('');
       });
@@ -3683,98 +4135,132 @@ document.addEventListener('DOMContentLoaded', function () {
   var checkinDailyChart = null;
   var checkinStaffChart = null;
   var checkinHourlyChart = null;
+  var currentCheckinDays = 30;
 
-  function loadCheckinStats() {
-    if (checkinLoaded) return;
+  window.loadCheckinStats = function(days) {
+    days = days || 30;
+    currentCheckinDays = days;
     checkinLoaded = true;
-    fetch('/api/dashboard/checkin-stats/?days=30', { headers: { 'X-CSRFToken': csrfToken } })
+
+    /* Update title and badge */
+    var titleEl = document.getElementById('checkin-chart-title');
+    if (titleEl) titleEl.textContent = '\u65E5\u5225\u30C1\u30A7\u30C3\u30AF\u30A4\u30F3\u63A8\u79FB\uFF08\u904E\u53BB' + days + '\u65E5\uFF09';
+    var badgeEl = document.getElementById('checkin-days-badge');
+    if (badgeEl) badgeEl.textContent = days + '\u65E5';
+
+    /* Highlight active range button */
+    document.querySelectorAll('.checkin-range-btn').forEach(function (btn) {
+      if (parseInt(btn.dataset.days) === days) {
+        btn.className = 'checkin-range-btn px-3 py-1 text-xs rounded-full font-medium bg-indigo-500 text-white';
+      } else {
+        btn.className = 'checkin-range-btn px-3 py-1 text-xs rounded-full font-medium bg-gray-200 hover:bg-gray-300 text-gray-700';
+      }
+    });
+
+    function renderCheckin(data) {
+      // Summary
+      var s = data.summary;
+      document.getElementById('ci-total').textContent = s.total;
+      document.getElementById('ci-checked').textContent = s.checked_in;
+      document.getElementById('ci-noshow').textContent = s.no_show;
+      document.getElementById('ci-rate').textContent = (s.checkin_rate * 100).toFixed(1) + '%';
+
+      // Filter daily to requested days
+      var dailyData = data.daily || [];
+      if (dailyData.length > days) {
+        dailyData = dailyData.slice(dailyData.length - days);
+      }
+
+      // Daily chart
+      if (dailyData.length > 0) {
+        if (checkinDailyChart) checkinDailyChart.destroy();
+        var ctx = document.getElementById('checkinDailyChart').getContext('2d');
+        checkinDailyChart = new Chart(ctx, {
+          type: 'bar',
+          data: {
+            labels: dailyData.map(function(d) { return d.date; }),
+            datasets: [
+              {
+                label: T.checkin_label,
+                data: dailyData.map(function(d) { return d.checked_in; }),
+                backgroundColor: 'rgba(16,185,129,0.7)',
+              },
+              {
+                label: T.noshow_label,
+                data: dailyData.map(function(d) { return d.no_show; }),
+                backgroundColor: 'rgba(244,63,94,0.7)',
+              }
+            ]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+              x: { stacked: true, ticks: { maxTicksLimit: days <= 30 ? 15 : (days <= 90 ? 12 : 10), maxRotation: 45, font: { size: 10 } } },
+              y: { stacked: true, beginAtZero: true }
+            },
+            plugins: { legend: { display: true } },
+          }
+        });
+      }
+
+      // Staff chart
+      if (data.by_staff && data.by_staff.length > 0) {
+        if (checkinStaffChart) checkinStaffChart.destroy();
+        var ctx2 = document.getElementById('checkinStaffChart').getContext('2d');
+        checkinStaffChart = new Chart(ctx2, {
+          type: 'bar',
+          data: {
+            labels: data.by_staff.map(function(s) { return s.staff_name; }),
+            datasets: [{
+              label: T.checkin_rate_pct,
+              data: data.by_staff.map(function(s) { return (s.checkin_rate * 100).toFixed(1); }),
+              backgroundColor: 'rgba(99,102,241,0.7)',
+            }]
+          },
+          options: {
+            indexAxis: 'y',
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: { x: { beginAtZero: true, max: 100 } },
+          }
+        });
+      }
+
+      // Hourly chart
+      if (data.hourly && data.hourly.length > 0) {
+        if (checkinHourlyChart) checkinHourlyChart.destroy();
+        var ctx3 = document.getElementById('checkinHourlyChart').getContext('2d');
+        checkinHourlyChart = new Chart(ctx3, {
+          type: 'bar',
+          data: {
+            labels: data.hourly.map(function(h) { return h.hour + ':00'; }),
+            datasets: [{
+              label: T.checkin_count,
+              data: data.hourly.map(function(h) { return h.count; }),
+              backgroundColor: 'rgba(14,165,233,0.7)',
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: { y: { beginAtZero: true } },
+          }
+        });
+      }
+    }
+
+    fetch('/api/dashboard/checkin-stats/?days=' + days, { credentials: 'same-origin', headers: { 'X-CSRFToken': getCookie('csrftoken') || '' } })
       .then(function(r) { return r.json(); })
       .then(function(raw) {
         var data = useDemo(raw, 'checkin', 'summary');
-        // Summary
-        var s = data.summary;
-        document.getElementById('ci-total').textContent = s.total;
-        document.getElementById('ci-checked').textContent = s.checked_in;
-        document.getElementById('ci-noshow').textContent = s.no_show;
-        document.getElementById('ci-rate').textContent = (s.checkin_rate * 100).toFixed(1) + '%';
-
-        // Daily chart
-        if (data.daily && data.daily.length > 0) {
-          if (checkinDailyChart) checkinDailyChart.destroy();
-          var ctx = document.getElementById('checkinDailyChart').getContext('2d');
-          checkinDailyChart = new Chart(ctx, {
-            type: 'bar',
-            data: {
-              labels: data.daily.map(function(d) { return d.date; }),
-              datasets: [
-                {
-                  label: T.checkin_label,
-                  data: data.daily.map(function(d) { return d.checked_in; }),
-                  backgroundColor: 'rgba(16,185,129,0.7)',
-                },
-                {
-                  label: T.noshow_label,
-                  data: data.daily.map(function(d) { return d.no_show; }),
-                  backgroundColor: 'rgba(244,63,94,0.7)',
-                }
-              ]
-            },
-            options: {
-              responsive: true,
-              maintainAspectRatio: false,
-              scales: { x: { stacked: true }, y: { stacked: true, beginAtZero: true } },
-              plugins: { legend: { display: true } },
-            }
-          });
-        }
-
-        // Staff chart
-        if (data.by_staff && data.by_staff.length > 0) {
-          if (checkinStaffChart) checkinStaffChart.destroy();
-          var ctx2 = document.getElementById('checkinStaffChart').getContext('2d');
-          checkinStaffChart = new Chart(ctx2, {
-            type: 'bar',
-            data: {
-              labels: data.by_staff.map(function(s) { return s.staff_name; }),
-              datasets: [{
-                label: T.checkin_rate_pct,
-                data: data.by_staff.map(function(s) { return (s.checkin_rate * 100).toFixed(1); }),
-                backgroundColor: 'rgba(99,102,241,0.7)',
-              }]
-            },
-            options: {
-              indexAxis: 'y',
-              responsive: true,
-              maintainAspectRatio: false,
-              scales: { x: { beginAtZero: true, max: 100 } },
-            }
-          });
-        }
-
-        // Hourly chart
-        if (data.hourly && data.hourly.length > 0) {
-          if (checkinHourlyChart) checkinHourlyChart.destroy();
-          var ctx3 = document.getElementById('checkinHourlyChart').getContext('2d');
-          checkinHourlyChart = new Chart(ctx3, {
-            type: 'bar',
-            data: {
-              labels: data.hourly.map(function(h) { return h.hour + ':00'; }),
-              datasets: [{
-                label: T.checkin_count,
-                data: data.hourly.map(function(h) { return h.count; }),
-                backgroundColor: 'rgba(14,165,233,0.7)',
-              }]
-            },
-            options: {
-              responsive: true,
-              maintainAspectRatio: false,
-              scales: { y: { beginAtZero: true } },
-            }
-          });
-        }
+        renderCheckin(data);
       })
-      .catch(function(e) { console.error('Checkin stats load error:', e); });
-  }
+      .catch(function(e) {
+        console.error('Checkin stats load error:', e);
+        renderCheckin(DEMO.checkin);
+      });
+  };
 
 });
 </script>

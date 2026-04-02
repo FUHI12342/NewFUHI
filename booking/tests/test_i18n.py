@@ -9,6 +9,15 @@ from booking.middleware import ForceLanguageMiddleware
 from booking.models import SiteSettings
 
 
+def _make_request(factory, path='/', cookies=None, **kwargs):
+    """RequestFactory でリクエストを作成し、COOKIES と path_info を設定する。"""
+    request = factory.get(path, **kwargs)
+    request.path_info = path
+    if cookies:
+        request.COOKIES.update(cookies)
+    return request
+
+
 class TestForceLanguageMiddleware(TestCase):
     """ForceLanguageMiddleware が SiteSettings.forced_language に従って言語を切り替えること。"""
 
@@ -17,12 +26,12 @@ class TestForceLanguageMiddleware(TestCase):
         self.middleware = ForceLanguageMiddleware(lambda req: req)
 
     def test_forced_language_overrides_browser(self):
-        """forced_language='en' 設定時はブラウザの Accept-Language を無視する。"""
+        """forced_language='en' 設定時、Cookie/URLプレフィックスがなければ強制適用。"""
         site = SiteSettings.load()
         site.forced_language = 'en'
         site.save()
 
-        request = self.factory.get('/', HTTP_ACCEPT_LANGUAGE='ja')
+        request = _make_request(self.factory, '/', HTTP_ACCEPT_LANGUAGE='ja')
         self.middleware(request)
 
         self.assertEqual(request.LANGUAGE_CODE, 'en')
@@ -34,9 +43,37 @@ class TestForceLanguageMiddleware(TestCase):
         site.forced_language = 'zh-hant'
         site.save()
 
-        request = self.factory.get('/')
+        request = _make_request(self.factory, '/')
         self.middleware(request)
 
+        self.assertEqual(request.LANGUAGE_CODE, 'zh-hant')
+
+    def test_user_cookie_overrides_forced_language(self):
+        """ユーザーが言語スイッチャーで選択した Cookie は forced_language より優先される。"""
+        site = SiteSettings.load()
+        site.forced_language = 'en'
+        site.save()
+
+        request = _make_request(
+            self.factory, '/',
+            cookies={'django_language': 'ja'},
+        )
+        self.middleware(request)
+
+        self.assertEqual(request.LANGUAGE_CODE, 'ja')
+        self.assertEqual(translation.get_language(), 'ja')
+
+    def test_url_prefix_overrides_forced_language(self):
+        """URLプレフィックス（/zh-hant/）は forced_language より優先される。"""
+        site = SiteSettings.load()
+        site.forced_language = 'en'
+        site.save()
+
+        request = _make_request(self.factory, '/zh-hant/some-page/')
+        request.LANGUAGE_CODE = 'zh-hant'
+        self.middleware(request)
+
+        # URLプレフィックスの言語がそのまま維持される
         self.assertEqual(request.LANGUAGE_CODE, 'zh-hant')
 
     def test_empty_forced_language_does_not_override(self):
@@ -46,7 +83,7 @@ class TestForceLanguageMiddleware(TestCase):
         site.save()
 
         translation.activate('ja')
-        request = self.factory.get('/')
+        request = _make_request(self.factory, '/')
         request.LANGUAGE_CODE = 'ja'
         self.middleware(request)
 
@@ -59,11 +96,26 @@ class TestForceLanguageMiddleware(TestCase):
         site.forced_language = 'xx-invalid'
         site.save()
 
-        request = self.factory.get('/')
+        request = _make_request(self.factory, '/')
         request.LANGUAGE_CODE = 'ja'
         # Should not raise
         result = self.middleware(request)
         self.assertIsNotNone(result)
+
+    def test_invalid_cookie_language_uses_forced(self):
+        """不正な Cookie 言語コードの場合は forced_language にフォールバック。"""
+        site = SiteSettings.load()
+        site.forced_language = 'en'
+        site.save()
+
+        request = _make_request(
+            self.factory, '/',
+            cookies={'django_language': 'xx-bogus'},
+        )
+        self.middleware(request)
+
+        self.assertEqual(request.LANGUAGE_CODE, 'en')
+        self.assertEqual(translation.get_language(), 'en')
 
 
 class TestSiteSettingsForcedLanguage(TestCase):

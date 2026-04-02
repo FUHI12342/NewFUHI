@@ -1,4 +1,4 @@
-"""セキュリティ監視ミドルウェア + 言語固定ミドルウェア"""
+"""セキュリティ監視ミドルウェア + 言語固定ミドルウェア + メンテナンスミドルウェア"""
 import threading
 import time
 import logging
@@ -6,16 +6,56 @@ from collections import defaultdict
 
 from django.conf import settings
 from django.http import JsonResponse
+from django.shortcuts import render
 from django.utils import translation
-
-LANGUAGE_SESSION_KEY = '_language'
 
 logger = logging.getLogger(__name__)
 
 
+class MaintenanceMiddleware:
+    """メンテナンスモード中は管理者以外に503を返す。
+    AuthenticationMiddleware の後に配置すること（request.user を参照するため）。"""
+
+    def __init__(self, get_response):
+        self.get_response = get_response
+
+    def __call__(self, request):
+        # 管理者はバイパス
+        if hasattr(request, 'user') and request.user.is_authenticated and request.user.is_staff:
+            return self.get_response(request)
+        # ログインページもバイパス（管理者がログインできるように）
+        if request.path.startswith('/admin/login'):
+            return self.get_response(request)
+        # ヘルスチェックもバイパス（デプロイスクリプトのヘルスチェック用）
+        if request.path == '/healthz':
+            return self.get_response(request)
+
+        try:
+            from booking.models import SiteSettings
+            site_settings = SiteSettings.load()
+        except Exception:
+            return self.get_response(request)
+
+        if site_settings.maintenance_mode:
+            response = render(request, 'maintenance.html', {
+                'message': site_settings.maintenance_message,
+            }, status=503)
+            response['Retry-After'] = '300'
+            return response
+
+        return self.get_response(request)
+
+
 class ForceLanguageMiddleware:
-    """SiteSettings.forced_language が設定されていればその言語を強制適用。
-    URLに言語プレフィックスがある場合はセッションに保存して維持する。
+    """SiteSettings.forced_language をサイトのデフォルト言語として適用。
+    ユーザーが言語スイッチャーで明示的に選択した場合はそちらを優先する。
+
+    優先順位:
+    1. ユーザーの明示的選択（django_language Cookie — set_language ビューが設定）
+    2. URLの言語プレフィックス（/en/、/zh-hant/ など）
+    3. SiteSettings.forced_language（サイトデフォルト）
+    4. Django の LANGUAGE_CODE 設定
+
     LocaleMiddleware の直後に配置。"""
 
     def __init__(self, get_response):
@@ -25,22 +65,28 @@ class ForceLanguageMiddleware:
         try:
             from booking.models import SiteSettings
             site_settings = SiteSettings.load()
-            if site_settings.forced_language:
-                translation.activate(site_settings.forced_language)
-                request.LANGUAGE_CODE = site_settings.forced_language
-                return self.get_response(request)
         except Exception:
-            pass
+            return self.get_response(request)
 
-        # URLプレフィックスから言語を検出した場合、セッションに保存
-        lang_from_url = getattr(request, 'LANGUAGE_CODE', None)
-        if lang_from_url and hasattr(request, 'session'):
-            stored_lang = request.session.get(LANGUAGE_SESSION_KEY)
-            if lang_from_url != settings.LANGUAGE_CODE and lang_from_url != stored_lang:
-                request.session[LANGUAGE_SESSION_KEY] = lang_from_url
-            elif lang_from_url == settings.LANGUAGE_CODE and stored_lang:
-                # デフォルト言語に戻った場合、セッションの言語設定をクリア
-                request.session.pop(LANGUAGE_SESSION_KEY, None)
+        forced_lang = site_settings.forced_language if site_settings else ''
+
+        if forced_lang:
+            # ユーザーが言語スイッチャーで明示的に選択した場合（Cookie）を尊重
+            user_cookie_lang = request.COOKIES.get(settings.LANGUAGE_COOKIE_NAME)
+            # URLの言語プレフィックスも尊重
+            lang_from_path = translation.get_language_from_path(request.path_info)
+
+            if user_cookie_lang and translation.check_for_language(user_cookie_lang):
+                # ユーザーの明示的選択を優先
+                translation.activate(user_cookie_lang)
+                request.LANGUAGE_CODE = user_cookie_lang
+            elif lang_from_path:
+                # URLプレフィックスの言語を優先（LocaleMiddleware で既に設定済み）
+                pass
+            else:
+                # ユーザー選択もURLプレフィックスもない場合、forced_language を適用
+                translation.activate(forced_lang)
+                request.LANGUAGE_CODE = forced_lang
 
         return self.get_response(request)
 

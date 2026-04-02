@@ -185,6 +185,7 @@ class LineCallbackView(View):
                 customer_name=customer_name,
                 hashed_id=hashed_id,
                 staff_id=temporary_booking['staff_id'],
+                store_id=temporary_booking.get('store_id'),
                 is_temporary=True,
                 temporary_booked_at=timezone.now(),
             )
@@ -490,6 +491,7 @@ class EmailVerifyView(View):
             price=temporary_booking['price'],
             customer_name=email_booking['customer_name'],
             staff_id=temporary_booking['staff_id'],
+            store_id=temporary_booking.get('store_id'),
             is_temporary=True,
             temporary_booked_at=timezone.now(),
             booking_channel='email',

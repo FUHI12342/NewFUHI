@@ -1,3 +1,30 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* ====================================================================
+   .text-marquee — Truncated text with hover-triggered marquee scroll.
+   Usage: Add class="text-marquee" to any element containing long text.
+   - Default: truncated with "..." (ellipsis)
+   - On hover: after 2s delay, scrolls left to reveal full content (5s cycle)
+   - max-width can be overridden with inline style or a Tailwind max-w-* class
+   ==================================================================== */
+@layer utilities {
+  .text-marquee {
+    display: block;
+    max-width: 200px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .text-marquee:hover {
+    text-overflow: clip;
+    animation: marquee-scroll 5s linear 2s infinite;
+  }
+}
+
+@keyframes marquee-scroll {
+  0%   { text-indent: 0; }
+  100% { text-indent: -100%; }
+}

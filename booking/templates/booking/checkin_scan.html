@@ -13,6 +13,34 @@
 .tab-btn:not(.active) { border-bottom: 3px solid transparent; color: #6b7280; }
 .tab-panel { display: none; }
 .tab-panel.active { display: block; }
+/* Camera guide modal */
+.modal-overlay {
+    display: none;
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.5);
+    z-index: 1000;
+    align-items: center; justify-content: center;
+}
+.modal-overlay.active { display: flex; }
+.modal-box {
+    background: #fff; border-radius: 12px;
+    max-width: 420px; width: 90%; max-height: 85vh;
+    overflow-y: auto; padding: 1.5rem;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+}
+.guide-step {
+    display: flex; align-items: flex-start; gap: 0.75rem;
+    padding: 0.5rem 0;
+}
+.guide-step .step-num {
+    flex-shrink: 0;
+    width: 24px; height: 24px;
+    background: #8c876c; color: #fff;
+    border-radius: 50%; font-size: 0.75rem;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: bold;
+}
+.guide-step p { font-size: 0.875rem; line-height: 1.5; color: #4a4a4a; }
 </style>
 {% endblock %}
 
@@ -43,6 +71,9 @@
         <div id="reader" class="mb-4 rounded-lg overflow-hidden border border-gray-300"></div>
         <div id="camera-error" style="display:none;" class="bg-yellow-50 border border-yellow-300 rounded-lg p-4 mb-4 text-center">
             <p id="camera-error-message" class="text-yellow-700 text-sm font-medium"></p>
+            <button onclick="showCameraGuide()" class="mt-2 text-sm text-salon-brown underline font-bold">
+                {% trans "カメラの許可方法を見る" %}
+            </button>
         </div>
         <div class="flex justify-center gap-3 mb-4">
             <button id="btn-start-scan" onclick="startScanner()"
@@ -71,6 +102,67 @@
         </div>
     </div>
 </div>
+
+<!-- Camera Permission Guide Modal -->
+<div id="camera-guide-modal" class="modal-overlay" onclick="closeCameraGuide(event)">
+    <div class="modal-box" onclick="event.stopPropagation()">
+        <div class="flex justify-between items-center mb-4">
+            <h3 class="text-lg font-bold text-salon-dark">{% trans "カメラの許可方法" %}</h3>
+            <button onclick="closeCameraGuide()" class="text-gray-400 hover:text-gray-600 text-2xl leading-none">&times;</button>
+        </div>
+
+        <!-- Chrome on mobile -->
+        <div id="guide-chrome-mobile" class="guide-section" style="display:none;">
+            <p class="text-sm font-bold text-salon-brown mb-2">Chrome ({% trans "スマートフォン" %})</p>
+            <div class="guide-step"><span class="step-num">1</span><p>{% trans "URLバーの左側の鍵アイコン（またはサイト情報アイコン）をタップ" %}</p></div>
+            <div class="guide-step"><span class="step-num">2</span><p>{% trans "「権限」をタップ" %}</p></div>
+            <div class="guide-step"><span class="step-num">3</span><p>{% trans "「カメラ」を「許可」に変更" %}</p></div>
+            <div class="guide-step"><span class="step-num">4</span><p>{% trans "ページを再読み込み" %}</p></div>
+        </div>
+
+        <!-- Chrome on PC -->
+        <div id="guide-chrome-pc" class="guide-section" style="display:none;">
+            <p class="text-sm font-bold text-salon-brown mb-2">Chrome (PC)</p>
+            <div class="guide-step"><span class="step-num">1</span><p>{% trans "URLバーの左側の鍵アイコンをクリック" %}</p></div>
+            <div class="guide-step"><span class="step-num">2</span><p>{% trans "「サイトの設定」をクリック" %}</p></div>
+            <div class="guide-step"><span class="step-num">3</span><p>{% trans "「カメラ」を「許可」に変更" %}</p></div>
+            <div class="guide-step"><span class="step-num">4</span><p>{% trans "ページを再読み込み" %}</p></div>
+        </div>
+
+        <!-- Safari on iPhone -->
+        <div id="guide-safari-iphone" class="guide-section" style="display:none;">
+            <p class="text-sm font-bold text-salon-brown mb-2">Safari (iPhone)</p>
+            <div class="guide-step"><span class="step-num">1</span><p>{% trans "iPhoneの「設定」アプリを開く" %}</p></div>
+            <div class="guide-step"><span class="step-num">2</span><p>{% trans "「Safari」→「Webサイトの設定」→「カメラ」" %}</p></div>
+            <div class="guide-step"><span class="step-num">3</span><p>{% trans "「許可」または「確認」に設定" %}</p></div>
+            <div class="guide-step"><span class="step-num">4</span><p>{% trans "Safariに戻ってページを再読み込み" %}</p></div>
+        </div>
+
+        <!-- Safari on Mac -->
+        <div id="guide-safari-mac" class="guide-section" style="display:none;">
+            <p class="text-sm font-bold text-salon-brown mb-2">Safari (Mac)</p>
+            <div class="guide-step"><span class="step-num">1</span><p>{% trans "メニューバーの「Safari」→「設定」を開く" %}</p></div>
+            <div class="guide-step"><span class="step-num">2</span><p>{% trans "「Webサイト」タブ→「カメラ」を選択" %}</p></div>
+            <div class="guide-step"><span class="step-num">3</span><p>{% trans "このサイトを「許可」に設定" %}</p></div>
+            <div class="guide-step"><span class="step-num">4</span><p>{% trans "ページを再読み込み" %}</p></div>
+        </div>
+
+        <!-- Generic fallback -->
+        <div id="guide-generic" class="guide-section" style="display:none;">
+            <p class="text-sm font-bold text-salon-brown mb-2">{% trans "ブラウザ設定" %}</p>
+            <div class="guide-step"><span class="step-num">1</span><p>{% trans "ブラウザの設定画面を開く" %}</p></div>
+            <div class="guide-step"><span class="step-num">2</span><p>{% trans "「プライバシー」または「サイトの設定」からカメラの許可を変更" %}</p></div>
+            <div class="guide-step"><span class="step-num">3</span><p>{% trans "ページを再読み込み" %}</p></div>
+        </div>
+
+        <div class="mt-4 pt-4 border-t border-gray-200">
+            <button onclick="location.reload()"
+                    class="w-full bg-salon-brown text-white px-4 py-3 rounded-lg text-sm font-bold hover:opacity-80 transition">
+                {% trans "ページを再読み込み" %}
+            </button>
+        </div>
+    </div>
+</div>
 {% endblock %}
 
 {% block extra_js %}
@@ -81,6 +173,41 @@ var checkinUrl = '{% url "booking_api:checkin_api" %}';
 var isProcessing = false;
 var html5QrCode = null;
 var scannerRunning = false;
+
+function detectBrowserGuide() {
+    var ua = navigator.userAgent;
+    var isMobile = /Mobi|Android|iPhone|iPad/i.test(ua);
+    var isSafari = /Safari/i.test(ua) && !/Chrome/i.test(ua) && !/CriOS/i.test(ua);
+    var isIPhone = /iPhone/i.test(ua);
+    var isMac = /Macintosh/i.test(ua);
+
+    if (isSafari && isIPhone) return 'safari-iphone';
+    if (isSafari && isMac) return 'safari-mac';
+    if (isMobile) return 'chrome-mobile';
+    return 'chrome-pc';
+}
+
+function showCameraGuide() {
+    var guideType = detectBrowserGuide();
+    document.querySelectorAll('.guide-section').forEach(function(el) { el.style.display = 'none'; });
+
+    var guideMap = {
+        'chrome-mobile': 'guide-chrome-mobile',
+        'chrome-pc': 'guide-chrome-pc',
+        'safari-iphone': 'guide-safari-iphone',
+        'safari-mac': 'guide-safari-mac',
+    };
+    var el = document.getElementById(guideMap[guideType] || 'guide-generic');
+    if (el) el.style.display = 'block';
+    else document.getElementById('guide-generic').style.display = 'block';
+
+    document.getElementById('camera-guide-modal').classList.add('active');
+}
+
+function closeCameraGuide(event) {
+    if (event && event.target !== event.currentTarget) return;
+    document.getElementById('camera-guide-modal').classList.remove('active');
+}
 
 function switchTab(tab) {
     document.querySelectorAll('.tab-btn').forEach(function(btn, i) {
@@ -150,7 +277,8 @@ function startScanner() {
 
         var errStr = String(err);
         if (errStr.indexOf('NotAllowedError') !== -1 || errStr.indexOf('Permission') !== -1) {
-            showCameraError('{% trans "カメラへのアクセスが許可されていません。ブラウザの設定からカメラの使用を許可してください。" %}');
+            showCameraError('{% trans "カメラへのアクセスが許可されていません。" %}');
+            showCameraGuide();
         } else if (errStr.indexOf('NotFoundError') !== -1 || errStr.indexOf('DevicesNotFound') !== -1) {
             showCameraError('{% trans "カメラが見つかりません。カメラ付きデバイスでお試しください。" %}');
         } else if (errStr.indexOf('NotReadableError') !== -1 || errStr.indexOf('TrackStartError') !== -1) {
@@ -242,6 +370,21 @@ document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('backup-code-input').addEventListener('keydown', function(e) {
         if (e.key === 'Enter') doBackupCheckin();
     });
+
+    // Pre-check camera permission state
+    if (navigator.permissions && navigator.permissions.query) {
+        navigator.permissions.query({ name: 'camera' }).then(function(status) {
+            if (status.state === 'denied') {
+                showCameraError('{% trans "カメラへのアクセスがブロックされています。" %}');
+                showCameraGuide();
+            } else if (status.state === 'granted') {
+                startScanner();
+            }
+            // 'prompt' = first time, leave button visible
+        }).catch(function() {
+            // permissions.query not supported for camera (e.g. Safari)
+        });
+    }
 });
 </script>
 {% endblock %}

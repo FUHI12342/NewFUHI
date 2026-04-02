@@ -41,7 +41,7 @@
                 </div>
                 {% endif %}
                 <div class="min-w-0 flex-1">
-                    <p class="font-bold text-salon-dark truncate">{{ staff.name }}</p>
+                    <p class="font-bold text-salon-dark text-marquee" style="max-width:100%">{{ staff.name }}</p>
                     <p class="text-xs text-gray-500">{{ staff.store.name }}</p>
                     <p class="text-xs text-salon-brown">{% trans "予約数" %}: {{ staff.reservation_count }}{% trans "件" %}</p>
                 </div>
@@ -72,7 +72,7 @@
                 </div>
                 {% endif %}
                 <div class="min-w-0 flex-1">
-                    <p class="font-bold text-salon-dark truncate">{{ store.name }}</p>
+                    <p class="font-bold text-salon-dark text-marquee" style="max-width:100%">{{ store.name }}</p>
                     <p class="text-xs text-gray-500">{{ store.address }}</p>
                     <p class="text-xs text-salon-brown">{% trans "予約数" %}: {{ store.reservation_count }}{% trans "件" %}</p>
                 </div>
@@ -96,7 +96,7 @@
                 </div>
                 {% endif %}
                 <div class="min-w-0 flex-1">
-                    <p class="font-bold text-salon-dark truncate">{{ staff.name }}</p>
+                    <p class="font-bold text-salon-dark text-marquee" style="max-width:100%">{{ staff.name }}</p>
                     <p class="text-xs text-gray-500">{{ staff.store.name }}</p>
                     <span class="inline-block mt-1 px-2 py-0.5 text-xs bg-rose-100 text-rose-600 rounded-full">{% blocktrans with staff_label=staff_label %}おすすめ{{ staff_label }}{% endblocktrans %}</span>
                 </div>
@@ -114,7 +114,7 @@
                 </div>
                 {% endif %}
                 <div class="min-w-0 flex-1">
-                    <p class="font-bold text-salon-dark truncate">{{ store.name }}</p>
+                    <p class="font-bold text-salon-dark text-marquee" style="max-width:100%">{{ store.name }}</p>
                     <p class="text-xs text-gray-500">{{ store.address }}</p>
                     <span class="inline-block mt-1 px-2 py-0.5 text-xs bg-amber-100 text-amber-700 rounded-full">{% trans "おすすめ店舗" %}</span>
                 </div>

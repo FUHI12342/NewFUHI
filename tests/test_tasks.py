@@ -176,11 +176,11 @@ class TestCheckLowStockAndNotify:
         assert product.last_low_stock_notified_at is not None
 
     @pytest.mark.django_db
-    def test_skips_if_notified_within_24h(self, product):
-        """Skips notification if notified within the last 24 hours."""
+    def test_skips_if_notified_within_cooldown(self, product):
+        """Skips notification if notified within the cooldown period (4h)."""
         product.stock = 5
         product.low_stock_threshold = 10
-        product.last_low_stock_notified_at = timezone.now() - timedelta(hours=12)
+        product.last_low_stock_notified_at = timezone.now() - timedelta(hours=2)
         product.save()
 
         with patch('booking.tasks.send_line_notify', return_value=True) as mock_notify:

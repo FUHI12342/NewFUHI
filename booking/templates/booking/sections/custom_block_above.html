@@ -1,4 +1,6 @@
 {% load i18n %}
+{# HIDDEN: 初回限定キャンペーン — デザイン改善後に再有効化 (2026-04-02) #}
+{% comment %}
 <!-- Custom Blocks: Above Cards -->
 {% for block in custom_blocks_above %}
 <div class="mb-6">
@@ -6,3 +8,4 @@
     <div class="prose max-w-none">{{ block.content|safe }}</div>
 </div>
 {% endfor %}
+{% endcomment %}

@@ -592,16 +592,40 @@
     text-overflow: ellipsis;
     white-space: nowrap;
 }
-/* 長いテキストセルにホバーでフル表示 */
-#result_list td:hover {
-    overflow: visible;
-    white-space: normal;
-    word-break: break-all;
+/*
+ * 長いテキストセルにホバーでマーキースクロール表示
+ * admin_marquee.js が溢れているセルに .admin-marquee-ready を付与し、
+ * 内部テキストを <span class="admin-marquee-inner"> で囲む。
+ * ホバー時: 2秒の静止後 → 5秒かけて左にスクロールを繰り返す。
+ */
+#result_list td.admin-marquee-ready {
+    cursor: default;
+}
+#result_list td.admin-marquee-ready .admin-marquee-inner {
+    display: inline-block;
+    white-space: nowrap;
+    padding-right: 2em; /* スクロール終端の余白 */
+}
+#result_list td.admin-marquee-ready:hover {
+    text-overflow: clip;
+}
+#result_list td.admin-marquee-ready:hover .admin-marquee-inner {
+    animation: admin-marquee-scroll 5s linear 2s infinite;
+}
+/* ホバーしていないときはリセット */
+#result_list td.admin-marquee-ready .admin-marquee-inner {
+    animation: none;
 }
 /* 編集可能フィールド（input/checkbox）は省略しない */
 #result_list td input,
 #result_list td select {
     white-space: normal;
+}
+
+/* ---- 管理画面: マーキースクロール キーフレーム ---- */
+@keyframes admin-marquee-scroll {
+    0%   { transform: translateX(0); }
+    100% { transform: translateX(-100%); }
 }
 
 /* ---- 管理画面共通: 右カラム保存ボタンをsticky化 ---- */

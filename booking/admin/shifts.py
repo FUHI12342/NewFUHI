@@ -28,6 +28,7 @@ class ShiftRequestInline(admin.TabularInline):
 class ShiftAssignmentInline(admin.TabularInline):
     model = ShiftAssignment
     extra = 0
+    fields = ('staff', 'date', 'start_hour', 'end_hour', 'start_time', 'end_time', 'store', 'color', 'note')
 
 
 class ShiftPeriodAdmin(admin.ModelAdmin):
@@ -90,7 +91,8 @@ class ShiftRequestAdmin(admin.ModelAdmin):
 
 
 class ShiftAssignmentAdmin(admin.ModelAdmin):
-    list_display = ('period', 'staff', 'date', 'start_hour', 'end_hour', 'is_synced')
+    list_display = ('period', 'staff', 'date', 'start_hour', 'end_hour', 'store', 'is_synced')
+    list_filter = ('store',)
 
     search_fields = ('staff__name',)
 

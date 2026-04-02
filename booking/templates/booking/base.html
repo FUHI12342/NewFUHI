@@ -156,7 +156,7 @@
                 {% for notice in notices %}
                 <a href="{% if notice.link %}{{ notice.link }}{% else %}{% url 'booking:notice_detail' notice.slug %}{% endif %}"
                    class="block mb-3 hover:opacity-80 transition">
-                    <p class="text-sm font-medium">◆{{ notice.title }}</p>
+                    <p class="text-sm font-medium text-marquee" style="max-width:100%" title="{{ notice.title }}">◆{{ notice.title }}</p>
                     <p class="text-xs text-gray-500">{% trans "更新日：" %}{{ notice.updated_at|date:"Y/m/d" }}</p>
                 </a>
                 {% empty %}
@@ -210,7 +210,7 @@
 
                 <!-- X(Twitter) タイムライン埋め込み -->
                 {% if site_settings.twitter_url %}
-                <div style="max-height:400px;overflow-y:auto;border:1px solid rgba(140,135,108,0.2);border-radius:8px;">
+                <div class="mb-3" style="max-height:400px;overflow-y:auto;border:1px solid rgba(140,135,108,0.2);border-radius:8px;">
                     <a class="twitter-timeline"
                        data-height="400"
                        data-chrome="noheader nofooter noborders transparent"
@@ -220,7 +220,21 @@
                         {% trans "読み込み中..." %}
                     </a>
                 </div>
+                {% endif %}
+
+                <!-- Instagram 埋め込み -->
+                {% if site_settings.instagram_embed_html %}
+                <div style="max-height:480px;overflow-y:auto;border:1px solid rgba(140,135,108,0.2);border-radius:8px;">
+                    {{ site_settings.instagram_embed_html|safe }}
+                </div>
+                {% endif %}
+
+                <!-- SNS ウィジェットスクリプト（1回だけ読み込み） -->
+                {% if site_settings.twitter_url %}
                 <script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
+                {% endif %}
+                {% if site_settings.instagram_embed_html %}
+                <script async src="//www.instagram.com/embed.js"></script>
                 {% endif %}
             </div>
             {% endif %}
@@ -233,8 +247,8 @@
                 <a href="{{ media.link }}" target="_blank" rel="noopener noreferrer" class="flex items-start gap-2 mb-3 hover:opacity-80 transition">
                     <img src="https://www.google.com/s2/favicons?domain={{ media.link }}" alt="" class="w-5 h-5 mt-0.5 flex-shrink-0">
                     <div>
-                        <p class="text-sm font-medium leading-tight">{{ media.title }}{% if forloop.first %} <span class="inline-block bg-red-500 text-white text-[10px] px-1.5 py-0.5 rounded">NEW</span>{% endif %}</p>
-                        <p class="text-xs text-gray-500 mt-0.5">{{ media.description }}</p>
+                        <p class="text-sm font-medium leading-tight text-marquee" style="max-width:100%" title="{{ media.title }}">{{ media.title }}{% if forloop.first %} <span class="inline-block bg-red-500 text-white text-[10px] px-1.5 py-0.5 rounded">NEW</span>{% endif %}</p>
+                        <p class="text-xs text-gray-500 mt-0.5 text-marquee" style="max-width:100%" title="{{ media.description }}">{{ media.description }}</p>
                     </div>
                 </a>
                 {% endfor %}

@@ -17,8 +17,8 @@
 
         <!-- Card Header -->
         <div class="px-5 pt-5 pb-3 border-b border-gray-100">
-            <h2 class="text-lg font-bold text-salon-dark truncate">{{ property.name }}</h2>
-            <p class="text-sm text-gray-500 mt-0.5 truncate">{{ property.address }}</p>
+            <h2 class="text-lg font-bold text-salon-dark text-marquee" style="max-width:100%" title="{{ property.name }}">{{ property.name }}</h2>
+            <p class="text-sm text-gray-500 mt-0.5 text-marquee" style="max-width:100%" title="{{ property.address }}">{{ property.address }}</p>
             <span class="inline-block mt-2 text-xs font-medium bg-salon-beige text-salon-brown px-2 py-0.5 rounded">
                 {{ property.property_type }}
             </span>

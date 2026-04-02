@@ -21,7 +21,7 @@ logger = logging.getLogger(__name__)
 
 
 class SalesStatsAPIView(DashboardAuthMixin, APIView):
-    """GET /api/dashboard/sales/?period=daily — sales statistics."""
+    """GET /api/dashboard/sales/?period=daily&days=30 — sales statistics."""
 
     def get(self, request):
         store, err = self.get_user_store(request)
@@ -31,7 +31,9 @@ class SalesStatsAPIView(DashboardAuthMixin, APIView):
         period = request.GET.get('period', 'daily')
         trunc_fn = PERIOD_TRUNC_MAP.get(period, PERIOD_TRUNC_MAP['daily'])
         scope = self.build_scope(store, 'order__store')
-        since = _get_since_for_period(period)
+        days_raw = request.GET.get('days')
+        days_override = _clamp_int(days_raw, None, lo=7, hi=365) if days_raw else None
+        since = _get_since_for_period(period, days_override=days_override)
         channel_filter = _parse_channel_filter(request)
 
         trend = (
@@ -245,7 +247,7 @@ class SalesHeatmapAPIView(DashboardAuthMixin, APIView):
 
 
 class AOVTrendAPIView(DashboardAuthMixin, APIView):
-    """GET /api/dashboard/aov-trend/?period=daily — Average Order Value trend."""
+    """GET /api/dashboard/aov-trend/?period=daily&days=30 — Average Order Value trend."""
 
     def get(self, request):
         store, err = self.get_user_store(request)
@@ -255,7 +257,9 @@ class AOVTrendAPIView(DashboardAuthMixin, APIView):
         period = request.GET.get('period', 'daily')
         trunc_fn = PERIOD_TRUNC_MAP.get(period, PERIOD_TRUNC_MAP['daily'])
         scope = self.build_scope(store, 'order__store')
-        since = _get_since_for_period(period)
+        days_raw = request.GET.get('days')
+        days_override = _clamp_int(days_raw, None, lo=7, hi=365) if days_raw else None
+        since = _get_since_for_period(period, days_override=days_override)
         channel_filter = _parse_channel_filter(request)
 
         trend = (
@@ -339,7 +343,9 @@ class ChannelSalesAPIView(DashboardAuthMixin, APIView):
         period = request.GET.get('period', 'daily')
         trunc_fn = PERIOD_TRUNC_MAP.get(period, PERIOD_TRUNC_MAP['daily'])
         scope = self.build_scope(store, 'order__store')
-        since = _get_since_for_period(period)
+        days_raw = request.GET.get('days')
+        days_override = _clamp_int(days_raw, None, lo=7, hi=365) if days_raw else None
+        since = _get_since_for_period(period, days_override=days_override)
 
         settings = SiteSettings.load()
         channels = []

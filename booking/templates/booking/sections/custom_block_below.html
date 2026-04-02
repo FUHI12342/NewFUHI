@@ -1,4 +1,6 @@
 {% load i18n %}
+{# HIDDEN: お客様の声 — テキスト直打ちのため一時非表示 (2026-04-02) #}
+{% comment %}
 <!-- Custom Blocks: Below Cards -->
 {% for block in custom_blocks_below %}
 <div class="mb-6">
@@ -6,3 +8,4 @@
     <div class="prose max-w-none">{{ block.content|safe }}</div>
 </div>
 {% endfor %}
+{% endcomment %}

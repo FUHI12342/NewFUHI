@@ -116,6 +116,10 @@ class SiteSettingsAdmin(admin.ModelAdmin):
             ),
             'description': _('エラー報告やセキュリティイベント発生時のメール・SHANON通知設定'),
         }),
+        (_('メンテナンスモード'), {
+            'fields': ('maintenance_mode', 'maintenance_message'),
+            'description': _('ONにするとログイン済みスタッフ以外にメンテナンス画面を表示します'),
+        }),
         (_('外部埋め込み'), {
             'fields': ('embed_enabled',),
             'description': _('WordPress等の外部サイトからiframeで予約カレンダー・シフト表示を埋め込む機能'),
