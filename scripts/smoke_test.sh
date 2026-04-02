@@ -39,9 +39,11 @@ check_status() {
     local expected="$2"
     local label="$3"
     local auth="${4:-no}"
+    local follow="${5:-yes}"
     local extra=""
 
     [ "$auth" = "auth" ] && extra="-b $COOKIE_JAR"
+    [ "$follow" = "yes" ] && extra="$extra -L"
 
     local status
     status=$(curl -s -o /dev/null -w "%{http_code}" --max-time 10 $extra "$url" 2>/dev/null || echo "000")
@@ -138,7 +140,7 @@ echo ""
 # --- 2. メンテナンスモード確認 ---
 if [ "$MAINTENANCE" = "1" ]; then
     echo "[ メンテナンスモード確認 ]"
-    check_status "${BASE_URL}/" "503" "匿名ユーザー → 503"
+    check_status "${BASE_URL}/" "503" "匿名ユーザー → 503" "no" "no"
     check_status "${BASE_URL}/admin/login/" "200" "管理者ログイン画面 → 200（バイパス）"
     echo ""
 fi
@@ -162,17 +164,17 @@ if [ "$LOGGED_IN" = "1" ]; then
     echo ""
 
     echo "[ 公開ページ（認証済み＝メンテバイパス） ]"
-    check_status "${BASE_URL}/ja/" "200" "予約トップ" "auth"
+    check_status "${BASE_URL}/" "200" "予約トップ" "auth" "yes"
     echo ""
 fi
 
 # --- 4. 管理画面（未認証 → リダイレクト or 503） ---
 if [ "$MAINTENANCE" = "0" ]; then
     echo "[ 管理画面（未認証 → 302リダイレクト） ]"
-    check_status "${BASE_URL}/admin/" "302" "管理画面トップ"
-    check_status "${BASE_URL}/admin/shift/calendar/" "302" "シフトカレンダー"
-    check_status "${BASE_URL}/admin/pos/" "302" "POS"
-    check_status "${BASE_URL}/admin/dashboard/sales/" "302" "売上ダッシュボード"
+    check_status "${BASE_URL}/admin/" "302" "管理画面トップ" "no" "no"
+    check_status "${BASE_URL}/admin/shift/calendar/" "302" "シフトカレンダー" "no" "no"
+    check_status "${BASE_URL}/admin/pos/" "302" "POS" "no" "no"
+    check_status "${BASE_URL}/admin/dashboard/sales/" "302" "売上ダッシュボード" "no" "no"
     echo ""
 fi
 
