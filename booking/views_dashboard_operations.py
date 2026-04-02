@@ -100,16 +100,33 @@ class StaffPerformanceAPIView(DashboardAuthMixin, APIView):
             )
         )
 
+        # OrderItem-based sales (POS/EC orders)
         staff_sales = (
             OrderItem.objects
             .filter(order__created_at__gte=since, order__schedule__staff__in=staffs)
             .values('order__schedule__staff_id')
             .annotate(total=Sum(F('qty') * F('unit_price')))
         )
-        sales_map = {row['order__schedule__staff_id']: row['total'] or 0 for row in staff_sales}
+        order_sales_map = {row['order__schedule__staff_id']: row['total'] or 0 for row in staff_sales}
+
+        # Schedule.price-based sales (booking reservations)
+        schedule_sales = (
+            Schedule.objects
+            .filter(
+                start__gte=since, staff__in=staffs,
+                is_cancelled=False, is_temporary=False,
+            )
+            .values('staff_id')
+            .annotate(total=Sum('price'))
+        )
+        schedule_sales_map = {row['staff_id']: row['total'] or 0 for row in schedule_sales}
 
         result = [
-            {'name': s.name, 'reservations': s.reservation_count, 'sales': sales_map.get(s.id, 0)}
+            {
+                'name': s.name,
+                'reservations': s.reservation_count,
+                'sales': order_sales_map.get(s.id, 0) + schedule_sales_map.get(s.id, 0),
+            }
             for s in staffs
         ]
 

@@ -433,6 +433,27 @@
           </div>
         </div>
       </div>
+      <div class="db-card mt-4">
+        <h3 class="text-lg font-semibold mb-3">{% trans "チェックイン状況（過去30日）" %}</h3>
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div class="text-center">
+            <span class="text-sm db-text-secondary">{% trans "総予約数" %}</span>
+            <div id="kpi-ci-total" class="text-2xl font-extrabold text-indigo-500">--</div>
+          </div>
+          <div class="text-center">
+            <span class="text-sm db-text-secondary">{% trans "チェックイン済" %}</span>
+            <div id="kpi-ci-checked" class="text-2xl font-extrabold text-emerald-500">--</div>
+          </div>
+          <div class="text-center">
+            <span class="text-sm db-text-secondary">{% trans "ノーショー" %}</span>
+            <div id="kpi-ci-noshow" class="text-2xl font-extrabold text-rose-500">--</div>
+          </div>
+          <div class="text-center">
+            <span class="text-sm db-text-secondary">{% trans "チェックイン率" %}</span>
+            <div id="kpi-ci-rate" class="text-2xl font-extrabold text-sky-500">--%</div>
+          </div>
+        </div>
+      </div>
     </div>
     <div class="sub-tab-content active" id="subtab-overview-chart">
       <div class="db-card">
@@ -744,6 +765,7 @@
       <div class="db-card">
         <div class="flex items-center justify-between mb-3">
           <h3 class="text-lg font-semibold" id="cast-chart-title">{% trans "キャスト別 予約数・売上比較（過去30日）" %}</h3>
+          <span id="cast-demo-badge" class="text-xs bg-amber-100 text-amber-700 px-2 py-1 rounded-full font-medium" style="display:none;">DEMO</span>
           <span id="cast-days-badge" class="text-xs bg-violet-100 text-violet-700 px-2 py-1 rounded-full font-medium">30{% trans "日" %}</span>
         </div>
         <div class="chart-viewport"><canvas id="castChart"></canvas></div>
@@ -1962,10 +1984,11 @@ document.addEventListener('DOMContentLoaded', function () {
       },
       forecast: function() {
         var WC = [0.65,0.50,0.52,0.58,0.72,1.30,1.40];
+        var MC = [0.85,0.80,0.82,0.88,0.92,0.78,0.75,0.73,0.90,1.05,1.20,1.35];
         var hist = [], fc = [], now = new Date(), seed = 42;
         function prng() { seed = (seed * 16807) % 2147483647; return (seed - 1) / 2147483646; }
-        for (var i = 29; i >= 0; i--) { var d = new Date(now); d.setDate(d.getDate()-i); var r = Math.max(5000, Math.floor(25000 * WC[d.getDay()] * (1 + (29-i)/29*0.04) + (prng()-0.5)*8000)); hist.push({date:d.toISOString().slice(0,10), revenue:r}); }
-        for (var j = 1; j <= 14; j++) { var fd = new Date(now); fd.setDate(fd.getDate()+j); var p = Math.max(5000, Math.floor(26000 * WC[fd.getDay()] + (prng()-0.5)*6000)); fc.push({date:fd.toISOString().slice(0,10), predicted:p, lower:Math.round(p*0.75), upper:Math.round(p*1.25)}); }
+        for (var i = 89; i >= 0; i--) { var d = new Date(now); d.setDate(d.getDate()-i); var growth = 1.0 + (89-i)/89*0.06; var r = Math.max(5000, Math.floor(25000 * WC[d.getDay()] * MC[d.getMonth()] * growth + (prng()-0.5)*8000)); hist.push({date:d.toISOString().slice(0,10), revenue:r}); }
+        for (var j = 1; j <= 14; j++) { var fd = new Date(now); fd.setDate(fd.getDate()+j); var p = Math.max(5000, Math.floor(26000 * WC[fd.getDay()] * MC[fd.getMonth()] + (prng()-0.5)*6000)); fc.push({date:fd.toISOString().slice(0,10), predicted:p, lower:Math.round(p*0.75), upper:Math.round(p*1.25)}); }
         return {historical:hist, forecast:fc, method:'moving_average'};
       },
       heatmap: function() {
@@ -1978,9 +2001,10 @@ document.addEventListener('DOMContentLoaded', function () {
       },
       aov: function(period) {
         var WC = [0.88,0.85,0.87,0.90,0.93,1.08,1.12];
+        var MC = [0.85,0.80,0.82,0.88,0.92,0.78,0.75,0.73,0.90,1.05,1.20,1.35];
         var result = [], now = new Date(), seed = 61;
         function prng() { seed = (seed * 16807) % 2147483647; return (seed - 1) / 2147483646; }
-        for (var i = 29; i >= 0; i--) { var d = new Date(now); d.setDate(d.getDate()-i); var aov = Math.floor(1800 * WC[d.getDay()] + (prng()-0.5)*400); var oc = Math.max(2, Math.floor(8 * WC[d.getDay()] + prng()*5)); result.push({date:d.toISOString().slice(0,10), aov:aov, order_count:oc, total_revenue:aov*oc}); }
+        for (var i = 89; i >= 0; i--) { var d = new Date(now); d.setDate(d.getDate()-i); var growth = 1.0 + (89-i)/89*0.05; var aov = Math.floor(1800 * WC[d.getDay()] * MC[d.getMonth()] * growth + (prng()-0.5)*400); var oc = Math.max(2, Math.floor(8 * WC[d.getDay()] * MC[d.getMonth()] + prng()*5)); result.push({date:d.toISOString().slice(0,10), aov:aov, order_count:oc, total_revenue:aov*oc}); }
         return {trend:result, period:period||'daily'};
       }
     },
@@ -2018,10 +2042,11 @@ document.addEventListener('DOMContentLoaded', function () {
       },
       forecast: function() {
         var WC = [0.70,0.52,0.55,0.62,0.78,1.35,1.48];
+        var MC = [0.95,0.88,0.82,0.78,0.75,0.68,0.72,0.70,0.80,0.92,1.05,1.15];
         var hist = [], fc = [], now = new Date(), seed = 77;
         function prng() { seed = (seed * 16807) % 2147483647; return (seed - 1) / 2147483646; }
-        for (var i = 29; i >= 0; i--) { var d = new Date(now); d.setDate(d.getDate()-i); var r = Math.max(12000, Math.floor(38000 * WC[d.getDay()] * (1 + (29-i)/29*0.05) + (prng()-0.5)*12000)); hist.push({date:d.toISOString().slice(0,10), revenue:r}); }
-        for (var j = 1; j <= 14; j++) { var fd = new Date(now); fd.setDate(fd.getDate()+j); var p = Math.max(12000, Math.floor(40000 * WC[fd.getDay()] + (prng()-0.5)*8000)); fc.push({date:fd.toISOString().slice(0,10), predicted:p, lower:Math.round(p*0.75), upper:Math.round(p*1.25)}); }
+        for (var i = 89; i >= 0; i--) { var d = new Date(now); d.setDate(d.getDate()-i); var growth = 1.0 + (89-i)/89*0.08; var r = Math.max(12000, Math.floor(38000 * WC[d.getDay()] * MC[d.getMonth()] * growth + (prng()-0.5)*12000)); hist.push({date:d.toISOString().slice(0,10), revenue:r}); }
+        for (var j = 1; j <= 14; j++) { var fd = new Date(now); fd.setDate(fd.getDate()+j); var p = Math.max(12000, Math.floor(40000 * WC[fd.getDay()] * MC[fd.getMonth()] + (prng()-0.5)*8000)); fc.push({date:fd.toISOString().slice(0,10), predicted:p, lower:Math.round(p*0.75), upper:Math.round(p*1.25)}); }
         return {historical:hist, forecast:fc, method:'moving_average'};
       },
       heatmap: function() {
@@ -2034,9 +2059,10 @@ document.addEventListener('DOMContentLoaded', function () {
       },
       aov: function(period) {
         var WC = [0.90,0.85,0.88,0.92,0.95,1.10,1.15];
+        var MC = [0.95,0.88,0.82,0.78,0.75,0.68,0.72,0.70,0.80,0.92,1.05,1.15];
         var result = [], now = new Date(), seed = 53;
         function prng() { seed = (seed * 16807) % 2147483647; return (seed - 1) / 2147483646; }
-        for (var i = 29; i >= 0; i--) { var d = new Date(now); d.setDate(d.getDate()-i); var aov = Math.floor(2200 * WC[d.getDay()] + (prng()-0.5)*600); var oc = Math.max(3, Math.floor(12 * WC[d.getDay()] + prng()*8)); result.push({date:d.toISOString().slice(0,10), aov:aov, order_count:oc, total_revenue:aov*oc}); }
+        for (var i = 89; i >= 0; i--) { var d = new Date(now); d.setDate(d.getDate()-i); var growth = 1.0 + (89-i)/89*0.06; var aov = Math.floor(2200 * WC[d.getDay()] * MC[d.getMonth()] * growth + (prng()-0.5)*600); var oc = Math.max(3, Math.floor(12 * WC[d.getDay()] * MC[d.getMonth()] + prng()*8)); result.push({date:d.toISOString().slice(0,10), aov:aov, order_count:oc, total_revenue:aov*oc}); }
         return {trend:result, period:period||'daily'};
       }
     }
@@ -2044,8 +2070,11 @@ document.addEventListener('DOMContentLoaded', function () {
 
   function useDemo(apiData, demoKey, checkField) {
     if (!apiData || (Array.isArray(apiData[checkField]) && apiData[checkField].length === 0) || apiData[checkField] === 0) {
-      return DEMO[demoKey];
+      var demo = DEMO[demoKey];
+      if (demo) demo._isDemo = true;
+      return demo;
     }
+    apiData._isDemo = false;
     return apiData;
   }
 
@@ -2145,6 +2174,18 @@ document.addEventListener('DOMContentLoaded', function () {
   };
 
   loadReservations(30);
+
+  /* Load checkin KPI for overview */
+  apiFetch('/api/dashboard/checkin-stats/?days=30').then(function(data) {
+    if (data && data.summary) {
+      var s = data.summary;
+      var el = function(id, v) { var e = document.getElementById(id); if (e) e.textContent = v; };
+      el('kpi-ci-total', s.total);
+      el('kpi-ci-checked', s.checked_in);
+      el('kpi-ci-noshow', s.no_show);
+      el('kpi-ci-rate', (s.checkin_rate * 100).toFixed(1) + '%');
+    }
+  }).catch(function(){});
 
   /* ------------------------------------------------------------------ */
   /*  2. Sales (lazy loaded)                                             */
@@ -3177,6 +3218,10 @@ document.addEventListener('DOMContentLoaded', function () {
       var data = useDemo(raw, 'cast', 'staff');
       var staff = data.staff || [];
 
+      // Demo badge
+      var demoBadge = document.getElementById('cast-demo-badge');
+      if (demoBadge) demoBadge.style.display = data._isDemo ? 'inline' : 'none';
+
       // Chart
       if (castChart) castChart.destroy();
       var ctx = document.getElementById('castChart').getContext('2d');
@@ -3408,6 +3453,10 @@ document.addEventListener('DOMContentLoaded', function () {
       data.recommendations.forEach(function(r) { html += '<li>- ' + escapeHtml(r) + '</li>'; });
       html += '</ul></div>';
     }
+    html += '<div class="mt-3 pt-2 border-t border-gray-200">'
+      + '<p class="text-[10px] text-gray-400 leading-relaxed">'
+      + '&#9888; この分析はDBデータに基づく統計的自動分析です（LLM非使用）。結果は参考値であり、実際の状況と異なる場合があります。'
+      + '</p></div>';
     panel.innerHTML = html;
   }
 
@@ -3448,6 +3497,33 @@ document.addEventListener('DOMContentLoaded', function () {
     });
   };
 
+  /* Pagination helper: renders a paginated table with prev/next buttons */
+  var PAGE_SIZE = 20;
+  function renderPaginatedTable(containerId, items, headerHtml, rowRenderer, page) {
+    page = page || 1;
+    var tc = document.getElementById(containerId);
+    if (!tc || items.length === 0) return;
+    var totalPages = Math.ceil(items.length / PAGE_SIZE);
+    if (page > totalPages) page = totalPages;
+    var start = (page - 1) * PAGE_SIZE;
+    var pageItems = items.slice(start, start + PAGE_SIZE);
+    var html = '<table class="w-full text-sm border border-gray-200 rounded"><thead>' + headerHtml + '</thead><tbody>';
+    pageItems.forEach(function(item, idx) { html += rowRenderer(item, start + idx); });
+    html += '</tbody></table>';
+    if (totalPages > 1) {
+      html += '<div class="flex items-center justify-between mt-3 px-1">'
+        + '<span class="text-xs text-gray-500">' + (start+1) + '-' + Math.min(start+PAGE_SIZE, items.length) + ' / ' + items.length + '件</span>'
+        + '<div class="flex gap-1">';
+      if (page > 1) html += '<button onclick="renderPaginatedTable(\'' + containerId + '\',window._pgData[\'' + containerId + '\'].items,window._pgData[\'' + containerId + '\'].header,window._pgData[\'' + containerId + '\'].renderer,' + (page-1) + ')" class="px-3 py-1 text-xs rounded bg-gray-200 hover:bg-gray-300">&laquo; 前へ</button>';
+      html += '<span class="px-2 py-1 text-xs text-gray-600">' + page + ' / ' + totalPages + '</span>';
+      if (page < totalPages) html += '<button onclick="renderPaginatedTable(\'' + containerId + '\',window._pgData[\'' + containerId + '\'].items,window._pgData[\'' + containerId + '\'].header,window._pgData[\'' + containerId + '\'].renderer,' + (page+1) + ')" class="px-3 py-1 text-xs rounded bg-gray-200 hover:bg-gray-300">次へ &raquo;</button>';
+      html += '</div></div>';
+    }
+    tc.innerHTML = html;
+  }
+  window._pgData = {};
+  window.renderPaginatedTable = renderPaginatedTable;
+
   function renderMenuEngGeneric(prefix, canvasId, tableContainerId, data, aiPanelId) {
     var products = data.products || [];
     var avgPop = data.avg_popularity || 0;
@@ -3478,15 +3554,15 @@ document.addEventListener('DOMContentLoaded', function () {
       });
     }
 
-    var tc = document.getElementById(tableContainerId);
-    if (tc && products.length > 0) {
-      var html = '<table class="w-full text-sm border border-gray-200 rounded"><thead><tr class="bg-gray-50"><th class="px-3 py-2 text-left">'+T.th_product+'</th><th class="px-3 py-2 text-right">'+T.th_qty_sold+'</th><th class="px-3 py-2 text-right">'+T.th_margin_rate+'</th><th class="px-3 py-2 text-right">'+T.th_sales+'</th><th class="px-3 py-2 text-center">'+T.th_category+'</th></tr></thead><tbody>';
-      products.sort(function(a,b){return b.qty_sold - a.qty_sold;}).forEach(function(p) {
+    if (products.length > 0) {
+      var sorted = products.slice().sort(function(a,b){return b.qty_sold - a.qty_sold;});
+      var headerHtml = '<tr class="bg-gray-50"><th class="px-3 py-2 text-left">'+T.th_product+'</th><th class="px-3 py-2 text-right">'+T.th_qty_sold+'</th><th class="px-3 py-2 text-right">'+T.th_margin_rate+'</th><th class="px-3 py-2 text-right">'+T.th_sales+'</th><th class="px-3 py-2 text-center">'+T.th_category+'</th></tr>';
+      var rowFn = function(p) {
         var badge = quadBadge[p.quadrant] || '';
-        html += '<tr class="border-t border-gray-100"><td class="px-3 py-2">' + escapeHtml(p.name) + '</td><td class="px-3 py-2 text-right">' + p.qty_sold + '</td><td class="px-3 py-2 text-right">' + (p.margin_rate*100).toFixed(1) + '%</td><td class="px-3 py-2 text-right">' + Number(p.revenue).toLocaleString() + ' 円</td><td class="px-3 py-2 text-center"><span class="px-2 py-0.5 rounded-full text-xs font-semibold ' + badge + '">' + (quadLabels[p.quadrant]||p.quadrant) + '</span></td></tr>';
-      });
-      html += '</tbody></table>';
-      tc.innerHTML = html;
+        return '<tr class="border-t border-gray-100"><td class="px-3 py-2">' + escapeHtml(p.name) + '</td><td class="px-3 py-2 text-right">' + p.qty_sold + '</td><td class="px-3 py-2 text-right">' + (p.margin_rate*100).toFixed(1) + '%</td><td class="px-3 py-2 text-right">' + Number(p.revenue).toLocaleString() + ' 円</td><td class="px-3 py-2 text-center"><span class="px-2 py-0.5 rounded-full text-xs font-semibold ' + badge + '">' + (quadLabels[p.quadrant]||p.quadrant) + '</span></td></tr>';
+      };
+      window._pgData[tableContainerId] = {items: sorted, header: headerHtml, renderer: rowFn};
+      renderPaginatedTable(tableContainerId, sorted, headerHtml, rowFn, 1);
     }
   }
 
@@ -3524,15 +3600,14 @@ document.addEventListener('DOMContentLoaded', function () {
       });
     }
 
-    var tc = document.getElementById(tableContainerId);
-    if (tc && products.length > 0) {
-      var html = '<table class="w-full text-sm border border-gray-200 rounded"><thead><tr class="bg-gray-50"><th class="px-3 py-2 text-left">'+T.th_product+'</th><th class="px-3 py-2 text-right">'+T.th_sales+'</th><th class="px-3 py-2 text-right">'+T.th_share+'</th><th class="px-3 py-2 text-right">'+T.th_cumulative+'</th><th class="px-3 py-2 text-center">'+T.th_rank+'</th></tr></thead><tbody>';
-      products.forEach(function(p) {
+    if (products.length > 0) {
+      var abcHeader = '<tr class="bg-gray-50"><th class="px-3 py-2 text-left">'+T.th_product+'</th><th class="px-3 py-2 text-right">'+T.th_sales+'</th><th class="px-3 py-2 text-right">'+T.th_share+'</th><th class="px-3 py-2 text-right">'+T.th_cumulative+'</th><th class="px-3 py-2 text-center">'+T.th_rank+'</th></tr>';
+      var abcRowFn = function(p) {
         var badge = rankBadge[p.rank] || '';
-        html += '<tr class="border-t border-gray-100"><td class="px-3 py-2">' + escapeHtml(p.name) + '</td><td class="px-3 py-2 text-right">' + Number(p.revenue).toLocaleString() + ' 円</td><td class="px-3 py-2 text-right">' + p.share_pct + '%</td><td class="px-3 py-2 text-right">' + p.cumulative_pct + '%</td><td class="px-3 py-2 text-center"><span class="px-2 py-0.5 rounded-full text-xs font-bold ' + badge + '">' + p.rank + '</span></td></tr>';
-      });
-      html += '</tbody></table>';
-      tc.innerHTML = html;
+        return '<tr class="border-t border-gray-100"><td class="px-3 py-2">' + escapeHtml(p.name) + '</td><td class="px-3 py-2 text-right">' + Number(p.revenue).toLocaleString() + ' 円</td><td class="px-3 py-2 text-right">' + p.share_pct + '%</td><td class="px-3 py-2 text-right">' + p.cumulative_pct + '%</td><td class="px-3 py-2 text-center"><span class="px-2 py-0.5 rounded-full text-xs font-bold ' + badge + '">' + p.rank + '</span></td></tr>';
+      };
+      window._pgData[tableContainerId] = {items: products, header: abcHeader, renderer: abcRowFn};
+      renderPaginatedTable(tableContainerId, products, abcHeader, abcRowFn, 1);
     }
   }
 
