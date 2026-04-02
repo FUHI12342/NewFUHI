@@ -18,20 +18,17 @@
 .sidebar-marquee {
     overflow: hidden;
     white-space: nowrap;
-    text-overflow: ellipsis;
 }
 .sidebar-marquee .sidebar-marquee-inner {
     display: inline-block;
     white-space: nowrap;
-    animation: sidebar-marquee-scroll 8s linear 3s infinite;
+    padding-left: 0;
+    animation: sidebar-marquee-scroll 10s linear 3s infinite;
 }
 @keyframes sidebar-marquee-scroll {
     0%   { transform: translateX(0); }
-    10%  { transform: translateX(0); }
-    45%  { transform: translateX(calc(-100% + 200px)); }
-    55%  { transform: translateX(calc(-100% + 200px)); }
-    90%  { transform: translateX(0); }
-    100% { transform: translateX(0); }
+    5%   { transform: translateX(0); }
+    100% { transform: translateX(-100%); }
 }
 </style>
 {% endif %}
