@@ -65,7 +65,7 @@
     <i class="fas fa-star" style="margin-right:4px;"></i>{% trans "キャスト" %}
     <span style="font-weight:400;color:#6b7280;font-size:12px;margin-left:4px;">({{ cast_count }}{% trans "名" %})</span>
   </h4>
-  <div style="overflow-x:auto;">
+  <div class="shift-grid-wrap" style="overflow-x:auto;">
     {% include "admin/booking/partials/shift_week_grid.html" with staffs=cast_staffs %}
   </div>
 
@@ -73,12 +73,12 @@
     <i class="fas fa-user" style="margin-right:4px;"></i>{% trans "スタッフ" %}
     <span style="font-weight:400;color:#6b7280;font-size:12px;margin-left:4px;">({{ store_staff_count }}{% trans "名" %})</span>
   </h4>
-  <div style="overflow-x:auto;">
+  <div class="shift-grid-wrap" style="overflow-x:auto;">
     {% include "admin/booking/partials/shift_week_grid.html" with staffs=store_staffs %}
   </div>
 {% else %}
   {# フィルタ適用時: 1つのグリッド #}
-  <div style="overflow-x:auto;">
+  <div class="shift-grid-wrap" style="overflow-x:auto;">
     {% include "admin/booking/partials/shift_week_grid.html" %}
   </div>
 {% endif %}

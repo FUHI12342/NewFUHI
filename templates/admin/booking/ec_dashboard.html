@@ -10,6 +10,95 @@
   #content > h1 { display: none; }
   div.breadcrumbs { display: none; }
   .ec-wrap { padding: 0.5rem 1rem 2rem; font-family: system-ui, sans-serif; }
+
+  /* Mobile responsive */
+  @media (max-width: 767px) {
+    /* General layout */
+    .ec-wrap { padding: 0.25rem 0.5rem 1.5rem; }
+
+    /* Header: stack title and badges vertically */
+    .ec-wrap > .flex.items-center.justify-between {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+    .ec-wrap > .flex.items-center.justify-between h2 {
+      font-size: 1.1rem;
+      margin-bottom: 0.25rem;
+    }
+    .ec-wrap > .flex.items-center.justify-between .flex.gap-2 {
+      flex-wrap: wrap;
+      gap: 0.25rem;
+    }
+    .ec-wrap > .flex.items-center.justify-between .flex.gap-2 span {
+      font-size: 0.7rem;
+      padding: 0.15rem 0.5rem;
+    }
+
+    /* Filters: stack vertically */
+    .ec-wrap > .flex.flex-wrap.gap-3.mb-4.items-end {
+      flex-direction: column;
+      align-items: stretch;
+      gap: 0.5rem;
+    }
+    .ec-wrap > .flex.flex-wrap.gap-3.mb-4.items-end select,
+    .ec-wrap > .flex.flex-wrap.gap-3.mb-4.items-end input[type="date"] {
+      width: 100%;
+      font-size: 0.8rem;
+    }
+
+    /* Table: horizontal scroll wrapper + smaller text */
+    .overflow-x-auto {
+      -webkit-overflow-scrolling: touch;
+    }
+    .overflow-x-auto table {
+      font-size: 0.75rem;
+      min-width: 600px;
+    }
+    .overflow-x-auto th,
+    .overflow-x-auto td {
+      padding: 0.35rem 0.4rem;
+    }
+    .overflow-x-auto td button {
+      font-size: 0.65rem;
+      padding: 0.2rem 0.4rem;
+    }
+
+    /* Detail modal: full-width on mobile */
+    .fixed.inset-0 .bg-white.rounded-lg {
+      max-width: 100%;
+      width: 100%;
+      margin: 0;
+      border-radius: 0.5rem;
+      max-height: 95vh;
+    }
+    .fixed.inset-0 {
+      padding: 0.5rem;
+    }
+    .fixed.inset-0 .bg-white .px-5 {
+      padding-left: 0.75rem;
+      padding-right: 0.75rem;
+    }
+    .fixed.inset-0 .bg-white h3 {
+      font-size: 1rem;
+    }
+
+    /* Modal: customer info grid stacks to 1 column */
+    .fixed.inset-0 .grid.grid-cols-2 {
+      grid-template-columns: 1fr;
+      gap: 0.25rem;
+    }
+    .fixed.inset-0 .grid.grid-cols-2 .col-span-2 {
+      grid-column: span 1;
+    }
+
+    /* Modal: shipping controls full-width */
+    .fixed.inset-0 .flex.gap-2 input[type="text"] {
+      font-size: 0.8rem;
+    }
+    .fixed.inset-0 textarea {
+      font-size: 0.8rem;
+    }
+  }
 </style>
 {% endblock %}
 

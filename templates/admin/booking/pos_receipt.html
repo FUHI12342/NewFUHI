@@ -30,6 +30,35 @@
     body { padding: 0; }
     .no-print { display: none !important; }
   }
+
+  /* ===== モバイル対応 ===== */
+  @media (max-width: 767px) {
+    body { width: 100%; padding: 4mm 3mm; font-size: 11px; }
+    .header .store-name { font-size: 14px; }
+    .header .store-address { font-size: 9px; }
+
+    /* メタ情報 */
+    .meta { font-size: 10px; }
+
+    /* テーブル横スクロール */
+    table { display: block; overflow-x: auto; -webkit-overflow-scrolling: touch; min-width: 280px; }
+    th { font-size: 9px; }
+    td { font-size: 10px; }
+
+    /* 合計 */
+    .totals .row { font-size: 11px; }
+    .totals .grand { font-size: 14px; }
+
+    /* 支払情報 */
+    .payment-info { font-size: 10px; }
+
+    /* フッター */
+    .footer { font-size: 9px; margin-top: 8px; }
+
+    /* 操作ボタン: フル幅 */
+    .no-print { margin-top: 12px; }
+    .no-print button { padding: 10px 16px; font-size: 13px; width: 100%; margin: 4px 0; }
+  }
 </style>
 </head>
 <body>

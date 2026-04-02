@@ -31,6 +31,50 @@
   .pay-cash { background: #10B981; }
   .pay-card { background: #3B82F6; }
   .pay-checkout { background: #8B5CF6; }
+
+  /* ===== モバイル対応 ===== */
+  @media (max-width: 767px) {
+    /* 2カラムグリッド→1カラム縦積み */
+    .pos-layout {
+      display: flex; flex-direction: column;
+      height: auto; min-height: 100vh;
+    }
+
+    /* 商品エリア */
+    .product-area { padding: 10px; order: 1; }
+
+    /* カートエリア: 下に配置 */
+    .cart-area {
+      border-left: none; border-top: 1px solid #ddd;
+      order: 2;
+    }
+
+    /* カテゴリタブ: 小さく */
+    .cat-tabs { gap: 6px; margin-bottom: 10px; }
+    .cat-tab { padding: 5px 10px; font-size: 13px; }
+
+    /* 商品グリッド: 2列 */
+    .product-grid { grid-template-columns: repeat(2, 1fr); gap: 6px; }
+    .product-card { padding: 8px; }
+    .product-card .name { font-size: 13px; }
+    .product-card .price { font-size: 13px; }
+
+    /* カートヘッダー・フッター */
+    .cart-header { padding: 8px 12px; font-size: 14px; }
+    .cart-items { padding: 6px 12px; max-height: 40vh; }
+    .cart-footer { padding: 10px 12px; }
+
+    /* カートアイテム */
+    .cart-item { font-size: 13px; }
+    .cart-item .qty-controls button { width: 32px; height: 32px; }
+
+    /* 合計行 */
+    .total-line.grand { font-size: 17px; }
+
+    /* 支払ボタン: 折り返し可能に */
+    .pay-buttons { flex-wrap: wrap; gap: 6px; }
+    .pay-btn { padding: 10px 8px; font-size: 14px; min-width: 0; }
+  }
 </style>
 {% endblock %}
 {% block content %}

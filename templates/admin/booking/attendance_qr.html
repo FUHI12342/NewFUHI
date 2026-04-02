@@ -10,6 +10,15 @@
   .timer-bar { width: 300px; height: 4px; background: #e5e7eb; border-radius: 2px; overflow: hidden; }
   .timer-fill { height: 100%; background: #3B82F6; transition: width 1s linear; }
   .store-name { font-size: 24px; color: #333; margin-bottom: 8px; }
+
+  /* Mobile responsive */
+  @media (max-width: 767px) {
+    .qr-container { padding: 20px 16px; }
+    .qr-image { width: 220px; height: 220px; margin: 14px 0; }
+    .qr-code-text { font-size: 32px; letter-spacing: 4px; margin: 10px 0; }
+    .timer-bar { width: 220px; }
+    .store-name { font-size: 18px; }
+  }
 </style>
 {% endblock %}
 {% block content %}

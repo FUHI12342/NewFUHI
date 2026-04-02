@@ -6,9 +6,10 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        'salon-brown': '#8c876c',
-        'salon-beige': '#f1f0ec',
-        'salon-dark': '#333333',
+        'salon-brown': 'var(--color-primary, #8c876c)',
+        'salon-beige': 'var(--color-secondary, #f1f0ec)',
+        'salon-dark': 'var(--color-text, #333333)',
+        'salon-accent': 'var(--color-accent, #b8860b)',
       },
       fontFamily: {
         'jp': [

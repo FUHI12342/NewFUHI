@@ -48,6 +48,22 @@
     border: none; color: #fff; cursor: pointer; font-weight: 600;
   }
   .manual-result { margin-top: 10px; font-size: 14px; padding: 8px; border-radius: 6px; }
+
+  /* Mobile responsive */
+  @media (max-width: 767px) {
+    .zones-container { flex-direction: column; gap: 10px; }
+    .zones-container .zone { flex: 1 1 100%; min-width: 0; }
+    .zone-body { gap: 8px; padding: 10px; }
+    .staff-card { min-width: 120px; padding: 10px; flex: 1 1 calc(50% - 8px); }
+    .staff-card .name { font-size: 15px; }
+    .status-badge { font-size: 12px; padding: 3px 8px; }
+    .stamp-list { font-size: 11px; }
+    .zone-header { font-size: 13px; padding: 6px 12px; }
+    .manual-stamp-section { padding: 14px; margin-top: 16px; }
+    .manual-stamp-section h3 { font-size: 14px; }
+    .manual-form { flex-direction: column; gap: 8px; }
+    .manual-form select, .manual-form button { width: 100%; font-size: 14px; padding: 10px; }
+  }
 </style>
 {% endblock %}
 {% block content %}

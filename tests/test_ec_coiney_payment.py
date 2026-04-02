@@ -130,19 +130,15 @@ class TestCoineyECPayment:
 
     def test_coiney_webhook_ec_order(self, api_client, ec_order, settings):
         """EC注文のwebhook → order paid"""
-        settings.COINEY_WEBHOOK_SECRET = 'test-secret'
+        settings.COINEY_WEBHOOK_TOKEN = 'test-token'
 
-        import hmac
-        import hashlib
         body = json.dumps({'type': 'payment.succeeded'}).encode()
-        sig = hmac.new(b'test-secret', body, hashlib.sha256).hexdigest()
 
         url = reverse('coiney_webhook', kwargs={
             'orderId': f'ec_order_{ec_order.id}'
-        })
+        }) + '?token=test-token'
         resp = api_client.post(
             url, body, content_type='application/json',
-            HTTP_X_COINEY_SIGNATURE=sig,
         )
         assert resp.status_code == 200
         data = resp.json()
@@ -154,19 +150,15 @@ class TestCoineyECPayment:
 
     def test_coiney_webhook_ignores_non_success(self, api_client, ec_order, settings):
         """type != payment.succeeded → ignored"""
-        settings.COINEY_WEBHOOK_SECRET = 'test-secret'
+        settings.COINEY_WEBHOOK_TOKEN = 'test-token'
 
-        import hmac
-        import hashlib
         body = json.dumps({'type': 'payment.failed'}).encode()
-        sig = hmac.new(b'test-secret', body, hashlib.sha256).hexdigest()
 
         url = reverse('coiney_webhook', kwargs={
             'orderId': f'ec_order_{ec_order.id}'
-        })
+        }) + '?token=test-token'
         resp = api_client.post(
             url, body, content_type='application/json',
-            HTTP_X_COINEY_SIGNATURE=sig,
         )
         assert resp.status_code == 200
         data = resp.json()

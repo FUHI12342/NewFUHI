@@ -3,30 +3,27 @@
 {% block title %}{{ title }}{% endblock %}
 {% block extrastyle %}
 <style>
-  .timeline-container { overflow-x: auto; margin-top: 16px; }
-  .timeline-grid {
-    display: grid;
-    grid-template-columns: 80px repeat({{ staffs|length }}, minmax(100px, 1fr));
-    gap: 0;
-    min-width: fit-content;
-  }
-  .tl-header {
+  .timeline-container { overflow-x: auto; -webkit-overflow-scrolling: touch; margin-top: 16px; max-width: 100%; }
+  .tl-table { border-collapse: separate; border-spacing: 0; width: max-content; min-width: 100%; }
+  .tl-table th, .tl-table td { border-right: 1px solid #e5e7eb; border-bottom: 1px solid #e5e7eb; padding: 6px 8px; text-align: center; min-width: 100px; }
+  .tl-table th:first-child, .tl-table td:first-child { border-left: 1px solid #e5e7eb; }
+  .tl-table thead th { border-top: 1px solid #e5e7eb; }
+  .tl-table thead th {
     background: #f3f4f6; font-weight: 700; font-size: 13px;
-    padding: 10px 8px; text-align: center;
-    border: 1px solid #e5e7eb; position: sticky; top: 0; z-index: 2;
+    position: -webkit-sticky; position: sticky; top: 0; z-index: 2;
   }
-  .tl-header-time {
-    background: #e5e7eb; position: sticky; left: 0; z-index: 3;
+  .tl-table thead th:first-child {
+    background: #e5e7eb; position: -webkit-sticky; position: sticky; left: 0; z-index: 5;
+    box-shadow: 3px 0 6px rgba(0,0,0,0.1);
   }
-  .tl-time {
+  .tl-table td:first-child {
     background: #f9fafb; font-size: 12px; font-weight: 600;
-    padding: 6px 8px; text-align: right;
-    border: 1px solid #e5e7eb; position: sticky; left: 0; z-index: 1;
-    height: 40px; display: flex; align-items: center; justify-content: flex-end;
+    text-align: right; white-space: nowrap;
+    position: -webkit-sticky; position: sticky; left: 0; z-index: 3;
+    box-shadow: 3px 0 6px rgba(0,0,0,0.1);
+    min-width: 70px; width: 70px;
   }
-  .tl-cell {
-    border: 1px solid #e5e7eb; height: 40px; position: relative;
-  }
+  .tl-table td { height: 40px; position: relative; min-width: 100px; }
   .tl-shift {
     position: absolute; left: 2px; right: 2px;
     border-radius: 4px; color: #fff; font-size: 11px;
@@ -39,20 +36,29 @@
     background: #EF4444; z-index: 5; pointer-events: none;
   }
   .tl-now-label {
-    position: absolute; left: -78px; font-size: 10px; color: #EF4444;
-    font-weight: 700; white-space: nowrap; top: -6px;
+    position: absolute; left: 4px; font-size: 10px; color: #EF4444;
+    font-weight: 700; white-space: nowrap; top: -7px;
+    background: rgba(255,255,255,0.8); padding: 0 3px; border-radius: 2px;
   }
   .legend { display: flex; gap: 16px; margin-top: 12px; font-size: 13px; }
   .legend-item { display: flex; align-items: center; gap: 4px; }
   .legend-dot { width: 12px; height: 12px; border-radius: 3px; }
   .no-shift { text-align: center; color: #6b7280; padding: 40px; font-size: 16px; }
+
+  @media (max-width: 767px) {
+    .tl-table th, .tl-table td { min-width: 72px; font-size: 11px; padding: 4px; }
+    .tl-table td:first-child { min-width: 58px; width: 58px; font-size: 10px; }
+    .tl-table td { height: 34px; }
+    .tl-shift { font-size: 9px; padding: 1px 3px; }
+    .legend { flex-wrap: wrap; gap: 10px; font-size: 11px; }
+  }
 </style>
 {% endblock %}
 {% block content %}
 <h2 style="margin:0 0 4px;">{{ today|date:"Y年m月d日" }} {% trans "本日のシフト" %}</h2>
 
 {% if today_coverage %}
-<div style="display:flex;gap:16px;margin:8px 0 12px;font-size:14px;">
+<div style="display:flex;gap:16px;margin:8px 0 12px;font-size:14px;flex-wrap:wrap;">
   {% for stype, cv in today_coverage.items %}
     {% if cv.required > 0 %}
     <div style="display:flex;align-items:center;gap:6px;">
@@ -74,21 +80,26 @@
 
 {% if staffs %}
 <div class="timeline-container">
-  <div class="timeline-grid" id="timeline-grid">
-    <!-- Header row -->
-    <div class="tl-header tl-header-time">{% trans "時間" %}</div>
-    {% for s in staffs %}
-    <div class="tl-header">{{ s.name }}</div>
-    {% endfor %}
-
-    <!-- Time rows: 9:00 ~ 23:00 -->
-    {% for hour in hours %}
-    <div class="tl-time">{{ hour }}:00</div>
-    {% for s in staffs %}
-    <div class="tl-cell" data-staff="{{ s.id }}" data-hour="{{ hour }}"></div>
-    {% endfor %}
-    {% endfor %}
-  </div>
+  <table class="tl-table" id="timeline-grid">
+    <thead>
+      <tr>
+        <th>{% trans "時間" %}</th>
+        {% for s in staffs %}
+        <th>{{ s.name }}</th>
+        {% endfor %}
+      </tr>
+    </thead>
+    <tbody>
+      {% for hour in hours %}
+      <tr>
+        <td>{{ hour }}:00</td>
+        {% for s in staffs %}
+        <td class="tl-cell" data-staff="{{ s.id }}" data-hour="{{ hour }}"></td>
+        {% endfor %}
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
 </div>
 
 <div class="legend">
@@ -100,12 +111,10 @@
 (function() {
   const staffShifts = {{ staff_shifts_json|safe }};
   const grid = document.getElementById('timeline-grid');
-  const cols = {{ staffs|length }} + 1; // +1 for time column
   const startHour = 9;
   const endHour = 23;
-  const rowHeight = 42; // cell height + border
+  const rowHeight = 42;
 
-  // Paint shift bars
   Object.keys(staffShifts).forEach(function(staffId) {
     const shift = staffShifts[staffId];
     const sH = shift.start_hour;
@@ -115,7 +124,6 @@
     const clampedStart = Math.max(sH, startHour);
     const clampedEnd = Math.min(eH, endHour + 1);
 
-    // Find cells for this staff
     const cells = grid.querySelectorAll('[data-staff="' + staffId + '"]');
     cells.forEach(function(cell) {
       const cellHour = parseInt(cell.dataset.hour);
@@ -129,22 +137,19 @@
           bar.style.height = (spanHours * rowHeight - 4) + 'px';
           bar.style.top = '0';
           bar.textContent = sH + ':00 - ' + eH + ':00';
-          cell.style.position = 'relative';
           cell.appendChild(bar);
         }
       }
     });
   });
 
-  // Current time indicator
   const now = new Date();
   const currentHour = now.getHours();
   const currentMin = now.getMinutes();
   if (currentHour >= startHour && currentHour <= endHour) {
-    const timeCol = grid.querySelectorAll('.tl-time');
-    const idx = currentHour - startHour;
-    if (timeCol[idx]) {
-      const pct = currentMin / 60;
+    const pct = currentMin / 60;
+    const rowCells = grid.querySelectorAll('.tl-cell[data-hour="' + currentHour + '"]');
+    rowCells.forEach(function(c) {
       const line = document.createElement('div');
       line.className = 'tl-now-line';
       line.style.top = (pct * rowHeight) + 'px';
@@ -152,15 +157,8 @@
       label.className = 'tl-now-label';
       label.textContent = now.getHours() + ':' + String(now.getMinutes()).padStart(2, '0');
       line.appendChild(label);
-      // Attach to the row
-      const row = idx + 1; // +1 for header
-      const rowCells = grid.querySelectorAll('.tl-cell[data-hour="' + currentHour + '"]');
-      rowCells.forEach(function(c) {
-        c.style.position = 'relative';
-        const ln = line.cloneNode(true);
-        c.appendChild(ln);
-      });
-    }
+      c.appendChild(line);
+    });
   }
 })();
 </script>

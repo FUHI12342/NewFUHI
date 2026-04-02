@@ -1,0 +1,240 @@
+{% extends "admin/base_site.html" %}
+{% load i18n %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block extrahead %}
+<style>
+.layout-editor { display: flex; gap: 24px; min-height: 600px; }
+.sections-list { flex: 1; }
+.section-item {
+    background: #fff; border: 1px solid #e5e7eb; border-radius: 8px;
+    padding: 12px 16px; margin-bottom: 8px; cursor: grab;
+    display: flex; align-items: center; gap: 12px;
+    transition: box-shadow 0.15s;
+}
+.section-item:hover { box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+.section-item.sortable-ghost { opacity: 0.4; background: #f3f4f6; }
+.section-item .drag-handle { cursor: grab; color: #9ca3af; font-size: 18px; }
+.section-item .section-label { flex: 1; font-weight: 600; font-size: 14px; }
+.section-item .section-toggle {
+    width: 44px; height: 24px; border-radius: 12px;
+    background: #d1d5db; position: relative; cursor: pointer; transition: background 0.2s;
+}
+.section-item .section-toggle.active { background: #8c876c; }
+.section-item .section-toggle::after {
+    content: ''; position: absolute; top: 2px; left: 2px;
+    width: 20px; height: 20px; border-radius: 50%;
+    background: #fff; transition: transform 0.2s;
+}
+.section-item .section-toggle.active::after { transform: translateX(20px); }
+.save-bar {
+    position: sticky; bottom: 0; background: #f9fafb;
+    border-top: 1px solid #e5e7eb; padding: 16px;
+    display: flex; justify-content: flex-end; gap: 12px;
+}
+.btn-save {
+    background: #8c876c; color: #fff; border: none;
+    padding: 8px 24px; border-radius: 6px; cursor: pointer;
+    font-size: 14px; font-weight: 600;
+}
+.btn-save:hover { opacity: 0.9; }
+.btn-reset {
+    background: #fff; color: #666; border: 1px solid #d1d5db;
+    padding: 8px 24px; border-radius: 6px; cursor: pointer;
+    font-size: 14px;
+}
+.status-msg { padding: 8px 16px; border-radius: 6px; font-size: 14px; display: none; }
+.status-msg.success { display: block; background: #ecfdf5; color: #065f46; }
+.status-msg.error { display: block; background: #fef2f2; color: #991b1b; }
+
+.section-labels {
+    font-size: 12px; color: #6b7280;
+    display: flex; gap: 8px; align-items: center;
+}
+.section-type-badge {
+    font-size: 11px; background: #f3f4f6; color: #6b7280;
+    padding: 2px 8px; border-radius: 4px;
+}
+
+/* ── Mobile Responsive ── */
+@media (max-width: 767px) {
+    .layout-editor { flex-direction: column; gap: 12px; min-height: auto; }
+    .sections-list { width: 100%; }
+    .section-item { padding: 10px 12px; gap: 8px; }
+    .section-item .section-label { font-size: 13px; }
+    .save-bar {
+        position: fixed; bottom: 0; left: 0; right: 0;
+        padding: 12px 16px; z-index: 100;
+        justify-content: stretch; gap: 8px;
+    }
+    .save-bar .btn-save, .save-bar .btn-reset { flex: 1; text-align: center; }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<h1>{{ title }}</h1>
+
+<div id="statusMsg" class="status-msg"></div>
+
+<div class="layout-editor">
+    <div class="sections-list" id="sectionsList">
+        <!-- Sections rendered by JS -->
+    </div>
+</div>
+
+<div class="save-bar">
+    <button type="button" class="btn-reset" onclick="resetSections()">{% trans "リセット" %}</button>
+    <button type="button" class="btn-save" onclick="saveSections()">{% trans "保存" %}</button>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
+<script>
+var SECTION_LABELS = {
+    'hero_banner': 'ヒーローバナー',
+    'page_heading': 'ページ見出し',
+    'entry_cards': 'エントリーカード（4枚）',
+    'custom_block_above': 'カスタムブロック（カード上）',
+    'custom_block_below': 'カスタムブロック（カード下）',
+    'ranking': 'ランキング',
+};
+
+var sections = {{ sections_json|safe }};
+var originalSections = JSON.parse(JSON.stringify(sections));
+
+function renderSections() {
+    var list = document.getElementById('sectionsList');
+    list.innerHTML = '';
+    sections.forEach(function(s, i) {
+        var div = document.createElement('div');
+        div.className = 'section-item';
+        div.setAttribute('data-index', i);
+
+        var label = SECTION_LABELS[s.type] || s.type;
+        var enabled = s.enabled !== false;
+
+        div.innerHTML =
+            '<span class="drag-handle">&#9776;</span>' +
+            '<div style="flex:1">' +
+                '<div class="section-label">' + label + '</div>' +
+                '<div class="section-labels">' +
+                    '<span class="section-type-badge">' + s.type + '</span>' +
+                '</div>' +
+            '</div>' +
+            '<div class="section-toggle ' + (enabled ? 'active' : '') + '" ' +
+                'onclick="toggleSection(' + i + ')" title="' + (enabled ? '表示中' : '非表示') + '"></div>';
+
+        list.appendChild(div);
+    });
+}
+
+function toggleSection(index) {
+    sections[index].enabled = !sections[index].enabled;
+    renderSections();
+}
+
+function resetSections() {
+    sections = JSON.parse(JSON.stringify(originalSections));
+    renderSections();
+    showStatus('リセットしました', 'success');
+}
+
+function saveSections() {
+    // Re-read order from DOM
+    var items = document.querySelectorAll('.section-item');
+    var reordered = [];
+    items.forEach(function(item) {
+        var idx = parseInt(item.getAttribute('data-index'));
+        reordered.push(sections[idx]);
+    });
+
+    // POST via form
+    var form = document.createElement('form');
+    form.method = 'POST';
+    form.style.display = 'none';
+
+    var csrfInput = document.createElement('input');
+    csrfInput.name = 'csrfmiddlewaretoken';
+    csrfInput.value = getCookie('csrftoken');
+    form.appendChild(csrfInput);
+
+    var pageTypeInput = document.createElement('input');
+    pageTypeInput.name = 'page_type';
+    pageTypeInput.value = '{{ page_type }}';
+    form.appendChild(pageTypeInput);
+
+    var jsonInput = document.createElement('input');
+    jsonInput.name = 'sections_json';
+    jsonInput.value = JSON.stringify(reordered);
+    form.appendChild(jsonInput);
+
+    document.body.appendChild(form);
+
+    fetch(window.location.href, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': getCookie('csrftoken'),
+            'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: 'csrfmiddlewaretoken=' + encodeURIComponent(getCookie('csrftoken')) +
+              '&page_type={{ page_type }}' +
+              '&sections_json=' + encodeURIComponent(JSON.stringify(reordered)),
+    })
+    .then(function(resp) { return resp.json(); })
+    .then(function(data) {
+        if (data.status === 'ok') {
+            sections = data.sections;
+            originalSections = JSON.parse(JSON.stringify(sections));
+            renderSections();
+            initSortable();
+            showStatus(data.message, 'success');
+        } else {
+            showStatus(data.error || 'エラーが発生しました', 'error');
+        }
+    })
+    .catch(function() { showStatus('保存に失敗しました', 'error'); });
+
+    document.body.removeChild(form);
+}
+
+function showStatus(msg, type) {
+    var el = document.getElementById('statusMsg');
+    el.textContent = msg;
+    el.className = 'status-msg ' + type;
+    setTimeout(function() { el.className = 'status-msg'; }, 3000);
+}
+
+function getCookie(name) {
+    var value = '; ' + document.cookie;
+    var parts = value.split('; ' + name + '=');
+    if (parts.length === 2) return parts.pop().split(';').shift();
+    return '';
+}
+
+function initSortable() {
+    var list = document.getElementById('sectionsList');
+    if (list._sortable) list._sortable.destroy();
+    list._sortable = new Sortable(list, {
+        handle: '.drag-handle',
+        animation: 150,
+        ghostClass: 'sortable-ghost',
+        onEnd: function(evt) {
+            // Reorder sections array to match DOM
+            var items = document.querySelectorAll('.section-item');
+            var reordered = [];
+            items.forEach(function(item) {
+                var idx = parseInt(item.getAttribute('data-index'));
+                reordered.push(sections[idx]);
+            });
+            sections = reordered;
+            renderSections();
+            initSortable();
+        }
+    });
+}
+
+renderSections();
+initSortable();
+</script>
+{% endblock %}

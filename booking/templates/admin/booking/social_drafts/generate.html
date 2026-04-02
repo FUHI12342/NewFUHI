@@ -8,6 +8,17 @@
 <title>{% trans "AI下書き生成" %}</title>
 <link rel="stylesheet" href="{% static 'css/tailwind.css' %}">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<style>
+@media (max-width: 767px) {
+  .max-w-lg { max-width: 100%; }
+  .max-w-lg.mx-auto { padding-left: 8px; padding-right: 8px; }
+  .max-w-lg .bg-white { padding: 16px; }
+  .max-w-lg .mt-8 { margin-top: 16px; }
+  .max-w-lg .flex.gap-2.pt-2 { flex-direction: column; }
+  .max-w-lg .flex.gap-2.pt-2 a,
+  .max-w-lg .flex.gap-2.pt-2 button { width: 100%; text-align: center; }
+}
+</style>
 </head>
 <body class="bg-gray-50 min-h-screen">
 <div class="max-w-lg mx-auto p-4 mt-8">

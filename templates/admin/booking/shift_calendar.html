@@ -64,10 +64,14 @@
   .stat-num { font-size: 20px; font-weight: 700; color: #1f2937; }
 
   /* ===== シフトグリッド ===== */
-  .shift-grid { width: 100%; border-collapse: collapse; }
-  .shift-grid th, .shift-grid td { border: 1px solid #ddd; padding: 4px 8px; text-align: center; min-width: 100px; }
-  .shift-grid th { background: #f5f5f5; position: sticky; top: 0; z-index: 10; }
-  .shift-grid td.staff-name { text-align: left; font-weight: 600; position: sticky; left: 0; background: #fff; z-index: 5; min-width: 120px; }
+  .shift-grid-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  .shift-grid { width: 100%; border-collapse: separate; border-spacing: 0; }
+  .shift-grid th, .shift-grid td { border-right: 1px solid #ddd; border-bottom: 1px solid #ddd; padding: 4px 8px; text-align: center; min-width: 80px; }
+  .shift-grid th:first-child, .shift-grid td:first-child { border-left: 1px solid #ddd; }
+  .shift-grid tr:first-child th { border-top: 1px solid #ddd; }
+  .shift-grid th { background: #f5f5f5; position: -webkit-sticky; position: sticky; top: 0; z-index: 10; }
+  .shift-grid th:first-child { position: -webkit-sticky; position: sticky; left: 0; z-index: 15; background: #f5f5f5; box-shadow: 3px 0 6px rgba(0,0,0,0.12); clip-path: inset(0 -6px 0 0); }
+  .shift-grid td.staff-name { text-align: left; font-weight: 600; position: -webkit-sticky; position: sticky; left: 0; background: #fff; z-index: 5; min-width: 90px; box-shadow: 3px 0 6px rgba(0,0,0,0.12); clip-path: inset(0 -6px 0 0); }
   .shift-cell { cursor: pointer; min-height: 60px; transition: background .15s; }
   .shift-cell:hover { background: #f0f7ff; }
   .shift-cell.readonly { cursor: default; }
@@ -95,7 +99,7 @@
   .template-chip { padding: 4px 10px; border-radius: 12px; color: #fff; font-size: 12px; cursor: pointer; }
 
   /* ===== サイドバー ===== */
-  .sidebar-panel { position: fixed; right: 0; top: 56px; width: 350px; height: calc(100vh - 56px); background: #fff; box-shadow: -2px 0 8px rgba(0,0,0,.1); z-index: 100; padding: 16px; overflow-y: auto; transition: transform .2s; }
+  .sidebar-panel { position: fixed; right: 0; top: 56px; width: 350px; max-width: 90vw; height: calc(100vh - 56px); background: #fff; box-shadow: -2px 0 8px rgba(0,0,0,.1); z-index: 100; padding: 16px; overflow-y: auto; transition: transform .2s; }
   .sidebar-panel.hidden { transform: translateX(100%); }
   .today-col { background: #eff6ff !important; }
 
@@ -112,7 +116,7 @@
   /* ===== 休業日カレンダー ===== */
   .closed-cal-grid {
     display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px;
-    max-width: 420px;
+    max-width: 420px; width: 100%;
   }
   .closed-cal-header {
     text-align: center; font-size: 11px; font-weight: 600; color: #6b7280;
@@ -246,6 +250,50 @@
   }
   .ms-assign-color {
     width: 8px; height: 32px; border-radius: 4px; flex-shrink: 0;
+  }
+
+  /* ===== Mobile Responsive ===== */
+  @media (max-width: 767px) {
+    /* Workflow stepper: horizontal scroll */
+    .wf-steps { overflow-x: auto; -webkit-overflow-scrolling: touch; gap: 0; }
+    .wf-step { min-width: 80px; padding: 8px 10px; flex-shrink: 0; }
+    .wf-step-num { width: 22px; height: 22px; font-size: 11px; }
+    .wf-step-label { font-size: 10px; }
+
+    /* Period cards: single column */
+    .period-cards { grid-template-columns: 1fr !important; }
+
+    /* Shift grid: allow horizontal scroll */
+    .shift-grid-wrap { margin: 0 -8px; padding: 0 8px; }
+    .shift-grid th, .shift-grid td { padding: 3px 4px; font-size: 11px; min-width: 64px; }
+    .shift-grid td.staff-name { min-width: 72px; font-size: 11px; }
+    .shift-cell { min-height: 40px; }
+    .shift-block { font-size: 10px; padding: 1px 4px; }
+
+    /* Sidebar panel: full-width overlay */
+    .sidebar-panel { width: 100vw; max-width: 100vw; top: 0; height: 100vh; padding: 12px; }
+
+    /* Toolbar: wrap */
+    .toolbar { gap: 6px; padding: 8px 0; }
+    .toolbar button, .toolbar select { padding: 5px 10px; font-size: 12px; }
+    .btn { padding: 6px 14px; font-size: 12px; }
+    .btn-sm { padding: 3px 8px; font-size: 11px; }
+
+    /* Stats bar */
+    .stat-bar { gap: 8px; }
+    .stat-num { font-size: 16px; }
+    .stat-item { font-size: 11px; }
+
+    /* Calendar grid */
+    .closed-cal-grid { max-width: 100%; }
+    .closed-cal-cell { padding: 6px 2px; font-size: 12px; min-height: 30px; }
+
+    /* Admin menu */
+    .admin-menu-dropdown { min-width: 180px; }
+
+    /* Panels */
+    .wf-panel { padding: 12px; }
+    .wf-panel h3 { font-size: 14px; }
   }
 </style>
 {% endblock %}
@@ -520,7 +568,7 @@
   </div>
 
   {# ===== 週グリッド（読み取り専用） ===== #}
-  <div id="week-grid" style="overflow-x:auto;">
+  <div id="week-grid" class="shift-grid-wrap" style="overflow-x:auto;">
     {% include "admin/booking/partials/shift_week_grid.html" with is_readonly=True %}
   </div>
 </div>

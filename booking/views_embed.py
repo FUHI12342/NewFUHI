@@ -112,6 +112,27 @@ class EmbedShiftView(EmbedAuthMixin, View):
         return self.build_csp_header(store, response)
 
 
+@method_decorator(xframe_options_exempt, name='dispatch')
+class EmbedDemoView(View):
+    """埋め込みデモページ — 共有用"""
+
+    def get(self, request):
+        site_settings = SiteSettings.load()
+        if not site_settings.embed_enabled:
+            raise Http404("Embed is not enabled")
+
+        # embed_api_key が設定されている最初の店舗を使用
+        store = Store.objects.exclude(embed_api_key='').first()
+        if not store:
+            raise Http404("No store with embed API key configured")
+
+        context = {
+            'store': store,
+            'api_key': store.embed_api_key,
+        }
+        return TemplateResponse(request, 'booking/embed/demo.html', context)
+
+
 def generate_embed_api_key():
     """安全なランダム API キーを生成"""
     return secrets.token_urlsafe(32)

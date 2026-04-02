@@ -9,9 +9,31 @@
 <meta name="description" content="{% trans '占いサロンチャンスのオンライン予約サイト。新宿・池袋の占い師に簡単予約。' %}">
 <meta name="keywords" content="占い,サロン,予約,新宿,池袋,オンライン予約,占いサロンチャンス">
 {% load static %}
+{% if store_theme and store_theme.favicon %}
+<link rel="icon" href="{{ store_theme.favicon.url }}">
+{% else %}
 <link rel="icon" href="{% static 'images/favicon.svg' %}" type="image/svg+xml">
+{% endif %}
 <!-- Tailwind CSS (built) -->
 <link rel="stylesheet" href="{% static 'css/tailwind.css' %}">
+<!-- Store Theme CSS Variables -->
+{% if store_theme %}
+<style>
+  :root {
+    --color-primary: {{ store_theme.primary_color }};
+    --color-secondary: {{ store_theme.secondary_color }};
+    --color-accent: {{ store_theme.accent_color }};
+    --color-text: {{ store_theme.text_color }};
+    --color-header-bg: {{ store_theme.header_bg_color }};
+    --color-footer-bg: {{ store_theme.footer_bg_color }};
+    --font-heading: "{{ store_theme.heading_font }}", sans-serif;
+    --font-body: "{{ store_theme.body_font }}", sans-serif;
+  }
+</style>
+{% if store_theme.custom_css %}
+<style>{{ store_theme.custom_css|safe }}</style>
+{% endif %}
+{% endif %}
 {% block extra_css %}{% endblock %}
 </head>
 
@@ -21,7 +43,11 @@
 <header class="bg-white shadow-sm border-b border-gray-200">
     <div class="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
         <a href="{% url 'booking:booking_top' %}" class="flex items-center">
+            {% if store_theme and store_theme.logo %}
+            <img src="{{ store_theme.logo.url }}" alt="{{ site_settings.site_name|default:'占いサロンチャンス' }}" class="h-12 md:h-16">
+            {% else %}
             <img src="{% static 'images/siteid.png' %}" alt="占いサロンチャンス" class="h-12 md:h-16">
+            {% endif %}
         </a>
         <div class="flex items-center gap-3">
             <!-- Language Switcher (desktop only) -->
@@ -293,6 +319,23 @@
 <script>
 window.addEventListener('scroll', function() {
     document.getElementById('scroll-top').classList.toggle('hidden', window.scrollY < 300);
+});
+</script>
+
+<!-- テーマカスタマイザー: postMessage によるリアルタイムCSS変数更新 -->
+<script>
+window.addEventListener('message', function(e) {
+    if (!e.data || e.data.type !== 'theme-update') return;
+    var v = e.data.values;
+    var root = document.documentElement.style;
+    if (v.primary_color) root.setProperty('--color-primary', v.primary_color);
+    if (v.secondary_color) root.setProperty('--color-secondary', v.secondary_color);
+    if (v.accent_color) root.setProperty('--color-accent', v.accent_color);
+    if (v.text_color) root.setProperty('--color-text', v.text_color);
+    if (v.header_bg_color) root.setProperty('--color-header-bg', v.header_bg_color);
+    if (v.footer_bg_color) root.setProperty('--color-footer-bg', v.footer_bg_color);
+    if (v.heading_font) root.setProperty('--font-heading', '"' + v.heading_font + '", sans-serif');
+    if (v.body_font) root.setProperty('--font-body', '"' + v.body_font + '", sans-serif');
 });
 </script>
 

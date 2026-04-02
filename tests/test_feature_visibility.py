@@ -1,5 +1,7 @@
 """機能表示制御（SiteSettingsトグル）のテスト"""
 import pytest
+from django.test import Client, RequestFactory
+from django.contrib.auth.models import User
 
 from booking.models import SiteSettings
 
@@ -113,3 +115,21 @@ class TestFeatureVisibilityToggles:
         assert ss_reloaded.show_admin_staff_manage is False
         assert ss_reloaded.show_admin_sns_posting is False
         assert ss_reloaded.show_admin_user_account is False
+
+    def test_superuser_bypasses_toggle(self, admin_client):
+        """スーパーユーザーはトグルOFFでも全グループ表示"""
+        ss = SiteSettings.load()
+        ss.show_admin_sns_posting = False
+        ss.show_admin_system = False
+        ss.show_admin_pin_clock = False
+        ss.save()
+
+        response = admin_client.get('/admin/')
+        assert response.status_code == 200
+        # get_app_list でスーパーユーザーは sidebar_flags を無視する
+        app_list = response.context.get('app_list', [])
+        group_names = [g.get('name', '') for g in app_list]
+        # スーパーユーザーなので非表示設定でも SNS 投稿グループが見える
+        assert any('SNS' in name for name in group_names), (
+            f"スーパーユーザーにSNSグループが表示されていない: {group_names}"
+        )

@@ -66,6 +66,47 @@ class TestRuleBasedCheck:
 
 
 @pytest.mark.django_db
+class TestRuleBasedCheckPlatformLimits:
+    """プラットフォーム別文字数チェックのテスト"""
+
+    def test_x_weighted_length_over_280(self, store):
+        long_content = store.name + 'あ' * 200  # 全角200文字 = 加重400
+        draft = DraftPost(store=store, content=long_content, platforms=['x'])
+        issues, deduction = _rule_based_check(draft)
+        assert any('加重文字数' in i for i in issues)
+        assert deduction >= 0.2
+
+    def test_instagram_over_2200(self, store):
+        long_content = store.name + 'a' * 2300
+        draft = DraftPost(store=store, content=long_content, platforms=['instagram'])
+        issues, deduction = _rule_based_check(draft)
+        assert any('Instagram' in i for i in issues)
+
+    def test_gbp_over_1500(self, store):
+        long_content = store.name + 'a' * 1600
+        draft = DraftPost(store=store, content=long_content, platforms=['gbp'])
+        issues, deduction = _rule_based_check(draft)
+        assert any('Google' in i for i in issues)
+
+    def test_instagram_hashtag_check(self, store):
+        content = f'{store.name} テスト投稿 #tag1'
+        draft = DraftPost(store=store, content=content, platforms=['instagram'])
+        issues, deduction = _rule_based_check(draft)
+        assert any('ハッシュタグ' in i for i in issues)
+
+    def test_instagram_enough_hashtags_no_issue(self, store):
+        content = f'{store.name} テスト #a #b #c #d #e'
+        draft = DraftPost(store=store, content=content, platforms=['instagram'])
+        issues, deduction = _rule_based_check(draft)
+        assert not any('ハッシュタグ' in i for i in issues)
+
+    def test_unknown_platform_ignored(self, store):
+        draft = DraftPost(store=store, content=f'{store.name} テスト', platforms=['unknown'])
+        issues, deduction = _rule_based_check(draft)
+        assert deduction == 0.0
+
+
+@pytest.mark.django_db
 class TestEvaluateDraftQuality:
     @patch('booking.services.sns_evaluation_service._llm_judge_check')
     def test_evaluation_saves_score(self, mock_judge, store):
@@ -90,3 +131,24 @@ class TestEvaluateDraftQuality:
         score, feedback = evaluate_draft_quality(draft)
         assert score >= 0.0
         assert score <= 1.0
+
+    @patch('booking.services.sns_evaluation_service._llm_judge_check')
+    def test_rule_deduction_reduces_llm_score(self, mock_judge, store):
+        mock_judge.return_value = (0.80, 'OK')
+        draft = DraftPost.objects.create(
+            store=store, content='店舗名なしの投稿',  # 店舗名なし→-0.1
+            platforms=['x'], status='generated',
+        )
+        score, feedback = evaluate_draft_quality(draft)
+        assert score < 0.80  # ルール減点あり
+
+    @patch('booking.services.sns_evaluation_service._llm_judge_check')
+    def test_combined_feedback(self, mock_judge, store):
+        mock_judge.return_value = (0.90, 'とても良い投稿です')
+        draft = DraftPost.objects.create(
+            store=store, content='店舗名なし投稿',  # 店舗名なし
+            platforms=['x'], status='generated',
+        )
+        score, feedback = evaluate_draft_quality(draft)
+        assert 'ルールチェック' in feedback
+        assert 'AI評価' in feedback

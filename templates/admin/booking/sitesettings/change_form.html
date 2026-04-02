@@ -6,6 +6,7 @@
 <style>
   /* ── sticky保存バー ── */
   .site-save-bar {
+    position: -webkit-sticky;
     position: sticky;
     top: 0;
     z-index: 50;
@@ -146,6 +147,51 @@
   .nav.nav-tabs.jazzy-tabs .nav-link {
     padding: 8px 14px;
     font-size: 13px;
+  }
+
+  /* ── Mobile responsive ── */
+  @media (max-width: 767px) {
+    .site-save-bar {
+      flex-wrap: wrap;
+      padding: 10px 12px;
+      gap: 8px;
+      border-radius: 0;
+      margin-left: -20px;
+      margin-right: -20px;
+    }
+    .site-save-bar .bar-title {
+      flex-basis: 100%;
+      font-size: 14px;
+    }
+    .site-save-bar .bar-save-btn,
+    .site-save-bar .bar-btn {
+      flex: 1 1 auto;
+      text-align: center;
+      padding: 8px 12px;
+      font-size: 12px;
+    }
+
+    .sub-models-section > div[style*="grid"] {
+      grid-template-columns: 1fr !important;
+    }
+    .sub-model-card {
+      padding: 12px;
+    }
+    .sub-model-card .card-actions {
+      flex-direction: column;
+    }
+    .sub-model-card .btn-manage,
+    .sub-model-card .btn-add {
+      text-align: center;
+      width: 100%;
+    }
+
+    .nav.nav-tabs.jazzy-tabs .nav-link,
+    .changeform-navigation li a,
+    ul.changeform-tabs li a {
+      padding: 6px 10px;
+      font-size: 12px;
+    }
   }
 </style>
 {% endblock %}

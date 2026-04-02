@@ -1,0 +1,21 @@
+{% extends "admin/change_form.html" %}
+{% load i18n %}
+
+{% block after_related_objects %}
+{{ block.super }}
+{% if customization_links %}
+<fieldset class="module aligned">
+    <h2>{% trans "サイトカスタマイズ" %}</h2>
+    <div style="padding:16px;display:flex;flex-wrap:wrap;gap:12px;">
+        {% for link in customization_links %}
+        <a href="{{ link.url }}"
+           style="display:inline-flex;align-items:center;gap:8px;padding:10px 20px;background:#8c876c;color:#fff;border-radius:8px;text-decoration:none;font-size:13px;font-weight:600;transition:background 0.15s;"
+           onmouseover="this.style.background='#7a7660'" onmouseout="this.style.background='#8c876c'">
+            <span>{{ link.icon }}</span>
+            {{ link.label }}
+        </a>
+        {% endfor %}
+    </div>
+</fieldset>
+{% endif %}
+{% endblock %}

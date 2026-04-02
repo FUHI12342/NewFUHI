@@ -3,6 +3,7 @@ import pytest
 from datetime import date
 
 from booking.models import KnowledgeEntry, Store, Staff
+from booking.models.shifts import ShiftPeriod, ShiftAssignment
 from booking.services.sns_knowledge_service import build_knowledge_context
 
 
@@ -54,3 +55,34 @@ class TestBuildKnowledgeContext:
         )
         context = build_knowledge_context(store)
         assert '古い情報' not in context
+
+    def test_includes_store_address(self, store):
+        context = build_knowledge_context(store)
+        if store.address:
+            assert store.address in context
+
+    def test_includes_shift_assignments(self, store, staff, shift_period, shift_assignment):
+        target = shift_assignment.date
+        context = build_knowledge_context(store, target_date=target)
+        assert staff.name in context
+        assert '出勤キャスト' in context
+
+    def test_no_shifts_shows_unregistered(self, store):
+        target = date(2099, 12, 31)  # 未来日でシフトなし
+        context = build_knowledge_context(store, target_date=target)
+        assert '未登録' in context
+
+    def test_staff_introduction_in_context(self, store, shift_period, shift_assignment):
+        staff = shift_assignment.staff
+        staff.introduction = 'タロット歴10年のベテランです'
+        staff.save()
+        target = shift_assignment.date
+        context = build_knowledge_context(store, target_date=target)
+        assert 'タロット歴10年' in context
+
+    def test_default_target_date_is_today(self, store):
+        """target_date=None の場合、今日の日付が使われる"""
+        context = build_knowledge_context(store)
+        from django.utils import timezone
+        today = timezone.localdate()
+        assert today.strftime('%Y/%m/%d') in context

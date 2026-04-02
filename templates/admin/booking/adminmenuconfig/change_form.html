@@ -1,6 +1,26 @@
 {% extends "admin/change_form.html" %}
 {% load i18n %}
 
+{% block extrahead %}
+{{ block.super }}
+<style>
+  /* ── Mobile responsive ── */
+  @media (max-width: 767px) {
+    #grouped-models fieldset {
+      padding: 8px 10px !important;
+      margin: 6px 0 !important;
+    }
+    #grouped-models fieldset legend {
+      font-size: 13px !important;
+    }
+    #grouped-models ul {
+      columns: 1 !important;
+      column-gap: 0 !important;
+    }
+  }
+</style>
+{% endblock %}
+
 {% block extrajs %}
 {{ block.super }}
 <script>

@@ -67,6 +67,47 @@
   .closed-time { color: #6b7280; font-size: 13px; font-weight: 600; }
   .closed-items-list { font-size: 12px; color: #6b7280; line-height: 1.6; }
   .closed-empty { text-align: center; padding: 20px; color: #9CA3AF; font-size: 13px; }
+
+  /* ===== モバイル対応 ===== */
+  @media (max-width: 767px) {
+    /* 2カラム→1カラム縦積み */
+    .kitchen-layout { flex-direction: column; height: auto; }
+    .kitchen-left { padding: 10px; }
+    .kitchen-right {
+      width: 100%; min-width: 0;
+      border-left: none; border-top: 2px solid #e5e7eb;
+      padding: 10px;
+    }
+
+    /* グリッド: 1カラムに */
+    .kitchen-grid { grid-template-columns: 1fr; gap: 10px; }
+
+    /* カードの余白縮小 */
+    .order-card { padding: 10px; }
+    .order-card .header { font-size: 15px; }
+    .order-number { font-size: 18px; }
+    .table-badge { font-size: 12px; padding: 2px 8px; }
+
+    /* アイテム行: 折り返し対応 */
+    .order-item { flex-wrap: wrap; gap: 4px; }
+
+    /* アクションボタン縮小 */
+    .action-btn { padding: 6px 10px; font-size: 12px; min-width: 56px; }
+    .btn-undo { padding: 4px 8px; font-size: 11px; }
+
+    /* 完了バナー */
+    .served-banner { font-size: 16px; padding: 8px; }
+
+    /* 右パネル見出し */
+    .closed-header { font-size: 14px; }
+    .closed-card { padding: 8px 10px; }
+    .closed-number { font-size: 14px; }
+    .closed-time { font-size: 12px; }
+    .closed-items-list { font-size: 11px; }
+
+    /* 自動更新バー */
+    .auto-refresh { font-size: 11px; padding: 6px; }
+  }
 </style>
 {% endblock %}
 {% block content %}

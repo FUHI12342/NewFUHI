@@ -20,6 +20,23 @@
   .toolbar { padding: 16px; display: flex; gap: 12px; }
   .btn { padding: 8px 16px; border: none; border-radius: 4px; cursor: pointer; color: #fff; }
   .btn-train { background: #8B5CF6; }
+
+  /* ── Mobile ── */
+  @media (max-width: 767px) {
+    .ai-grid { grid-template-columns: 1fr; gap: 12px; padding: 8px; }
+    .model-card { padding: 14px; }
+    .model-card h3 { font-size: 15px; }
+
+    .toolbar { flex-direction: column; padding: 12px; gap: 8px; }
+    .toolbar select { width: 100%; }
+    .btn { width: 100%; text-align: center; }
+
+    .rec-table { display: block; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+    .rec-table th, .rec-table td { padding: 4px 6px; font-size: 11px; white-space: nowrap; }
+
+    .chart-container { padding: 10px; }
+    .chart-container h3 { font-size: 14px; }
+  }
 </style>
 {% endblock %}
 {% block content %}

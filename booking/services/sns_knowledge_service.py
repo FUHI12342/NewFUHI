@@ -1,6 +1,5 @@
 """RAG ナレッジコンテキスト構築サービス"""
 import logging
-from datetime import date
 
 from django.utils import timezone
 

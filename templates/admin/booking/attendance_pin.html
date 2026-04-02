@@ -37,6 +37,19 @@
   .stamp-log table { width: 100%; border-collapse: collapse; }
   .stamp-log th, .stamp-log td { padding: 8px 12px; text-align: left; border-bottom: 1px solid #eee; font-size: 14px; }
   .stamp-log th { background: #f5f5f5; font-weight: bold; }
+
+  /* Mobile responsive */
+  @media (max-width: 767px) {
+    .pin-container { max-width: 100%; margin: 16px auto; padding: 16px; }
+    .pin-title { font-size: 20px; }
+    .store-name { font-size: 16px; margin-bottom: 20px; }
+    .form-group select, .form-group input { font-size: 16px; padding: 10px; }
+    .stamp-buttons { grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 16px; }
+    .stamp-btn { padding: 14px 8px; font-size: 14px; }
+    .stamp-log { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+    .stamp-log table { min-width: 320px; }
+    .stamp-log th, .stamp-log td { padding: 6px 8px; font-size: 13px; }
+  }
 </style>
 {% endblock %}
 {% block content %}

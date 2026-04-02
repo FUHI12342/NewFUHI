@@ -17,6 +17,42 @@
   .badge-online  { background: #d1fae5; color: #065f46; }
   .badge-offline { background: #fee2e2; color: #991b1b; }
   .payload-toggle { cursor: pointer; user-select: none; }
+
+  /* ── Mobile responsive ── */
+  @media (max-width: 767px) {
+    .tw-grid.tw-grid-cols-3 {
+      grid-template-columns: 1fr !important;
+      gap: 2px !important;
+      padding: 10px 12px !important;
+    }
+    .tw-grid.tw-grid-cols-3 dt {
+      font-weight: 700;
+      color: #6b7280;
+    }
+    .tw-grid.tw-grid-cols-3 dd {
+      grid-column: 1 !important;
+      margin-bottom: 4px;
+    }
+
+    table th,
+    table td {
+      padding: 6px 8px !important;
+      font-size: 0.7rem !important;
+    }
+
+    .tw-overflow-x-auto {
+      -webkit-overflow-scrolling: touch;
+    }
+
+    pre.tw-max-w-md {
+      max-width: 70vw;
+    }
+
+    section {
+      margin-left: -4px;
+      margin-right: -4px;
+    }
+  }
 </style>
 {% endblock %}
 

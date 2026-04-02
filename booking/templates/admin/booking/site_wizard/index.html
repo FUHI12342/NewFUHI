@@ -1,0 +1,130 @@
+{% extends "admin/base_site.html" %}
+{% load i18n %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block extrastyle %}
+{{ block.super }}
+<style>
+.wizard-container { max-width:800px; margin:0 auto; }
+.wizard-header { text-align:center; margin-bottom:40px; }
+.wizard-header h1 { font-size:1.6rem; font-weight:700; color:#374151; margin-bottom:8px; }
+.wizard-header p { color:#6b7280; font-size:0.95rem; }
+
+/* Progress bar */
+.progress-bar { display:flex; align-items:center; justify-content:center; gap:0; margin-bottom:48px; }
+.progress-step {
+    display:flex; align-items:center; justify-content:center;
+    width:40px; height:40px; border-radius:50%; font-weight:700; font-size:16px;
+    flex-shrink:0;
+}
+.progress-step.completed { background:#22c55e; color:#fff; }
+.progress-step.pending { background:#e5e7eb; color:#9ca3af; }
+.progress-line { width:80px; height:3px; flex-shrink:0; }
+.progress-line.completed { background:#22c55e; }
+.progress-line.pending { background:#e5e7eb; }
+
+/* Step cards */
+.step-card {
+    display:flex; gap:24px; padding:28px; margin-bottom:20px;
+    border:2px solid #e5e7eb; border-radius:16px; background:#fff;
+    transition:all 0.2s;
+}
+.step-card:hover { border-color:#8c876c; box-shadow:0 4px 12px rgba(0,0,0,0.06); }
+.step-card.completed { border-color:#22c55e; background:#f0fdf4; }
+.step-icon {
+    width:64px; height:64px; border-radius:16px; display:flex;
+    align-items:center; justify-content:center; font-size:28px;
+    flex-shrink:0; background:#f3f4f6;
+}
+.step-card.completed .step-icon { background:#dcfce7; }
+.step-body { flex:1; }
+.step-body h3 { font-size:1.1rem; font-weight:700; color:#374151; margin-bottom:4px; }
+.step-body .step-num { font-size:0.8rem; color:#8c876c; font-weight:600; margin-bottom:4px; }
+.step-body p { color:#6b7280; font-size:0.9rem; line-height:1.6; margin-bottom:16px; }
+.step-action {
+    display:inline-flex; align-items:center; gap:6px; padding:8px 20px;
+    border-radius:8px; font-size:0.9rem; font-weight:600; text-decoration:none;
+    transition:all 0.15s;
+}
+.step-action.start { background:#8c876c; color:#fff; }
+.step-action.start:hover { background:#7a7660; }
+.step-action.done { background:#dcfce7; color:#166534; cursor:default; }
+.step-check { display:inline-flex; align-items:center; gap:4px; color:#22c55e; font-weight:600; font-size:0.9rem; }
+
+/* Summary */
+.wizard-summary {
+    text-align:center; padding:32px; background:#f8f6f2;
+    border-radius:16px; margin-top:32px;
+}
+.wizard-summary p { color:#6b7280; margin-bottom:16px; }
+.wizard-summary .big-text { font-size:2rem; font-weight:800; color:#8c876c; }
+
+/* ── Mobile Responsive ── */
+@media (max-width: 767px) {
+    .wizard-container { max-width: 100%; padding: 0 8px; }
+    .wizard-header { margin-bottom: 24px; }
+    .wizard-header h1 { font-size: 1.2rem; }
+    .progress-bar { margin-bottom: 28px; }
+    .progress-step { width: 32px; height: 32px; font-size: 14px; }
+    .progress-line { width: 40px; }
+    .step-card { flex-direction: column; gap: 12px; padding: 16px; margin-bottom: 12px; }
+    .step-icon { width: 48px; height: 48px; font-size: 22px; border-radius: 12px; }
+    .step-body h3 { font-size: 1rem; }
+    .step-body p { font-size: 0.85rem; margin-bottom: 12px; }
+    .wizard-summary { padding: 20px 16px; margin-top: 20px; }
+    .wizard-summary .big-text { font-size: 1.6rem; }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="wizard-container">
+    <div class="wizard-header">
+        <h1>🚀 {{ store.name }} サイトセットアップ</h1>
+        <p>{% trans "3ステップでサロンサイトをカスタマイズできます" %}</p>
+    </div>
+
+    <!-- Progress bar -->
+    <div class="progress-bar">
+        {% for step in steps %}
+        <div class="progress-step {% if step.completed %}completed{% else %}pending{% endif %}">
+            {% if step.completed %}✓{% else %}{{ step.number }}{% endif %}
+        </div>
+        {% if not forloop.last %}
+        <div class="progress-line {% if step.completed %}completed{% else %}pending{% endif %}"></div>
+        {% endif %}
+        {% endfor %}
+    </div>
+
+    <!-- Step cards -->
+    {% for step in steps %}
+    <div class="step-card {% if step.completed %}completed{% endif %}">
+        <div class="step-icon">{{ step.icon }}</div>
+        <div class="step-body">
+            <div class="step-num">STEP {{ step.number }}</div>
+            <h3>{{ step.title }}</h3>
+            <p>{{ step.description }}</p>
+            {% if step.completed %}
+            <span class="step-check">✓ {% trans "設定済み" %}</span>
+            &nbsp;
+            <a href="{% url step.url_name step.url_args.0 %}" class="step-action start" style="font-size:0.8rem;padding:6px 14px;">{% trans "変更する" %}</a>
+            {% else %}
+            <a href="{% url step.url_name step.url_args.0 %}" class="step-action start">{% trans "設定を始める →" %}</a>
+            {% endif %}
+        </div>
+    </div>
+    {% endfor %}
+
+    <!-- Summary -->
+    <div class="wizard-summary">
+        <div class="big-text">{{ completed_count }} / {{ total_steps }}</div>
+        <p>{% trans "ステップ完了" %}</p>
+        {% if completed_count == total_steps %}
+        <p style="color:#22c55e;font-weight:600;">🎉 {% trans "すべてのセットアップが完了しています！" %}</p>
+        {% else %}
+        <p>{% trans "残りのステップを完了して、サロンサイトを仕上げましょう。" %}</p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

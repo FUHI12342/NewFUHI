@@ -1,16 +1,15 @@
 """SNS 下書き管理ビュー — AI生成、編集、即時投稿、予約投稿"""
-import json
 import logging
 
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.http import JsonResponse, HttpResponseBadRequest
+from django.http import HttpResponseBadRequest
 from django.shortcuts import get_object_or_404, redirect
 from django.utils import timezone
 from django.views import View
-from django.views.generic import ListView, TemplateView
+from django.views.generic import ListView
 
-from booking.models import DraftPost, Store, SocialAccount
+from booking.models import DraftPost, Store
 
 logger = logging.getLogger(__name__)
 
@@ -206,6 +205,8 @@ class DraftScheduleView(StaffRequiredMixin, View):
         if platforms:
             draft.platforms = platforms
 
+        if timezone.is_naive(dt):
+            dt = timezone.make_aware(dt)
         draft.scheduled_at = dt
         draft.status = 'scheduled'
         draft.save(update_fields=['scheduled_at', 'status', 'platforms', 'updated_at'])

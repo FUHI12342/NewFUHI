@@ -530,8 +530,8 @@ class RoleBasedAdminSite(AdminSite):
             if slug == 'ec_shop' and not ec_enabled:
                 used_keys.update(k for k in model_keys if k in all_models)
                 continue
-            # SiteSettings トグルでサイドバー非表示
-            if slug in sidebar_flags and not sidebar_flags[slug]:
+            # SiteSettings トグルでサイドバー非表示（スーパーユーザーは常に全表示）
+            if role != 'superuser' and slug in sidebar_flags and not sidebar_flags[slug]:
                 used_keys.update(k for k in model_keys if k in all_models)
                 continue
             hidden_in_group = set(g.get('hidden_models', []))

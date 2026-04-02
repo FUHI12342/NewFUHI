@@ -8,7 +8,7 @@ from django.utils.translation import gettext_lazy as _
 
 from ..admin_site import custom_site
 from ..models import (
-    Schedule, Staff, Store, StoreScheduleConfig, AdminTheme,
+    Schedule, Staff, Store, StoreScheduleConfig, AdminTheme, StoreTheme,
 )
 from .helpers import _is_owner_or_super
 
@@ -259,11 +259,52 @@ class AdminThemeInline(admin.StackedInline):
     max_num = 1
 
 
+class StoreThemeForm(forms.ModelForm):
+    """StoreTheme のフォーム。カラーフィールドに type="color" を適用。"""
+    class Meta:
+        model = StoreTheme
+        fields = '__all__'
+        widgets = {
+            'primary_color': forms.TextInput(attrs={'type': 'color', 'style': 'width:60px;height:30px;padding:2px;'}),
+            'secondary_color': forms.TextInput(attrs={'type': 'color', 'style': 'width:60px;height:30px;padding:2px;'}),
+            'accent_color': forms.TextInput(attrs={'type': 'color', 'style': 'width:60px;height:30px;padding:2px;'}),
+            'text_color': forms.TextInput(attrs={'type': 'color', 'style': 'width:60px;height:30px;padding:2px;'}),
+            'header_bg_color': forms.TextInput(attrs={'type': 'color', 'style': 'width:60px;height:30px;padding:2px;'}),
+            'footer_bg_color': forms.TextInput(attrs={'type': 'color', 'style': 'width:60px;height:30px;padding:2px;'}),
+            'custom_css': forms.Textarea(attrs={'rows': 5, 'style': 'font-family:monospace;'}),
+        }
+
+
+class StoreThemeInline(admin.StackedInline):
+    model = StoreTheme
+    form = StoreThemeForm
+    extra = 0
+    max_num = 1
+    fieldsets = (
+        (_('テーマプリセット'), {'fields': ('preset',)}),
+        (_('カラー設定'), {
+            'fields': (
+                'primary_color', 'secondary_color', 'accent_color',
+                'text_color', 'header_bg_color', 'footer_bg_color',
+            ),
+        }),
+        (_('フォント'), {'fields': ('heading_font', 'body_font')}),
+        (_('ブランディング'), {'fields': ('logo', 'favicon')}),
+        (_('上級者向け'), {
+            'classes': ('collapse',),
+            'fields': ('custom_css',),
+        }),
+    )
+
+    class Media:
+        js = ('js/store_theme_preset.js',)
+
+
 class StoreAdmin(admin.ModelAdmin):
     list_display = ('name', 'address', 'nearest_station', 'business_hours', 'regular_holiday', 'default_language', 'is_recommended')
     list_editable = ('is_recommended',)
     search_fields = ('name', 'address', 'nearest_station')
-    inlines = [StoreScheduleConfigInline, AdminThemeInline]
+    inlines = [StoreScheduleConfigInline, AdminThemeInline, StoreThemeInline]
     fieldsets = (
         (None, {'fields': ('name', 'address', 'business_hours', 'nearest_station', 'regular_holiday', 'is_recommended', 'default_language')}),
         (_('店舗紹介'), {'fields': ('description', 'access_info', 'map_url', 'google_maps_embed')}),
@@ -271,6 +312,32 @@ class StoreAdmin(admin.ModelAdmin):
         (_('外部埋め込み'), {'fields': ('embed_api_key', 'embed_allowed_domains'), 'classes': ('collapse',)}),
     )
     actions = ['generate_embed_api_key']
+
+    def change_view(self, request, object_id, form_url='', extra_context=None):
+        extra_context = extra_context or {}
+        extra_context['customization_links'] = [
+            {
+                'label': _('セットアップウィザード'),
+                'url': reverse('admin_site_wizard', args=[object_id]),
+                'icon': '🚀',
+            },
+            {
+                'label': _('テーマカスタマイザー'),
+                'url': reverse('admin_theme_customizer', args=[object_id]),
+                'icon': '🎨',
+            },
+            {
+                'label': _('レイアウトエディタ'),
+                'url': reverse('admin_page_layout_editor', args=[object_id]),
+                'icon': '📐',
+            },
+            {
+                'label': _('ページビルダー'),
+                'url': reverse('admin_page_builder_list', args=[object_id]),
+                'icon': '📄',
+            },
+        ]
+        return super().change_view(request, object_id, form_url, extra_context)
 
     @admin.action(description=_('選択した店舗の埋め込みAPIキーを生成'))
     def generate_embed_api_key(self, request, queryset):

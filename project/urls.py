@@ -22,6 +22,16 @@ from booking.views_menu_preview import MenuPreviewRedirectView
 from booking.views_inventory import InventoryDashboardView, StockInFormView
 from booking.views_performance_dashboard import StaffPerformanceDashboardView
 from booking.views_ec_dashboard import ECOrderDashboardView
+from booking.views_theme import ThemePreviewView, ThemePresetsAPIView, ThemeCustomizerView
+from booking.views_page_layout import PageLayoutEditorView
+from booking.views_page_builder import (
+    PageBuilderListView, PageBuilderCreateView,
+    PageBuilderEditView, PageBuilderPublishView,
+    PageBuilderDuplicateView, PageBuilderUploadView,
+    SavedBlockListView, SavedBlockCreateView, SavedBlockDeleteView,
+    CustomPageView,
+)
+from booking.views_site_wizard import SiteSetupWizardView
 import booking.admin
 
 # Non-i18n URLs (APIs, health check, legacy redirects, embed)
@@ -37,6 +47,13 @@ urlpatterns = [
     re_path(
         r"^booking/mq\d+/$",
         lambda request: HttpResponsePermanentRedirect("/"),
+    ),
+
+    # Custom pages (public, no i18n prefix)
+    path(
+        "p/<int:store_id>/<slug:slug>/",
+        CustomPageView.as_view(),
+        name="custom_page_public",
     ),
 
     # Health check endpoint (no auth required)
@@ -185,6 +202,85 @@ urlpatterns += i18n_patterns(
         "admin/inventory/stock-in/",
         custom_site.admin_view(StockInFormView.as_view()),
         name="admin_inventory_stock_in",
+    ),
+
+    # Site setup wizard
+    path(
+        "admin/site-wizard/<int:store_id>/",
+        custom_site.admin_view(SiteSetupWizardView.as_view()),
+        name="admin_site_wizard",
+    ),
+
+    # Page layout editor
+    path(
+        "admin/page-layout/<int:store_id>/",
+        custom_site.admin_view(PageLayoutEditorView.as_view()),
+        name="admin_page_layout_editor",
+    ),
+
+    # Page builder (GrapesJS)
+    path(
+        "admin/pages/<int:store_id>/",
+        custom_site.admin_view(PageBuilderListView.as_view()),
+        name="admin_page_builder_list",
+    ),
+    path(
+        "admin/pages/<int:store_id>/new/",
+        custom_site.admin_view(PageBuilderCreateView.as_view()),
+        name="admin_page_builder_create",
+    ),
+    path(
+        "admin/pages/<int:store_id>/<int:page_id>/edit/",
+        custom_site.admin_view(PageBuilderEditView.as_view()),
+        name="admin_page_builder_edit",
+    ),
+    path(
+        "admin/pages/<int:store_id>/<int:page_id>/publish/",
+        custom_site.admin_view(PageBuilderPublishView.as_view()),
+        name="admin_page_builder_publish",
+    ),
+    path(
+        "admin/pages/<int:store_id>/<int:page_id>/duplicate/",
+        custom_site.admin_view(PageBuilderDuplicateView.as_view()),
+        name="admin_page_builder_duplicate",
+    ),
+    path(
+        "admin/pages/<int:store_id>/upload/",
+        custom_site.admin_view(PageBuilderUploadView.as_view()),
+        name="admin_page_builder_upload",
+    ),
+    # Saved blocks API
+    path(
+        "admin/pages/<int:store_id>/blocks/",
+        custom_site.admin_view(SavedBlockListView.as_view()),
+        name="admin_saved_block_list",
+    ),
+    path(
+        "admin/pages/<int:store_id>/blocks/create/",
+        custom_site.admin_view(SavedBlockCreateView.as_view()),
+        name="admin_saved_block_create",
+    ),
+    path(
+        "admin/pages/<int:store_id>/blocks/<int:block_id>/delete/",
+        custom_site.admin_view(SavedBlockDeleteView.as_view()),
+        name="admin_saved_block_delete",
+    ),
+
+    # Theme preview, customizer & API
+    path(
+        "admin/theme/preview/<int:store_id>/",
+        custom_site.admin_view(ThemePreviewView.as_view()),
+        name="admin_theme_preview",
+    ),
+    path(
+        "admin/theme/customizer/<int:store_id>/",
+        custom_site.admin_view(ThemeCustomizerView.as_view()),
+        name="admin_theme_customizer",
+    ),
+    path(
+        "admin/theme/presets/",
+        custom_site.admin_view(ThemePresetsAPIView.as_view()),
+        name="admin_theme_presets_api",
     ),
 
     # SNS OAuth

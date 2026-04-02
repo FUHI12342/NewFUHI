@@ -3,7 +3,7 @@ from django.conf import settings
 from django.core.cache import cache
 from django.utils.translation import get_language
 
-from .models import Store, Staff, Company, Notice, Media, ExternalLink, SiteSettings
+from .models import Store, Staff, Company, Notice, Media, ExternalLink, SiteSettings, StoreTheme
 
 
 def _get_localized_staff_label(site_settings):
@@ -63,6 +63,44 @@ def admin_user_flags(request):
             except (Staff.DoesNotExist, AttributeError):
                 pass
     return {'is_developer_or_superuser': is_dev}
+
+
+def _resolve_current_store(request):
+    """現在のリクエストに対応する Store を判定する。
+
+    優先順位:
+    1. URL パラメータ store_id
+    2. ログインユーザーの所属 Store
+    3. 最初の Store（シングルテナント互換）
+    """
+    # URL パラメータ
+    store_id = request.GET.get('store_id') or request.resolver_match and request.resolver_match.kwargs.get('store_id')
+    if store_id:
+        try:
+            return Store.objects.get(pk=store_id)
+        except (Store.DoesNotExist, ValueError):
+            pass
+    # ログインユーザーの店舗
+    if hasattr(request, 'user') and request.user.is_authenticated:
+        try:
+            return request.user.staff.store
+        except (Staff.DoesNotExist, AttributeError):
+            pass
+    # フォールバック: 最初の店舗
+    return Store.objects.first()
+
+
+def store_theme(request):
+    """顧客向けページ用のテーマ設定をコンテキストに注入。"""
+    if _is_admin_path(request.path):
+        return {}
+    store = _resolve_current_store(request)
+    if store:
+        try:
+            return {'store_theme': store.store_theme}
+        except StoreTheme.DoesNotExist:
+            pass
+    return {'store_theme': None}
 
 
 def admin_theme(request):

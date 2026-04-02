@@ -23,6 +23,45 @@
   }
   .summary-card .label { font-size: 0.75rem; color: #6b7280; font-weight: 600; text-transform: uppercase; }
   .summary-card .value { font-size: 1.75rem; font-weight: 700; margin-top: 4px; }
+
+  /* ── Mobile responsive ── */
+  @media (max-width: 767px) {
+    .summary-card {
+      min-width: 0;
+      flex: 1 1 calc(50% - 8px);
+      padding: 12px 10px;
+    }
+    .summary-card .value { font-size: 1.35rem; }
+
+    #device-table th,
+    #device-table td,
+    #events-table th,
+    #events-table td {
+      padding: 8px 10px;
+      font-size: 0.75rem;
+    }
+
+    section {
+      margin-left: -8px;
+      margin-right: -8px;
+    }
+
+    #log-level-form {
+      padding: 12px;
+    }
+    #log-level-form .tw-flex {
+      gap: 10px;
+    }
+    #log-level-form button[type="submit"] {
+      margin-left: 0;
+      width: 100%;
+    }
+
+    .tw-rounded-lg.tw-shadow {
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+  }
 </style>
 {% endblock %}
 

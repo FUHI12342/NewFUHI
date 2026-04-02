@@ -71,7 +71,8 @@ class ECPaymentView(View):
             'Accept': 'application/json',
             'X-CoineyPayge-Version': '2016-10-25',
         }
-        webhook_url = f"{settings.WEBHOOK_URL_BASE}ec_order_{order.id}/"
+        _wh_token = f"?token={settings.COINEY_WEBHOOK_TOKEN}" if settings.COINEY_WEBHOOK_TOKEN else ""
+        webhook_url = f"{settings.WEBHOOK_URL_BASE}ec_order_{order.id}/{_wh_token}"
         cancel_url = request.build_absolute_uri(
             reverse('booking:shop_payment', kwargs={'order_id': order.id})
         )

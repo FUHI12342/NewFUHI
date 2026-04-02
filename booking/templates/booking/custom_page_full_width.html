@@ -1,0 +1,77 @@
+{% load i18n %}
+{% load static %}
+<!DOCTYPE html>
+<html lang="{{ current_language|default:'ja' }}">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{{ page.meta_title|default:page.title }} | {{ store.name }}</title>
+{% if page.meta_description %}<meta name="description" content="{{ page.meta_description }}">{% endif %}
+{% if page.og_image_url %}<meta property="og:image" content="{{ page.og_image_url }}">{% endif %}
+{% if page.meta_title %}<meta property="og:title" content="{{ page.meta_title }}">{% endif %}
+{% if store_theme and store_theme.favicon %}
+<link rel="icon" href="{{ store_theme.favicon.url }}">
+{% else %}
+<link rel="icon" href="{% static 'images/favicon.svg' %}" type="image/svg+xml">
+{% endif %}
+<link rel="stylesheet" href="{% static 'css/tailwind.css' %}">
+{% if store_theme %}
+<style>
+  :root {
+    --color-primary: {{ store_theme.primary_color }};
+    --color-secondary: {{ store_theme.secondary_color }};
+    --color-accent: {{ store_theme.accent_color }};
+    --color-text: {{ store_theme.text_color }};
+    --color-header-bg: {{ store_theme.header_bg_color }};
+    --color-footer-bg: {{ store_theme.footer_bg_color }};
+    --font-heading: "{{ store_theme.heading_font }}", sans-serif;
+    --font-body: "{{ store_theme.body_font }}", sans-serif;
+  }
+</style>
+{% if store_theme.custom_css %}
+<style>{{ store_theme.custom_css|safe }}</style>
+{% endif %}
+{% endif %}
+{% if page.css_content %}
+<style>{{ page.css_content|safe }}</style>
+{% endif %}
+</head>
+
+<body class="font-jp text-salon-dark bg-white min-h-screen flex flex-col">
+
+<!-- ===== HEADER (Compact) ===== -->
+<header class="bg-white shadow-sm border-b border-gray-200">
+    <div class="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
+        <a href="{% url 'booking:booking_top' %}" class="flex items-center">
+            {% if store_theme and store_theme.logo %}
+            <img src="{{ store_theme.logo.url }}" alt="{{ store.name }}" class="h-10 md:h-12">
+            {% else %}
+            <img src="{% static 'images/siteid.png' %}" alt="{{ store.name }}" class="h-10 md:h-12">
+            {% endif %}
+        </a>
+        <nav class="flex items-center gap-4 text-sm">
+            <a href="{% url 'booking:booking_top' %}" class="text-gray-600 hover:text-gray-900 transition">{% trans "ホーム" %}</a>
+            <a href="{% url 'booking:booking_top' %}" class="bg-salon-brown text-white px-4 py-2 rounded hover:bg-salon-brown/80 transition">{% trans "ご予約" %}</a>
+        </nav>
+    </div>
+</header>
+
+<!-- ===== FULL-WIDTH CONTENT ===== -->
+<main class="flex-1">
+    {{ page.html_content|safe }}
+</main>
+
+<!-- ===== FOOTER (Minimal) ===== -->
+<footer class="bg-salon-brown text-white mt-auto">
+    <div class="max-w-7xl mx-auto px-4 py-6 text-center text-sm">
+        <div class="flex items-center justify-center gap-6 mb-4">
+            <a href="{% url 'booking:booking_top' %}" class="hover:underline opacity-80 hover:opacity-100">{% trans "ホーム" %}</a>
+            <a href="{% url 'booking:booking_top' %}" class="hover:underline opacity-80 hover:opacity-100">{% trans "ご予約" %}</a>
+            <a href="{% url 'booking:privacy_policy' %}" class="hover:underline opacity-80 hover:opacity-100">{% trans "プライバシーポリシー" %}</a>
+        </div>
+        <p class="opacity-60 text-xs">&copy; {{ store.name }} All Rights Reserved.</p>
+    </div>
+</footer>
+
+</body>
+</html>

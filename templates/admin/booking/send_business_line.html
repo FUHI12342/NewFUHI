@@ -3,6 +3,40 @@
 
 {% block title %}{{ title }}{% endblock %}
 
+{% block extrahead %}
+{{ block.super }}
+<style>
+  /* ── Mobile responsive ── */
+  @media (max-width: 767px) {
+    fieldset table {
+      display: block;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+      font-size: 0.85rem;
+    }
+    fieldset table th,
+    fieldset table td {
+      padding: 6px 8px;
+      white-space: nowrap;
+    }
+    textarea[name="message"] {
+      max-width: 100% !important;
+      width: 100% !important;
+    }
+    .submit-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .submit-row input[type="submit"],
+    .submit-row a.button {
+      flex: 1 1 auto;
+      text-align: center;
+    }
+  }
+</style>
+{% endblock %}
+
 {% block content %}
 <form method="post">
   {% csrf_token %}

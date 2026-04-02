@@ -1,0 +1,310 @@
+{% extends "admin/base_site.html" %}
+{% load i18n %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block extrahead %}
+<style>
+.customizer-wrap { display: flex; height: calc(100vh - 160px); gap: 0; }
+.customizer-panel {
+    width: 320px; flex-shrink: 0; overflow-y: auto;
+    background: #fff; border-right: 1px solid #e5e7eb;
+    padding: 20px;
+}
+.customizer-preview { flex: 1; background: #f3f4f6; position: relative; }
+.customizer-preview iframe {
+    width: 100%; height: 100%; border: none; background: #fff;
+}
+.panel-section { margin-bottom: 24px; }
+.panel-section h3 {
+    font-size: 13px; font-weight: 700; text-transform: uppercase;
+    color: #6b7280; margin-bottom: 12px; letter-spacing: 0.5px;
+}
+.field-row {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 10px;
+}
+.field-row label { font-size: 13px; color: #333; }
+.field-row input[type="color"] {
+    width: 40px; height: 28px; border: 1px solid #d1d5db;
+    border-radius: 4px; padding: 2px; cursor: pointer;
+}
+.field-row select, .field-row input[type="text"] {
+    width: 180px; padding: 6px 8px; border: 1px solid #d1d5db;
+    border-radius: 4px; font-size: 13px;
+}
+.preset-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
+.preset-btn {
+    padding: 8px; border: 2px solid #e5e7eb; border-radius: 8px;
+    cursor: pointer; text-align: center; font-size: 12px;
+    font-weight: 600; transition: border-color 0.2s;
+    background: #fff;
+}
+.preset-btn:hover { border-color: #8c876c; }
+.preset-btn.active { border-color: #8c876c; background: #f1f0ec; }
+.preset-swatch {
+    display: flex; gap: 2px; justify-content: center; margin-bottom: 4px;
+}
+.preset-swatch span {
+    width: 16px; height: 16px; border-radius: 3px;
+    display: inline-block; border: 1px solid rgba(0,0,0,0.1);
+}
+.save-bar {
+    position: sticky; bottom: 0; background: #fff;
+    border-top: 1px solid #e5e7eb; padding: 12px 20px;
+    display: flex; justify-content: space-between; align-items: center;
+}
+.btn-save {
+    background: #8c876c; color: #fff; border: none;
+    padding: 8px 24px; border-radius: 6px; cursor: pointer;
+    font-size: 14px; font-weight: 600;
+}
+.btn-save:hover { opacity: 0.9; }
+.btn-reset {
+    background: #fff; color: #666; border: 1px solid #d1d5db;
+    padding: 8px 16px; border-radius: 6px; cursor: pointer; font-size: 13px;
+}
+#statusMsg {
+    font-size: 13px; padding: 4px 8px; border-radius: 4px; display: none;
+}
+#statusMsg.show { display: inline-block; }
+
+@media (max-width: 767px) {
+  .customizer-wrap {
+    flex-direction: column;
+    height: auto;
+    min-height: calc(100vh - 160px);
+  }
+  .customizer-panel {
+    width: 100%;
+    border-right: none;
+    border-bottom: 1px solid #e5e7eb;
+    max-height: none;
+    overflow-y: visible;
+    padding: 12px;
+  }
+  .customizer-preview {
+    width: 100%;
+    min-height: 50vh;
+  }
+  .field-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+  }
+  .field-row select,
+  .field-row input[type="text"] {
+    width: 100%;
+    box-sizing: border-box;
+  }
+  .preset-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .save-bar {
+    flex-wrap: wrap;
+    gap: 8px;
+    padding: 12px;
+    justify-content: center;
+  }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="customizer-wrap">
+    <!-- Left: Settings Panel -->
+    <div class="customizer-panel" id="settingsPanel">
+        <h2 style="font-size:16px;font-weight:700;margin-bottom:16px;">{% trans "テーマカスタマイザー" %}</h2>
+
+        <!-- Presets -->
+        <div class="panel-section">
+            <h3>{% trans "プリセット" %}</h3>
+            <div class="preset-grid" id="presetGrid">
+                <!-- Rendered by JS -->
+            </div>
+        </div>
+
+        <!-- Colors -->
+        <div class="panel-section">
+            <h3>{% trans "カラー" %}</h3>
+            <div class="field-row">
+                <label>{% trans "プライマリ" %}</label>
+                <input type="color" id="f_primary_color" value="{{ theme.primary_color }}" onchange="updatePreview()">
+            </div>
+            <div class="field-row">
+                <label>{% trans "セカンダリ" %}</label>
+                <input type="color" id="f_secondary_color" value="{{ theme.secondary_color }}" onchange="updatePreview()">
+            </div>
+            <div class="field-row">
+                <label>{% trans "アクセント" %}</label>
+                <input type="color" id="f_accent_color" value="{{ theme.accent_color }}" onchange="updatePreview()">
+            </div>
+            <div class="field-row">
+                <label>{% trans "テキスト" %}</label>
+                <input type="color" id="f_text_color" value="{{ theme.text_color }}" onchange="updatePreview()">
+            </div>
+            <div class="field-row">
+                <label>{% trans "ヘッダー背景" %}</label>
+                <input type="color" id="f_header_bg_color" value="{{ theme.header_bg_color }}" onchange="updatePreview()">
+            </div>
+            <div class="field-row">
+                <label>{% trans "フッター背景" %}</label>
+                <input type="color" id="f_footer_bg_color" value="{{ theme.footer_bg_color }}" onchange="updatePreview()">
+            </div>
+        </div>
+
+        <!-- Fonts -->
+        <div class="panel-section">
+            <h3>{% trans "フォント" %}</h3>
+            <div class="field-row">
+                <label>{% trans "見出し" %}</label>
+                <select id="f_heading_font" onchange="updatePreview()">
+                    <option value="Hiragino Kaku Gothic Pro">ヒラギノ角ゴ</option>
+                    <option value="Noto Sans JP">Noto Sans JP</option>
+                    <option value="Noto Serif JP">Noto Serif JP</option>
+                    <option value="M PLUS 1p">M PLUS 1p</option>
+                    <option value="M PLUS Rounded 1c">M PLUS Rounded 1c</option>
+                </select>
+            </div>
+            <div class="field-row">
+                <label>{% trans "本文" %}</label>
+                <select id="f_body_font" onchange="updatePreview()">
+                    <option value="Hiragino Kaku Gothic Pro">ヒラギノ角ゴ</option>
+                    <option value="Noto Sans JP">Noto Sans JP</option>
+                    <option value="Noto Serif JP">Noto Serif JP</option>
+                    <option value="M PLUS 1p">M PLUS 1p</option>
+                    <option value="M PLUS Rounded 1c">M PLUS Rounded 1c</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- Save Bar -->
+        <div class="save-bar">
+            <button class="btn-reset" onclick="resetTheme()">{% trans "リセット" %}</button>
+            <span id="statusMsg"></span>
+            <button class="btn-save" onclick="saveTheme()">{% trans "保存" %}</button>
+        </div>
+    </div>
+
+    <!-- Right: Live Preview -->
+    <div class="customizer-preview">
+        <iframe id="previewFrame" src="{% url 'admin_theme_preview' store.pk %}?preview=1"></iframe>
+    </div>
+</div>
+
+<script>
+var PRESETS = {{ presets_json|safe }};
+var PRESET_LABELS = {
+    'default': 'デフォルト', 'elegant': 'エレガント', 'modern': 'モダン',
+    'natural': 'ナチュラル', 'luxury': 'ラグジュアリー', 'pop': 'ポップ',
+    'japanese': '和風',
+};
+
+var FIELDS = ['primary_color', 'secondary_color', 'accent_color', 'text_color', 'header_bg_color', 'footer_bg_color'];
+var FONT_FIELDS = ['heading_font', 'body_font'];
+
+// Set initial font values
+document.getElementById('f_heading_font').value = '{{ theme.heading_font }}';
+document.getElementById('f_body_font').value = '{{ theme.body_font }}';
+
+// Render preset grid
+(function renderPresets() {
+    var grid = document.getElementById('presetGrid');
+    Object.keys(PRESETS).forEach(function(name) {
+        var p = PRESETS[name];
+        var btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'preset-btn' + (name === '{{ theme.preset }}' ? ' active' : '');
+        btn.setAttribute('data-preset', name);
+        btn.innerHTML =
+            '<div class="preset-swatch">' +
+                '<span style="background:' + p.primary_color + '"></span>' +
+                '<span style="background:' + p.secondary_color + '"></span>' +
+                '<span style="background:' + p.accent_color + '"></span>' +
+            '</div>' +
+            (PRESET_LABELS[name] || name);
+        btn.onclick = function() { applyPreset(name); };
+        grid.appendChild(btn);
+    });
+})();
+
+function applyPreset(name) {
+    var p = PRESETS[name];
+    if (!p) return;
+    FIELDS.forEach(function(f) {
+        document.getElementById('f_' + f).value = p[f];
+    });
+    FONT_FIELDS.forEach(function(f) {
+        document.getElementById('f_' + f).value = p[f];
+    });
+    document.querySelectorAll('.preset-btn').forEach(function(btn) {
+        btn.classList.toggle('active', btn.getAttribute('data-preset') === name);
+    });
+    updatePreview();
+}
+
+function updatePreview() {
+    // Use postMessage for instant CSS variable updates in iframe
+    var iframe = document.getElementById('previewFrame');
+    var values = {};
+    FIELDS.forEach(function(f) {
+        values[f] = document.getElementById('f_' + f).value;
+    });
+    FONT_FIELDS.forEach(function(f) {
+        values[f] = document.getElementById('f_' + f).value;
+    });
+    iframe.contentWindow.postMessage({type: 'theme-update', values: values}, '*');
+}
+
+function resetTheme() {
+    applyPreset('default');
+}
+
+function saveTheme() {
+    var body = 'csrfmiddlewaretoken=' + encodeURIComponent(getCookie('csrftoken'));
+    FIELDS.forEach(function(f) {
+        body += '&' + f + '=' + encodeURIComponent(document.getElementById('f_' + f).value);
+    });
+    FONT_FIELDS.forEach(function(f) {
+        body += '&' + f + '=' + encodeURIComponent(document.getElementById('f_' + f).value);
+    });
+    // Determine active preset
+    var activePreset = 'custom';
+    document.querySelectorAll('.preset-btn.active').forEach(function(btn) {
+        activePreset = btn.getAttribute('data-preset') || 'custom';
+    });
+    body += '&preset=' + encodeURIComponent(activePreset);
+
+    fetch(window.location.href, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': getCookie('csrftoken'),
+            'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: body,
+    })
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+        if (data.status === 'ok') showStatus(data.message, 'success');
+        else showStatus('エラー', 'error');
+    })
+    .catch(function() { showStatus('保存に失敗しました', 'error'); });
+}
+
+function showStatus(msg, type) {
+    var el = document.getElementById('statusMsg');
+    el.textContent = msg;
+    el.style.background = type === 'success' ? '#ecfdf5' : '#fef2f2';
+    el.style.color = type === 'success' ? '#065f46' : '#991b1b';
+    el.className = 'show';
+    setTimeout(function() { el.className = ''; }, 3000);
+}
+
+function getCookie(name) {
+    var value = '; ' + document.cookie;
+    var parts = value.split('; ' + name + '=');
+    if (parts.length === 2) return parts.pop().split(';').shift();
+    return '';
+}
+</script>
+{% endblock %}

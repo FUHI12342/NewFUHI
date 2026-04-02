@@ -1,0 +1,625 @@
+{% extends "admin/base_site.html" %}
+{% load i18n %}
+{% load static %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block extrahead %}
+<!-- GrapesJS CSS -->
+<link rel="stylesheet" href="https://unpkg.com/grapesjs@0.21.10/dist/css/grapes.min.css">
+<!-- Google Fonts for theme -->
+{% if theme_fonts_json != "[]" %}
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family={{ theme_fonts_json|escapejs }}&display=swap">
+{% endif %}
+<style>
+/* ── Editor Layout ── */
+.editor-wrapper { display:flex; flex-direction:column; height:calc(100vh - 120px); }
+.editor-toolbar {
+    display:flex; align-items:center; justify-content:space-between;
+    padding:8px 0; gap:8px; flex-shrink:0;
+}
+.toolbar-left { display:flex; align-items:center; gap:8px; }
+.toolbar-center { display:flex; align-items:center; gap:4px; }
+.toolbar-right { display:flex; align-items:center; gap:8px; }
+.page-info { font-size:13px; color:#666; }
+.page-info strong { color:#333; }
+
+/* ── Buttons ── */
+.btn-editor {
+    padding:6px 14px; border:1px solid #d1d5db; border-radius:6px;
+    font-size:12px; font-weight:600; cursor:pointer; background:#fff; color:#333;
+    display:inline-flex; align-items:center; gap:4px; transition:all 0.15s;
+}
+.btn-editor:hover { background:#f3f4f6; }
+.btn-editor.active { background:#8c876c; color:#fff; border-color:#8c876c; }
+.btn-save { background:#8c876c; color:#fff; border-color:#8c876c; }
+.btn-save:hover { background:#7a7660; }
+.btn-publish { background:#059669; color:#fff; border-color:#059669; }
+.btn-publish:hover { background:#047857; }
+.btn-unpublish { background:#dc2626; color:#fff; border-color:#dc2626; }
+.btn-danger { background:#dc2626; color:#fff; border-color:#dc2626; }
+
+/* ── Device buttons ── */
+.device-btns { display:flex; border:1px solid #d1d5db; border-radius:6px; overflow:hidden; }
+.device-btn {
+    padding:6px 10px; border:none; background:#fff; cursor:pointer;
+    font-size:14px; border-right:1px solid #d1d5db; transition:all 0.15s;
+}
+.device-btn:last-child { border-right:none; }
+.device-btn:hover { background:#f3f4f6; }
+.device-btn.active { background:#8c876c; color:#fff; }
+
+/* ── GrapesJS container ── */
+#gjs { flex:1; border:1px solid #e5e7eb; border-radius:8px; overflow:hidden; }
+
+/* ── Status ── */
+#editorStatus {
+    padding:4px 10px; border-radius:4px; font-size:12px; display:none;
+}
+#editorStatus.show { display:inline-block; }
+.autosave-indicator { font-size:11px; color:#9ca3af; }
+
+/* ── Code Editor Modal ── */
+.code-modal-overlay {
+    display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5);
+    z-index:10000; align-items:center; justify-content:center;
+}
+.code-modal-overlay.open { display:flex; }
+.code-modal {
+    background:#fff; border-radius:12px; width:90vw; max-width:1200px;
+    height:80vh; display:flex; flex-direction:column; box-shadow:0 20px 60px rgba(0,0,0,0.3);
+}
+.code-modal-header {
+    padding:12px 20px; border-bottom:1px solid #e5e7eb;
+    display:flex; justify-content:space-between; align-items:center;
+}
+.code-modal-header h3 { font-size:15px; font-weight:700; }
+.code-modal-body { display:flex; flex:1; overflow:hidden; }
+.code-pane {
+    flex:1; display:flex; flex-direction:column; border-right:1px solid #e5e7eb;
+}
+.code-pane:last-child { border-right:none; }
+.code-pane-label {
+    padding:6px 12px; font-size:11px; font-weight:600; color:#666;
+    background:#f9fafb; border-bottom:1px solid #e5e7eb; text-transform:uppercase;
+}
+.code-pane textarea {
+    flex:1; border:none; padding:12px; font-family:"JetBrains Mono",monospace;
+    font-size:13px; line-height:1.6; resize:none; outline:none;
+    tab-size:2;
+}
+.code-modal-footer {
+    padding:10px 20px; border-top:1px solid #e5e7eb;
+    display:flex; justify-content:flex-end; gap:8px;
+}
+
+/* ── SEO Modal ── */
+.seo-modal-overlay {
+    display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5);
+    z-index:10000; align-items:center; justify-content:center;
+}
+.seo-modal-overlay.open { display:flex; }
+.seo-modal {
+    background:#fff; border-radius:12px; width:600px; max-width:90vw;
+    padding:28px; box-shadow:0 20px 60px rgba(0,0,0,0.3);
+}
+.seo-modal h3 { font-size:16px; font-weight:700; margin-bottom:20px; }
+.seo-field { margin-bottom:16px; }
+.seo-field label { display:block; font-size:13px; font-weight:600; margin-bottom:4px; color:#374151; }
+.seo-field input, .seo-field textarea {
+    width:100%; padding:8px 12px; border:1px solid #d1d5db; border-radius:6px;
+    font-size:13px;
+}
+.seo-field textarea { resize:vertical; }
+.seo-field .char-count { font-size:11px; color:#9ca3af; text-align:right; margin-top:2px; }
+.seo-preview { background:#f9fafb; border-radius:8px; padding:16px; margin-bottom:16px; }
+.seo-preview .title { color:#1a0dab; font-size:16px; margin-bottom:4px; }
+.seo-preview .url { color:#006621; font-size:13px; margin-bottom:4px; }
+.seo-preview .desc { color:#545454; font-size:13px; line-height:1.5; }
+
+/* ── Separator ── */
+.toolbar-sep { width:1px; height:24px; background:#e5e7eb; margin:0 4px; }
+
+/* ── Mobile Responsive ── */
+@media (max-width: 767px) {
+    .editor-wrapper { height: calc(100vh - 80px); }
+    .editor-toolbar {
+        flex-direction: column; align-items: stretch; gap: 6px; padding: 6px 0;
+    }
+    .toolbar-left, .toolbar-center, .toolbar-right {
+        justify-content: center; flex-wrap: wrap; gap: 4px;
+    }
+    .toolbar-right { justify-content: center; }
+    .page-info span { display: none; }
+    .toolbar-sep { display: none; }
+    .btn-editor { padding: 5px 8px; font-size: 11px; }
+    .device-btn { padding: 5px 8px; font-size: 12px; }
+    #gjs { flex: 1; width: 100%; border-radius: 4px; }
+    .code-modal { width: 98vw; height: 90vh; border-radius: 8px; }
+    .code-modal-body { flex-direction: column; }
+    .code-pane { border-right: none; border-bottom: 1px solid #e5e7eb; }
+    .code-pane:last-child { border-bottom: none; }
+    .seo-modal { width: 95vw; padding: 16px; }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="editor-wrapper">
+
+<!-- ===== TOOLBAR ===== -->
+<div class="editor-toolbar">
+    <div class="toolbar-left">
+        <div class="page-info">
+            <strong>{{ page.title }}</strong>
+            <span style="color:#9ca3af;margin-left:4px;font-size:11px;">/p/{{ store.pk }}/{{ page.slug }}/</span>
+        </div>
+    </div>
+
+    <div class="toolbar-center">
+        <!-- Undo / Redo -->
+        <button class="btn-editor" onclick="editor.runCommand('core:undo')" title="{% trans '元に戻す' %} (Ctrl+Z)">↩</button>
+        <button class="btn-editor" onclick="editor.runCommand('core:redo')" title="{% trans 'やり直し' %} (Ctrl+Y)">↪</button>
+        <div class="toolbar-sep"></div>
+
+        <!-- Device toggle -->
+        <div class="device-btns">
+            <button class="device-btn active" onclick="setDevice('Desktop',this)" title="Desktop">🖥</button>
+            <button class="device-btn" onclick="setDevice('Tablet',this)" title="Tablet">📱</button>
+            <button class="device-btn" onclick="setDevice('Mobile portrait',this)" title="Mobile">📲</button>
+        </div>
+        <div class="toolbar-sep"></div>
+
+        <!-- Code Editor -->
+        <button class="btn-editor" onclick="openCodeEditor()" title="{% trans 'コードエディタ' %}">{ }</button>
+        <!-- SEO -->
+        <button class="btn-editor" onclick="openSeoModal()" title="{% trans 'SEO設定' %}">SEO</button>
+        <!-- Save as Block -->
+        <button class="btn-editor" onclick="openSaveBlockModal()" title="{% trans 'ブロック保存' %}">📦 {% trans "ブロック保存" %}</button>
+    </div>
+
+    <div class="toolbar-right">
+        <span id="editorStatus"></span>
+        <span class="autosave-indicator" id="autosaveLabel"></span>
+        <button class="btn-editor" onclick="previewInIframe()" title="{% trans 'プレビュー' %}">👁 {% trans "プレビュー" %}</button>
+        <button class="btn-editor btn-save" onclick="savePage()">💾 {% trans "保存" %}</button>
+        {% if page.is_published %}
+        <button class="btn-editor btn-unpublish" onclick="togglePublish('unpublish')">{% trans "非公開" %}</button>
+        {% else %}
+        <button class="btn-editor btn-publish" onclick="togglePublish('publish')">🚀 {% trans "公開" %}</button>
+        {% endif %}
+    </div>
+</div>
+
+<!-- ===== GRAPESJS EDITOR ===== -->
+<div id="gjs"></div>
+
+</div>
+
+<!-- ===== CODE EDITOR MODAL ===== -->
+<div class="code-modal-overlay" id="codeModal">
+    <div class="code-modal">
+        <div class="code-modal-header">
+            <h3>{% trans "コードエディタ" %}</h3>
+            <button class="btn-editor" onclick="closeCodeEditor()">✕</button>
+        </div>
+        <div class="code-modal-body">
+            <div class="code-pane">
+                <div class="code-pane-label">HTML</div>
+                <textarea id="codeHtml" spellcheck="false"></textarea>
+            </div>
+            <div class="code-pane">
+                <div class="code-pane-label">CSS</div>
+                <textarea id="codeCss" spellcheck="false"></textarea>
+            </div>
+        </div>
+        <div class="code-modal-footer">
+            <button class="btn-editor" onclick="closeCodeEditor()">{% trans "キャンセル" %}</button>
+            <button class="btn-editor btn-save" onclick="applyCode()">{% trans "適用" %}</button>
+        </div>
+    </div>
+</div>
+
+<!-- ===== SEO MODAL ===== -->
+<div class="seo-modal-overlay" id="seoModal">
+    <div class="seo-modal">
+        <h3>🔍 {% trans "SEO設定" %}</h3>
+        <div class="seo-preview" id="seoPreview">
+            <div class="title" id="seoPreviewTitle">{{ page.title }}</div>
+            <div class="url">{{ request.scheme }}://{{ request.get_host }}/p/{{ store.pk }}/{{ page.slug }}/</div>
+            <div class="desc" id="seoPreviewDesc">{% trans "説明文がここに表示されます" %}</div>
+        </div>
+        <div class="seo-field">
+            <label>{% trans "メタタイトル" %}</label>
+            <input type="text" id="seoTitle" value="{{ page.meta_title|default:page.title }}" maxlength="70" oninput="updateSeoPreview()">
+            <div class="char-count"><span id="seoTitleCount">0</span>/70</div>
+        </div>
+        <div class="seo-field">
+            <label>{% trans "メタディスクリプション" %}</label>
+            <textarea id="seoDescription" rows="3" maxlength="160" oninput="updateSeoPreview()">{{ page.meta_description|default:"" }}</textarea>
+            <div class="char-count"><span id="seoDescCount">0</span>/160</div>
+        </div>
+        <div class="seo-field">
+            <label>{% trans "OGP画像URL" %}</label>
+            <input type="text" id="seoOgImage" value="{{ page.og_image_url|default:"" }}" placeholder="https://...">
+        </div>
+        <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:20px;">
+            <button class="btn-editor" onclick="closeSeoModal()">{% trans "キャンセル" %}</button>
+            <button class="btn-editor btn-save" onclick="saveSeo()">{% trans "保存" %}</button>
+        </div>
+    </div>
+</div>
+
+<!-- ===== SAVE BLOCK MODAL ===== -->
+<div class="seo-modal-overlay" id="saveBlockModal">
+    <div class="seo-modal" style="width:450px;">
+        <h3>📦 {% trans "選択中のコンポーネントをブロックとして保存" %}</h3>
+        <div class="seo-field">
+            <label>{% trans "ブロック名" %}</label>
+            <input type="text" id="blockLabel" placeholder="{% trans '例: ヘッダーセクション' %}" maxlength="100">
+        </div>
+        <div class="seo-field">
+            <label>{% trans "カテゴリ" %}</label>
+            <input type="text" id="blockCategory" value="{% trans '保存済み' %}" maxlength="50">
+        </div>
+        <p id="saveBlockError" style="color:#dc2626;font-size:12px;display:none;margin-bottom:12px;"></p>
+        <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:20px;">
+            <button class="btn-editor" onclick="closeSaveBlockModal()">{% trans "キャンセル" %}</button>
+            <button class="btn-editor btn-save" onclick="saveAsBlock()">{% trans "保存" %}</button>
+        </div>
+    </div>
+</div>
+
+<!-- ===== SCRIPTS ===== -->
+<script src="https://unpkg.com/grapesjs@0.21.10/dist/grapes.min.js"></script>
+<script src="https://unpkg.com/grapesjs-preset-webpage@1.0.3/dist/index.js"></script>
+<script src="{% static 'js/grapesjs-booking-blocks.js' %}"></script>
+<script>
+/* ── Theme CSS for canvas injection ── */
+var themeCssVars = '{{ theme_css_vars|escapejs }}';
+var themeFonts = JSON.parse('{{ theme_fonts_json|escapejs }}');
+
+/* ── Build canvas styles ── */
+var canvasStyles = ['/static/css/tailwind.css'];
+if (themeFonts.length > 0) {
+    var families = themeFonts.map(function(f) { return f.replace(/ /g, '+'); }).join('&family=');
+    canvasStyles.push('https://fonts.googleapis.com/css2?family=' + families + '&display=swap');
+}
+
+/* ── Init GrapesJS ── */
+var editor = grapesjs.init({
+    container: '#gjs',
+    plugins: ['gjs-preset-webpage', 'grapesjs-booking-blocks'],
+    pluginsOpts: {
+        'gjs-preset-webpage': {
+            blocksBasicOpts: { flexGrid: true },
+        },
+    },
+    storageManager: false,
+    canvas: {
+        styles: canvasStyles,
+    },
+    deviceManager: {
+        devices: [
+            { name: 'Desktop', width: '' },
+            { name: 'Tablet', width: '768px', widthMedia: '992px' },
+            { name: 'Mobile portrait', width: '375px', widthMedia: '480px' },
+        ],
+    },
+    assetManager: {
+        upload: '{% url "admin_page_builder_upload" store.pk %}',
+        uploadName: 'files[]',
+        headers: { 'X-CSRFToken': getCookie('csrftoken') },
+        multiUpload: true,
+        autoAdd: true,
+    },
+    styleManager: {
+        sectors: [
+            {
+                name: 'レイアウト',
+                open: false,
+                properties: ['display', 'flex-direction', 'justify-content', 'align-items', 'flex-wrap', 'gap'],
+            },
+            {
+                name: 'サイズ',
+                open: false,
+                properties: ['width', 'min-width', 'max-width', 'height', 'min-height', 'max-height'],
+            },
+            {
+                name: '余白',
+                open: false,
+                properties: ['padding', 'margin'],
+            },
+            {
+                name: 'テキスト',
+                open: true,
+                properties: ['font-family', 'font-size', 'font-weight', 'line-height', 'letter-spacing', 'text-align', 'color', 'text-decoration', 'text-transform'],
+            },
+            {
+                name: '背景',
+                open: false,
+                properties: ['background', 'background-color', 'background-image', 'background-size', 'background-position'],
+            },
+            {
+                name: 'ボーダー',
+                open: false,
+                properties: ['border', 'border-radius', 'box-shadow'],
+            },
+            {
+                name: 'その他',
+                open: false,
+                properties: ['opacity', 'overflow', 'cursor', 'position', 'top', 'right', 'bottom', 'left', 'z-index'],
+            },
+        ],
+    },
+});
+
+/* ── Inject theme CSS variables into canvas ── */
+if (themeCssVars) {
+    editor.on('load', function() {
+        var frame = editor.Canvas.getFrameEl();
+        if (frame && frame.contentDocument) {
+            var style = frame.contentDocument.createElement('style');
+            style.textContent = themeCssVars;
+            frame.contentDocument.head.appendChild(style);
+        }
+    });
+}
+
+/* ── Load saved data ── */
+var savedData = {{ grapesjs_data_json|safe }};
+if (savedData && savedData.components) {
+    editor.setComponents(savedData.components || []);
+    editor.setStyle(savedData.styles || []);
+}
+
+/* ══════ Device Toggle ══════ */
+function setDevice(name, btn) {
+    editor.setDevice(name);
+    document.querySelectorAll('.device-btn').forEach(function(b) { b.classList.remove('active'); });
+    btn.classList.add('active');
+}
+
+/* ══════ Code Editor ══════ */
+function openCodeEditor() {
+    document.getElementById('codeHtml').value = editor.getHtml();
+    document.getElementById('codeCss').value = editor.getCss();
+    document.getElementById('codeModal').classList.add('open');
+}
+
+function closeCodeEditor() {
+    document.getElementById('codeModal').classList.remove('open');
+}
+
+function applyCode() {
+    editor.setComponents(document.getElementById('codeHtml').value);
+    editor.setStyle(document.getElementById('codeCss').value);
+    closeCodeEditor();
+    showStatus('コードを適用しました', 'success');
+}
+
+/* ══════ SEO Modal ══════ */
+function openSeoModal() {
+    updateSeoPreview();
+    updateCharCounts();
+    document.getElementById('seoModal').classList.add('open');
+}
+
+function closeSeoModal() {
+    document.getElementById('seoModal').classList.remove('open');
+}
+
+function updateSeoPreview() {
+    var title = document.getElementById('seoTitle').value || '{{ page.title|escapejs }}';
+    var desc = document.getElementById('seoDescription').value || '説明文がここに表示されます';
+    document.getElementById('seoPreviewTitle').textContent = title;
+    document.getElementById('seoPreviewDesc').textContent = desc;
+    updateCharCounts();
+}
+
+function updateCharCounts() {
+    document.getElementById('seoTitleCount').textContent = document.getElementById('seoTitle').value.length;
+    document.getElementById('seoDescCount').textContent = document.getElementById('seoDescription').value.length;
+}
+
+function saveSeo() {
+    fetch('{% url "admin_page_builder_edit" store.pk page.pk %}', {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': getCookie('csrftoken'),
+            'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: 'seo_update=1' +
+              '&meta_title=' + encodeURIComponent(document.getElementById('seoTitle').value) +
+              '&meta_description=' + encodeURIComponent(document.getElementById('seoDescription').value) +
+              '&og_image_url=' + encodeURIComponent(document.getElementById('seoOgImage').value),
+    })
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+        if (data.status === 'ok') {
+            showStatus('SEO設定を保存しました', 'success');
+            closeSeoModal();
+        }
+    });
+}
+
+/* ══════ Save ══════ */
+function savePage() {
+    var gjsData = {
+        components: editor.getComponents(),
+        styles: editor.getStyle(),
+    };
+    fetch(window.location.href, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': getCookie('csrftoken'),
+            'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: 'grapesjs_data=' + encodeURIComponent(JSON.stringify(gjsData)) +
+              '&html_content=' + encodeURIComponent(editor.getHtml()) +
+              '&css_content=' + encodeURIComponent(editor.getCss()),
+    })
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+        if (data.status === 'ok') {
+            showStatus(data.message, 'success');
+            lastSaveTime = Date.now();
+            updateAutosaveLabel();
+        } else {
+            showStatus(data.error || 'エラー', 'error');
+        }
+    })
+    .catch(function() { showStatus('保存に失敗しました', 'error'); });
+}
+
+/* ══════ Auto-save (every 60s if changes) ══════ */
+var lastSaveTime = Date.now();
+var hasUnsavedChanges = false;
+
+editor.on('change:changesCount', function() {
+    hasUnsavedChanges = true;
+});
+
+setInterval(function() {
+    if (hasUnsavedChanges && (Date.now() - lastSaveTime > 60000)) {
+        savePage();
+        hasUnsavedChanges = false;
+    }
+}, 15000);
+
+function updateAutosaveLabel() {
+    var el = document.getElementById('autosaveLabel');
+    var now = new Date();
+    el.textContent = '保存: ' + now.getHours() + ':' + String(now.getMinutes()).padStart(2, '0');
+}
+
+/* ══════ Publish ══════ */
+function togglePublish(action) {
+    fetch('{% url "admin_page_builder_publish" store.pk page.pk %}', {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': getCookie('csrftoken'),
+            'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: 'action=' + action,
+    })
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+        if (data.status === 'ok') window.location.reload();
+    });
+}
+
+/* ══════ Preview (iframe within editor) ══════ */
+function previewInIframe() {
+    window.open('/p/{{ store.pk }}/{{ page.slug }}/', '_blank');
+}
+
+/* ══════ Utilities ══════ */
+function showStatus(msg, type) {
+    var el = document.getElementById('editorStatus');
+    el.textContent = msg;
+    el.style.background = type === 'success' ? '#ecfdf5' : '#fef2f2';
+    el.style.color = type === 'success' ? '#065f46' : '#991b1b';
+    el.className = 'show';
+    setTimeout(function() { el.className = ''; }, 3000);
+}
+
+function getCookie(name) {
+    var value = '; ' + document.cookie;
+    var parts = value.split('; ' + name + '=');
+    if (parts.length === 2) return parts.pop().split(';').shift();
+    return '';
+}
+
+/* ══════ Saved Blocks ══════ */
+var savedBlocksUrl = '{% url "admin_saved_block_list" store.pk %}';
+var savedBlockCreateUrl = '{% url "admin_saved_block_create" store.pk %}';
+
+function loadSavedBlocks() {
+    fetch(savedBlocksUrl)
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+        var bm = editor.BlockManager;
+        (data.blocks || []).forEach(function(b) {
+            var blockId = 'saved-' + b.id;
+            if (bm.get(blockId)) bm.remove(blockId);
+            bm.add(blockId, {
+                label: b.label,
+                category: b.category || '保存済み',
+                content: b.html_content + (b.css_content ? '<style>' + b.css_content + '</style>' : ''),
+                attributes: { 'data-saved-block-id': b.id },
+            });
+        });
+    });
+}
+
+editor.on('load', function() { loadSavedBlocks(); });
+
+function openSaveBlockModal() {
+    var selected = editor.getSelected();
+    if (!selected) {
+        showStatus('コンポーネントを選択してください', 'error');
+        return;
+    }
+    document.getElementById('blockLabel').value = '';
+    document.getElementById('saveBlockError').style.display = 'none';
+    document.getElementById('saveBlockModal').classList.add('open');
+}
+
+function closeSaveBlockModal() {
+    document.getElementById('saveBlockModal').classList.remove('open');
+}
+
+function saveAsBlock() {
+    var selected = editor.getSelected();
+    if (!selected) {
+        document.getElementById('saveBlockError').textContent = 'コンポーネントが選択されていません';
+        document.getElementById('saveBlockError').style.display = 'block';
+        return;
+    }
+    var label = document.getElementById('blockLabel').value.trim();
+    if (!label) {
+        document.getElementById('saveBlockError').textContent = 'ブロック名を入力してください';
+        document.getElementById('saveBlockError').style.display = 'block';
+        return;
+    }
+    var html = selected.toHTML();
+    var category = document.getElementById('blockCategory').value.trim() || '保存済み';
+
+    fetch(savedBlockCreateUrl, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': getCookie('csrftoken'),
+            'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: 'label=' + encodeURIComponent(label) +
+              '&category=' + encodeURIComponent(category) +
+              '&html_content=' + encodeURIComponent(html) +
+              '&css_content=',
+    })
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+        if (data.status === 'ok') {
+            closeSaveBlockModal();
+            showStatus('ブロックを保存しました: ' + label, 'success');
+            loadSavedBlocks();
+        } else {
+            document.getElementById('saveBlockError').textContent = data.error || 'エラーが発生しました';
+            document.getElementById('saveBlockError').style.display = 'block';
+        }
+    })
+    .catch(function() {
+        document.getElementById('saveBlockError').textContent = '保存に失敗しました';
+        document.getElementById('saveBlockError').style.display = 'block';
+    });
+}
+
+/* ── Keyboard shortcuts ── */
+document.addEventListener('keydown', function(e) {
+    if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+        e.preventDefault();
+        savePage();
+    }
+});
+</script>
+{% endblock %}

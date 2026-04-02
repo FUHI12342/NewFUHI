@@ -164,6 +164,7 @@ TEMPLATES = [
                 "django.contrib.messages.context_processors.messages",
                 "django.template.context_processors.i18n",
                 "booking.context_processors.global_context",
+                "booking.context_processors.store_theme",
                 "booking.context_processors.admin_theme",
                 "social_django.context_processors.backends",
                 "social_django.context_processors.login_redirect",
@@ -290,6 +291,7 @@ PAYMENT_API_URL = env_required("PAYMENT_API_URL")
 
 WEBHOOK_URL_BASE = env_required("WEBHOOK_URL_BASE")
 CANCEL_URL = env_required("CANCEL_URL")
+COINEY_WEBHOOK_TOKEN = os.getenv("COINEY_WEBHOOK_TOKEN", "")
 
 # X (Twitter) API
 X_CLIENT_ID = os.getenv("X_CLIENT_ID", "")

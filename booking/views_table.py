@@ -295,7 +295,8 @@ class TableCheckoutView(View):
                 'Accept': 'application/json',
                 'X-CoineyPayge-Version': '2016-10-25',
             }
-            webhook_url = f"{settings.WEBHOOK_URL_BASE}table_{table_id}/"
+            _wh_token = f"?token={settings.COINEY_WEBHOOK_TOKEN}" if settings.COINEY_WEBHOOK_TOKEN else ""
+            webhook_url = f"{settings.WEBHOOK_URL_BASE}table_{table_id}/{_wh_token}"
             data = {
                 "amount": grand_total,
                 "currency": "jpy",

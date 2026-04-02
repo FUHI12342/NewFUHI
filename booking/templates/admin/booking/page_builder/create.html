@@ -1,0 +1,207 @@
+{% extends "admin/base_site.html" %}
+{% load i18n %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block extrastyle %}
+{{ block.super }}
+<style>
+.tpl-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(260px,1fr)); gap:20px; margin-bottom:32px; }
+.tpl-card {
+    border:2px solid #e5e7eb; border-radius:12px; cursor:pointer;
+    transition:all 0.2s; overflow:hidden; background:#fff;
+}
+.tpl-card:hover { border-color:#8c876c; box-shadow:0 4px 12px rgba(0,0,0,0.08); transform:translateY(-2px); }
+.tpl-card.selected { border-color:#8c876c; box-shadow:0 0 0 3px rgba(140,135,108,0.3); }
+.tpl-card-preview {
+    height:160px; background:#f3f4f6; display:flex; align-items:center;
+    justify-content:center; overflow:hidden; position:relative;
+}
+.tpl-card-preview iframe {
+    width:800px; height:600px; border:none; pointer-events:none;
+    transform:scale(0.32); transform-origin:top left; position:absolute; top:0; left:0;
+}
+.tpl-card-body { padding:16px; }
+.tpl-card-body h3 { font-size:15px; font-weight:600; margin-bottom:4px; }
+.tpl-card-body p { font-size:12px; color:#6b7280; line-height:1.5; }
+.tpl-badge {
+    display:inline-block; font-size:11px; padding:2px 8px; border-radius:10px;
+    font-weight:600; margin-bottom:8px;
+}
+.tpl-badge-salon { background:#fef3c7; color:#92400e; }
+.tpl-badge-general { background:#dbeafe; color:#1e40af; }
+.tpl-badge-blank { background:#f3f4f6; color:#374151; }
+.tpl-check {
+    position:absolute; top:8px; right:8px; width:28px; height:28px;
+    background:#8c876c; color:#fff; border-radius:50%; display:none;
+    align-items:center; justify-content:center; font-size:16px;
+}
+.tpl-card.selected .tpl-check { display:flex; }
+
+/* Step 2 form */
+.step2-form { max-width:600px; display:none; }
+.step2-form.active { display:block; }
+.form-field { margin-bottom:16px; }
+.form-field label { display:block; font-weight:600; margin-bottom:4px; font-size:14px; }
+.form-field input, .form-field select {
+    width:100%; padding:8px 12px; border:1px solid #d1d5db; border-radius:6px; font-size:14px;
+}
+.form-field .hint { font-size:12px; color:#6b7280; margin-top:4px; }
+.btn-primary {
+    background:#8c876c; color:#fff; padding:10px 24px; border:none;
+    border-radius:6px; cursor:pointer; font-size:14px; font-weight:600;
+}
+.btn-primary:hover { background:#7a7660; }
+.btn-secondary {
+    background:#e5e7eb; color:#374151; padding:10px 24px; border:none;
+    border-radius:6px; cursor:pointer; font-size:14px; font-weight:600; margin-right:12px;
+}
+.step-indicator {
+    display:flex; align-items:center; gap:8px; margin-bottom:24px; font-size:14px; color:#6b7280;
+}
+.step-indicator .step-num {
+    width:28px; height:28px; border-radius:50%; display:flex; align-items:center;
+    justify-content:center; font-weight:600; font-size:13px;
+}
+.step-indicator .step-num.active { background:#8c876c; color:#fff; }
+.step-indicator .step-num.inactive { background:#e5e7eb; color:#9ca3af; }
+.step-indicator .step-line { width:40px; height:2px; background:#e5e7eb; }
+
+/* ── Mobile Responsive ── */
+@media (max-width: 767px) {
+    .tpl-grid { grid-template-columns: 1fr; gap: 12px; }
+    .tpl-card-preview { height: 120px; }
+    .tpl-card-preview iframe { transform: scale(0.22); }
+    .tpl-card-body { padding: 12px; }
+    .tpl-card-body h3 { font-size: 14px; }
+    .step2-form { max-width: 100%; }
+    .step-indicator { gap: 4px; font-size: 12px; }
+    .step-indicator .step-line { width: 24px; }
+    .btn-primary, .btn-secondary { width: 100%; margin-right: 0; margin-bottom: 8px; }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<h1>{{ title }}</h1>
+
+<!-- Step indicator -->
+<div class="step-indicator" id="stepIndicator">
+    <div class="step-num active" id="stepNum1">1</div>
+    <span>{% trans "テンプレート選択" %}</span>
+    <div class="step-line"></div>
+    <div class="step-num inactive" id="stepNum2">2</div>
+    <span>{% trans "ページ情報入力" %}</span>
+</div>
+
+<!-- STEP 1: Template Gallery -->
+<div id="step1">
+    <p style="margin-bottom:16px;color:#374151;">{% trans "テンプレートを選んでください。白紙から作成することもできます。" %}</p>
+    <div class="tpl-grid">
+        <!-- Blank card -->
+        <div class="tpl-card selected" data-template-id="" data-layout="standard" onclick="selectTemplate(this)">
+            <div class="tpl-card-preview" style="background:#fafafa;">
+                <div class="tpl-check">✓</div>
+                <div style="text-align:center;color:#9ca3af;">
+                    <div style="font-size:48px;margin-bottom:8px;">📝</div>
+                    <div style="font-size:13px;">{% trans "白紙から作成" %}</div>
+                </div>
+            </div>
+            <div class="tpl-card-body">
+                <span class="tpl-badge tpl-badge-blank">{% trans "白紙" %}</span>
+                <h3>{% trans "白紙から作成" %}</h3>
+                <p>{% trans "GrapesJSエディタで自由にデザインできます" %}</p>
+            </div>
+        </div>
+
+        {% for tpl in templates %}
+        <div class="tpl-card" data-template-id="{{ tpl.pk }}" data-layout="{% if tpl.category == 'salon' %}full_width{% else %}standard{% endif %}" onclick="selectTemplate(this)">
+            <div class="tpl-card-preview">
+                <div class="tpl-check">✓</div>
+                {% if tpl.html_content %}
+                <iframe srcdoc="{{ tpl.html_content|escapejs }}" sandbox></iframe>
+                {% else %}
+                <div style="color:#9ca3af;font-size:13px;">{% trans "プレビューなし" %}</div>
+                {% endif %}
+            </div>
+            <div class="tpl-card-body">
+                <span class="tpl-badge tpl-badge-{{ tpl.category }}">{{ tpl.get_category_display }}</span>
+                <h3>{{ tpl.name }}</h3>
+                <p>{{ tpl.description|truncatechars:60 }}</p>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    <button type="button" class="btn-primary" onclick="goToStep2()">{% trans "次へ：ページ情報を入力" %}</button>
+</div>
+
+<!-- STEP 2: Page Details Form -->
+<div id="step2" class="step2-form">
+    <form method="post">
+        {% csrf_token %}
+        <input type="hidden" name="template_id" id="selectedTemplateId" value="">
+        <input type="hidden" name="layout" id="selectedLayout" value="standard">
+
+        <div class="form-field">
+            <label>{% trans "ページタイトル" %}</label>
+            <input type="text" name="title" required placeholder="{% trans '例: 春のキャンペーン' %}">
+        </div>
+        <div class="form-field">
+            <label>{% trans "URLスラッグ" %}</label>
+            <input type="text" name="slug" required pattern="[a-z0-9\-]+" placeholder="{% trans '例: spring-campaign' %}">
+            <p class="hint">{% trans "半角英数字とハイフンのみ" %}</p>
+        </div>
+        <div class="form-field">
+            <label>{% trans "ページ種別" %}</label>
+            <select name="page_type">
+                <option value="landing">{% trans "ランディングページ" %}</option>
+                <option value="campaign">{% trans "キャンペーンページ" %}</option>
+                <option value="custom" selected>{% trans "フリーページ" %}</option>
+            </select>
+        </div>
+        <div class="form-field">
+            <label>{% trans "レイアウト" %}</label>
+            <select name="layout" id="layoutSelect">
+                <option value="standard">{% trans "標準（サイドバー付き）" %}</option>
+                <option value="full_width">{% trans "フルワイド（ランディングページ向け）" %}</option>
+            </select>
+        </div>
+        <div style="margin-top:24px;">
+            <button type="button" class="btn-secondary" onclick="goToStep1()">{% trans "戻る" %}</button>
+            <button type="submit" class="btn-primary">{% trans "作成してエディタを開く" %}</button>
+        </div>
+    </form>
+</div>
+
+<script>
+function selectTemplate(card) {
+    document.querySelectorAll('.tpl-card').forEach(c => c.classList.remove('selected'));
+    card.classList.add('selected');
+}
+
+function goToStep2() {
+    var selected = document.querySelector('.tpl-card.selected');
+    if (!selected) return;
+    document.getElementById('selectedTemplateId').value = selected.dataset.templateId || '';
+    var suggestedLayout = selected.dataset.layout || 'standard';
+    document.getElementById('layoutSelect').value = suggestedLayout;
+    document.getElementById('selectedLayout').value = suggestedLayout;
+
+    document.getElementById('step1').style.display = 'none';
+    document.getElementById('step2').classList.add('active');
+    document.getElementById('stepNum1').className = 'step-num inactive';
+    document.getElementById('stepNum2').className = 'step-num active';
+}
+
+function goToStep1() {
+    document.getElementById('step2').classList.remove('active');
+    document.getElementById('step1').style.display = 'block';
+    document.getElementById('stepNum1').className = 'step-num active';
+    document.getElementById('stepNum2').className = 'step-num inactive';
+}
+
+document.getElementById('layoutSelect').addEventListener('change', function() {
+    document.getElementById('selectedLayout').value = this.value;
+});
+</script>
+{% endblock %}
