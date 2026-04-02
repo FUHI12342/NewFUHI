@@ -35,3 +35,17 @@
   cursor: pointer; font-weight: 500;
 }
 .tour-help-btn:hover { background: #e0e7ff; }
+
+/* Dark mode */
+[data-bs-theme="dark"] .tour-tooltip {
+  background: #1e2a45; color: #e0e0e0;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+}
+[data-bs-theme="dark"] .tour-tooltip h4 { color: #a5b4fc; }
+[data-bs-theme="dark"] .tour-tooltip p { color: #c0c7d4; }
+[data-bs-theme="dark"] .tour-btn-skip { background: #253352; color: #9ca3af; }
+[data-bs-theme="dark"] .tour-btn-skip:hover { background: #2d3a5c; }
+[data-bs-theme="dark"] .tour-help-btn {
+  background: #1e1b4b; color: #a5b4fc; border-color: #4f46e5;
+}
+[data-bs-theme="dark"] .tour-help-btn:hover { background: #312e81; }

@@ -49,6 +49,28 @@
   }
   .manual-result { margin-top: 10px; font-size: 14px; padding: 8px; border-radius: 6px; }
 
+  /* Dark mode */
+  [data-bs-theme="dark"] .zone-body {
+    background: #1e2a45; border-color: #2d3a5c;
+  }
+  [data-bs-theme="dark"] .staff-card {
+    background: #16213e; border-color: #2d3a5c; color: #e0e0e0;
+  }
+  [data-bs-theme="dark"] .staff-card .name { color: #f0f0f0; }
+  [data-bs-theme="dark"] .stamp-list { color: #9ca3af; }
+  [data-bs-theme="dark"] .zone-empty { color: #9ca3af; }
+  [data-bs-theme="dark"] .manual-stamp-section {
+    background: #1e2a45; border-color: #ffc107; color: #e0e0e0;
+  }
+  [data-bs-theme="dark"] .manual-stamp-section h3 { color: #fcd34d; }
+  [data-bs-theme="dark"] .manual-form select {
+    background: #16213e; color: #e0e0e0; border-color: #2d3a5c;
+  }
+  [data-bs-theme="dark"] .manual-result {
+    color: #e0e0e0 !important;
+  }
+  [data-bs-theme="dark"] h2 { color: #f0f0f0; }
+
   /* Mobile responsive */
   @media (max-width: 767px) {
     .zones-container { flex-direction: column; gap: 10px; }

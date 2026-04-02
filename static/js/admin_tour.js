@@ -51,32 +51,47 @@
     tourCurrentStep = idx;
     var step = allSteps[idx];
 
-    if (step.action) step.action();
     if (tourPrevHighlight) tourPrevHighlight.classList.remove('tour-highlight');
 
-    var el = document.querySelector(step.selector);
-    if (!el) { showStep(idx + 1); return; }
+    // Run action first (e.g. switch tab), then wait for DOM to update
+    if (step.action) step.action();
 
-    el.classList.add('tour-highlight');
-    tourPrevHighlight = el;
-    el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    function doShow() {
+      var el = document.querySelector(step.selector);
+      if (!el || el.offsetParent === null) {
+        // Element not found or hidden — skip to next
+        showStep(idx + 1);
+        return;
+      }
 
-    tourTooltip.innerHTML =
-      '<h4>' + step.title + '</h4><p>' + step.text + '</p>' +
-      '<div class="tour-tooltip-footer">' +
-        '<span class="tour-step-info">' + (idx + 1) + ' / ' + allSteps.length + '</span>' +
-        '<div class="tour-btns">' +
-          '<button class="tour-btn tour-btn-skip" onclick="endTour()">閉じる</button>' +
-          (idx > 0 ? '<button class="tour-btn tour-btn-skip" onclick="window._tourShowStep(' + (idx - 1) + ')">戻る</button>' : '') +
-          '<button class="tour-btn tour-btn-next" onclick="window._tourShowStep(' + (idx + 1) + ')">' +
-            (idx === allSteps.length - 1 ? '完了' : '次へ') +
-          '</button>' +
-        '</div>' +
-      '</div>';
-    tourTooltip.style.display = 'block';
-    tourOverlay.style.display = 'block';
+      el.classList.add('tour-highlight');
+      tourPrevHighlight = el;
+      el.scrollIntoView({ behavior: 'smooth', block: 'center' });
 
-    setTimeout(function () { positionTooltip(el); }, 100);
+      tourTooltip.innerHTML =
+        '<h4>' + step.title + '</h4><p>' + step.text + '</p>' +
+        '<div class="tour-tooltip-footer">' +
+          '<span class="tour-step-info">' + (idx + 1) + ' / ' + allSteps.length + '</span>' +
+          '<div class="tour-btns">' +
+            '<button class="tour-btn tour-btn-skip" onclick="endTour()">閉じる</button>' +
+            (idx > 0 ? '<button class="tour-btn tour-btn-skip" onclick="window._tourShowStep(' + (idx - 1) + ')">戻る</button>' : '') +
+            '<button class="tour-btn tour-btn-next" onclick="window._tourShowStep(' + (idx + 1) + ')">' +
+              (idx === allSteps.length - 1 ? '完了' : '次へ') +
+            '</button>' +
+          '</div>' +
+        '</div>';
+      tourTooltip.style.display = 'block';
+      tourOverlay.style.display = 'block';
+
+      setTimeout(function () { positionTooltip(el); }, 150);
+    }
+
+    // Delay to allow DOM updates from action (tab switch, etc.)
+    if (step.action) {
+      setTimeout(doShow, 200);
+    } else {
+      doShow();
+    }
   }
 
   function startTour() {

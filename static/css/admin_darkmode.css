@@ -1,0 +1,74 @@
+/* ===== Shared Admin Dark Mode Overrides ===== */
+/* Applied when Jazzmin/AdminLTE dark mode is active via data-bs-theme="dark" */
+
+[data-bs-theme="dark"] .content-wrapper {
+  background-color: #1a1a2e !important;
+}
+
+/* Generic white background elements */
+[data-bs-theme="dark"] .card,
+[data-bs-theme="dark"] .card-body,
+[data-bs-theme="dark"] [style*="background: #fff"],
+[data-bs-theme="dark"] [style*="background:#fff"],
+[data-bs-theme="dark"] [style*="background: white"],
+[data-bs-theme="dark"] [style*="background-color: #fff"],
+[data-bs-theme="dark"] [style*="background-color:#fff"] {
+  background-color: #16213e !important;
+  color: #e0e0e0 !important;
+}
+
+/* Text colors */
+[data-bs-theme="dark"] .text-muted { color: #9ca3af !important; }
+[data-bs-theme="dark"] .text-dark { color: #e0e0e0 !important; }
+[data-bs-theme="dark"] h1, [data-bs-theme="dark"] h2,
+[data-bs-theme="dark"] h3, [data-bs-theme="dark"] h4 {
+  color: #f0f0f0;
+}
+
+/* Table overrides */
+[data-bs-theme="dark"] table {
+  color: #e0e0e0;
+}
+[data-bs-theme="dark"] table thead th {
+  background-color: #1e2a45 !important;
+  color: #e0e0e0 !important;
+  border-color: #2d3a5c !important;
+}
+[data-bs-theme="dark"] table td {
+  border-color: #2d3a5c !important;
+}
+[data-bs-theme="dark"] table tbody tr:hover {
+  background-color: #1e2a45 !important;
+}
+
+/* Form elements */
+[data-bs-theme="dark"] select,
+[data-bs-theme="dark"] input[type="text"],
+[data-bs-theme="dark"] input[type="number"],
+[data-bs-theme="dark"] input[type="date"],
+[data-bs-theme="dark"] textarea {
+  background-color: #1e2a45 !important;
+  color: #e0e0e0 !important;
+  border-color: #2d3a5c !important;
+}
+
+/* Badges */
+[data-bs-theme="dark"] .badge-secondary,
+[data-bs-theme="dark"] .badge-light {
+  background-color: #253352 !important;
+  color: #e0e0e0 !important;
+}
+
+/* Borders */
+[data-bs-theme="dark"] .border,
+[data-bs-theme="dark"] [style*="border: 1px solid #ddd"],
+[data-bs-theme="dark"] [style*="border: 1px solid #e5e7eb"],
+[data-bs-theme="dark"] [style*="border: 1px solid #ccc"] {
+  border-color: #2d3a5c !important;
+}
+
+/* Alert-style boxes */
+[data-bs-theme="dark"] .alert-info { background-color: #1c2a3b !important; color: #93c5fd !important; }
+[data-bs-theme="dark"] .alert-warning { background-color: #3b2f1c !important; color: #fcd34d !important; }
+[data-bs-theme="dark"] .alert-danger { background-color: #3b1c1c !important; color: #fca5a5 !important; }
+[data-bs-theme="dark"] .alert-success { background-color: #1c3b2a !important; color: #6ee7b7 !important; }

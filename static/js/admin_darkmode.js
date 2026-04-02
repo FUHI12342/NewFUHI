@@ -210,4 +210,9 @@
     s.defer = true;
     document.head.appendChild(s);
   });
+  // Load shared dark mode CSS
+  var link = document.createElement('link');
+  link.rel = 'stylesheet';
+  link.href = '/static/css/admin_darkmode.css';
+  document.head.appendChild(link);
 })();

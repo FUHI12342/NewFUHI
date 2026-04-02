@@ -2069,7 +2069,10 @@ document.addEventListener('DOMContentLoaded', function () {
   };
 
   function useDemo(apiData, demoKey, checkField) {
-    if (!apiData || (Array.isArray(apiData[checkField]) && apiData[checkField].length === 0) || apiData[checkField] === 0) {
+    var needsDemo = !apiData
+      || (Array.isArray(apiData[checkField]) && apiData[checkField].length < 3)
+      || apiData[checkField] === 0;
+    if (needsDemo) {
       var demo = DEMO[demoKey];
       if (demo) demo._isDemo = true;
       return demo;
