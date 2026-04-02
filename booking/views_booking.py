@@ -28,6 +28,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils import timezone
 from django.views import View
+from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
 
 from rest_framework.permissions import IsAuthenticated
@@ -571,8 +572,9 @@ class EmailVerifyView(View):
 
 # ===== Customer Cancel (public, no login required) =====
 
+@method_decorator(csrf_exempt, name='dispatch')
 class CustomerCancelView(View):
-    """公開キャンセルページ（認証不要）。キャンセル番号入力→確認画面表示。"""
+    """公開キャンセルページ（認証不要）。cancel_tokenで保護されるためCSRF exempt。"""
 
     def get(self, request, reservation_number):
         schedule = get_object_or_404(
@@ -608,8 +610,9 @@ class CustomerCancelView(View):
         })
 
 
+@method_decorator(csrf_exempt, name='dispatch')
 class CustomerCancelConfirmView(View):
-    """キャンセル実行（POST only）。"""
+    """キャンセル実行（POST only）。cancel_tokenで保護されるためCSRF exempt。"""
 
     def get(self, request, reservation_number):
         """GET アクセスはキャンセルフォームにリダイレクト。"""
