@@ -179,7 +179,7 @@ $SSH_CMD "sudo nginx -t 2>/dev/null && sudo systemctl reload nginx 2>/dev/null &
 echo ""
 
 # ========== Step 6: ヘルスチェック ==========
-echo -e "${GREEN}[6/6] ヘルスチェック...${NC}"
+echo -e "${GREEN}[6/7] ヘルスチェック...${NC}"
 sleep 3
 HTTP_CODE=$($SSH_CMD "curl -s -o /dev/null -w '%{http_code}' https://timebaibai.com/healthz" 2>/dev/null || echo "000")
 # HTTPS失敗時はローカルへフォールバック
@@ -189,9 +189,37 @@ fi
 
 if [ "$HTTP_CODE" = "200" ] || [ "$HTTP_CODE" = "301" ] || [ "$HTTP_CODE" = "302" ]; then
     echo -e "${GREEN}  HTTP $HTTP_CODE - 正常${NC}"
-
-    # メンテナンスモード OFF
+else
+    echo -e "${RED}  HTTP $HTTP_CODE - 問題あり!${NC}"
+    echo -e "${RED}  サービス状態:${NC}"
+    $SSH_CMD "sudo systemctl status newfuhi --no-pager 2>/dev/null | head -5" || true
     echo ""
+    echo -e "${RED}  直近のエラー:${NC}"
+    $SSH_CMD "sudo journalctl -u newfuhi --since '1 min ago' --no-pager 2>/dev/null | grep -i 'error\|missing\|RuntimeError' | tail -5" || true
+    echo ""
+    echo -e "${RED}  メンテナンスモードは ON のままです。手動で修正してください。${NC}"
+    echo -e "${YELLOW}  ロールバック: $SSH_CMD \"cd $REMOTE_PATH && git reset --hard HEAD~1 && sudo systemctl restart newfuhi\"${NC}"
+    exit 1
+fi
+echo ""
+
+# ========== Step 7: スモークテスト ==========
+echo -e "${GREEN}[7/7] スモークテスト（メンテナンス中）...${NC}"
+echo ""
+
+# スモークテストをEC2にコピーして実行
+scp -i "$SSH_KEY" -q "$(dirname "$0")/smoke_test.sh" "$EC2_USER@$EC2_HOST:/tmp/smoke_test.sh"
+SMOKE_RESULT=0
+$SSH_CMD "chmod +x /tmp/smoke_test.sh && \
+    MAINTENANCE=1 \
+    SMOKE_ADMIN_USER=\${SMOKE_ADMIN_USER:-admin} \
+    SMOKE_ADMIN_PASS=\${SMOKE_ADMIN_PASS:-} \
+    /tmp/smoke_test.sh https://timebaibai.com" || SMOKE_RESULT=$?
+
+echo ""
+
+if [ "$SMOKE_RESULT" -eq 0 ]; then
+    # スモークテスト合格 → メンテナンスモード OFF
     echo -e "${GREEN}メンテナンスモード OFF...${NC}"
     $SSH_CMD "cd '$REMOTE_PATH' && source .venv/bin/activate && set -a && source .env && set +a && \
         python manage.py shell -c \"
@@ -201,23 +229,23 @@ s.maintenance_mode = False
 s.save(update_fields=['maintenance_mode'])
 print('Maintenance mode: OFF')
 \"" 2>&1 || echo -e "${YELLOW}  メンテナンスモード切替スキップ${NC}"
+
+    echo ""
+    echo "========================================"
+    echo -e "${GREEN}  デプロイ完了!${NC}"
+    echo "  EC2: $EC2_USER@$EC2_HOST"
+    echo "  パス: $REMOTE_PATH"
+    echo "  URL: https://timebaibai.com"
+    echo "========================================"
+    echo ""
 else
-    echo -e "${RED}  HTTP $HTTP_CODE - 問題あり!${NC}"
-    echo -e "${RED}  サービス状態:${NC}"
-    $SSH_CMD "sudo systemctl status newfuhi --no-pager 2>/dev/null | head -5" || true
+    # スモークテスト失敗 → メンテナンスモード ON のまま
+    echo -e "${RED}  スモークテスト失敗！メンテナンスモードを ON のまま維持します。${NC}"
+    echo -e "${RED}  一般ユーザーにはメンテナンス画面が表示されています。${NC}"
     echo ""
-    echo -e "${RED}  直近のエラー:${NC}"
-    $SSH_CMD "sudo journalctl -u newfuhi --since '1 min ago' --no-pager 2>/dev/null | grep -i 'error\|missing\|RuntimeError' | tail -5" || true
+    echo -e "${YELLOW}  修正後に手動でメンテナンスを解除してください:${NC}"
+    echo -e "${YELLOW}  $SSH_CMD \"cd $REMOTE_PATH && source .venv/bin/activate && set -a && source .env && set +a && python manage.py shell -c \\\"from booking.models import SiteSettings; s=SiteSettings.load(); s.maintenance_mode=False; s.save(update_fields=['maintenance_mode'])\\\"\"${NC}"
     echo ""
-    echo -e "${YELLOW}  ロールバック: $SSH_CMD \"cd $REMOTE_PATH && git reset --hard HEAD~1 && sudo systemctl restart newfuhi\"${NC}"
+    echo -e "${YELLOW}  または管理画面から: https://timebaibai.com/admin/ → サイト設定 → メンテナンスモード OFF${NC}"
     exit 1
 fi
-
-echo ""
-echo "========================================"
-echo -e "${GREEN}  デプロイ完了!${NC}"
-echo "  EC2: $EC2_USER@$EC2_HOST"
-echo "  パス: $REMOTE_PATH"
-echo "  URL: https://timebaibai.com"
-echo "========================================"
-echo ""

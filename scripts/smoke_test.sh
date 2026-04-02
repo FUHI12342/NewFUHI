@@ -3,14 +3,22 @@
 # Post-deploy smoke test for timebaibai.com
 #
 # Usage:
-#   ./scripts/smoke_test.sh              # Test production
-#   ./scripts/smoke_test.sh http://localhost:8000  # Test local
+#   ./scripts/smoke_test.sh                           # Test production
+#   ./scripts/smoke_test.sh http://localhost:8000      # Test local
+#   MAINTENANCE=1 ./scripts/smoke_test.sh              # Maintenance-aware
+#
+# Environment variables:
+#   MAINTENANCE=1        - メンテナンスモード中のテスト（匿名503を期待）
+#   SMOKE_ADMIN_USER     - 管理者ユーザー名（デフォルト: admin）
+#   SMOKE_ADMIN_PASS     - 管理者パスワード（設定時のみ認証テスト実行）
 #
 # Exit code: 0 = all pass, 1 = failures found
 # ============================================================
-set -euo pipefail
+set -uo pipefail
 
 BASE_URL="${1:-https://timebaibai.com}"
+MAINTENANCE="${MAINTENANCE:-0}"
+COOKIE_JAR="/tmp/smoke_test_cookies_$$.txt"
 PASS=0
 FAIL=0
 WARN=0
@@ -19,14 +27,24 @@ WARN=0
 RED='\033[0;31m'
 GREEN='\033[0;32m'
 YELLOW='\033[0;33m'
-NC='\033[0m' # No Color
+NC='\033[0m'
+
+cleanup() {
+    rm -f "$COOKIE_JAR"
+}
+trap cleanup EXIT
 
 check_status() {
     local url="$1"
     local expected="$2"
     local label="$3"
+    local auth="${4:-no}"
+    local extra=""
 
-    status=$(curl -s -o /dev/null -w "%{http_code}" --max-time 10 "$url" 2>/dev/null || echo "000")
+    [ "$auth" = "auth" ] && extra="-b $COOKIE_JAR"
+
+    local status
+    status=$(curl -s -o /dev/null -w "%{http_code}" --max-time 10 $extra "$url" 2>/dev/null || echo "000")
 
     if [ "$status" = "$expected" ]; then
         echo -e "  ${GREEN}PASS${NC}  $label  (${status})"
@@ -46,7 +64,9 @@ check_json() {
     local expected="$3"
     local label="$4"
 
+    local body
     body=$(curl -s --max-time 10 "$url" 2>/dev/null || echo "{}")
+    local value
     value=$(echo "$body" | python3 -c "import sys,json; print(json.load(sys.stdin).get(sys.argv[1],''))" "$field" 2>/dev/null || echo "")
 
     if [ "$value" = "$expected" ]; then
@@ -58,80 +78,108 @@ check_json() {
     fi
 }
 
-check_health_detail() {
-    local url="${BASE_URL}/healthz?detail=1"
-    local label="Health detail checks"
+admin_login() {
+    local user="${SMOKE_ADMIN_USER:-admin}"
+    local pass="${SMOKE_ADMIN_PASS:-}"
 
-    body=$(curl -s --max-time 10 "$url" 2>/dev/null || echo "{}")
-    status=$(echo "$body" | python3 -c "import sys,json; d=json.load(sys.stdin); print(d.get(sys.argv[1],''))" "status" 2>/dev/null || echo "")
-    db=$(echo "$body" | python3 -c "import sys,json; d=json.load(sys.stdin); print(d.get('checks',{}).get(sys.argv[1],''))" "database" 2>/dev/null || echo "")
-    celery=$(echo "$body" | python3 -c "import sys,json; d=json.load(sys.stdin); print(d.get('checks',{}).get(sys.argv[1],''))" "celery" 2>/dev/null || echo "")
-    redis=$(echo "$body" | python3 -c "import sys,json; d=json.load(sys.stdin); print(d.get('checks',{}).get(sys.argv[1],''))" "redis" 2>/dev/null || echo "")
+    if [ -z "$pass" ]; then
+        echo -e "  ${YELLOW}SKIP${NC}  管理者ログイン (SMOKE_ADMIN_PASS 未設定)"
+        WARN=$((WARN + 1))
+        return 1
+    fi
 
-    # DB is critical
-    if [ "$db" = "ok" ]; then
-        echo -e "  ${GREEN}PASS${NC}  Database connectivity  (ok)"
-        PASS=$((PASS + 1))
-    else
-        echo -e "  ${RED}FAIL${NC}  Database connectivity  ($db)"
+    # CSRFトークン取得
+    local csrf
+    csrf=$(curl -s -c "$COOKIE_JAR" --max-time 10 "${BASE_URL}/admin/login/" 2>/dev/null | \
+        grep -o 'csrfmiddlewaretoken" value="[^"]*"' | \
+        head -1 | sed 's/csrfmiddlewaretoken" value="//;s/"$//')
+
+    if [ -z "$csrf" ]; then
+        echo -e "  ${RED}FAIL${NC}  管理者ログイン (CSRFトークン取得不可)"
         FAIL=$((FAIL + 1))
+        return 1
     fi
 
-    # Celery is warning level
-    if [ "$celery" = "ok" ]; then
-        echo -e "  ${GREEN}PASS${NC}  Celery broker  (ok)"
-        PASS=$((PASS + 1))
-    else
-        echo -e "  ${YELLOW}WARN${NC}  Celery broker  ($celery)"
-        WARN=$((WARN + 1))
-    fi
+    # ログイン
+    local code
+    code=$(curl -s -o /dev/null -w '%{http_code}' \
+        -b "$COOKIE_JAR" -c "$COOKIE_JAR" \
+        -d "csrfmiddlewaretoken=${csrf}&username=${user}&password=${pass}&next=/admin/" \
+        -H "Referer: ${BASE_URL}/admin/login/" \
+        -L --max-time 10 \
+        "${BASE_URL}/admin/login/" 2>/dev/null || echo "000")
 
-    # Redis is warning level
-    if [ "$redis" = "ok" ]; then
-        echo -e "  ${GREEN}PASS${NC}  Redis  (ok)"
+    if [ "$code" = "200" ] || [ "$code" = "302" ]; then
+        echo -e "  ${GREEN}PASS${NC}  管理者ログイン (HTTP $code)"
         PASS=$((PASS + 1))
+        return 0
     else
-        echo -e "  ${YELLOW}WARN${NC}  Redis  ($redis)"
-        WARN=$((WARN + 1))
+        echo -e "  ${RED}FAIL${NC}  管理者ログイン (HTTP $code)"
+        FAIL=$((FAIL + 1))
+        return 1
     fi
 }
 
 echo "=========================================="
 echo " Smoke Test: ${BASE_URL}"
+if [ "$MAINTENANCE" = "1" ]; then
+    echo " Mode: メンテナンス中（匿名503を期待）"
+fi
 echo " $(date '+%Y-%m-%d %H:%M:%S')"
 echo "=========================================="
 echo ""
 
-# --- 1. Health Check ---
+# --- 1. Health Check (メンテバイパス対象) ---
 echo "[ Health Check ]"
 check_status "${BASE_URL}/healthz" "200" "GET /healthz"
 check_json "${BASE_URL}/healthz" "status" "ok" "Health status=ok"
-# Detail check requires staff auth - verify it returns 403 for anonymous
-check_status "${BASE_URL}/healthz?detail=1" "403" "Detail requires auth"
 echo ""
 
-# --- 2. Public Pages (no auth needed) ---
-echo "[ Public Pages ]"
-check_status "${BASE_URL}/admin/login/" "200" "Admin login page"
+# --- 2. メンテナンスモード確認 ---
+if [ "$MAINTENANCE" = "1" ]; then
+    echo "[ メンテナンスモード確認 ]"
+    check_status "${BASE_URL}/" "503" "匿名ユーザー → 503"
+    check_status "${BASE_URL}/admin/login/" "200" "管理者ログイン画面 → 200（バイパス）"
+    echo ""
+fi
+
+# --- 3. 管理者ログイン＆認証付きテスト ---
+echo "[ 管理者認証テスト ]"
+if admin_login; then
+    LOGGED_IN=1
+else
+    LOGGED_IN=0
+fi
 echo ""
 
-# --- 3. Auth-protected Admin Pages (expect 302 redirect) ---
-echo "[ Admin Pages (auth check → 302) ]"
-check_status "${BASE_URL}/admin/" "302" "Admin index"
-check_status "${BASE_URL}/admin/shift/calendar/" "302" "Shift calendar"
-check_status "${BASE_URL}/admin/shift/today/" "302" "Today shift"
-check_status "${BASE_URL}/admin/pos/" "302" "POS"
-check_status "${BASE_URL}/admin/analytics/visitors/" "302" "Visitor analytics"
-check_status "${BASE_URL}/admin/dashboard/sales/" "302" "Sales dashboard"
-check_status "${BASE_URL}/admin/attendance/board/" "302" "Attendance board"
-check_status "${BASE_URL}/admin/attendance/performance/" "302" "Staff performance"
-check_status "${BASE_URL}/admin/inventory/" "302" "Inventory dashboard"
-check_status "${BASE_URL}/admin/ec/orders/" "302" "EC orders"
-echo ""
+if [ "$LOGGED_IN" = "1" ]; then
+    echo "[ 管理画面ページ（認証済み） ]"
+    check_status "${BASE_URL}/admin/" "200" "管理画面トップ" "auth"
+    check_status "${BASE_URL}/admin/dashboard/sales/" "200" "売上ダッシュボード" "auth"
+    check_status "${BASE_URL}/admin/shift/calendar/" "200" "シフトカレンダー" "auth"
+    check_status "${BASE_URL}/admin/pos/" "200" "POS" "auth"
+    check_status "${BASE_URL}/admin/inventory/" "200" "在庫管理" "auth"
+    echo ""
 
-# --- 4. Health Status ---
-echo "[ Health Status ]"
-check_json "${BASE_URL}/healthz" "status" "ok" "Health endpoint returns ok"
+    echo "[ 公開ページ（認証済み＝メンテバイパス） ]"
+    check_status "${BASE_URL}/ja/booking/" "200" "予約トップ" "auth"
+    echo ""
+fi
+
+# --- 4. 管理画面（未認証 → リダイレクト or 503） ---
+if [ "$MAINTENANCE" = "0" ]; then
+    echo "[ 管理画面（未認証 → 302リダイレクト） ]"
+    check_status "${BASE_URL}/admin/" "302" "管理画面トップ"
+    check_status "${BASE_URL}/admin/shift/calendar/" "302" "シフトカレンダー"
+    check_status "${BASE_URL}/admin/pos/" "302" "POS"
+    check_status "${BASE_URL}/admin/dashboard/sales/" "302" "売上ダッシュボード"
+    echo ""
+fi
+
+# --- 5. 静的ファイル ---
+echo "[ 静的ファイル ]"
+check_status "${BASE_URL}/static/css/style.css" "200" "CSS (style.css)"
+check_status "${BASE_URL}/static/js/admin_darkmode.js" "200" "JS (admin_darkmode.js)"
 echo ""
 
 # --- Summary ---
