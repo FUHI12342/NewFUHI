@@ -51,6 +51,13 @@
     color: #fff;
     border-color: #465fff;
   }
+  .sub-tab-desc {
+    font-size: 0.625rem;
+    font-weight: 400;
+    opacity: 0.65;
+    margin-left: 2px;
+  }
+  .sub-tab-btn.active .sub-tab-desc { opacity: 0.85; }
   .sub-tab-content { display: none; }
   .sub-tab-content.active { display: block; }
   .insight-card { padding: 12px; border-radius: 8px; border-left: 4px solid #ccc; }
@@ -304,6 +311,7 @@
     }
     .tab-btn { padding: 0.4rem 0.75rem; font-size: 0.75rem; white-space: nowrap; }
     .sub-tab-btn { padding: 0.3rem 0.75rem; font-size: 0.7rem; }
+    .sub-tab-desc { display: none; }
     /* Tables: horizontal scroll */
     #menu-eng-table, #abc-table, #cohort-table, #basket-table,
     [id$="-table"] {
@@ -787,13 +795,13 @@
   {# ===== Tab: ECショップ売上 ===== #}
   <div class="tab-content" id="tab-ec-sales">
     <div class="sub-tab-bar">
-      <button class="sub-tab-btn active" data-subtab="ec-trend" onclick="switchSubTab('ec-sales', 'ec-trend')">{% trans "売上推移" %}</button>
-      <button class="sub-tab-btn" data-subtab="ec-products" onclick="switchSubTab('ec-sales', 'ec-products')">{% trans "人気商品 TOP10" %}</button>
-      <button class="sub-tab-btn" data-subtab="ec-menu-eng" onclick="switchSubTab('ec-sales', 'ec-menu-eng'); ecSuite.loadMenuEng();">{% trans "メニュー分析" %}</button>
-      <button class="sub-tab-btn" data-subtab="ec-abc" onclick="switchSubTab('ec-sales', 'ec-abc'); ecSuite.loadABC();">{% trans "ABC分析" %}</button>
-      <button class="sub-tab-btn" data-subtab="ec-forecast" onclick="switchSubTab('ec-sales', 'ec-forecast'); ecSuite.loadForecast();">{% trans "売上予測" %}</button>
-      <button class="sub-tab-btn" data-subtab="ec-heatmap" onclick="switchSubTab('ec-sales', 'ec-heatmap'); ecSuite.loadHeatmap();">{% trans "時間帯別売上" %}</button>
-      <button class="sub-tab-btn" data-subtab="ec-aov" onclick="switchSubTab('ec-sales', 'ec-aov'); ecSuite.loadAOV();">{% trans "客単価推移" %}</button>
+      <button class="sub-tab-btn active" data-subtab="ec-trend" onclick="switchSubTab('ec-sales', 'ec-trend')">{% trans "売上推移" %}<span class="sub-tab-desc">— 日別売上の変化</span></button>
+      <button class="sub-tab-btn" data-subtab="ec-products" onclick="switchSubTab('ec-sales', 'ec-products')">{% trans "人気商品 TOP10" %}<span class="sub-tab-desc">— 売れ筋ランキング</span></button>
+      <button class="sub-tab-btn" data-subtab="ec-menu-eng" onclick="switchSubTab('ec-sales', 'ec-menu-eng'); ecSuite.loadMenuEng();">{% trans "メニュー分析" %}<span class="sub-tab-desc">— 人気度×利益率で分類</span></button>
+      <button class="sub-tab-btn" data-subtab="ec-abc" onclick="switchSubTab('ec-sales', 'ec-abc'); ecSuite.loadABC();">{% trans "ABC分析" %}<span class="sub-tab-desc">— 売上貢献度ランク</span></button>
+      <button class="sub-tab-btn" data-subtab="ec-forecast" onclick="switchSubTab('ec-sales', 'ec-forecast'); ecSuite.loadForecast();">{% trans "売上予測" %}<span class="sub-tab-desc">— 将来のトレンド予測</span></button>
+      <button class="sub-tab-btn" data-subtab="ec-heatmap" onclick="switchSubTab('ec-sales', 'ec-heatmap'); ecSuite.loadHeatmap();">{% trans "時間帯別売上" %}<span class="sub-tab-desc">— 曜日×時間の売上パターン</span></button>
+      <button class="sub-tab-btn" data-subtab="ec-aov" onclick="switchSubTab('ec-sales', 'ec-aov'); ecSuite.loadAOV();">{% trans "客単価推移" %}<span class="sub-tab-desc">— 1注文あたりの平均金額</span></button>
     </div>
     <div class="sub-tab-content active" id="subtab-ec-trend">
       <div class="db-card">
@@ -881,13 +889,13 @@
   {# ===== Tab: 店内メニュー売上 ===== #}
   <div class="tab-content" id="tab-instore-sales">
     <div class="sub-tab-bar">
-      <button class="sub-tab-btn active" data-subtab="instore-trend" onclick="switchSubTab('instore-sales', 'instore-trend')">{% trans "売上推移" %}</button>
-      <button class="sub-tab-btn" data-subtab="instore-products" onclick="switchSubTab('instore-sales', 'instore-products')">{% trans "人気商品 TOP10" %}</button>
-      <button class="sub-tab-btn" data-subtab="instore-menu-eng" onclick="switchSubTab('instore-sales', 'instore-menu-eng'); instoreSuite.loadMenuEng();">{% trans "メニュー分析" %}</button>
-      <button class="sub-tab-btn" data-subtab="instore-abc" onclick="switchSubTab('instore-sales', 'instore-abc'); instoreSuite.loadABC();">{% trans "ABC分析" %}</button>
-      <button class="sub-tab-btn" data-subtab="instore-forecast" onclick="switchSubTab('instore-sales', 'instore-forecast'); instoreSuite.loadForecast();">{% trans "売上予測" %}</button>
-      <button class="sub-tab-btn" data-subtab="instore-heatmap" onclick="switchSubTab('instore-sales', 'instore-heatmap'); instoreSuite.loadHeatmap();">{% trans "時間帯別売上" %}</button>
-      <button class="sub-tab-btn" data-subtab="instore-aov" onclick="switchSubTab('instore-sales', 'instore-aov'); instoreSuite.loadAOV();">{% trans "客単価推移" %}</button>
+      <button class="sub-tab-btn active" data-subtab="instore-trend" onclick="switchSubTab('instore-sales', 'instore-trend')">{% trans "売上推移" %}<span class="sub-tab-desc">— 日別売上の変化</span></button>
+      <button class="sub-tab-btn" data-subtab="instore-products" onclick="switchSubTab('instore-sales', 'instore-products')">{% trans "人気商品 TOP10" %}<span class="sub-tab-desc">— 売れ筋ランキング</span></button>
+      <button class="sub-tab-btn" data-subtab="instore-menu-eng" onclick="switchSubTab('instore-sales', 'instore-menu-eng'); instoreSuite.loadMenuEng();">{% trans "メニュー分析" %}<span class="sub-tab-desc">— 人気度×利益率で分類</span></button>
+      <button class="sub-tab-btn" data-subtab="instore-abc" onclick="switchSubTab('instore-sales', 'instore-abc'); instoreSuite.loadABC();">{% trans "ABC分析" %}<span class="sub-tab-desc">— 売上貢献度ランク</span></button>
+      <button class="sub-tab-btn" data-subtab="instore-forecast" onclick="switchSubTab('instore-sales', 'instore-forecast'); instoreSuite.loadForecast();">{% trans "売上予測" %}<span class="sub-tab-desc">— 将来のトレンド予測</span></button>
+      <button class="sub-tab-btn" data-subtab="instore-heatmap" onclick="switchSubTab('instore-sales', 'instore-heatmap'); instoreSuite.loadHeatmap();">{% trans "時間帯別売上" %}<span class="sub-tab-desc">— 曜日×時間の売上パターン</span></button>
+      <button class="sub-tab-btn" data-subtab="instore-aov" onclick="switchSubTab('instore-sales', 'instore-aov'); instoreSuite.loadAOV();">{% trans "客単価推移" %}<span class="sub-tab-desc">— 1注文あたりの平均金額</span></button>
     </div>
     <div class="sub-tab-content active" id="subtab-instore-trend">
       <div class="db-card">
