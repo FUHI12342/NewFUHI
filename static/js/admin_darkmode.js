@@ -80,6 +80,39 @@
   }
 
   // =============================================
+  // Sidebar Scroll Position Persistence
+  // =============================================
+
+  var SCROLL_KEY = 'sidebar-scroll-top';
+
+  function saveSidebarScroll() {
+    var sidebar = document.querySelector('.main-sidebar .sidebar, #jazzy-sidebar');
+    if (sidebar) {
+      sessionStorage.setItem(SCROLL_KEY, sidebar.scrollTop);
+    }
+  }
+
+  function restoreSidebarScroll() {
+    var sidebar = document.querySelector('.main-sidebar .sidebar, #jazzy-sidebar');
+    if (!sidebar) return;
+    var saved = sessionStorage.getItem(SCROLL_KEY);
+    if (saved) {
+      sidebar.scrollTop = parseInt(saved, 10);
+    }
+  }
+
+  function setupScrollPersistence() {
+    // Save scroll on any link click (before navigation)
+    document.querySelectorAll('.main-sidebar a, #jazzy-sidebar a').forEach(function(link) {
+      link.addEventListener('click', saveSidebarScroll);
+    });
+    // Also save on beforeunload for any navigation
+    window.addEventListener('beforeunload', saveSidebarScroll);
+    // Restore on page load
+    restoreSidebarScroll();
+  }
+
+  // =============================================
   // Sidebar Group Open State Persistence
   // =============================================
 
@@ -155,6 +188,7 @@
   function init() {
     injectToggle();
     setupSidebarPersistence();
+    setupScrollPersistence();
   }
 
   if (document.readyState === 'loading') {
