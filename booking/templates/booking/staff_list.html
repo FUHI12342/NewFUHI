@@ -2,12 +2,12 @@
 {% load i18n %}
 {% load static %}
 
-{% block title %}{{ store.name }} | {{ block.super }}{% endblock %}
+{% block title %}{{ store.name }} - {{ staff_label }}{% trans "一覧" %} | {{ block.super }}{% endblock %}
 
 {% block content %}
 
 <!-- Breadcrumb -->
-<nav class="mb-6">
+<nav class="mb-4">
     <ol class="flex items-center text-sm text-gray-500 gap-1.5">
         <li>
             <a href="{% url 'booking:store_list' %}" class="hover:text-salon-brown transition">{% trans "ホーム" %}</a>
@@ -17,107 +17,24 @@
     </ol>
 </nav>
 
-<!-- Store Header -->
-<div class="mb-8">
+<!-- Store Name Header + Back to Store Info -->
+<div class="flex items-center justify-between mb-6">
     <h1 class="text-2xl md:text-3xl font-bold text-salon-dark">{{ store.name }}</h1>
-</div>
-
-<!-- Store Info Card -->
-<div class="bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden mb-8">
-
-    <!-- Photos (compact gallery) -->
-    {% if store.thumbnail or store.photo_2 or store.photo_3 %}
-    <div class="grid grid-cols-2 sm:grid-cols-3 gap-1 p-3">
-        {% if store.thumbnail %}
-        <div class="overflow-hidden rounded-md {% if not store.photo_2 and not store.photo_3 %}col-span-2 sm:col-span-3{% endif %}">
-            <img src="{{ store.thumbnail.url }}" alt="{{ store.name }}"
-                 class="w-full h-40 sm:h-48 object-cover">
-        </div>
-        {% endif %}
-        {% if store.photo_2 %}
-        <div class="overflow-hidden rounded-md">
-            <img src="{{ store.photo_2.url }}" alt="{{ store.name }}"
-                 class="w-full h-40 sm:h-48 object-cover">
-        </div>
-        {% endif %}
-        {% if store.photo_3 %}
-        <div class="overflow-hidden rounded-md">
-            <img src="{{ store.photo_3.url }}" alt="{{ store.name }}"
-                 class="w-full h-40 sm:h-48 object-cover">
-        </div>
-        {% endif %}
-    </div>
-    {% endif %}
-
-    <div class="px-5 py-5 space-y-5">
-
-        <!-- Description -->
-        {% if store.description %}
-        <div>
-            <h2 class="text-lg font-bold text-salon-dark mb-2">{% trans "店舗紹介" %}</h2>
-            <p class="text-sm text-gray-700 leading-relaxed whitespace-pre-line">{{ store.description }}</p>
-        </div>
-        {% endif %}
-
-        <!-- Store Details Grid -->
-        <div>
-            <h2 class="text-lg font-bold text-salon-dark mb-3">{% trans "店舗情報" %}</h2>
-            <dl class="grid grid-cols-1 sm:grid-cols-[120px_1fr] gap-x-4 gap-y-3 text-sm">
-                {% if store.address %}
-                <dt class="font-semibold text-salon-dark">{% trans "住所" %}</dt>
-                <dd class="text-gray-600">{{ store.address }}</dd>
-                {% endif %}
-
-                {% if store.business_hours %}
-                <dt class="font-semibold text-salon-dark">{% trans "営業時間" %}</dt>
-                <dd class="text-gray-600">{{ store.business_hours }}</dd>
-                {% endif %}
-
-                {% if store.regular_holiday %}
-                <dt class="font-semibold text-salon-dark">{% trans "定休日" %}</dt>
-                <dd class="text-gray-600">{{ store.regular_holiday }}</dd>
-                {% endif %}
-
-                {% if store.nearest_station %}
-                <dt class="font-semibold text-salon-dark">{% trans "最寄り駅" %}</dt>
-                <dd class="text-gray-600">{{ store.nearest_station }}</dd>
-                {% endif %}
-
-                {% if store.access_info %}
-                <dt class="font-semibold text-salon-dark">{% trans "アクセス" %}</dt>
-                <dd class="text-gray-600 whitespace-pre-line">{{ store.access_info }}</dd>
-                {% endif %}
-            </dl>
-        </div>
-
-        <!-- Google Maps Embed -->
-        {% if store.google_maps_embed %}
-        <div>
-            <h2 class="text-lg font-bold text-salon-dark mb-3">{% trans "地図" %}</h2>
-            <div class="rounded-lg overflow-hidden border border-gray-200" style="max-width:100%;">
-                {{ store.google_maps_embed|safe }}
-            </div>
-        </div>
-        {% elif store.map_url %}
-        <div>
-            <a href="{{ store.map_url }}" target="_blank" rel="noopener noreferrer"
-               class="inline-flex items-center bg-salon-brown hover:bg-salon-dark text-white text-sm font-medium px-5 py-2.5 rounded-lg transition-colors">
-                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                          d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                          d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
-                </svg>
-                {% trans "Google Mapsで開く" %}
-            </a>
-        </div>
-        {% endif %}
-    </div>
+    <a href="{% url 'booking:store_access' store.pk %}"
+       class="inline-flex items-center text-sm text-salon-brown hover:text-salon-dark border border-salon-brown/30 hover:border-salon-brown rounded-lg px-3 py-2 transition-colors">
+        <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
+        </svg>
+        {% trans "店舗情報" %}
+    </a>
 </div>
 
 <!-- Staff Section -->
-<div class="mb-6">
-    <h2 class="text-xl font-bold text-salon-dark mb-4 border-b-2 border-salon-brown pb-2">
+<div class="mb-4">
+    <h2 class="text-lg font-bold text-salon-dark border-b-2 border-salon-brown pb-2">
         {% trans "在籍" %}{{ staff_label }}
     </h2>
 </div>
