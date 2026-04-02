@@ -7,42 +7,51 @@
 <style>
   .ai-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; padding: 16px; }
   .model-card { background: #fff; border: 1px solid #ddd; border-radius: 8px; padding: 20px; }
-  .model-status { display: flex; align-items: center; gap: 8px; }
+  .model-status { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; }
   .model-status .dot { width: 12px; height: 12px; border-radius: 50%; }
   .dot-active { background: #10B981; }
   .dot-inactive { background: #EF4444; }
   .rec-table { width: 100%; border-collapse: collapse; grid-column: 1 / -1; }
-  .rec-table th, .rec-table td { border: 1px solid #ddd; padding: 6px 10px; text-align: center; }
-  .rec-table th { background: #f5f5f5; }
-  .insufficient { background: #FEE2E2; }
-  .sufficient { background: #D1FAE5; }
+  .rec-table th, .rec-table td { border: 1px solid #ddd; padding: 6px 10px; text-align: center; font-size: 13px; }
+  .rec-table th { background: #f5f5f5; font-weight: 600; }
+  .rec-table td.day-label { text-align: left; font-weight: 600; white-space: nowrap; background: #fafafa; }
+  .insufficient { background: #FEE2E2; color: #991B1B; }
+  .sufficient { background: #D1FAE5; color: #065F46; }
+  .high-demand { background: #DBEAFE; color: #1E40AF; font-weight: 700; }
   .chart-container { grid-column: 1 / -1; background: #fff; border: 1px solid #ddd; border-radius: 8px; padding: 16px; }
-  .toolbar { padding: 16px; display: flex; gap: 12px; }
-  .btn { padding: 8px 16px; border: none; border-radius: 4px; cursor: pointer; color: #fff; }
+  .toolbar { padding: 16px; display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+  .btn { padding: 8px 16px; border: none; border-radius: 4px; cursor: pointer; color: #fff; font-weight: 500; }
   .btn-train { background: #8B5CF6; }
+  .btn-train:hover { background: #7C3AED; }
+  .stat-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 12px; }
+  .stat-item { text-align: center; padding: 10px; background: #f9fafb; border-radius: 6px; }
+  .stat-item .stat-val { font-size: 22px; font-weight: 700; color: #374151; }
+  .stat-item .stat-lbl { font-size: 11px; color: #9CA3AF; margin-top: 2px; }
+  .summary-card { grid-column: 1 / -1; background: linear-gradient(135deg, #EDE9FE, #E0E7FF); border: 1px solid #C7D2FE; border-radius: 8px; padding: 16px; }
+  .summary-card h3 { color: #4338CA; margin-bottom: 8px; }
+  .summary-list { list-style: none; padding: 0; margin: 0; }
+  .summary-list li { padding: 6px 0; border-bottom: 1px solid rgba(99,102,241,0.15); font-size: 14px; color: #374151; }
+  .summary-list li:last-child { border-bottom: none; }
+  .legend { display: flex; gap: 16px; margin-top: 8px; flex-wrap: wrap; }
+  .legend-item { display: flex; align-items: center; gap: 4px; font-size: 12px; color: #6B7280; }
+  .legend-dot { width: 14px; height: 14px; border-radius: 3px; display: inline-block; }
 
-  /* ── Mobile ── */
   @media (max-width: 767px) {
     .ai-grid { grid-template-columns: 1fr; gap: 12px; padding: 8px; }
     .model-card { padding: 14px; }
-    .model-card h3 { font-size: 15px; }
-
+    .stat-grid { grid-template-columns: repeat(2, 1fr); }
     .toolbar { flex-direction: column; padding: 12px; gap: 8px; }
-    .toolbar select { width: 100%; }
-    .btn { width: 100%; text-align: center; }
-
+    .toolbar select, .btn { width: 100%; }
     .rec-table { display: block; overflow-x: auto; -webkit-overflow-scrolling: touch; }
     .rec-table th, .rec-table td { padding: 4px 6px; font-size: 11px; white-space: nowrap; }
-
     .chart-container { padding: 10px; }
-    .chart-container h3 { font-size: 14px; }
   }
 </style>
 {% endblock %}
 {% block content %}
 <div class="toolbar" hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'>
   {% if stores %}
-  <select name="store_id" onchange="location.search='?store_id='+this.value">
+  <select name="store_id" onchange="location.search='?store_id='+this.value" style="padding:6px 10px;border:1px solid #ddd;border-radius:4px;">
     {% for s in stores %}
     <option value="{{ s.id }}" {% if s.id == store.id %}selected{% endif %}>{{ s.name }}</option>
     {% endfor %}
@@ -52,37 +61,66 @@
           hx-post="/api/ai/train/{% if store %}?store_id={{ store.id }}{% endif %}"
           hx-swap="none"
           hx-confirm="モデルの再学習を実行しますか？（数分かかる場合があります）">
-    モデル再学習
+    &#9881; モデル再学習
   </button>
 </div>
 
 <div class="ai-grid">
+  <!-- モデル情報 -->
   <div class="model-card">
-    <h3>{% trans "モデル情報" %}</h3>
+    <h3 style="font-size:16px;font-weight:700;margin-bottom:12px;">{% trans "モデル情報" %}</h3>
     {% if active_model %}
-    <div class="model-status"><span class="dot dot-active"></span> アクティブ</div>
-    <p>種別: {{ active_model.model_type }}</p>
-    <p>MAE: {{ active_model.mae_score|floatformat:3 }}</p>
-    <p>学習サンプル: {{ active_model.training_samples }}</p>
-    <p>学習日時: {{ active_model.trained_at|date:"Y/m/d H:i" }}</p>
+    <div class="model-status"><span class="dot dot-active"></span> <strong>アクティブ</strong></div>
+    <div class="stat-grid">
+      <div class="stat-item">
+        <div class="stat-val">{{ active_model.model_type }}</div>
+        <div class="stat-lbl">モデル種別</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-val">{{ active_model.mae_score|floatformat:2 }}</div>
+        <div class="stat-lbl">MAE（誤差）</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-val">{{ active_model.training_samples|default:"—" }}</div>
+        <div class="stat-lbl">学習サンプル</div>
+      </div>
+    </div>
+    <p style="font-size:12px;color:#9CA3AF;margin-top:10px;">学習日時: {{ active_model.trained_at|date:"Y/m/d H:i" }}</p>
     {% else %}
-    <div class="model-status"><span class="dot dot-inactive"></span> 未学習</div>
-    <p>「モデル再学習」ボタンを押して学習を開始してください。</p>
+    <div class="model-status"><span class="dot dot-inactive"></span> <strong>未学習</strong></div>
+    <p style="color:#6B7280;">「モデル再学習」ボタンを押して学習を開始してください。</p>
+    <p style="font-size:12px;color:#9CA3AF;margin-top:8px;">来客数・シフト実績データが10件以上必要です。</p>
     {% endif %}
   </div>
 
+  <!-- 特徴量重要度 -->
   <div class="model-card">
-    <h3>{% trans "特徴量重要度" %}</h3>
-    <canvas id="featureChart" height="200"></canvas>
+    <h3 style="font-size:16px;font-weight:700;margin-bottom:12px;">{% trans "特徴量重要度" %}</h3>
+    <div style="height:200px;"><canvas id="featureChart"></canvas></div>
+    <p style="font-size:11px;color:#9CA3AF;margin-top:6px;">各特徴量がスタッフ推薦数に与える影響度を表示しています。</p>
   </div>
 
+  <!-- 今週のサマリー -->
+  <div class="summary-card" id="ai-summary">
+    <h3 style="font-size:16px;font-weight:700;">&#128161; {% trans "今週の推薦サマリー" %}</h3>
+    <ul class="summary-list" id="ai-summary-list">
+      <li style="color:#9CA3AF;">推薦データを読み込み中...</li>
+    </ul>
+  </div>
+
+  <!-- 推薦結果テーブル -->
   <div class="chart-container">
-    <h3>{% trans "今週の推薦結果" %} ({{ week_start|date:"m/d" }} 〜 {{ week_end|date:"m/d" }})</h3>
+    <h3 style="font-size:16px;font-weight:700;margin-bottom:8px;">{% trans "今週の推薦結果" %} ({{ week_start|date:"m/d" }} 〜 {{ week_end|date:"m/d" }})</h3>
+    <div class="legend">
+      <div class="legend-item"><span class="legend-dot" style="background:#FEE2E2;"></span> 1名（要注意）</div>
+      <div class="legend-item"><span class="legend-dot" style="background:#D1FAE5;"></span> 2-3名（通常）</div>
+      <div class="legend-item"><span class="legend-dot" style="background:#DBEAFE;"></span> 4名以上（繁忙）</div>
+    </div>
+    <div style="overflow-x:auto;margin-top:10px;">
     <table class="rec-table">
       <thead>
         <tr>
           <th>日付</th>
-          {% for h in "9 10 11 12 13 14 15 16 17 18 19 20"|make_list %}{% endfor %}
           <th>9</th><th>10</th><th>11</th><th>12</th><th>13</th><th>14</th><th>15</th><th>16</th><th>17</th><th>18</th><th>19</th><th>20</th>
         </tr>
       </thead>
@@ -90,10 +128,11 @@
         {% regroup recommendations by date as date_groups %}
         {% for group in date_groups %}
         <tr>
-          <td>{{ group.grouper|date:"m/d (D)" }}</td>
+          <td class="day-label">{{ group.grouper|date:"m/d (D)" }}</td>
           {% for rec in group.list %}
             {% if rec.hour >= 9 and rec.hour <= 20 %}
-            <td class="{% if rec.recommended_staff_count < 2 %}insufficient{% else %}sufficient{% endif %}">
+            <td class="{% if rec.recommended_staff_count < 2 %}insufficient{% elif rec.recommended_staff_count >= 4 %}high-demand{% else %}sufficient{% endif %}"
+                title="信頼度: {{ rec.confidence|floatformat:0 }}%">
               {{ rec.recommended_staff_count }}
             </td>
             {% endif %}
@@ -102,29 +141,131 @@
         {% endfor %}
       </tbody>
     </table>
+    </div>
+    <p style="font-size:11px;color:#9CA3AF;margin-top:8px;">
+      &#9888; この推薦はシフト実績・来客数データに基づく統計モデルによる推定値です。実際の配置は状況に応じて調整してください。
+    </p>
+  </div>
+
+  <!-- 時間帯別推薦チャート -->
+  <div class="chart-container">
+    <h3 style="font-size:16px;font-weight:700;margin-bottom:8px;">{% trans "曜日×時間帯 平均推薦人数" %}</h3>
+    <div style="height:280px;"><canvas id="weekdayHourChart"></canvas></div>
   </div>
 </div>
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-  fetch('/api/ai/model-status/{% if store %}?store_id={{ store.id }}{% endif %}')
-    .then(r => r.json())
-    .then(data => {
+  var FEATURE_LABELS = {
+    'visitor_count': '来客数',
+    'day_of_week': '曜日',
+    'hour': '時間帯',
+    'is_holiday': '祝日/日曜',
+    'month': '月',
+    'order_count': '注文数',
+    'weather': '天候'
+  };
+
+  var storeParam = '{% if store %}?store_id={{ store.id }}{% endif %}';
+
+  fetch('/api/ai/model-status/' + storeParam)
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
       if (!data.has_model) return;
-      // Feature importance chart from recommendations
-      fetch('/api/ai/recommendations/{% if store %}?store_id={{ store.id }}{% endif %}')
-        .then(r => r.json())
-        .then(recs => {
+
+      fetch('/api/ai/recommendations/' + storeParam)
+        .then(function(r) { return r.json(); })
+        .then(function(recs) {
           if (recs.length === 0) return;
-          const factors = recs[0].factors || {};
-          const labels = Object.keys(factors);
-          const values = Object.values(factors);
-          if (labels.length === 0) return;
-          new Chart(document.getElementById('featureChart').getContext('2d'), {
-            type: 'bar',
-            data: {labels: labels, datasets: [{label: '重要度', data: values, backgroundColor: 'rgba(139,92,246,0.6)'}]},
-            options: {indexAxis: 'y', responsive: true}
+
+          // Feature importance chart
+          var factors = recs[0].factors || {};
+          var labels = Object.keys(factors).map(function(k) { return FEATURE_LABELS[k] || k; });
+          var values = Object.values(factors);
+          if (labels.length > 0) {
+            new Chart(document.getElementById('featureChart').getContext('2d'), {
+              type: 'bar',
+              data: {labels: labels, datasets: [{label: '重要度', data: values, backgroundColor: 'rgba(139,92,246,0.6)', borderColor: 'rgba(139,92,246,1)', borderWidth: 1}]},
+              options: {indexAxis: 'y', responsive: true, maintainAspectRatio: false, plugins: {legend: {display: false}}, scales: {x: {beginAtZero: true, max: 1}}}
+            });
+          }
+
+          // Summary generation
+          var summaryEl = document.getElementById('ai-summary-list');
+          var totalStaff = 0, maxStaff = 0, maxInfo = '', peakHours = {};
+          recs.forEach(function(r) {
+            if (r.hour >= 9 && r.hour <= 20) {
+              totalStaff += r.recommended_staff_count;
+              if (r.recommended_staff_count > maxStaff) {
+                maxStaff = r.recommended_staff_count;
+                maxInfo = r.date + ' ' + r.hour + '時';
+              }
+              if (r.recommended_staff_count >= 4) {
+                peakHours[r.hour] = (peakHours[r.hour] || 0) + 1;
+              }
+            }
           });
+          var avgStaff = recs.length > 0 ? (totalStaff / recs.filter(function(r){return r.hour>=9&&r.hour<=20;}).length).toFixed(1) : 0;
+
+          var peakHourList = Object.keys(peakHours).sort(function(a,b){return peakHours[b]-peakHours[a];}).slice(0, 3);
+          var summaryHtml = '<li>&#128202; 平均推薦人数: <strong>' + avgStaff + '名</strong></li>'
+            + '<li>&#128293; ピーク: <strong>' + maxStaff + '名</strong> (' + maxInfo + ')</li>';
+          if (peakHourList.length > 0) {
+            summaryHtml += '<li>&#9200; 繁忙時間帯（4名以上が多い時間）: <strong>' + peakHourList.join('時, ') + '時</strong></li>';
+          }
+          summaryHtml += '<li>&#128161; 不足リスク時間帯（1名推薦）があるコマはシフト調整を検討してください。</li>';
+          summaryEl.innerHTML = summaryHtml;
+
+          // Weekday x Hour heatmap
+          var dayNames = ['月', '火', '水', '木', '金', '土', '日'];
+          var hourAvg = {};
+          recs.forEach(function(r) {
+            if (r.hour < 9 || r.hour > 20) return;
+            var d = new Date(r.date);
+            var wd = d.getDay(); // 0=Sun
+            var key = wd + '-' + r.hour;
+            if (!hourAvg[key]) hourAvg[key] = {total: 0, count: 0, wd: wd, hour: r.hour};
+            hourAvg[key].total += r.recommended_staff_count;
+            hourAvg[key].count += 1;
+          });
+
+          var bubbles = [];
+          var maxVal = 1;
+          Object.values(hourAvg).forEach(function(v) {
+            var avg = v.total / v.count;
+            if (avg > maxVal) maxVal = avg;
+            // map Sun(0)→6, Mon(1)→0, ...
+            var yIdx = v.wd === 0 ? 6 : v.wd - 1;
+            bubbles.push({x: v.hour, y: yIdx, r: Math.max(4, avg * 4), val: avg.toFixed(1)});
+          });
+
+          var ctx2 = document.getElementById('weekdayHourChart');
+          if (ctx2) {
+            new Chart(ctx2.getContext('2d'), {
+              type: 'bubble',
+              data: {datasets: [{
+                label: '推薦人数',
+                data: bubbles,
+                backgroundColor: bubbles.map(function(b) {
+                  var i = parseFloat(b.val) / maxVal;
+                  return 'rgba(139,92,246,' + (0.2 + i * 0.7) + ')';
+                }),
+                borderColor: 'rgba(139,92,246,0.4)',
+                borderWidth: 1
+              }]},
+              options: {
+                responsive: true, maintainAspectRatio: false,
+                plugins: {
+                  legend: {display: false},
+                  tooltip: {callbacks: {label: function(ctx) { return dayNames[ctx.raw.y] + ' ' + ctx.raw.x + '時: ' + ctx.raw.val + '名'; }}}
+                },
+                scales: {
+                  x: {min: 8.5, max: 20.5, ticks: {stepSize: 1, callback: function(v) {return v + '時';}}, title: {display: true, text: '時間帯'}},
+                  y: {min: -0.5, max: 6.5, reverse: false, ticks: {stepSize: 1, autoSkip: false, callback: function(v) {return dayNames[v] || '';}}, title: {display: false}}
+                }
+              }
+            });
+          }
         });
     });
 });

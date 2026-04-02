@@ -1409,24 +1409,68 @@ class Command(BaseCommand):
         staff_list = list(Staff.objects.filter(store=self.store))
         created = 0
 
-        for staff in staff_list[:3]:  # 3名が出勤中
+        # 4名: 出勤中 (clock_in only)
+        for staff in staff_list[:4]:
             clock_in_time = now.replace(
-                hour=random.choice([13, 14, 15]),
-                minute=random.randint(0, 5),
+                hour=random.choice([10, 11, 12, 13]),
+                minute=random.randint(0, 10),
                 second=0, microsecond=0,
             )
             AttendanceStamp.objects.create(
-                staff=staff,
-                stamp_type='clock_in',
-                is_valid=True,
+                staff=staff, stamp_type='clock_in', is_valid=True,
             )
-            # created_at を上書き
-            stamp = AttendanceStamp.objects.filter(staff=staff).last()
-            if stamp:
-                AttendanceStamp.objects.filter(pk=stamp.pk).update(stamped_at=clock_in_time)
+            AttendanceStamp.objects.filter(staff=staff).last() and \
+                AttendanceStamp.objects.filter(
+                    pk=AttendanceStamp.objects.filter(staff=staff).last().pk
+                ).update(stamped_at=clock_in_time)
             created += 1
 
-        self.stdout.write(self.style.SUCCESS(f'  AttendanceStamp: {created}件（本日出勤中）'))
+        # 2名: 休憩中 (clock_in → break_start)
+        for staff in staff_list[4:6]:
+            clock_in_time = now.replace(
+                hour=random.choice([10, 11]),
+                minute=random.randint(0, 5),
+                second=0, microsecond=0,
+            )
+            s1 = AttendanceStamp.objects.create(
+                staff=staff, stamp_type='clock_in', is_valid=True,
+            )
+            AttendanceStamp.objects.filter(pk=s1.pk).update(stamped_at=clock_in_time)
+            break_time = now.replace(
+                hour=random.choice([14, 15]),
+                minute=random.randint(0, 10),
+                second=0, microsecond=0,
+            )
+            s2 = AttendanceStamp.objects.create(
+                staff=staff, stamp_type='break_start', is_valid=True,
+            )
+            AttendanceStamp.objects.filter(pk=s2.pk).update(stamped_at=break_time)
+            created += 2
+
+        # 2名: 退勤済 (clock_in → clock_out)
+        for staff in staff_list[6:8]:
+            clock_in_time = now.replace(
+                hour=random.choice([9, 10]),
+                minute=random.randint(0, 5),
+                second=0, microsecond=0,
+            )
+            s1 = AttendanceStamp.objects.create(
+                staff=staff, stamp_type='clock_in', is_valid=True,
+            )
+            AttendanceStamp.objects.filter(pk=s1.pk).update(stamped_at=clock_in_time)
+            clock_out_time = now.replace(
+                hour=random.choice([17, 18]),
+                minute=random.randint(0, 15),
+                second=0, microsecond=0,
+            )
+            s2 = AttendanceStamp.objects.create(
+                staff=staff, stamp_type='clock_out', is_valid=True,
+            )
+            AttendanceStamp.objects.filter(pk=s2.pk).update(stamped_at=clock_out_time)
+            created += 2
+
+        self.stdout.write(self.style.SUCCESS(
+            f'  AttendanceStamp: {created}件（出勤中4名, 休憩中2名, 退勤済2名）'))
 
     # ═════════════════════════════════════════════
     # AttendanceTOTPConfig
@@ -1669,25 +1713,41 @@ class Command(BaseCommand):
         monday = today - timedelta(days=today.weekday())
         created = 0
 
+        # 曜日別基本パターン (Mon=0..Sun=6)
+        wd_base = [1.0, 0.9, 0.95, 1.05, 1.3, 1.6, 1.4]
+        # 時間帯別係数
+        hr_base = {
+            9: 0.5, 10: 0.7, 11: 0.9, 12: 1.1, 13: 1.3, 14: 1.2,
+            15: 1.4, 16: 1.5, 17: 1.6, 18: 1.8, 19: 2.2, 20: 2.5,
+            21: 2.3, 22: 1.8, 23: 1.0,
+        }
+
+        # 特徴量重要度（一定のばらつきあり）
+        base_factors = {
+            'visitor_count': 0.32, 'day_of_week': 0.22,
+            'hour': 0.20, 'is_holiday': 0.12, 'weather': 0.10,
+        }
+
         for day_offset in range(14):
             rec_date = monday + timedelta(days=day_offset)
             weekday = rec_date.weekday()
+            # 日ごとのランダム変動 (イベント日など)
+            day_spike = 1.0 + random.uniform(-0.2, 0.3)
 
             for hour in range(9, 24):
-                if hour < 13:
-                    staff_count = 1
-                    confidence = 0.95
-                else:
-                    base = 2
-                    if 19 <= hour <= 22:
-                        base = 4
-                    elif 15 <= hour <= 18:
-                        base = 3
-                    if weekday >= 4:
-                        base += 1
-                    staff_count = base + random.randint(-1, 1)
-                    staff_count = max(1, min(staff_count, 8))
-                    confidence = round(random.uniform(0.75, 0.95), 2)
+                h_coef = hr_base.get(hour, 1.0)
+                w_coef = wd_base[weekday]
+                raw = 1.5 * h_coef * w_coef * day_spike + random.uniform(-0.8, 0.8)
+                staff_count = max(1, min(8, round(raw)))
+                confidence = round(min(0.98, max(0.55, 0.80 + random.uniform(-0.15, 0.12))), 2)
+
+                # ばらつきのある特徴量重要度
+                factors = {}
+                for k, v in base_factors.items():
+                    factors[k] = round(max(0.02, v + random.uniform(-0.08, 0.08)), 3)
+                # 正規化
+                total = sum(factors.values())
+                factors = {k: round(v / total, 3) for k, v in factors.items()}
 
                 StaffRecommendationResult.objects.create(
                     store=self.store,
@@ -1695,13 +1755,7 @@ class Command(BaseCommand):
                     hour=hour,
                     recommended_staff_count=staff_count,
                     confidence=confidence,
-                    factors={
-                        'visitor_count': round(random.uniform(0.25, 0.40), 2),
-                        'day_of_week': round(random.uniform(0.15, 0.30), 2),
-                        'hour': round(random.uniform(0.15, 0.25), 2),
-                        'is_holiday': round(random.uniform(0.05, 0.15), 2),
-                        'weather': round(random.uniform(0.05, 0.15), 2),
-                    },
+                    factors=factors,
                 )
                 created += 1
 

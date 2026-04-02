@@ -159,8 +159,8 @@ class VentilationAutoControl(models.Model):
 
     class Meta:
         app_label = 'booking'
-        verbose_name = _('換気扇自動制御')
-        verbose_name_plural = _('換気扇自動制御')
+        verbose_name = _('自動制御')
+        verbose_name_plural = _('自動制御')
 
     def __str__(self):
         return f'{self.name} ({self.device.name})'

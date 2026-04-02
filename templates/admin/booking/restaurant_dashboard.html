@@ -1983,12 +1983,14 @@ document.addEventListener('DOMContentLoaded', function () {
         ]
       },
       forecast: function() {
-        var WC = [0.65,0.50,0.52,0.58,0.72,1.30,1.40];
-        var MC = [0.85,0.80,0.82,0.88,0.92,0.78,0.75,0.73,0.90,1.05,1.20,1.35];
+        var WC = [0.65,0.48,0.50,0.55,0.72,1.32,1.45];
+        var MC = [0.88,0.82,0.80,0.85,0.92,0.76,0.72,0.70,0.88,1.08,1.25,1.40];
         var hist = [], fc = [], now = new Date(), seed = 42;
         function prng() { seed = (seed * 16807) % 2147483647; return (seed - 1) / 2147483646; }
-        for (var i = 89; i >= 0; i--) { var d = new Date(now); d.setDate(d.getDate()-i); var growth = 1.0 + (89-i)/89*0.06; var r = Math.max(5000, Math.floor(25000 * WC[d.getDay()] * MC[d.getMonth()] * growth + (prng()-0.5)*8000)); hist.push({date:d.toISOString().slice(0,10), revenue:r}); }
-        for (var j = 1; j <= 14; j++) { var fd = new Date(now); fd.setDate(fd.getDate()+j); var p = Math.max(5000, Math.floor(26000 * WC[fd.getDay()] * MC[fd.getMonth()] + (prng()-0.5)*6000)); fc.push({date:fd.toISOString().slice(0,10), predicted:p, lower:Math.round(p*0.75), upper:Math.round(p*1.25)}); }
+        var spikes = {};
+        for (var s = 4; s < 90; s += Math.floor(8 + prng() * 12)) { spikes[s] = prng() > 0.45 ? 1.3 + prng() * 0.4 : 0.5 + prng() * 0.3; }
+        for (var i = 89; i >= 0; i--) { var d = new Date(now); d.setDate(d.getDate()-i); var growth = 1.0 + (89-i)/89*0.06; var spike = spikes[i] || 1.0; var r = Math.max(3000, Math.floor(25000 * WC[d.getDay()] * MC[d.getMonth()] * growth * spike + (prng()-0.5)*12000)); hist.push({date:d.toISOString().slice(0,10), revenue:r}); }
+        for (var j = 1; j <= 14; j++) { var fd = new Date(now); fd.setDate(fd.getDate()+j); var p = Math.max(5000, Math.floor(26000 * WC[fd.getDay()] * MC[fd.getMonth()] + (prng()-0.5)*8000)); fc.push({date:fd.toISOString().slice(0,10), predicted:p, lower:Math.round(p*0.70), upper:Math.round(p*1.30)}); }
         return {historical:hist, forecast:fc, method:'moving_average'};
       },
       heatmap: function() {
@@ -2000,11 +2002,14 @@ document.addEventListener('DOMContentLoaded', function () {
         return {heatmap: result};
       },
       aov: function(period) {
-        var WC = [0.88,0.85,0.87,0.90,0.93,1.08,1.12];
-        var MC = [0.85,0.80,0.82,0.88,0.92,0.78,0.75,0.73,0.90,1.05,1.20,1.35];
+        var WC = [0.88,0.82,0.78,0.85,0.92,1.12,1.18];
+        var MC = [0.92,0.85,0.80,0.88,0.95,0.75,0.72,0.70,0.85,1.08,1.22,1.38];
         var result = [], now = new Date(), seed = 61;
         function prng() { seed = (seed * 16807) % 2147483647; return (seed - 1) / 2147483646; }
-        for (var i = 89; i >= 0; i--) { var d = new Date(now); d.setDate(d.getDate()-i); var growth = 1.0 + (89-i)/89*0.05; var aov = Math.floor(1800 * WC[d.getDay()] * MC[d.getMonth()] * growth + (prng()-0.5)*400); var oc = Math.max(2, Math.floor(8 * WC[d.getDay()] * MC[d.getMonth()] + prng()*5)); result.push({date:d.toISOString().slice(0,10), aov:aov, order_count:oc, total_revenue:aov*oc}); }
+        /* spike days: every ~7-15 days has an event spike or dip */
+        var spikes = {};
+        for (var s = 5; s < 90; s += Math.floor(7 + prng() * 8)) { spikes[s] = prng() > 0.4 ? 1.25 + prng() * 0.3 : 0.6 + prng() * 0.2; }
+        for (var i = 89; i >= 0; i--) { var d = new Date(now); d.setDate(d.getDate()-i); var growth = 1.0 + (89-i)/89*0.05; var spike = spikes[i] || 1.0; var noise = (prng()-0.5)*800; var aov = Math.max(800, Math.floor(1800 * WC[d.getDay()] * MC[d.getMonth()] * growth * spike + noise)); var ocNoise = Math.floor((prng()-0.5)*6); var oc = Math.max(1, Math.floor(8 * WC[d.getDay()] * MC[d.getMonth()] * spike + ocNoise)); result.push({date:d.toISOString().slice(0,10), aov:aov, order_count:oc, total_revenue:aov*oc}); }
         return {trend:result, period:period||'daily'};
       }
     },
@@ -2041,12 +2046,14 @@ document.addEventListener('DOMContentLoaded', function () {
         ]
       },
       forecast: function() {
-        var WC = [0.70,0.52,0.55,0.62,0.78,1.35,1.48];
-        var MC = [0.95,0.88,0.82,0.78,0.75,0.68,0.72,0.70,0.80,0.92,1.05,1.15];
+        var WC = [0.72,0.50,0.52,0.60,0.80,1.38,1.52];
+        var MC = [0.98,0.90,0.84,0.78,0.73,0.66,0.70,0.68,0.78,0.95,1.08,1.18];
         var hist = [], fc = [], now = new Date(), seed = 77;
         function prng() { seed = (seed * 16807) % 2147483647; return (seed - 1) / 2147483646; }
-        for (var i = 89; i >= 0; i--) { var d = new Date(now); d.setDate(d.getDate()-i); var growth = 1.0 + (89-i)/89*0.08; var r = Math.max(12000, Math.floor(38000 * WC[d.getDay()] * MC[d.getMonth()] * growth + (prng()-0.5)*12000)); hist.push({date:d.toISOString().slice(0,10), revenue:r}); }
-        for (var j = 1; j <= 14; j++) { var fd = new Date(now); fd.setDate(fd.getDate()+j); var p = Math.max(12000, Math.floor(40000 * WC[fd.getDay()] * MC[fd.getMonth()] + (prng()-0.5)*8000)); fc.push({date:fd.toISOString().slice(0,10), predicted:p, lower:Math.round(p*0.75), upper:Math.round(p*1.25)}); }
+        var spikes = {};
+        for (var s = 2; s < 90; s += Math.floor(5 + prng() * 10)) { spikes[s] = prng() > 0.4 ? 1.2 + prng() * 0.5 : 0.45 + prng() * 0.3; }
+        for (var i = 89; i >= 0; i--) { var d = new Date(now); d.setDate(d.getDate()-i); var growth = 1.0 + (89-i)/89*0.08; var spike = spikes[i] || 1.0; var r = Math.max(8000, Math.floor(38000 * WC[d.getDay()] * MC[d.getMonth()] * growth * spike + (prng()-0.5)*16000)); hist.push({date:d.toISOString().slice(0,10), revenue:r}); }
+        for (var j = 1; j <= 14; j++) { var fd = new Date(now); fd.setDate(fd.getDate()+j); var p = Math.max(12000, Math.floor(40000 * WC[fd.getDay()] * MC[fd.getMonth()] + (prng()-0.5)*10000)); fc.push({date:fd.toISOString().slice(0,10), predicted:p, lower:Math.round(p*0.70), upper:Math.round(p*1.30)}); }
         return {historical:hist, forecast:fc, method:'moving_average'};
       },
       heatmap: function() {
@@ -2058,11 +2065,13 @@ document.addEventListener('DOMContentLoaded', function () {
         return {heatmap: result};
       },
       aov: function(period) {
-        var WC = [0.90,0.85,0.88,0.92,0.95,1.10,1.15];
-        var MC = [0.95,0.88,0.82,0.78,0.75,0.68,0.72,0.70,0.80,0.92,1.05,1.15];
+        var WC = [0.92,0.80,0.82,0.88,0.96,1.15,1.22];
+        var MC = [0.98,0.90,0.84,0.78,0.72,0.65,0.68,0.66,0.78,0.95,1.10,1.20];
         var result = [], now = new Date(), seed = 53;
         function prng() { seed = (seed * 16807) % 2147483647; return (seed - 1) / 2147483646; }
-        for (var i = 89; i >= 0; i--) { var d = new Date(now); d.setDate(d.getDate()-i); var growth = 1.0 + (89-i)/89*0.06; var aov = Math.floor(2200 * WC[d.getDay()] * MC[d.getMonth()] * growth + (prng()-0.5)*600); var oc = Math.max(3, Math.floor(12 * WC[d.getDay()] * MC[d.getMonth()] + prng()*8)); result.push({date:d.toISOString().slice(0,10), aov:aov, order_count:oc, total_revenue:aov*oc}); }
+        var spikes = {};
+        for (var s = 3; s < 90; s += Math.floor(6 + prng() * 10)) { spikes[s] = prng() > 0.5 ? 1.20 + prng() * 0.35 : 0.55 + prng() * 0.25; }
+        for (var i = 89; i >= 0; i--) { var d = new Date(now); d.setDate(d.getDate()-i); var growth = 1.0 + (89-i)/89*0.06; var spike = spikes[i] || 1.0; var noise = (prng()-0.5)*1000; var aov = Math.max(1000, Math.floor(2200 * WC[d.getDay()] * MC[d.getMonth()] * growth * spike + noise)); var ocNoise = Math.floor((prng()-0.5)*8); var oc = Math.max(2, Math.floor(12 * WC[d.getDay()] * MC[d.getMonth()] * spike + ocNoise)); result.push({date:d.toISOString().slice(0,10), aov:aov, order_count:oc, total_revenue:aov*oc}); }
         return {trend:result, period:period||'daily'};
       }
     }
@@ -3501,7 +3510,7 @@ document.addEventListener('DOMContentLoaded', function () {
   };
 
   /* Pagination helper: renders a paginated table with prev/next buttons */
-  var PAGE_SIZE = 20;
+  var PAGE_SIZE = 10;
   function renderPaginatedTable(containerId, items, headerHtml, rowRenderer, page) {
     page = page || 1;
     var tc = document.getElementById(containerId);
@@ -3526,6 +3535,24 @@ document.addEventListener('DOMContentLoaded', function () {
   }
   window._pgData = {};
   window.renderPaginatedTable = renderPaginatedTable;
+
+  /* ---- Sortable table helper ---- */
+  window.sortPgTable = function(containerId, field, type) {
+    var pg = window._pgData[containerId];
+    if (!pg) return;
+    var dir = pg._sortDir && pg._sortDir[field] === 'asc' ? 'desc' : 'asc';
+    if (!pg._sortDir) pg._sortDir = {};
+    pg._sortDir = {}; pg._sortDir[field] = dir;
+    var sorted = pg._original.slice().sort(function(a, b) {
+      var va = type === 'num' ? (parseFloat(a[field]) || 0) : String(a[field] || '');
+      var vb = type === 'num' ? (parseFloat(b[field]) || 0) : String(b[field] || '');
+      if (va < vb) return dir === 'asc' ? -1 : 1;
+      if (va > vb) return dir === 'asc' ? 1 : -1;
+      return 0;
+    });
+    pg.items = sorted;
+    renderPaginatedTable(containerId, sorted, pg.header, pg.renderer, 1);
+  };
 
   function renderMenuEngGeneric(prefix, canvasId, tableContainerId, data, aiPanelId) {
     var products = data.products || [];
@@ -3559,13 +3586,23 @@ document.addEventListener('DOMContentLoaded', function () {
 
     if (products.length > 0) {
       var sorted = products.slice().sort(function(a,b){return b.qty_sold - a.qty_sold;});
-      var headerHtml = '<tr class="bg-gray-50"><th class="px-3 py-2 text-left">'+T.th_product+'</th><th class="px-3 py-2 text-right">'+T.th_qty_sold+'</th><th class="px-3 py-2 text-right">'+T.th_margin_rate+'</th><th class="px-3 py-2 text-right">'+T.th_sales+'</th><th class="px-3 py-2 text-center">'+T.th_category+'</th></tr>';
+      var tid = tableContainerId;
+      var srt = function(f,t){return 'sortPgTable(\''+tid+'\',\''+f+'\',\''+t+'\')'};
+      var thStyle = 'cursor:pointer;user-select:none;';
+      var headerHtml = '<tr class="bg-gray-50">'
+        + '<th class="px-3 py-2 text-left" style="'+thStyle+'" onclick="'+srt('name','str')+'">'+T.th_product+' &#8597;</th>'
+        + '<th class="px-3 py-2 text-right" style="'+thStyle+'" onclick="'+srt('qty_sold','num')+'">'+T.th_qty_sold+' &#8597;</th>'
+        + '<th class="px-3 py-2 text-right" style="'+thStyle+'" onclick="'+srt('margin_rate','num')+'">'+T.th_margin_rate+' &#8597;</th>'
+        + '<th class="px-3 py-2 text-right" style="'+thStyle+'" onclick="'+srt('revenue','num')+'">'+T.th_sales+' &#8597;</th>'
+        + '<th class="px-3 py-2 text-center" style="'+thStyle+'" onclick="'+srt('quadrant','str')+'">'+T.th_category+' &#8597;</th>'
+        + '</tr>';
       var rowFn = function(p) {
         var badge = quadBadge[p.quadrant] || '';
+        var unitPrice = p.qty_sold > 0 ? Math.round(p.revenue / p.qty_sold) : 0;
         return '<tr class="border-t border-gray-100"><td class="px-3 py-2">' + escapeHtml(p.name) + '</td><td class="px-3 py-2 text-right">' + p.qty_sold + '</td><td class="px-3 py-2 text-right">' + (p.margin_rate*100).toFixed(1) + '%</td><td class="px-3 py-2 text-right">' + Number(p.revenue).toLocaleString() + ' 円</td><td class="px-3 py-2 text-center"><span class="px-2 py-0.5 rounded-full text-xs font-semibold ' + badge + '">' + (quadLabels[p.quadrant]||p.quadrant) + '</span></td></tr>';
       };
-      window._pgData[tableContainerId] = {items: sorted, header: headerHtml, renderer: rowFn};
-      renderPaginatedTable(tableContainerId, sorted, headerHtml, rowFn, 1);
+      window._pgData[tid] = {items: sorted, _original: sorted.slice(), header: headerHtml, renderer: rowFn};
+      renderPaginatedTable(tid, sorted, headerHtml, rowFn, 1);
     }
   }
 
@@ -3677,7 +3714,10 @@ document.addEventListener('DOMContentLoaded', function () {
         options:{
           responsive:true, maintainAspectRatio:false,
           plugins:{legend:{display:false}, tooltip:{callbacks:{label:function(ctx){var p=ctx.raw; return WEEKDAY_LABELS[p.y]+' '+p.x+T.hour_suffix+' — '+Number(p.revenue).toLocaleString()+'円';}}}},
-          scales:{x:{min:-0.5,max:23.5, title:{display:true,text:'時間帯'}, ticks:{stepSize:1,callback:function(v){return v+T.hour_suffix;}}}, y:{min:-0.5,max:6.5,reverse:true, title:{display:true,text:'曜日'}, ticks:{stepSize:1,callback:function(v){return WEEKDAY_LABELS[v]||'';}}}}
+          scales:{
+            x:{min:-0.5,max:23.5, title:{display:true,text:T.hour_label||'時間帯'}, ticks:{stepSize:1,callback:function(v){return v+T.hour_suffix;}}},
+            y:{min:-0.5,max:6.5,reverse:true, title:{display:false}, ticks:{stepSize:1,autoSkip:false,callback:function(v){return WEEKDAY_LABELS[v]||'';}}}
+          }
         }
       });
     }

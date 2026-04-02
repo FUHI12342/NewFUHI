@@ -302,9 +302,13 @@ class SiteSettings(models.Model):
 
     # SNS連携URL
     twitter_url = models.URLField(_('X(Twitter) URL'), blank=True, default='',
-        help_text=_('例: https://twitter.com/youraccount'))
+        help_text=_('例: https://x.com/youraccount'))
     instagram_url = models.URLField(_('Instagram URL'), blank=True, default='',
         help_text=_('例: https://www.instagram.com/youraccount'))
+    threads_url = models.URLField(_('Threads URL'), blank=True, default='',
+        help_text=_('例: https://www.threads.com/@youraccount'))
+    tiktok_url = models.URLField(_('TikTok URL'), blank=True, default='',
+        help_text=_('例: https://www.tiktok.com/@youraccount'))
 
     # ヒーローバナー
     show_hero_banner = models.BooleanField(_('ヒーローバナー表示'), default=True)
@@ -426,6 +430,10 @@ class SiteSettings(models.Model):
             self.twitter_url = sanitize_url(self.twitter_url)
         if self.instagram_url:
             self.instagram_url = sanitize_url(self.instagram_url)
+        if self.threads_url:
+            self.threads_url = sanitize_url(self.threads_url)
+        if self.tiktok_url:
+            self.tiktok_url = sanitize_url(self.tiktok_url)
         super().save(*args, **kwargs)
 
     @classmethod
