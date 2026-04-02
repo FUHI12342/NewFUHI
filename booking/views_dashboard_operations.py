@@ -18,6 +18,9 @@ from .models import (
 )
 from .views_dashboard_base import DashboardAuthMixin, PERIOD_TRUNC_MAP, _clamp_int
 
+RESERVATION_DAYS_DEFAULT = 30
+RESERVATION_DAYS_MAX = 365
+
 logger = logging.getLogger(__name__)
 
 
@@ -29,8 +32,12 @@ class ReservationStatsAPIView(DashboardAuthMixin, APIView):
         if err:
             return err
 
+        days = _clamp_int(
+            request.GET.get('days'), RESERVATION_DAYS_DEFAULT,
+            lo=7, hi=RESERVATION_DAYS_MAX,
+        )
         now = timezone.now()
-        since = now - timedelta(days=90)
+        since = now - timedelta(days=days)
         scope = self.build_scope(store, 'staff__store')
 
         daily = (
@@ -58,6 +65,7 @@ class ReservationStatsAPIView(DashboardAuthMixin, APIView):
             'daily': daily_list,
             'future_count': future_count,
             'cancel_rate': cancel_rate,
+            'days': days,
         })
 
 

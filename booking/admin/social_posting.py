@@ -168,15 +168,20 @@ class DraftPostAdmin(admin.ModelAdmin):
             color = 'orange'
         else:
             color = 'red'
-        return format_html('<span style="color:{};">{:.0%}</span>', color, obj.quality_score)
+        pct = f'{obj.quality_score:.0%}'
+        return format_html('<span style="color:{};">{}</span>', color, pct)
     quality_display.short_description = _('品質')
 
     def platform_display(self, obj):
-        return ', '.join(obj.platforms) if obj.platforms else '-'
+        platforms = obj.platforms or []
+        if not isinstance(platforms, list):
+            return str(platforms)
+        return ', '.join(str(p) for p in platforms) if platforms else '-'
     platform_display.short_description = _('プラットフォーム')
 
     def content_preview(self, obj):
-        return obj.content[:60] + '...' if len(obj.content) > 60 else obj.content
+        content = obj.content or ''
+        return content[:60] + '...' if len(content) > 60 else content
     content_preview.short_description = _('内容')
 
 

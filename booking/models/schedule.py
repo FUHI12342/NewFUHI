@@ -63,6 +63,26 @@ class Schedule(models.Model):
         help_text=_('顧客キャンセル用8桁コード'),
     )
 
+    # 返金追跡
+    refund_status = models.CharField(
+        _('返金ステータス'), max_length=20,
+        choices=[
+            ('none', _('返金不要')),
+            ('pending', _('返金待ち')),
+            ('completed', _('返金済み')),
+        ],
+        default='none',
+    )
+    refund_completed_at = models.DateTimeField(
+        _('返金完了日時'), blank=True, null=True,
+    )
+    refund_completed_by = models.ForeignKey(
+        'Staff', verbose_name=_('返金処理者'),
+        on_delete=models.SET_NULL, null=True, blank=True,
+        related_name='refunds_processed',
+    )
+    refund_note = models.TextField(_('返金備考'), blank=True, default='')
+
     # QRチェックイン
     checkin_qr = models.ImageField(_('チェックインQR'), upload_to='checkin_qr/', blank=True, null=True)
     is_checked_in = models.BooleanField(_('チェックイン済み'), default=False)

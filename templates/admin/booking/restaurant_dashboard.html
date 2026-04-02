@@ -396,12 +396,12 @@
   {# ===== Tab: 概要 ===== #}
   <div class="tab-content active" id="tab-overview">
     <div class="sub-tab-bar" id="overview-sub-tabs">
-      <button class="sub-tab-btn active" data-subtab="overview-kpi" onclick="switchSubTab('overview', 'overview-kpi')">{% trans "予約KPI" %}</button>
-      <button class="sub-tab-btn" data-subtab="overview-chart" onclick="switchSubTab('overview', 'overview-chart')">{% trans "日別予約グラフ" %}</button>
+      <button class="sub-tab-btn" data-subtab="overview-kpi" onclick="switchSubTab('overview', 'overview-kpi')">{% trans "予約KPI" %}</button>
+      <button class="sub-tab-btn active" data-subtab="overview-chart" onclick="switchSubTab('overview', 'overview-chart')">{% trans "日別予約グラフ" %}</button>
       <button class="sub-tab-btn" data-subtab="overview-insights" onclick="switchSubTab('overview', 'overview-insights'); loadInsights();">{% trans "インサイト" %} <span id="insight-badge" class="inline-flex items-center justify-center px-2 py-0.5 text-xs font-bold rounded-full bg-rose-500 text-white" style="display:none;">0</span></button>
       <button class="sub-tab-btn" data-subtab="overview-kpi-score" onclick="switchSubTab('overview', 'overview-kpi-score'); loadKPIScorecard();">{% trans "KPIスコアカード" %}</button>
     </div>
-    <div class="sub-tab-content active" id="subtab-overview-kpi">
+    <div class="sub-tab-content" id="subtab-overview-kpi">
       <div class="db-card">
         <h3 class="text-lg font-semibold mb-3">{% trans "予約KPI" %}</h3>
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -420,10 +420,19 @@
         </div>
       </div>
     </div>
-    <div class="sub-tab-content" id="subtab-overview-chart">
+    <div class="sub-tab-content active" id="subtab-overview-chart">
       <div class="db-card">
-        <h3 class="text-lg font-semibold mb-3">{% trans "日別予約数（過去90日）" %}</h3>
+        <div class="flex items-center justify-between mb-3">
+          <h3 class="text-lg font-semibold" id="reservation-chart-title">{% trans "日別予約数（過去30日）" %}</h3>
+          <span id="reservation-days-badge" class="text-xs bg-indigo-100 text-indigo-700 px-2 py-1 rounded-full font-medium">30{% trans "日" %}</span>
+        </div>
         <div class="chart-viewport"><canvas id="reservationChart"></canvas></div>
+        <div class="flex justify-center gap-2 mt-4" id="reservation-range-buttons">
+          <button onclick="loadReservations(30)" class="res-range-btn px-3 py-1 text-xs rounded-full font-medium bg-indigo-500 text-white" data-days="30">30{% trans "日" %}</button>
+          <button onclick="loadReservations(90)" class="res-range-btn px-3 py-1 text-xs rounded-full font-medium bg-gray-200 hover:bg-gray-300 text-gray-700" data-days="90">90{% trans "日" %}</button>
+          <button onclick="loadReservations(180)" class="res-range-btn px-3 py-1 text-xs rounded-full font-medium bg-gray-200 hover:bg-gray-300 text-gray-700" data-days="180">180{% trans "日" %}</button>
+          <button onclick="loadReservations(365)" class="res-range-btn px-3 py-1 text-xs rounded-full font-medium bg-gray-200 hover:bg-gray-300 text-gray-700" data-days="365">365{% trans "日" %}</button>
+        </div>
       </div>
     </div>
     <div class="sub-tab-content" id="subtab-overview-insights">
@@ -1648,8 +1657,13 @@ document.addEventListener('DOMContentLoaded', function () {
   /* ------------------------------------------------------------------ */
   var reservationChart = null;
 
-  function loadReservations() {
-    apiFetch('/api/dashboard/reservations/').then(function (raw) {
+  var currentResDays = 30;
+
+  function loadReservations(days) {
+    days = days || 30;
+    currentResDays = days;
+    var url = '/api/dashboard/reservations/?days=' + days;
+    apiFetch(url).then(function (raw) {
       var data = useDemo(raw, 'reservations', 'daily');
       document.getElementById('future-count').textContent = data.future_count;
       document.getElementById('cancel-rate').textContent = (data.cancel_rate * 100).toFixed(1) + '%';
@@ -1661,6 +1675,19 @@ document.addEventListener('DOMContentLoaded', function () {
       var labels = daily.map(function (d) { return d.date; });
       var counts = daily.map(function (d) { return d.count; });
       var cancelled = daily.map(function (d) { return d.cancelled; });
+
+      /* Update title and badge */
+      document.getElementById('reservation-chart-title').textContent = '日別予約数（過去' + days + '日）';
+      document.getElementById('reservation-days-badge').textContent = days + '日';
+
+      /* Highlight active range button */
+      document.querySelectorAll('.res-range-btn').forEach(function (btn) {
+        if (parseInt(btn.dataset.days) === days) {
+          btn.className = 'res-range-btn px-3 py-1 text-xs rounded-full font-medium bg-indigo-500 text-white';
+        } else {
+          btn.className = 'res-range-btn px-3 py-1 text-xs rounded-full font-medium bg-gray-200 hover:bg-gray-300 text-gray-700';
+        }
+      });
 
       if (reservationChart) reservationChart.destroy();
       var ctx = document.getElementById('reservationChart').getContext('2d');
@@ -1678,7 +1705,7 @@ document.addEventListener('DOMContentLoaded', function () {
           maintainAspectRatio: false,
           plugins: { legend: { position: 'top' }, tooltip: { mode: 'index', intersect: false } },
           scales: {
-            x: { ticks: { maxTicksLimit: 15, maxRotation: 45, font: { size: 10 } } },
+            x: { ticks: { maxTicksLimit: days <= 30 ? 15 : (days <= 90 ? 12 : 10), maxRotation: 45, font: { size: 10 } } },
             y: { beginAtZero: true, ticks: { precision: 0 } }
           }
         }
@@ -1686,7 +1713,7 @@ document.addEventListener('DOMContentLoaded', function () {
     }).catch(function (err) { console.error('Failed to load reservations:', err); });
   }
 
-  loadReservations();
+  loadReservations(30);
 
   /* ------------------------------------------------------------------ */
   /*  2. Sales (lazy loaded)                                             */

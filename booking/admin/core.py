@@ -1,8 +1,12 @@
 """Core admin: Schedule, Staff, Store."""
+import logging
+
 from django import forms
+from django.conf import settings
 from django.contrib import admin, messages
 from django.shortcuts import redirect
 from django.urls import reverse
+from django.utils import timezone
 from django.utils.html import format_html
 from django.utils.translation import gettext_lazy as _
 
@@ -11,6 +15,8 @@ from ..models import (
     Schedule, Staff, Store, StoreScheduleConfig, AdminTheme, StoreTheme,
 )
 from .helpers import _is_owner_or_super
+
+logger = logging.getLogger(__name__)
 
 
 class ScheduleAdmin(admin.ModelAdmin):
@@ -22,18 +28,21 @@ class ScheduleAdmin(admin.ModelAdmin):
         'staff',
         'is_temporary',
         'is_cancelled',
+        'refund_status',
         'is_checked_in',
         'price',
         'has_line_user',
     )
-    list_filter = ('is_checked_in', 'is_temporary', 'is_cancelled')
+    list_filter = ('is_checked_in', 'is_temporary', 'is_cancelled', 'refund_status')
     search_fields = ('customer_name', 'hashed_id', 'reservation_number', 'line_user_hash', 'checkin_backup_code')
     ordering = ('-start',)
 
     readonly_fields = (
         'reservation_number', 'line_user_hash', 'line_user_enc',
         'checkin_qr', 'checked_in_at', 'checkin_backup_code', 'checked_in_by',
+        'refund_completed_at', 'refund_completed_by',
     )
+    actions = ['mark_refund_completed']
 
     def short_reservation_number(self, obj):
         rn = obj.reservation_number or ''
@@ -44,6 +53,54 @@ class ScheduleAdmin(admin.ModelAdmin):
 
     short_reservation_number.short_description = _('予約番号')
     short_reservation_number.admin_order_field = 'reservation_number'
+
+    @admin.action(description=_('選択した予約を「返金済み」にする'))
+    def mark_refund_completed(self, request, queryset):
+        """選択した返金待ち予約を返金済みに更新し、顧客にLINE通知を送信する。"""
+        from linebot import LineBotApi
+        from linebot.models import TextSendMessage
+        import pytz
+
+        local_tz = pytz.timezone('Asia/Tokyo')
+        bot = LineBotApi(settings.LINE_ACCESS_TOKEN)
+        staff_member = None
+        try:
+            staff_member = request.user.staff_set.first() or request.user.staff
+        except Exception:
+            pass
+
+        count = 0
+        for schedule in queryset.filter(refund_status='pending'):
+            schedule.refund_status = 'completed'
+            schedule.refund_completed_at = timezone.now()
+            schedule.refund_completed_by = staff_member
+            schedule.save(update_fields=[
+                'refund_status', 'refund_completed_at', 'refund_completed_by',
+            ])
+
+            # 顧客LINE通知
+            try:
+                line_user_id = schedule.get_line_user_id()
+                if line_user_id:
+                    local_start = schedule.start.astimezone(local_tz)
+                    msg = (
+                        f'【返金完了のお知らせ】\n\n'
+                        f'ご予約 {schedule.reservation_number} の返金処理が完了いたしました。\n\n'
+                        f'日時: {local_start.strftime("%Y年%m月%d日 %H:%M")}\n'
+                        f'金額: {schedule.price:,}円\n\n'
+                        f'返金の反映までに数日かかる場合がございます。'
+                        f'ご不明な点がございましたらお気軽にお問い合わせください。'
+                    )
+                    bot.push_message(line_user_id, TextSendMessage(text=msg))
+            except Exception as e:
+                logger.warning('返金完了LINE通知に失敗 (schedule=%s): %s', schedule.pk, e)
+
+            count += 1
+
+        if count:
+            self.message_user(request, _(f'{count}件の返金処理を完了しました。'), messages.SUCCESS)
+        else:
+            self.message_user(request, _('返金待ちの予約が選択されていません。'), messages.WARNING)
 
     def changelist_view(self, request, extra_context=None):
         extra_context = extra_context or {}

@@ -40,7 +40,20 @@
     <!-- QR Scan Tab -->
     <div id="tab-qr" class="tab-panel active">
         <p class="text-sm text-gray-600 mb-4">{% trans "お客様のQRコードをカメラでスキャンしてください。" %}</p>
-        <div id="reader" class="mb-6 rounded-lg overflow-hidden border border-gray-300"></div>
+        <div id="reader" class="mb-4 rounded-lg overflow-hidden border border-gray-300"></div>
+        <div id="camera-error" style="display:none;" class="bg-yellow-50 border border-yellow-300 rounded-lg p-4 mb-4 text-center">
+            <p id="camera-error-message" class="text-yellow-700 text-sm font-medium"></p>
+        </div>
+        <div class="flex justify-center gap-3 mb-4">
+            <button id="btn-start-scan" onclick="startScanner()"
+                    class="bg-salon-brown text-white px-6 py-3 rounded-lg text-sm font-bold hover:opacity-80 transition">
+                {% trans "スキャン開始" %}
+            </button>
+            <button id="btn-stop-scan" onclick="stopScanner()" style="display:none;"
+                    class="bg-gray-400 text-white px-6 py-3 rounded-lg text-sm font-bold hover:opacity-80 transition">
+                {% trans "スキャン停止" %}
+            </button>
+        </div>
     </div>
 
     <!-- Backup Code Tab -->
@@ -66,6 +79,8 @@
 var csrfToken = '{{ csrf_token }}';
 var checkinUrl = '{% url "booking_api:checkin_api" %}';
 var isProcessing = false;
+var html5QrCode = null;
+var scannerRunning = false;
 
 function switchTab(tab) {
     document.querySelectorAll('.tab-btn').forEach(function(btn, i) {
@@ -73,6 +88,9 @@ function switchTab(tab) {
     });
     document.getElementById('tab-qr').classList.toggle('active', tab === 'qr');
     document.getElementById('tab-code').classList.toggle('active', tab === 'code');
+    if (tab === 'code' && scannerRunning) {
+        stopScanner();
+    }
 }
 
 function showResult(success, message) {
@@ -88,6 +106,74 @@ function showResult(success, message) {
     }
     msg.textContent = message;
     setTimeout(function() { box.style.display = 'none'; }, 5000);
+}
+
+function showCameraError(message) {
+    var el = document.getElementById('camera-error');
+    var msgEl = document.getElementById('camera-error-message');
+    el.style.display = 'block';
+    msgEl.textContent = message;
+}
+
+function hideCameraError() {
+    document.getElementById('camera-error').style.display = 'none';
+}
+
+function startScanner() {
+    hideCameraError();
+    if (!html5QrCode) {
+        html5QrCode = new Html5Qrcode("reader");
+    }
+    if (scannerRunning) return;
+
+    document.getElementById('btn-start-scan').disabled = true;
+    document.getElementById('btn-start-scan').textContent = '{% trans "起動中..." %}';
+
+    html5QrCode.start(
+        { facingMode: "environment" },
+        { fps: 10, qrbox: { width: 250, height: 250 } },
+        function(decodedText) {
+            if (!isProcessing) {
+                doCheckin(decodedText);
+            }
+        },
+        function(errorMessage) {
+            // ignore continuous scan errors
+        }
+    ).then(function() {
+        scannerRunning = true;
+        document.getElementById('btn-start-scan').style.display = 'none';
+        document.getElementById('btn-stop-scan').style.display = 'inline-block';
+    }).catch(function(err) {
+        document.getElementById('btn-start-scan').disabled = false;
+        document.getElementById('btn-start-scan').textContent = '{% trans "スキャン開始" %}';
+
+        var errStr = String(err);
+        if (errStr.indexOf('NotAllowedError') !== -1 || errStr.indexOf('Permission') !== -1) {
+            showCameraError('{% trans "カメラへのアクセスが許可されていません。ブラウザの設定からカメラの使用を許可してください。" %}');
+        } else if (errStr.indexOf('NotFoundError') !== -1 || errStr.indexOf('DevicesNotFound') !== -1) {
+            showCameraError('{% trans "カメラが見つかりません。カメラ付きデバイスでお試しください。" %}');
+        } else if (errStr.indexOf('NotReadableError') !== -1 || errStr.indexOf('TrackStartError') !== -1) {
+            showCameraError('{% trans "カメラが他のアプリで使用中です。他のアプリを閉じてからお試しください。" %}');
+        } else {
+            showCameraError('{% trans "カメラの起動に失敗しました。口頭コード入力タブをご利用ください。" %}');
+        }
+        console.error('Camera start failed:', err);
+    });
+}
+
+function stopScanner() {
+    if (html5QrCode && scannerRunning) {
+        html5QrCode.stop().then(function() {
+            scannerRunning = false;
+            document.getElementById('btn-start-scan').style.display = 'inline-block';
+            document.getElementById('btn-start-scan').disabled = false;
+            document.getElementById('btn-start-scan').textContent = '{% trans "スキャン開始" %}';
+            document.getElementById('btn-stop-scan').style.display = 'none';
+        }).catch(function(err) {
+            console.error('Camera stop failed:', err);
+        });
+    }
 }
 
 function doCheckin(qrToken) {
@@ -152,24 +238,6 @@ function doBackupCheckin() {
 }
 
 document.addEventListener('DOMContentLoaded', function() {
-    var html5QrCode = new Html5Qrcode("reader");
-    html5QrCode.start(
-        { facingMode: "environment" },
-        { fps: 10, qrbox: { width: 250, height: 250 } },
-        function(decodedText) {
-            if (!isProcessing) {
-                doCheckin(decodedText);
-            }
-        },
-        function(errorMessage) {
-            // ignore scan errors
-        }
-    ).catch(function(err) {
-        console.log('Camera start failed:', err);
-        document.getElementById('reader').innerHTML =
-            '<p class="text-center text-gray-500 p-4">{% trans "カメラを利用できません。口頭コード入力タブをご利用ください。" %}</p>';
-    });
-
     // Enter key on backup code input
     document.getElementById('backup-code-input').addEventListener('keydown', function(e) {
         if (e.key === 'Enter') doBackupCheckin();

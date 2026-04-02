@@ -297,5 +297,6 @@ class DraftPost(models.Model):
         verbose_name_plural = _('SNS下書き')
 
     def __str__(self):
-        short = self.content[:40] + '...' if len(self.content) > 40 else self.content
+        content = self.content or ''
+        short = content[:40] + '...' if len(content) > 40 else content
         return f"{self.store.name} [{self.get_status_display()}] {short}"

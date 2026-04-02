@@ -638,8 +638,13 @@ class CustomerCancelConfirmView(View):
             })
 
         # キャンセル実行
-        Schedule.objects.filter(pk=schedule.pk).update(is_cancelled=True)
+        update_fields = {'is_cancelled': True}
+        if schedule.price and int(schedule.price) >= 100:
+            update_fields['refund_status'] = 'pending'
+        Schedule.objects.filter(pk=schedule.pk).update(**update_fields)
         schedule.is_cancelled = True
+        if 'refund_status' in update_fields:
+            schedule.refund_status = 'pending'
 
         # 1. 管理者メール通知（返金対応依頼）
         self._notify_admin_email(schedule)
@@ -988,13 +993,12 @@ def coiney_webhook(request, orderId):
 # ===== QR Checkin views =====
 
 class ReservationQRView(View):
-    """予約確認 + QRコード表示ページ"""
+    """予約確認 + QRコード表示ページ（キャンセル済みも表示）"""
     def get(self, request, reservation_number):
         schedule = get_object_or_404(
             Schedule,
             reservation_number=reservation_number,
             is_temporary=False,
-            is_cancelled=False,
         )
         return render(request, 'booking/reservation_qr.html', {'schedule': schedule})
 
