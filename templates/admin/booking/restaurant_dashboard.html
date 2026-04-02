@@ -1217,13 +1217,6 @@
 </div>
 
 <script>
-/* Debug: show JS errors on page (remove after fix) */
-window.onerror = function(msg, url, line, col, err) {
-  var d = document.createElement('div');
-  d.style.cssText = 'position:fixed;bottom:0;left:0;right:0;background:#dc2626;color:#fff;padding:12px;z-index:99999;font-size:13px;font-family:monospace;max-height:40vh;overflow:auto;';
-  d.textContent = 'JS Error: ' + msg + ' (line ' + line + ', col ' + col + ')';
-  document.body.appendChild(d);
-};
 document.addEventListener('DOMContentLoaded', function () {
 
   var T = {
@@ -3742,8 +3735,8 @@ document.addEventListener('DOMContentLoaded', function () {
     };
   }
 
-  var ecSuite = createAnalysisSuite({prefix: 'ec', channelParam: 'ec', color: '#3B82F6', label: 'EC'});
-  var instoreSuite = createAnalysisSuite({prefix: 'instore', channelParam: 'pos,table', color: '#10B981', label: T.instore});
+  window.ecSuite = createAnalysisSuite({prefix: 'ec', channelParam: 'ec', color: '#3B82F6', label: 'EC'});
+  window.instoreSuite = createAnalysisSuite({prefix: 'instore', channelParam: 'pos,table', color: '#10B981', label: T.instore});
 
   /* ------------------------------------------------------------------ */
   /*  4. Shift data (lazy loaded, no API needed - direct DB count)       */
