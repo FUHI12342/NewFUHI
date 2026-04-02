@@ -167,6 +167,18 @@ class LineCallbackView(View):
                 logger.error("LINE get_profile failed: %s", e)
                 return HttpResponseBadRequest()
 
+        # デバッグ: ?test_line=not_friend|friend でフレンド状態を上書き（staff限定）
+        test_line = request.GET.get('test_line')
+        if test_line in ('not_friend', 'friend'):
+            _is_authorized = (
+                getattr(settings, 'DEBUG', False)
+                or (hasattr(request, 'user') and request.user.is_authenticated and request.user.is_staff)
+            )
+            if _is_authorized:
+                is_friend = (test_line == 'friend')
+                logger.warning("DEBUG: Forcing is_friend=%s for testing (user=%s)",
+                             is_friend, getattr(request.user, 'username', 'anonymous'))
+
         try:
             from datetime import datetime as dt, timedelta as td
             now = timezone.now()
