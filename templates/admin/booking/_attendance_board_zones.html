@@ -6,9 +6,18 @@
   </div>
   <div class="zone-body">
     {% for info in zone_working %}
-    <div class="staff-card">
+    <div class="staff-card{% if info.overtime %} overtime-alert{% endif %}">
       <div class="name">{{ info.staff.name }}</div>
       <div class="status-badge status-出勤中">{% trans "出勤中" %}</div>
+      {% if info.overtime %}
+      <div class="overtime-warning">
+        <i class="fas fa-exclamation-triangle"></i>
+        {% trans "シフト超過" %} +{{ info.overtime_minutes }}{% trans "分" %}
+        {% if info.shift_end_time %}<br><small>{% trans "終了" %}: {{ info.shift_end_time|time:"H:i" }}</small>{% endif %}
+      </div>
+      {% elif info.shift_end_time %}
+      <div class="shift-info"><small>{% trans "終了" %}: {{ info.shift_end_time|time:"H:i" }}</small></div>
+      {% endif %}
       {% if info.stamps %}
       <div class="stamp-list">
         {% for s in info.stamps %}
@@ -30,9 +39,17 @@
   </div>
   <div class="zone-body">
     {% for info in zone_break %}
-    <div class="staff-card">
+    <div class="staff-card{% if info.overtime %} overtime-alert{% endif %}">
       <div class="name">{{ info.staff.name }}</div>
       <div class="status-badge status-休憩中">{% trans "休憩中" %}</div>
+      {% if info.overtime %}
+      <div class="overtime-warning">
+        <i class="fas fa-exclamation-triangle"></i>
+        {% trans "シフト超過" %} +{{ info.overtime_minutes }}{% trans "分" %}
+      </div>
+      {% elif info.shift_end_time %}
+      <div class="shift-info"><small>{% trans "終了" %}: {{ info.shift_end_time|time:"H:i" }}</small></div>
+      {% endif %}
       {% if info.stamps %}
       <div class="stamp-list">
         {% for s in info.stamps %}

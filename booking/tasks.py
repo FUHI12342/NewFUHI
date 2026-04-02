@@ -34,7 +34,7 @@ def trigger_gas_alert(device_id, mq9_value, event_id):
         subject = f'[Gas Alert] {device.name} MQ-9 高濃度検知'
         message = f'デバイス: {device.name}\n店舗: {device.store.name}\nMQ-9値: {mq9_value}\n'
         try:
-            send_mail(subject, message, settings.DEFAULT_FROM_EMAIL, [device.alert_email], fail_silently=True)
+            send_mail(subject, message, settings.DEFAULT_FROM_EMAIL, [device.alert_email], fail_silently=False)
         except Exception as e:
             logger.error('ガスアラートメール送信失敗: %s', e)
 

@@ -32,6 +32,11 @@
   .status-未出勤 { background: #EF4444; }
   .stamp-list { font-size: 12px; color: #666; margin-top: 8px; text-align: left; }
   .zone-empty { color: #6b7280; font-size: 14px; padding: 8px 0; }
+  .overtime-alert { border: 2px solid #EF4444 !important; background: #FEF2F2 !important; animation: overtime-pulse 2s infinite; }
+  .overtime-warning { color: #DC2626; font-size: 13px; font-weight: 700; margin-top: 6px; }
+  .overtime-warning i { margin-right: 2px; }
+  .shift-info { color: #6B7280; font-size: 12px; margin-top: 4px; }
+  @keyframes overtime-pulse { 0%,100% { box-shadow: 0 0 0 0 rgba(239,68,68,0.3); } 50% { box-shadow: 0 0 0 6px rgba(239,68,68,0); } }
   .zones-container { display: flex; flex-wrap: wrap; gap: 16px; }
   .zones-container .zone { flex: 1 1 300px; min-width: 280px; }
   .manual-stamp-section {
@@ -56,6 +61,10 @@
   [data-bs-theme="dark"] .staff-card {
     background: #16213e; border-color: #2d3a5c; color: #e0e0e0;
   }
+  [data-bs-theme="dark"] .overtime-alert {
+    background: #450a0a !important; border-color: #EF4444 !important;
+  }
+  [data-bs-theme="dark"] .overtime-warning { color: #FCA5A5; }
   [data-bs-theme="dark"] .staff-card .name { color: #f0f0f0; }
   [data-bs-theme="dark"] .stamp-list { color: #9ca3af; }
   [data-bs-theme="dark"] .zone-empty { color: #9ca3af; }

@@ -127,6 +127,10 @@ echo -e "${YELLOW}[2.9/6] メンテナンスモード ON...${NC}"
 $SSH_CMD "cd '$REMOTE_PATH' && sqlite3 db.sqlite3 \
     \"UPDATE booking_sitesettings SET maintenance_mode=1 WHERE id=1;\" && \
     echo 'Maintenance mode: ON'" 2>&1 || echo -e "${YELLOW}  メンテナンスモード切替スキップ（初回デプロイ等）${NC}"
+# SecurityLog にメンテナンス開始を記録
+$SSH_CMD "cd '$REMOTE_PATH' && sqlite3 db.sqlite3 \
+    \"INSERT INTO booking_securitylog (event_type, severity, username, ip_address, user_agent, path, method, detail, created_at) \
+    VALUES ('maintenance_on', 'info', 'deploy_script', '127.0.0.1', '', '/deploy', 'SCRIPT', 'デプロイ開始: メンテナンスモードON', datetime('now'));\"" 2>&1 || true
 echo ""
 
 # ========== Step 3: 依存関係インストール & マイグレーション ==========
@@ -218,6 +222,10 @@ if [ "$SMOKE_RESULT" -eq 0 ]; then
     $SSH_CMD "cd '$REMOTE_PATH' && sqlite3 db.sqlite3 \
         \"UPDATE booking_sitesettings SET maintenance_mode=0 WHERE id=1;\" && \
         echo 'Maintenance mode: OFF'" 2>&1 || echo -e "${YELLOW}  メンテナンスモード切替スキップ${NC}"
+    # SecurityLog にメンテナンス終了を記録
+    $SSH_CMD "cd '$REMOTE_PATH' && sqlite3 db.sqlite3 \
+        \"INSERT INTO booking_securitylog (event_type, severity, username, ip_address, user_agent, path, method, detail, created_at) \
+        VALUES ('maintenance_off', 'info', 'deploy_script', '127.0.0.1', '', '/deploy', 'SCRIPT', 'デプロイ完了: メンテナンスモードOFF', datetime('now'));\"" 2>&1 || true
 
     echo ""
     echo "========================================"

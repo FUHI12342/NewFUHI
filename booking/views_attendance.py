@@ -18,9 +18,42 @@ from django.utils.translation import gettext as _
 from booking.views_restaurant_dashboard import AdminSidebarMixin
 from booking.models import (
     Store, Staff, AttendanceTOTPConfig, AttendanceStamp, WorkAttendance,
+    ShiftAssignment,
 )
 
 logger = logging.getLogger(__name__)
+
+
+def _enrich_overtime_info(staff_status, store, today):
+    """シフト終了時刻を超過して出勤中のスタッフに overtime フラグを付与する"""
+    from datetime import datetime, time as dt_time
+    now = timezone.localtime(timezone.now())
+
+    # 今日のシフトを取得
+    shifts = ShiftAssignment.objects.filter(
+        date=today,
+        staff_id__in=staff_status.keys(),
+    ).select_related('staff')
+
+    shift_end_map = {}  # staff_id -> end_time
+    for sa in shifts:
+        end = sa.end_time or dt_time(sa.end_hour, 0)
+        # 複数シフトがある場合は最も遅い終了時刻を採用
+        if sa.staff_id not in shift_end_map or end > shift_end_map[sa.staff_id]:
+            shift_end_map[sa.staff_id] = end
+
+    for staff_id, info in staff_status.items():
+        info['shift_end_time'] = shift_end_map.get(staff_id)
+        info['overtime'] = False
+        if info['shift_end_time'] and info['status'] in (_('出勤中'), _('休憩中')):
+            shift_end_dt = timezone.make_aware(
+                datetime.combine(today, info['shift_end_time']),
+                timezone.get_current_timezone(),
+            )
+            overtime_minutes = (now - shift_end_dt).total_seconds() / 60
+            if overtime_minutes > 30:  # 30分以上超過で強調
+                info['overtime'] = True
+                info['overtime_minutes'] = int(overtime_minutes)
 
 
 def _get_user_store(request):
@@ -81,6 +114,9 @@ class AttendanceBoardView(AdminSidebarMixin, TemplateView):
                     staff_status[stamp.staff_id]['status'] = _('休憩中')
                 elif stamp.stamp_type == 'break_end':
                     staff_status[stamp.staff_id]['status'] = _('出勤中')
+
+        # シフト超過情報を付与
+        _enrich_overtime_info(staff_status, store, today)
 
         # ステータス別にグループ分け
         zone_working = []
@@ -420,6 +456,9 @@ class AttendanceDayStatusHTMLView(LoginRequiredMixin, View):
                     staff_status[stamp.staff_id]['status'] = _('休憩中')
                 elif stamp.stamp_type == 'break_end':
                     staff_status[stamp.staff_id]['status'] = _('出勤中')
+
+        # シフト超過情報を付与
+        _enrich_overtime_info(staff_status, store, today)
 
         zone_working, zone_break, zone_absent, zone_left = [], [], [], []
         for info in staff_status.values():

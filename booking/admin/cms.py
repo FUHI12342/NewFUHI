@@ -177,6 +177,22 @@ class SiteSettingsAdmin(admin.ModelAdmin):
         extra_context['sub_model_tabs'] = sub_model_tabs
         return super().change_view(request, object_id, form_url, extra_context)
 
+    def save_model(self, request, obj, form, change):
+        if change and 'maintenance_mode' in form.changed_data:
+            event_type = 'maintenance_on' if obj.maintenance_mode else 'maintenance_off'
+            detail = 'メンテナンスモードON（管理画面）' if obj.maintenance_mode else 'メンテナンスモードOFF（管理画面）'
+            SecurityLog.objects.create(
+                event_type=event_type,
+                severity='info',
+                user=request.user,
+                username=request.user.username,
+                ip_address=request.META.get('REMOTE_ADDR', ''),
+                path=request.path,
+                method='POST',
+                detail=detail,
+            )
+        super().save_model(request, obj, form, change)
+
 
 class AdminSidebarSettingsAdmin(admin.ModelAdmin):
     """管理画面サイドバー設定 — スーパーアカウントのみ編集可能"""

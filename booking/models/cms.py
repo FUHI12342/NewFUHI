@@ -651,6 +651,9 @@ class SecurityLog(models.Model):
         ('permission_denied', _('権限拒否')),
         ('suspicious_request', _('不審なリクエスト')),
         ('admin_action', _('管理操作')),
+        ('maintenance_on', _('メンテナンス開始')),
+        ('maintenance_off', _('メンテナンス終了')),
+        ('server_error', _('サーバーエラー')),
     ]
     SEVERITY_CHOICES = [
         ('critical', _('緊急')),

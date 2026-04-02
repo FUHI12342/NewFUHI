@@ -38,26 +38,59 @@
 
   var SCROLL_KEY = 'sidebar-scroll-top';
 
+  function getSidebarScrollEl() {
+    // Jazzmin/AdminLTE3: the scrollable container is .main-sidebar itself
+    // when sidebar_fixed is true (position:fixed + overflow-y:auto)
+    var selectors = [
+      '.main-sidebar',
+      '.main-sidebar .sidebar',
+      '#jazzy-sidebar',
+      'aside.main-sidebar .os-viewport',  // OverlayScrollbars (AdminLTE)
+    ];
+    for (var i = 0; i < selectors.length; i++) {
+      var el = document.querySelector(selectors[i]);
+      if (el && el.scrollHeight > el.clientHeight) return el;
+    }
+    // Fallback: return first available
+    return document.querySelector('.main-sidebar') || document.querySelector('#jazzy-sidebar');
+  }
+
   function saveSidebarScroll() {
-    var sidebar = document.querySelector('.main-sidebar .sidebar, #jazzy-sidebar');
-    if (sidebar) {
+    var sidebar = getSidebarScrollEl();
+    if (sidebar && sidebar.scrollTop > 0) {
       sessionStorage.setItem(SCROLL_KEY, sidebar.scrollTop);
     }
   }
 
   function restoreSidebarScroll() {
-    var sidebar = document.querySelector('.main-sidebar .sidebar, #jazzy-sidebar');
-    if (!sidebar) return;
     var saved = sessionStorage.getItem(SCROLL_KEY);
-    if (saved) {
-      sidebar.scrollTop = parseInt(saved, 10);
+    if (!saved) return;
+    var pos = parseInt(saved, 10);
+    if (!pos) return;
+
+    // Try immediately and again after a short delay (sidebar may render async)
+    function doRestore() {
+      var sidebar = getSidebarScrollEl();
+      if (sidebar) sidebar.scrollTop = pos;
     }
+    doRestore();
+    requestAnimationFrame(doRestore);
+    setTimeout(doRestore, 100);
+    setTimeout(doRestore, 300);
   }
 
   function setupScrollPersistence() {
+    // Save on every link click in sidebar
     document.querySelectorAll('.main-sidebar a, #jazzy-sidebar a').forEach(function(link) {
       link.addEventListener('click', saveSidebarScroll);
     });
+    // Also save periodically when user scrolls the sidebar
+    var sidebar = getSidebarScrollEl();
+    if (sidebar) {
+      sidebar.addEventListener('scroll', function() {
+        sessionStorage.setItem(SCROLL_KEY, sidebar.scrollTop);
+      });
+    }
     window.addEventListener('beforeunload', saveSidebarScroll);
     restoreSidebarScroll();
   }
