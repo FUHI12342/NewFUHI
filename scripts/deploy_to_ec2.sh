@@ -211,10 +211,8 @@ echo ""
 scp -i "$SSH_KEY" -q "$(dirname "$0")/smoke_test.sh" "$EC2_USER@$EC2_HOST:/tmp/smoke_test.sh"
 SMOKE_RESULT=0
 $SSH_CMD "chmod +x /tmp/smoke_test.sh && \
-    MAINTENANCE=1 \
-    SMOKE_ADMIN_USER=\${SMOKE_ADMIN_USER:-admin} \
-    SMOKE_ADMIN_PASS=\${SMOKE_ADMIN_PASS:-} \
-    /tmp/smoke_test.sh https://timebaibai.com" || SMOKE_RESULT=$?
+    cd '$REMOTE_PATH' && set -a && source .env && set +a && \
+    MAINTENANCE=1 /tmp/smoke_test.sh https://timebaibai.com" || SMOKE_RESULT=$?
 
 echo ""
 
