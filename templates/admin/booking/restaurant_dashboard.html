@@ -1914,6 +1914,124 @@ document.addEventListener('DOMContentLoaded', function () {
     }
   };
 
+  /* ------------------------------------------------------------------ */
+  /*  Channel-specific demo data for EC / Instore analysis suites        */
+  /* ------------------------------------------------------------------ */
+  var ANALYSIS_DEMO = {
+    ec: {
+      menuEng: {
+        products: [
+          {name: 'シーシャセット(ミント)', qty_sold: 95, revenue: 285000, margin_rate: 0.62, quadrant: 'star'},
+          {name: 'シーシャセット(ダブルアップル)', qty_sold: 78, revenue: 234000, margin_rate: 0.58, quadrant: 'star'},
+          {name: 'おうちチャイキット', qty_sold: 120, revenue: 84000, margin_rate: 0.72, quadrant: 'plowhorse'},
+          {name: 'マサラチャイパウダー', qty_sold: 85, revenue: 42500, margin_rate: 0.68, quadrant: 'plowhorse'},
+          {name: 'シーシャ炭(1箱)', qty_sold: 60, revenue: 48000, margin_rate: 0.45, quadrant: 'plowhorse'},
+          {name: 'バクラヴァ詰め合わせ', qty_sold: 22, revenue: 22000, margin_rate: 0.78, quadrant: 'puzzle'},
+          {name: 'オリジナルマグカップ', qty_sold: 15, revenue: 12000, margin_rate: 0.82, quadrant: 'puzzle'},
+          {name: 'ナッツギフトBOX', qty_sold: 18, revenue: 16200, margin_rate: 0.75, quadrant: 'puzzle'},
+          {name: 'ステッカーセット', qty_sold: 12, revenue: 3600, margin_rate: 0.30, quadrant: 'dog'},
+          {name: 'ポストカード', qty_sold: 8, revenue: 2400, margin_rate: 0.25, quadrant: 'dog'}
+        ],
+        avg_popularity: 51,
+        avg_margin: 0.60
+      },
+      abc: {
+        total_revenue: 749700,
+        products: [
+          {name: 'シーシャセット(ミント)', revenue: 285000, share_pct: 38.0, cumulative_pct: 38.0, rank: 'A'},
+          {name: 'シーシャセット(ダブルアップル)', revenue: 234000, share_pct: 31.2, cumulative_pct: 69.2, rank: 'A'},
+          {name: 'おうちチャイキット', revenue: 84000, share_pct: 11.2, cumulative_pct: 80.4, rank: 'B'},
+          {name: 'シーシャ炭(1箱)', revenue: 48000, share_pct: 6.4, cumulative_pct: 86.8, rank: 'B'},
+          {name: 'マサラチャイパウダー', revenue: 42500, share_pct: 5.7, cumulative_pct: 92.5, rank: 'B'},
+          {name: 'バクラヴァ詰め合わせ', revenue: 22000, share_pct: 2.9, cumulative_pct: 95.4, rank: 'C'},
+          {name: 'ナッツギフトBOX', revenue: 16200, share_pct: 2.2, cumulative_pct: 97.6, rank: 'C'},
+          {name: 'オリジナルマグカップ', revenue: 12000, share_pct: 1.6, cumulative_pct: 99.2, rank: 'C'},
+          {name: 'ステッカーセット', revenue: 3600, share_pct: 0.5, cumulative_pct: 99.7, rank: 'C'},
+          {name: 'ポストカード', revenue: 2400, share_pct: 0.3, cumulative_pct: 100.0, rank: 'C'}
+        ]
+      },
+      forecast: function() {
+        var WC = [0.65,0.50,0.52,0.58,0.72,1.30,1.40];
+        var hist = [], fc = [], now = new Date(), seed = 42;
+        function prng() { seed = (seed * 16807) % 2147483647; return (seed - 1) / 2147483646; }
+        for (var i = 29; i >= 0; i--) { var d = new Date(now); d.setDate(d.getDate()-i); var r = Math.max(5000, Math.floor(25000 * WC[d.getDay()] * (1 + (29-i)/29*0.04) + (prng()-0.5)*8000)); hist.push({date:d.toISOString().slice(0,10), revenue:r}); }
+        for (var j = 1; j <= 14; j++) { var fd = new Date(now); fd.setDate(fd.getDate()+j); var p = Math.max(5000, Math.floor(26000 * WC[fd.getDay()] + (prng()-0.5)*6000)); fc.push({date:fd.toISOString().slice(0,10), predicted:p, lower:Math.round(p*0.75), upper:Math.round(p*1.25)}); }
+        return {historical:hist, forecast:fc, method:'moving_average'};
+      },
+      heatmap: function() {
+        var HB = {0:200,1:100,2:0,3:0,4:0,5:0,6:0,7:0,8:200,9:800,10:1500,11:2200,12:3000,13:2800,14:2200,15:1800,16:2000,17:2500,18:3200,19:3800,20:4200,21:3800,22:2800,23:1200};
+        var WM = [0.70,0.55,0.58,0.60,0.75,1.35,1.45];
+        var result = [], seed = 17;
+        function prng() { seed = (seed * 16807) % 2147483647; return (seed - 1) / 2147483646; }
+        for (var wd = 1; wd <= 7; wd++) { var jsDay = wd % 7; for (var hr = 0; hr < 24; hr++) { var b = HB[hr]||0; var rev = Math.max(0, Math.floor(b * WM[jsDay] + (prng()-0.5)*b*0.4)); var orders = rev > 0 ? Math.max(1, Math.floor(rev/1800 + prng()*2)) : 0; result.push({weekday:wd, hour:hr, revenue:rev, orders:orders}); } }
+        return {heatmap: result};
+      },
+      aov: function(period) {
+        var WC = [0.88,0.85,0.87,0.90,0.93,1.08,1.12];
+        var result = [], now = new Date(), seed = 61;
+        function prng() { seed = (seed * 16807) % 2147483647; return (seed - 1) / 2147483646; }
+        for (var i = 29; i >= 0; i--) { var d = new Date(now); d.setDate(d.getDate()-i); var aov = Math.floor(1800 * WC[d.getDay()] + (prng()-0.5)*400); var oc = Math.max(2, Math.floor(8 * WC[d.getDay()] + prng()*5)); result.push({date:d.toISOString().slice(0,10), aov:aov, order_count:oc, total_revenue:aov*oc}); }
+        return {trend:result, period:period||'daily'};
+      }
+    },
+    instore: {
+      menuEng: {
+        products: [
+          {name: 'シーシャ(ミント)', qty_sold: 180, revenue: 396000, margin_rate: 0.65, quadrant: 'star'},
+          {name: 'シーシャ(ダブルアップル)', qty_sold: 150, revenue: 330000, margin_rate: 0.60, quadrant: 'star'},
+          {name: 'チャイ', qty_sold: 220, revenue: 132000, margin_rate: 0.75, quadrant: 'plowhorse'},
+          {name: 'カフェラテ', qty_sold: 160, revenue: 104000, margin_rate: 0.55, quadrant: 'plowhorse'},
+          {name: 'マサラチャイ', qty_sold: 130, revenue: 91000, margin_rate: 0.58, quadrant: 'plowhorse'},
+          {name: 'バクラヴァ', qty_sold: 40, revenue: 20000, margin_rate: 0.80, quadrant: 'puzzle'},
+          {name: 'ナッツ盛り合わせ', qty_sold: 30, revenue: 24000, margin_rate: 0.85, quadrant: 'puzzle'},
+          {name: 'モヒート(ノンアル)', qty_sold: 45, revenue: 31500, margin_rate: 0.70, quadrant: 'puzzle'},
+          {name: 'ティラミス', qty_sold: 25, revenue: 16250, margin_rate: 0.40, quadrant: 'dog'},
+          {name: 'クッキー', qty_sold: 18, revenue: 7200, margin_rate: 0.35, quadrant: 'dog'}
+        ],
+        avg_popularity: 100,
+        avg_margin: 0.62
+      },
+      abc: {
+        total_revenue: 1151950,
+        products: [
+          {name: 'シーシャ(ミント)', revenue: 396000, share_pct: 34.4, cumulative_pct: 34.4, rank: 'A'},
+          {name: 'シーシャ(ダブルアップル)', revenue: 330000, share_pct: 28.6, cumulative_pct: 63.0, rank: 'A'},
+          {name: 'チャイ', revenue: 132000, share_pct: 11.5, cumulative_pct: 74.5, rank: 'A'},
+          {name: 'カフェラテ', revenue: 104000, share_pct: 9.0, cumulative_pct: 83.5, rank: 'B'},
+          {name: 'マサラチャイ', revenue: 91000, share_pct: 7.9, cumulative_pct: 91.4, rank: 'B'},
+          {name: 'モヒート(ノンアル)', revenue: 31500, share_pct: 2.7, cumulative_pct: 94.1, rank: 'B'},
+          {name: 'ナッツ盛り合わせ', revenue: 24000, share_pct: 2.1, cumulative_pct: 96.2, rank: 'C'},
+          {name: 'バクラヴァ', revenue: 20000, share_pct: 1.7, cumulative_pct: 97.9, rank: 'C'},
+          {name: 'ティラミス', revenue: 16250, share_pct: 1.4, cumulative_pct: 99.3, rank: 'C'},
+          {name: 'クッキー', revenue: 7200, share_pct: 0.6, cumulative_pct: 100.0, rank: 'C'}
+        ]
+      },
+      forecast: function() {
+        var WC = [0.70,0.52,0.55,0.62,0.78,1.35,1.48];
+        var hist = [], fc = [], now = new Date(), seed = 77;
+        function prng() { seed = (seed * 16807) % 2147483647; return (seed - 1) / 2147483646; }
+        for (var i = 29; i >= 0; i--) { var d = new Date(now); d.setDate(d.getDate()-i); var r = Math.max(12000, Math.floor(38000 * WC[d.getDay()] * (1 + (29-i)/29*0.05) + (prng()-0.5)*12000)); hist.push({date:d.toISOString().slice(0,10), revenue:r}); }
+        for (var j = 1; j <= 14; j++) { var fd = new Date(now); fd.setDate(fd.getDate()+j); var p = Math.max(12000, Math.floor(40000 * WC[fd.getDay()] + (prng()-0.5)*8000)); fc.push({date:fd.toISOString().slice(0,10), predicted:p, lower:Math.round(p*0.75), upper:Math.round(p*1.25)}); }
+        return {historical:hist, forecast:fc, method:'moving_average'};
+      },
+      heatmap: function() {
+        var HB = {0:500,1:200,2:100,3:0,4:0,5:0,6:0,7:0,8:0,9:0,10:0,11:800,12:3500,13:4200,14:3800,15:2500,16:2800,17:4500,18:8500,19:11000,20:12500,21:11500,22:9000,23:4500};
+        var WM = [0.75,0.55,0.58,0.62,0.80,1.40,1.55];
+        var result = [], seed = 31;
+        function prng() { seed = (seed * 16807) % 2147483647; return (seed - 1) / 2147483646; }
+        for (var wd = 1; wd <= 7; wd++) { var jsDay = wd % 7; for (var hr = 0; hr < 24; hr++) { var b = HB[hr]||0; var rev = Math.max(0, Math.floor(b * WM[jsDay] + (prng()-0.5)*b*0.4)); var orders = rev > 0 ? Math.max(1, Math.floor(rev/2200 + prng()*3)) : 0; result.push({weekday:wd, hour:hr, revenue:rev, orders:orders}); } }
+        return {heatmap: result};
+      },
+      aov: function(period) {
+        var WC = [0.90,0.85,0.88,0.92,0.95,1.10,1.15];
+        var result = [], now = new Date(), seed = 53;
+        function prng() { seed = (seed * 16807) % 2147483647; return (seed - 1) / 2147483646; }
+        for (var i = 29; i >= 0; i--) { var d = new Date(now); d.setDate(d.getDate()-i); var aov = Math.floor(2200 * WC[d.getDay()] + (prng()-0.5)*600); var oc = Math.max(3, Math.floor(12 * WC[d.getDay()] + prng()*8)); result.push({date:d.toISOString().slice(0,10), aov:aov, order_count:oc, total_revenue:aov*oc}); }
+        return {trend:result, period:period||'daily'};
+      }
+    }
+  };
+
   function useDemo(apiData, demoKey, checkField) {
     if (!apiData || (Array.isArray(apiData[checkField]) && apiData[checkField].length === 0) || apiData[checkField] === 0) {
       return DEMO[demoKey];
