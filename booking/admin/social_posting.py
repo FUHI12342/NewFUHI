@@ -16,6 +16,8 @@ class SocialAccountAdmin(admin.ModelAdmin):
     list_editable = ('is_active',)
     search_fields = ('account_name', 'store__name')
     readonly_fields = ('created_at', 'updated_at', 'token_expires_at')
+    list_per_page = 10
+    ordering = ('store', 'platform')
 
     fieldsets = (
         (None, {
@@ -36,6 +38,7 @@ class SocialAccountAdmin(admin.ModelAdmin):
             return format_html('<span style="color:red;">期限切れ</span>')
         return format_html('<span style="color:green;">有効</span>')
     token_status.short_description = _('トークン状態')
+    token_status.admin_order_field = 'token_expires_at'
 
 
 class PostTemplateAdmin(admin.ModelAdmin):
@@ -43,6 +46,8 @@ class PostTemplateAdmin(admin.ModelAdmin):
     list_filter = ('trigger_type', 'platform', 'is_active', 'store')
     list_editable = ('is_active',)
     search_fields = ('store__name', 'body_template')
+    list_per_page = 10
+    ordering = ('store', 'trigger_type')
 
     fieldsets = (
         (None, {
@@ -71,6 +76,7 @@ class PostHistoryAdmin(admin.ModelAdmin):
         'retry_count', 'created_at', 'posted_at',
     )
     ordering = ('-created_at',)
+    list_per_page = 10
     actions = ['retry_failed_posts']
 
     def has_add_permission(self, request):
@@ -92,6 +98,7 @@ class PostHistoryAdmin(admin.ModelAdmin):
             color, obj.get_status_display(),
         )
     status_badge.short_description = _('ステータス')
+    status_badge.admin_order_field = 'status'
 
     @admin.action(description=_('失敗した投稿をリトライ'))
     def retry_failed_posts(self, request, queryset):
@@ -108,6 +115,8 @@ class KnowledgeEntryAdmin(admin.ModelAdmin):
     list_filter = ('category', 'is_active', 'store')
     list_editable = ('is_active',)
     search_fields = ('title', 'content', 'store__name')
+    list_per_page = 10
+    ordering = ('store', 'category', 'title')
     actions = ['generate_from_staff']
 
     fieldsets = (
@@ -149,6 +158,7 @@ class DraftPostAdmin(admin.ModelAdmin):
     search_fields = ('content', 'store__name')
     readonly_fields = ('ai_generated_content', 'quality_score', 'quality_feedback', 'posted_at', 'created_at', 'updated_at')
     ordering = ('-created_at',)
+    list_per_page = 10
 
     def status_badge(self, obj):
         colors = {
@@ -158,6 +168,7 @@ class DraftPostAdmin(admin.ModelAdmin):
         color = colors.get(obj.status, 'gray')
         return format_html('<span style="color:{}; font-weight:bold;">{}</span>', color, obj.get_status_display())
     status_badge.short_description = _('ステータス')
+    status_badge.admin_order_field = 'status'
 
     def quality_display(self, obj):
         if obj.quality_score is None:
@@ -171,6 +182,7 @@ class DraftPostAdmin(admin.ModelAdmin):
         pct = f'{obj.quality_score:.0%}'
         return format_html('<span style="color:{};">{}</span>', color, pct)
     quality_display.short_description = _('品質')
+    quality_display.admin_order_field = 'quality_score'
 
     def platform_display(self, obj):
         platforms = obj.platforms or []
@@ -183,6 +195,7 @@ class DraftPostAdmin(admin.ModelAdmin):
         content = obj.content or ''
         return content[:60] + '...' if len(content) > 60 else content
     content_preview.short_description = _('内容')
+    content_preview.admin_order_field = 'content'
 
 
 custom_site.register(SocialAccount, SocialAccountAdmin)

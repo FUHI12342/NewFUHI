@@ -37,6 +37,7 @@ class ScheduleAdmin(admin.ModelAdmin):
     list_filter = ('is_checked_in', 'is_temporary', 'is_cancelled', 'refund_status', 'store')
     search_fields = ('customer_name', 'hashed_id', 'reservation_number', 'line_user_hash', 'checkin_backup_code')
     ordering = ('-start',)
+    list_per_page = 10
 
     readonly_fields = (
         'reservation_number', 'line_user_hash', 'line_user_enc',
@@ -114,6 +115,8 @@ class StaffAdmin(admin.ModelAdmin):
     list_filter = ('staff_type', 'is_store_manager', 'store')
     list_editable = ('is_recommended',)
     search_fields = ('name', 'store__name')
+    list_per_page = 10
+    ordering = ('store', 'name')
     save_on_top = True
 
     # --- superuser用（LINE ID含む全フィールド）---
@@ -362,6 +365,8 @@ class StoreAdmin(admin.ModelAdmin):
     list_display = ('name', 'address', 'nearest_station', 'business_hours', 'regular_holiday', 'default_language', 'is_recommended')
     list_editable = ('is_recommended',)
     search_fields = ('name', 'address', 'nearest_station')
+    list_per_page = 10
+    ordering = ('name',)
     inlines = [StoreScheduleConfigInline, AdminThemeInline, StoreThemeInline]
     fieldsets = (
         (None, {'fields': ('name', 'address', 'business_hours', 'nearest_station', 'regular_holiday', 'is_recommended', 'default_language')}),

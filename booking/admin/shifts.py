@@ -33,6 +33,8 @@ class ShiftAssignmentInline(admin.TabularInline):
 
 class ShiftPeriodAdmin(admin.ModelAdmin):
     list_display = ('store', 'year_month', 'deadline', 'status', 'request_count', 'assignment_count', 'created_by')
+    list_per_page = 10
+    ordering = ('-year_month',)
     actions = ['run_auto_schedule', 'approve_and_sync']
 
     def request_count(self, obj):
@@ -74,6 +76,8 @@ class ShiftPeriodAdmin(admin.ModelAdmin):
 
 class ShiftRequestAdmin(admin.ModelAdmin):
     list_display = ('period', 'staff', 'date', 'start_hour', 'end_hour', 'preference')
+    list_per_page = 10
+    ordering = ('-date', 'start_hour')
 
     search_fields = ('staff__name',)
 
@@ -93,6 +97,8 @@ class ShiftRequestAdmin(admin.ModelAdmin):
 class ShiftAssignmentAdmin(admin.ModelAdmin):
     list_display = ('period', 'staff', 'date', 'start_hour', 'end_hour', 'store', 'is_synced')
     list_filter = ('store',)
+    list_per_page = 10
+    ordering = ('-date', 'start_hour')
 
     search_fields = ('staff__name',)
 
@@ -102,6 +108,8 @@ class ShiftChangeLogAdmin(admin.ModelAdmin):
     list_filter = ('change_type',)
     readonly_fields = ('assignment', 'changed_by', 'changed_at', 'change_type', 'old_values', 'new_values', 'reason')
     search_fields = ('assignment__staff__name', 'reason')
+    list_per_page = 10
+    ordering = ('-changed_at',)
 
     def has_add_permission(self, request):
         return False
@@ -132,12 +140,16 @@ class ShiftVacancyAdmin(admin.ModelAdmin):
     list_display = ('period', 'store', 'date', 'start_hour', 'end_hour', 'staff_type', 'required_count', 'assigned_count', 'status')
     list_filter = ('status', 'staff_type')
     search_fields = ('store__name',)
+    list_per_page = 10
+    ordering = ('-date', 'start_hour')
 
 
 class ShiftSwapRequestAdmin(admin.ModelAdmin):
     list_display = ('assignment', 'request_type', 'requested_by', 'cover_staff', 'status', 'reviewed_by', 'created_at')
     list_filter = ('status', 'request_type')
     search_fields = ('requested_by__name', 'reason')
+    list_per_page = 10
+    ordering = ('-created_at',)
 
 
 class ShiftTemplateAdmin(admin.ModelAdmin):
@@ -145,12 +157,16 @@ class ShiftTemplateAdmin(admin.ModelAdmin):
     list_editable = ('sort_order', 'is_active')
     search_fields = ('name', 'store__name')
     list_filter = ('store', 'is_active')
+    list_per_page = 10
+    ordering = ('store', 'sort_order', 'name')
 
 
 class ShiftPublishHistoryAdmin(admin.ModelAdmin):
     list_display = ('period', 'published_by', 'published_at', 'assignment_count')
     readonly_fields = ('published_at',)
     search_fields = ('period__store__name',)
+    list_per_page = 10
+    ordering = ('-published_at',)
 
 
 class StoreClosedDateAdmin(admin.ModelAdmin):
@@ -158,12 +174,15 @@ class StoreClosedDateAdmin(admin.ModelAdmin):
     list_filter = ('store',)
     search_fields = ('reason',)
     ordering = ('-date',)
+    list_per_page = 10
 
 
 class ShiftStaffRequirementAdmin(admin.ModelAdmin):
     list_display = ('store', 'get_day_display', 'get_staff_type_display', 'required_count')
     list_filter = ('store', 'day_of_week', 'staff_type')
     list_editable = ('required_count',)
+    list_per_page = 10
+    ordering = ('store', 'day_of_week', 'staff_type')
 
     @admin.display(description=_('曜日'), ordering='day_of_week')
     def get_day_display(self, obj):
@@ -198,6 +217,8 @@ class ShiftStaffRequirementOverrideAdmin(admin.ModelAdmin):
     list_display = ('store', 'date', 'get_staff_type_display', 'required_count', 'reason')
     list_filter = ('store', 'staff_type')
     list_editable = ('required_count',)
+    list_per_page = 10
+    ordering = ('-date', 'staff_type')
     date_hierarchy = 'date'
 
     @admin.display(description=_('種別'), ordering='staff_type')

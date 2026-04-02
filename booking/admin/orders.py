@@ -24,6 +24,8 @@ class CategoryAdmin(admin.ModelAdmin):
     list_display_links = ('name',)
     search_fields = ('name', 'store__name')
     list_editable = ('sort_order',)
+    list_per_page = 10
+    ordering = ('store', 'sort_order', 'name')
 
     def get_queryset(self, request):
         qs = super().get_queryset(request).filter(is_restaurant_menu=True)
@@ -103,6 +105,7 @@ class ProductAdmin(admin.ModelAdmin):
     inlines = [ProductTranslationInline]
     autocomplete_fields = ('category',)
     ordering = ('store', 'category', 'name')
+    list_per_page = 10
 
     def get_queryset(self, request):
         qs = super().get_queryset(request).filter(
@@ -142,6 +145,7 @@ class ProductAdmin(admin.ModelAdmin):
         return obj.stock <= 0
     is_sold_out.short_description = _('売切')
     is_sold_out.boolean = True
+    is_sold_out.admin_order_field = 'stock'
 
     def display_image(self, obj):
         if obj.image:
@@ -225,6 +229,8 @@ class ECCategoryAdmin(admin.ModelAdmin):
     list_display_links = ('name',)
     search_fields = ('name', 'store__name')
     list_editable = ('sort_order',)
+    list_per_page = 10
+    ordering = ('store', 'sort_order', 'name')
 
     def get_queryset(self, request):
         qs = super().get_queryset(request).filter(is_restaurant_menu=False)
@@ -280,6 +286,7 @@ class ECProductAdmin(admin.ModelAdmin):
     list_editable = ('price', 'stock', 'low_stock_threshold', 'is_active')
     inlines = [ProductTranslationInline]
     ordering = ('store', 'category', 'name')
+    list_per_page = 10
 
     def get_queryset(self, request):
         qs = super().get_queryset(request).filter(is_ec_visible=True)
@@ -321,6 +328,7 @@ class ECProductAdmin(admin.ModelAdmin):
         return obj.stock <= 0
     is_sold_out.short_description = _('売切')
     is_sold_out.boolean = True
+    is_sold_out.admin_order_field = 'stock'
 
     def display_image(self, obj):
         if obj.image:
@@ -426,6 +434,8 @@ class OrderAdmin(admin.ModelAdmin):
     search_fields = ('id', 'store__name', 'table_label', 'customer_line_user_hash', 'customer_name', 'customer_email')
     inlines = [OrderItemInline]
     readonly_fields = ('created_at', 'updated_at')
+    list_per_page = 10
+    ordering = ('-created_at',)
     date_hierarchy = 'created_at'
     fieldsets = (
         (None, {
@@ -472,6 +482,8 @@ class OrderAdmin(admin.ModelAdmin):
 
 class OrderItemAdmin(admin.ModelAdmin):
     list_display = ('id', 'order', 'product', 'qty', 'unit_price', 'status', 'created_at')
+    list_per_page = 10
+    ordering = ('-created_at',)
 
     search_fields = ('order__id', 'product__sku', 'product__name')
     date_hierarchy = 'created_at'
@@ -490,6 +502,8 @@ class OrderItemAdmin(admin.ModelAdmin):
 
 class StockMovementAdmin(admin.ModelAdmin):
     list_display = ('created_at', 'store', 'product', 'movement_type', 'qty', 'by_staff', 'note')
+    list_per_page = 10
+    ordering = ('-created_at',)
 
     search_fields = ('product__sku', 'product__name', 'note', 'store__name')
     readonly_fields = ('created_at',)
@@ -578,6 +592,8 @@ class StockMovementAdmin(admin.ModelAdmin):
 class ShippingConfigAdmin(admin.ModelAdmin):
     """送料設定"""
     list_display = ('store', 'is_enabled', 'shipping_fee', 'free_shipping_threshold')
+    list_per_page = 10
+    ordering = ('store',)
     fieldsets = (
         (None, {'fields': ('store', 'is_enabled', 'shipping_fee', 'free_shipping_threshold')}),
         (_('配達情報'), {'fields': ('delivery_area', 'note')}),

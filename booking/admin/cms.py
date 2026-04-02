@@ -51,6 +51,8 @@ class NoticeAdmin(admin.ModelAdmin):
     list_filter = ('is_published',)
     list_editable = ('is_published',)
     search_fields = ('title', 'content', 'link')
+    list_per_page = 10
+    ordering = ('-updated_at',)
     date_hierarchy = 'updated_at'
     prepopulated_fields = {'slug': ('title',)}
     readonly_fields = ('created_at',)
@@ -73,11 +75,15 @@ class NoticeAdmin(admin.ModelAdmin):
 class CompanyAdmin(admin.ModelAdmin):
     list_display = ('name', 'address', 'tel')
     search_fields = ('name', 'address', 'tel')
+    list_per_page = 10
+    ordering = ('name',)
 
 
 class MediaAdmin(admin.ModelAdmin):
     list_display = ('link', 'title', 'created_at')
     search_fields = ('title', 'link')
+    list_per_page = 10
+    ordering = ('-created_at',)
     date_hierarchy = 'created_at'
 
 
@@ -236,12 +242,16 @@ class HomepageCustomBlockAdmin(admin.ModelAdmin):
     list_display = ('title', 'position', 'sort_order', 'is_active', 'updated_at')
     list_editable = ('sort_order', 'is_active')
     search_fields = ('title',)
+    list_per_page = 10
+    ordering = ('position', 'sort_order')
 
 
 class HeroBannerAdmin(admin.ModelAdmin):
     list_display = ('title', 'sort_order', 'is_active', 'image_position', 'link_type', 'updated_at')
     list_editable = ('sort_order', 'is_active', 'image_position', 'link_type')
     search_fields = ('title',)
+    list_per_page = 10
+    ordering = ('sort_order',)
     fieldsets = (
         (None, {'fields': ('title', 'image', 'image_position', 'sort_order', 'is_active')}),
         (_('リンク設定'), {'fields': ('link_type', 'linked_store', 'linked_staff', 'link_url')}),
@@ -252,12 +262,16 @@ class BannerAdAdmin(admin.ModelAdmin):
     list_display = ('title', 'position', 'sort_order', 'is_active', 'link_url', 'updated_at')
     list_editable = ('sort_order', 'is_active')
     search_fields = ('title',)
+    list_per_page = 10
+    ordering = ('position', 'sort_order')
 
 
 class ExternalLinkAdmin(admin.ModelAdmin):
     list_display = ('title', 'url', 'sort_order', 'is_active', 'open_in_new_tab')
     list_editable = ('sort_order', 'is_active', 'open_in_new_tab')
     search_fields = ('title', 'url')
+    list_per_page = 10
+    ordering = ('sort_order',)
 
 
 # ==============================
@@ -271,11 +285,14 @@ class AdminMenuConfigAdmin(admin.ModelAdmin):
     form = AdminMenuConfigForm
     list_display = ('role', 'get_role_display', 'model_count', 'updated_at', 'updated_by')
     readonly_fields = ('updated_at', 'updated_by')
+    list_per_page = 10
+    ordering = ('role',)
     change_form_template = 'admin/booking/adminmenuconfig/change_form.html'
 
     def get_role_display(self, obj):
         return obj.get_role_display()
     get_role_display.short_description = _('ロール名')
+    get_role_display.admin_order_field = 'role'
 
     def model_count(self, obj):
         if isinstance(obj.allowed_models, list):
@@ -333,6 +350,7 @@ class SecurityAuditAdmin(admin.ModelAdmin):
     search_fields = ('check_name', 'message')
     readonly_fields = ('run_id', 'check_name', 'category', 'severity', 'status', 'message', 'recommendation', 'created_at')
     ordering = ('-created_at',)
+    list_per_page = 10
     date_hierarchy = 'created_at'
 
     def has_add_permission(self, request):
@@ -353,6 +371,7 @@ class SecurityLogAdmin(admin.ModelAdmin):
     search_fields = ('username', 'ip_address', 'path', 'detail')
     readonly_fields = ('event_type', 'severity', 'user', 'username', 'ip_address', 'user_agent', 'path', 'method', 'detail', 'created_at')
     ordering = ('-created_at',)
+    list_per_page = 10
     date_hierarchy = 'created_at'
 
     def has_add_permission(self, request):
@@ -368,6 +387,7 @@ class CostReportAdmin(admin.ModelAdmin):
     search_fields = ('check_name', 'resource_id', 'detail')
     readonly_fields = ('run_id', 'check_name', 'resource_type', 'resource_id', 'status', 'estimated_monthly_cost', 'detail', 'recommendation', 'created_at')
     ordering = ('-created_at',)
+    list_per_page = 10
     date_hierarchy = 'created_at'
 
     def has_add_permission(self, request):
@@ -389,12 +409,15 @@ class POSTransactionAdmin(admin.ModelAdmin):
     list_display = ('receipt_number', 'order', 'total_amount', 'payment_method', 'staff', 'completed_at', 'receipt_link')
     search_fields = ('receipt_number',)
     readonly_fields = ('completed_at',)
+    list_per_page = 10
+    ordering = ('-completed_at',)
     date_hierarchy = 'completed_at'
 
     def receipt_link(self, obj):
         url = f'/admin/pos/receipt/{obj.receipt_number}/'
         return format_html('<a href="{}" target="_blank">レシート</a>', url)
     receipt_link.short_description = _('レシート')
+    receipt_link.admin_order_field = 'receipt_number'
 
 
 # ==============================
@@ -403,11 +426,15 @@ class POSTransactionAdmin(admin.ModelAdmin):
 class VisitorCountAdmin(admin.ModelAdmin):
     list_display = ('store', 'date', 'hour', 'estimated_visitors', 'order_count', 'pir_count')
     list_filter = ('store',)
+    list_per_page = 10
+    ordering = ('-date', 'hour')
     date_hierarchy = 'date'
 
 
 class VisitorAnalyticsConfigAdmin(admin.ModelAdmin):
     list_display = ('store', 'session_gap_seconds', 'pir_device')
+    list_per_page = 10
+    ordering = ('store',)
 
 
 # ==============================
@@ -417,11 +444,15 @@ class StaffRecommendationModelAdmin(admin.ModelAdmin):
     list_display = ('store', 'model_type', 'mae_score', 'training_samples', 'trained_at', 'is_active')
     list_filter = ('is_active', 'model_type')
     readonly_fields = ('trained_at',)
+    list_per_page = 10
+    ordering = ('-trained_at',)
 
 
 class StaffRecommendationResultAdmin(admin.ModelAdmin):
     list_display = ('store', 'date', 'hour', 'recommended_staff_count', 'confidence')
     list_filter = ('store',)
+    list_per_page = 10
+    ordering = ('-date', 'hour')
     date_hierarchy = 'date'
 
 
@@ -433,8 +464,9 @@ class BusinessInsightAdmin(admin.ModelAdmin):
     list_filter = ('severity', 'category', 'is_read', 'store')
     search_fields = ('title', 'message')
     readonly_fields = ('created_at',)
+    list_per_page = 10
+    ordering = ('-created_at',)
     date_hierarchy = 'created_at'
-    list_per_page = 50
 
 
 class CustomerFeedbackAdmin(admin.ModelAdmin):
@@ -442,8 +474,9 @@ class CustomerFeedbackAdmin(admin.ModelAdmin):
     list_filter = ('store', 'sentiment', 'nps_score')
     search_fields = ('comment',)
     readonly_fields = ('created_at',)
+    list_per_page = 10
+    ordering = ('-created_at',)
     date_hierarchy = 'created_at'
-    list_per_page = 50
 
 
 # ==============================
@@ -454,6 +487,8 @@ class EvaluationCriteriaAdmin(admin.ModelAdmin):
     list_editable = ('sort_order', 'is_active', 'weight')
     list_filter = ('store', 'category', 'is_auto', 'is_active')
     search_fields = ('name',)
+    list_per_page = 10
+    ordering = ('store', 'sort_order', 'name')
 
 
 class StaffEvaluationAdmin(admin.ModelAdmin):
@@ -468,6 +503,8 @@ class StaffEvaluationAdmin(admin.ModelAdmin):
         'attendance_rate', 'punctuality_score', 'total_work_hours',
         'created_at', 'updated_at',
     )
+    list_per_page = 10
+    ordering = ('-period_end', 'staff')
     date_hierarchy = 'period_end'
     save_on_top = True
 
@@ -550,8 +587,9 @@ class ErrorReportAdmin(admin.ModelAdmin):
     list_filter = ('severity', 'status')
     search_fields = ('title', 'description')
     readonly_fields = ('reporter', 'created_at', 'updated_at', 'resolved_at')
+    list_per_page = 10
+    ordering = ('-created_at',)
     date_hierarchy = 'created_at'
-    list_per_page = 50
 
     fieldsets = (
         (None, {'fields': ('title', 'description', 'severity', 'status')}),

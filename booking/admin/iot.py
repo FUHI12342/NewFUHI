@@ -44,6 +44,8 @@ class IoTDeviceAdmin(admin.ModelAdmin):
 
     search_fields = ('name', 'external_id', 'store__name')
     readonly_fields = ('last_seen_at',)
+    list_per_page = 10
+    ordering = ('store', 'name')
     inlines = [IoTEventInline, IRCodeInline]
 
 
@@ -53,7 +55,7 @@ class IoTEventAdmin(admin.ModelAdmin):
     search_fields = ('device__name', 'device__external_id')
     date_hierarchy = 'created_at'
     ordering = ('-created_at',)
-    list_per_page = 20
+    list_per_page = 10
 
     def sensor_summary(self, obj):
         if not obj.payload:
@@ -72,6 +74,7 @@ class IoTEventAdmin(admin.ModelAdmin):
         return " / ".join(parts) if parts else "-"
 
     sensor_summary.short_description = _("センサー要約")
+    sensor_summary.admin_order_field = 'event_type'
 
 
 class IRCodeAdmin(admin.ModelAdmin):
@@ -79,6 +82,8 @@ class IRCodeAdmin(admin.ModelAdmin):
 
     search_fields = ('name', 'device__name', 'code')
     readonly_fields = ('created_at', 'pulse_count')
+    list_per_page = 10
+    ordering = ('device', 'name')
     actions = ['send_ir_code']
 
     def pulse_count(self, obj):
@@ -117,6 +122,8 @@ class VentilationAutoControlAdmin(admin.ModelAdmin):
                     'consecutive_count', 'fan_state', 'last_on_at', 'last_off_at')
     list_filter = ('is_active', 'fan_state')
     readonly_fields = ('fan_state', 'last_on_at', 'last_off_at')
+    list_per_page = 10
+    ordering = ('name',)
     fieldsets = (
         (_('基本設定'), {'fields': ('device', 'name', 'is_active')}),
         (_('閾値設定'), {
@@ -139,6 +146,8 @@ class SystemConfigAdmin(admin.ModelAdmin):
     list_display = ('key', 'value', 'updated_at')
     search_fields = ('key', 'value')
     readonly_fields = ('updated_at',)
+    list_per_page = 10
+    ordering = ('key',)
 
 
 class PropertyDeviceInline(admin.TabularInline):
@@ -157,6 +166,8 @@ class PropertyAdmin(admin.ModelAdmin):
     list_display = ('name', 'address', 'property_type', 'owner_name', 'store', 'is_active')
 
     search_fields = ('name', 'address', 'owner_name')
+    list_per_page = 10
+    ordering = ('name',)
     inlines = [PropertyDeviceInline, PropertyAlertInline]
 
 

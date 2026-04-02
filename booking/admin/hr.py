@@ -18,6 +18,8 @@ from .helpers import _is_owner_or_super
 class EmploymentContractAdmin(admin.ModelAdmin):
     list_display = ('staff', 'employment_type', 'pay_type', 'hourly_rate', 'monthly_salary',
                     'standard_monthly_remuneration', 'is_active')
+    list_per_page = 10
+    ordering = ('staff',)
 
     search_fields = ('staff__name', 'staff__store__name')
     autocomplete_fields = ('staff',)
@@ -39,6 +41,8 @@ class WorkAttendanceAdmin(admin.ModelAdmin):
     list_display = ('staff', 'date', 'clock_in', 'clock_out', 'regular_minutes',
                     'overtime_minutes', 'late_night_minutes', 'holiday_minutes',
                     'break_minutes', 'source')
+    list_per_page = 10
+    ordering = ('-date', 'staff')
 
     search_fields = ('staff__name',)
     date_hierarchy = 'date'
@@ -94,6 +98,8 @@ class PayrollDeductionInline(admin.TabularInline):
 
 class PayrollEntryAdmin(admin.ModelAdmin):
     list_display = ('staff', 'period', 'total_work_days', 'gross_pay', 'total_deductions', 'net_pay')
+    list_per_page = 10
+    ordering = ('-period', 'staff')
 
     search_fields = ('staff__name',)
     readonly_fields = ('created_at', 'updated_at')
@@ -124,6 +130,8 @@ class PayrollPeriodAdmin(admin.ModelAdmin):
     list_display = ('store', 'year_month', 'period_start', 'period_end', 'status', 'payment_date')
     search_fields = ('store__name', 'year_month')
     readonly_fields = ('created_at', 'updated_at')
+    list_per_page = 10
+    ordering = ('-year_month',)
     inlines = [PayrollEntryInline]
 
     actions = ['run_payroll_calculation', 'export_zengin_csv', 'mark_as_paid']
@@ -176,17 +184,22 @@ class SalaryStructureAdmin(admin.ModelAdmin):
     list_display = ('store', 'pension_rate', 'health_insurance_rate', 'employment_insurance_rate',
                     'overtime_multiplier', 'late_night_multiplier', 'holiday_multiplier')
     search_fields = ('store__name',)
+    list_per_page = 10
+    ordering = ('store',)
 
 
 class TableSeatAdmin(admin.ModelAdmin):
     list_display = ('store', 'label', 'is_active', 'has_qr', 'created_at')
     list_filter = ('store', 'is_active')
     search_fields = ('label', 'store__name')
+    list_per_page = 10
+    ordering = ('store', 'label')
 
     def has_qr(self, obj):
         return bool(obj.qr_code)
     has_qr.boolean = True
     has_qr.short_description = _('QRコード')
+    has_qr.admin_order_field = 'qr_code'
 
     readonly_fields = ('id', 'qr_preview', 'created_at')
 
@@ -259,6 +272,8 @@ class PaymentMethodAdmin(admin.ModelAdmin):
     list_editable = ('is_enabled', 'sort_order')
     list_filter = ('store', 'method_type', 'is_enabled')
     search_fields = ('display_name', 'store__name')
+    list_per_page = 10
+    ordering = ('store', 'sort_order')
 
     fieldsets = (
         (None, {'fields': ('store', 'method_type', 'display_name', 'is_enabled', 'sort_order')}),
@@ -284,6 +299,8 @@ class PaymentMethodAdmin(admin.ModelAdmin):
 class AttendanceTOTPConfigAdmin(admin.ModelAdmin):
     list_display = ('store', 'totp_interval', 'require_geo_check', 'is_active')
     list_filter = ('is_active',)
+    list_per_page = 10
+    ordering = ('store',)
 
 
 class AttendanceStampAdmin(admin.ModelAdmin):
@@ -291,6 +308,8 @@ class AttendanceStampAdmin(admin.ModelAdmin):
     list_filter = ('stamp_type', 'is_valid')
     search_fields = ('staff__name',)
     readonly_fields = ('stamped_at',)
+    list_per_page = 10
+    ordering = ('-stamped_at',)
     date_hierarchy = 'stamped_at'
 
 

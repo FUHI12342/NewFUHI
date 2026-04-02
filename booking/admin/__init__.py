@@ -81,6 +81,8 @@ class TaxServiceChargeAdmin(admin.ModelAdmin):
     list_editable = ('rate', 'is_active', 'sort_order')
     list_filter = ('is_active', 'store')
     search_fields = ('name', 'store__name')
+    list_per_page = 10
+    ordering = ('store', 'sort_order')
 
 
 custom_site.register(TaxServiceCharge, TaxServiceChargeAdmin)
@@ -89,6 +91,7 @@ custom_site.register(TaxServiceCharge, TaxServiceChargeAdmin)
 # User/Group も
 class CustomUserAdmin(BaseUserAdmin):
     """「重要な日程」タブを除外したUserAdmin"""
+    list_per_page = 10
     fieldsets = (
         (None, {'fields': ('username', 'password')}),
         (_('個人情報'), {'fields': ('first_name', 'last_name', 'email')}),
