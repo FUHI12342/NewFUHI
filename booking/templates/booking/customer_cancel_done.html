@@ -1,0 +1,45 @@
+{% extends 'booking/base.html' %}
+{% load i18n %}
+
+{% block title %}{% trans "キャンセル完了" %}{% endblock %}
+
+{% block content %}
+<div class="max-w-md mx-auto mt-10 mb-10">
+    <div class="bg-white rounded-2xl shadow-lg border border-gray-100 p-8 text-center">
+        <div class="w-16 h-16 mx-auto bg-green-100 rounded-full flex items-center justify-center mb-6">
+            <svg class="w-9 h-9 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
+            </svg>
+        </div>
+
+        <h1 class="text-2xl font-bold text-salon-dark mb-3">{% trans "キャンセル完了" %}</h1>
+        <p class="text-gray-600 mb-6">{% trans "ご予約のキャンセルが完了しました。" %}</p>
+
+        {% if schedule.price and schedule.price >= 100 %}
+        <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6 text-left">
+            <p class="text-sm text-blue-700">{% trans "返金について：店舗スタッフが返金処理を行います。処理完了後にご連絡いたします。" %}</p>
+        </div>
+        {% endif %}
+
+        <div class="bg-gray-50 rounded-lg p-4 mb-6 space-y-2 text-left">
+            <div class="flex justify-between text-sm">
+                <span class="text-gray-500">{% trans "予約番号" %}</span>
+                <span class="font-mono text-salon-dark">{{ schedule.reservation_number|truncatechars:12 }}</span>
+            </div>
+            <div class="flex justify-between text-sm">
+                <span class="text-gray-500">{% trans "日時" %}</span>
+                <span class="text-salon-dark">{{ schedule.start|date:"Y年m月d日 H:i" }}</span>
+            </div>
+            <div class="flex justify-between text-sm">
+                <span class="text-gray-500">{% trans "担当" %}</span>
+                <span class="text-salon-dark">{{ schedule.staff.name }}</span>
+            </div>
+        </div>
+
+        <a href="{% url 'booking:booking_top' %}"
+           class="inline-block bg-salon-brown text-white px-6 py-2 rounded-lg text-sm hover:opacity-80 transition">
+            {% trans "トップへ戻る" %}
+        </a>
+    </div>
+</div>
+{% endblock %}

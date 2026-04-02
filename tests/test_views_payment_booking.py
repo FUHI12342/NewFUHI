@@ -137,35 +137,31 @@ class TestCoineyWebhook:
         resp = anon_client.get('/coiney_webhook/test-order-id/')
         assert resp.status_code == 405
 
-    def test_missing_webhook_secret(self, anon_client, settings):
-        """No COINEY_WEBHOOK_SECRET → 500."""
-        settings.COINEY_WEBHOOK_SECRET = None
+    def test_missing_webhook_token_allows_through(self, anon_client, settings):
+        """No COINEY_WEBHOOK_TOKEN → webhook still accepted (warning logged)."""
+        settings.COINEY_WEBHOOK_TOKEN = ''
         resp = anon_client.post(
             '/coiney_webhook/test-order-id/',
             data=json.dumps({"type": "payment.succeeded"}),
             content_type='application/json',
         )
-        assert resp.status_code == 500
+        # Should reach the handler (not 500)
+        assert resp.status_code != 500
 
-    def test_invalid_signature(self, anon_client, settings):
-        """Invalid HMAC signature → 403."""
-        settings.COINEY_WEBHOOK_SECRET = 'test-secret'
+    def test_invalid_token(self, anon_client, settings):
+        """Invalid URL token → 403."""
+        settings.COINEY_WEBHOOK_TOKEN = 'correct-token'
         resp = anon_client.post(
-            '/coiney_webhook/test-order-id/',
+            '/coiney_webhook/test-order-id/?token=wrong-token',
             data=json.dumps({"type": "payment.succeeded"}),
             content_type='application/json',
-            HTTP_X_COINEY_SIGNATURE='invalid-signature',
         )
         assert resp.status_code == 403
 
     @patch('booking.views_booking.PayingSuccessView')
-    def test_valid_signature_delegates(self, mock_view_cls, anon_client, settings):
-        """Valid signature → delegates to PayingSuccessView.post."""
-        settings.COINEY_WEBHOOK_SECRET = 'test-secret'
-        body = json.dumps({"type": "payment.succeeded"}).encode()
-        expected_sig = hmac.new(
-            b'test-secret', body, hashlib.sha256
-        ).hexdigest()
+    def test_valid_token_delegates(self, mock_view_cls, anon_client, settings):
+        """Valid URL token → delegates to PayingSuccessView.post."""
+        settings.COINEY_WEBHOOK_TOKEN = 'test-token'
 
         mock_view = MagicMock()
         from django.http import JsonResponse
@@ -173,10 +169,9 @@ class TestCoineyWebhook:
         mock_view_cls.return_value = mock_view
 
         resp = anon_client.post(
-            '/coiney_webhook/test-order-id/',
-            data=body,
+            '/coiney_webhook/test-order-id/?token=test-token',
+            data=json.dumps({"type": "payment.succeeded"}),
             content_type='application/json',
-            HTTP_X_COINEY_SIGNATURE=expected_sig,
         )
         mock_view.post.assert_called_once()
 
@@ -220,18 +215,20 @@ class TestProcessPayment:
 
     @patch('booking.views_booking.LineBotApi')
     @patch('booking.views_booking._build_access_lines', return_value='')
+    @patch('booking.services.staff_notifications.notify_booking_to_staff')
     def test_success_generates_qr(
-        self, mock_access, mock_linebot_cls, schedule_confirmed, settings
+        self, mock_notify, mock_access, mock_linebot_cls, schedule_confirmed, settings
     ):
         """payment.succeeded → QR code generated."""
         from booking.views import process_payment
         settings.LINE_ACCESS_TOKEN = 'test-token'
+        settings.SITE_BASE_URL = 'http://testserver'
         mock_linebot_cls.return_value = MagicMock()
 
         factory = RequestFactory()
         request = factory.post('/fake/')
-        with patch('booking.services.qr_service.generate_checkin_qr') as mock_qr:
-            from io import BytesIO
+        with patch('booking.services.checkin_token.generate_signed_checkin_qr') as mock_qr, \
+             patch('booking.services.checkin_token.generate_backup_code', return_value='123456'):
             from django.core.files.uploadedfile import SimpleUploadedFile
             mock_qr.return_value = SimpleUploadedFile('test.png', b'\x89PNG', content_type='image/png')
             process_payment(
@@ -253,18 +250,21 @@ class TestProcessPayment:
     @patch('booking.views_booking.LineBotApi')
     @patch('booking.views_booking._build_access_lines', return_value='')
     @patch('booking.views_booking.send_mail')
+    @patch('booking.services.staff_notifications.notify_booking_to_staff')
     def test_email_booking_sends_confirmation(
-        self, mock_mail, mock_access, mock_linebot_cls, schedule_email, settings
+        self, mock_notify, mock_mail, mock_access, mock_linebot_cls, schedule_email, settings
     ):
         """Email booking → sends confirmation email."""
         from booking.views import process_payment
         settings.LINE_ACCESS_TOKEN = 'test-token'
         settings.DEFAULT_FROM_EMAIL = 'noreply@test.com'
+        settings.SITE_BASE_URL = 'http://testserver'
         mock_linebot_cls.return_value = MagicMock()
 
         factory = RequestFactory()
         request = factory.post('/fake/')
-        with patch('booking.services.qr_service.generate_checkin_qr') as mock_qr:
+        with patch('booking.services.checkin_token.generate_signed_checkin_qr') as mock_qr, \
+             patch('booking.services.checkin_token.generate_backup_code', return_value='123456'):
             from django.core.files.uploadedfile import SimpleUploadedFile
             mock_qr.return_value = SimpleUploadedFile('test.png', b'\x89PNG', content_type='image/png')
             process_payment(

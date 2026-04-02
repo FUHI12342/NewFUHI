@@ -6,6 +6,8 @@ from .views import (
     LineEnterView,
     LineCallbackView,
     CancelReservationView,
+    CustomerCancelView,
+    CustomerCancelConfirmView,
     UserList,
     IoTMQ9GraphView,
     IoTEventAPIView,
@@ -35,6 +37,7 @@ from .views import (
 )
 from .views_attendance import AttendanceStampPageView
 from .views_ec_payment import ECPaymentView, ECOrderConfirmationView
+from .views_page_builder import CustomPageView
 from django.views.generic import RedirectView
 
 
@@ -83,12 +86,15 @@ urlpatterns = [
     path('booking/login/line/success/', LineCallbackView.as_view(), name='line_success'),
     path('line_timer/<str:user_id>/', views.LINETimerView, name='LINETimerView'),
 
-    # Cancel
+    # Cancel (admin/staff)
     path(
         'cancel_reservation/<int:schedule_id>/',
         CancelReservationView.as_view(),
         name='cancel_reservation'
     ),
+    # Cancel (public, customer)
+    path('cancel/<str:reservation_number>/', CustomerCancelView.as_view(), name='customer_cancel'),
+    path('cancel/<str:reservation_number>/confirm/', CustomerCancelConfirmView.as_view(), name='customer_cancel_confirm'),
 
     # Users
     path('users/', UserList.as_view(), name='user_list'),
@@ -170,4 +176,6 @@ urlpatterns = [
     path('news/', NoticeListView.as_view(), name='notice_list'),
     re_path(r'^news/(?P<slug>[\w-]+)/$', NoticeDetailView.as_view(), name='notice_detail'),
 
+    # Custom pages (public)
+    path('p/<int:store_id>/<slug:slug>/', CustomPageView.as_view(), name='custom_page'),
 ]

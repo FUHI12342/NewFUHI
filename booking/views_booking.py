@@ -2,6 +2,7 @@
 cancel reservation, QR checkin, and related helpers."""
 import datetime
 import hashlib
+import hmac as _hmac
 import json
 import logging
 import secrets
@@ -100,6 +101,7 @@ class LineEnterView(View):
             'redirect_uri': get_line_redirect_url(),
             'state': state,
             'scope': 'openid profile email',
+            'bot_prompt': 'aggressive',
         }
         auth_url = 'https://access.line.me/oauth2/v2.1/authorize?' + urllib.parse.urlencode(params)
         return HttpResponseRedirect(auth_url)
@@ -152,17 +154,17 @@ class LineCallbackView(View):
         line_bot_api = LineBotApi(settings.LINE_ACCESS_TOKEN)
         user_id = user_profile['sub']
 
+        is_friend = True
         try:
             profile = line_bot_api.get_profile(user_id)
             user_id = profile.user_id
         except LineBotApiError as e:
             if getattr(e, "status_code", None) == 404:
-                try:
-                    line_bot_api.push_message(user_id, TextSendMessage(text="Please add our bot as a friend to continue."))
-                except Exception as e:
-                    logger.warning("LINE bot friend invitation push failed for user_id=%s: %s", user_id, e)
+                is_friend = False
+                logger.info("LINE user %s is not a friend, proceeding with web fallback", user_id[:8])
+            else:
+                logger.error("LINE get_profile failed: %s", e)
                 return HttpResponseBadRequest()
-            return HttpResponseBadRequest()
 
         try:
             from datetime import datetime as dt, timedelta as td
@@ -207,7 +209,8 @@ class LineCallbackView(View):
                     'Accept': 'application/json',
                     'X-CoineyPayge-Version': '2016-10-25',
                 }
-                webhook_url = f"{settings.WEBHOOK_URL_BASE}{reservation_number}/"
+                _wh_token = f"?token={settings.COINEY_WEBHOOK_TOKEN}" if settings.COINEY_WEBHOOK_TOKEN else ""
+                webhook_url = f"{settings.WEBHOOK_URL_BASE}{reservation_number}/{_wh_token}"
 
                 data = {
                     "amount": int(schedule.price),
@@ -233,17 +236,25 @@ class LineCallbackView(View):
                 else:
                     logger.error("Coiny API failed: status=%s, body=%s", response.status_code, response.text)
 
-                if payment_url is not None:
+                if is_friend and payment_url is not None:
                     line_bot_api.push_message(
                         user_id,
                         TextSendMessage(
                             text='こちらのURLから決済を行ってください。決済後に予約が確定します。\n'
                                  '15分以内にお支払いがない場合、仮予約は自動キャンセルされます。\n'
                                  + payment_url
+                                 + '\n\n※ キャンセル時の返金は店舗スタッフが対応いたします。'
+                                 + '\n処理にお時間をいただく場合がございます。'
                         )
                     )
+                elif not is_friend and payment_url is not None:
+                    # 非友達: Webページで決済URLを表示
+                    return self._render_not_friend_page(
+                        request, schedule, user_profile,
+                        payment_url=payment_url,
+                    )
                 else:
-                    logger.error("Payment URL not obtained, LINE message not sent for reservation %s", reservation_number)
+                    logger.error("Payment URL not obtained for reservation %s", reservation_number)
             else:
                 # 無料予約（price=0）: 決済不要、直接確定
                 schedule.is_temporary = False
@@ -254,6 +265,7 @@ class LineCallbackView(View):
                     generate_backup_code as _gen_backup,
                     generate_signed_checkin_qr as _gen_qr,
                 )
+                backup_code = None
                 try:
                     staff_obj = Staff.objects.select_related('store').get(pk=schedule.staff_id)
                     qr_file = _gen_qr(str(schedule.reservation_number), schedule.end)
@@ -264,40 +276,95 @@ class LineCallbackView(View):
                     )
                 except Exception as e:
                     logger.warning('無料予約QR/バックアップコード生成エラー: %s', e)
-                    backup_code = None
 
                 # キャスト（スタッフ）通知
                 from booking.services.staff_notifications import notify_booking_to_staff
                 notify_booking_to_staff(schedule)
 
-                # 顧客LINE通知（QR/バックアップコード含む）
-                qr_page_url = (
-                    f'{settings.SITE_BASE_URL}/reservation/'
-                    f'{reservation_number}/qr/'
-                )
-                backup_line = ''
-                if backup_code:
-                    backup_line = (
-                        f'\n\nチェックインQRコード: {qr_page_url}'
-                        f'\n口頭確認コード: {backup_code}'
-                        f'\n（QRが読み取れない場合、スタッフにこの6桁コードをお伝えください）'
+                if is_friend:
+                    # 顧客LINE通知（予約情報 + QR/バックアップコード）
+                    local_tz = pytz.timezone('Asia/Tokyo')
+                    local_start = schedule.start.astimezone(local_tz)
+                    local_end = schedule.end.astimezone(local_tz)
+                    qr_page_url = (
+                        f'{settings.SITE_BASE_URL}/reservation/'
+                        f'{reservation_number}/qr/'
                     )
-                line_bot_api.push_message(
-                    user_id,
-                    TextSendMessage(
-                        text=f'【予約確定】ご予約が確定しました。\n'
-                             f'予約番号: {reservation_number}\n'
-                             f'日時: {schedule.start.strftime("%Y/%m/%d %H:%M")}'
-                             + backup_line
-                             + f'\n\nご来店をお待ちしております。'
+                    cancel_page_url = (
+                        f'{settings.SITE_BASE_URL}/cancel/{reservation_number}/'
                     )
-                )
+                    staff_obj = Staff.objects.select_related('store').get(pk=schedule.staff_id)
+                    store = staff_obj.store
+                    access_lines = _build_access_lines(store)
+                    checkin_line = ''
+                    if backup_code:
+                        checkin_line = (
+                            f'\n\n■ チェックイン'
+                            f'\nQRコード: {qr_page_url}'
+                            f'\n口頭確認コード: {backup_code}'
+                            f'\n（QRが読み取れない場合、スタッフにこの6桁コードをお伝えください）'
+                        )
+                    duration_min = int((schedule.end - schedule.start).total_seconds() // 60)
+                    line_bot_api.push_message(
+                        user_id,
+                        TextSendMessage(
+                            text=f'【予約確定】ご予約が確定しました。'
+                                 f'\n\n■ 予約情報'
+                                 f'\n予約番号: {reservation_number}'
+                                 f'\n日時: {local_start.strftime("%Y年%m月%d日 %H:%M")}〜{local_end.strftime("%H:%M")}（{duration_min}分）'
+                                 f'\n担当: {staff_obj.name}'
+                                 + checkin_line
+                                 + access_lines
+                                 + f'\n\n■ キャンセル'
+                                 + f'\nキャンセル番号: {schedule.cancel_token}'
+                                 + f'\n{cancel_page_url}'
+                                 + f'\n（上記URLでキャンセル番号を入力してください）'
+                        )
+                    )
+                else:
+                    # 非友達: Webページで QR/バックアップコード表示
+                    return self._render_not_friend_page(
+                        request, schedule, user_profile,
+                        backup_code=backup_code,
+                    )
 
         except LineBotApiError as e:
             logger.error("Failed to send LINE message: %s", e)
 
         request.session['profile'] = user_profile
         return render(request, 'booking/line_success.html', {'profile': user_profile})
+
+    @staticmethod
+    def _render_not_friend_page(request, schedule, user_profile, payment_url=None, backup_code=None):
+        """非友達ユーザー向けWebページを表示。"""
+        local_tz = pytz.timezone('Asia/Tokyo')
+        local_start = schedule.start.astimezone(local_tz)
+        local_end = schedule.end.astimezone(local_tz)
+        duration_min = int((schedule.end - schedule.start).total_seconds() // 60)
+
+        qr_page_url = None
+        if not schedule.is_temporary:
+            qr_page_url = (
+                f'{settings.SITE_BASE_URL}/reservation/'
+                f'{schedule.reservation_number}/qr/'
+            )
+
+        line_bot_id = getattr(settings, 'LINE_BOT_ID', '')
+        friend_add_url = f'https://line.me/R/ti/p/@{line_bot_id}' if line_bot_id else ''
+
+        request.session['profile'] = user_profile
+        return render(request, 'booking/line_not_friend.html', {
+            'reservation_number': schedule.reservation_number,
+            'start_display': f'{local_start.strftime("%Y年%m月%d日 %H:%M")}〜{local_end.strftime("%H:%M")}（{duration_min}分）',
+            'staff_name': schedule.staff.name,
+            'price': schedule.price,
+            'payment_url': payment_url,
+            'qr_page_url': qr_page_url,
+            'backup_code': backup_code,
+            'cancel_token': schedule.cancel_token if not schedule.is_temporary else None,
+            'friend_add_url': friend_add_url,
+            'profile': user_profile,
+        })
 
 
 class PayingSuccessView(View):
@@ -444,7 +511,8 @@ class EmailVerifyView(View):
             'X-CoineyPayge-Version': '2016-10-25',
         }
         reservation_number = schedule.reservation_number
-        webhook_url = f"{settings.WEBHOOK_URL_BASE}{reservation_number}/"
+        _wh_token = f"?token={settings.COINEY_WEBHOOK_TOKEN}" if settings.COINEY_WEBHOOK_TOKEN else ""
+        webhook_url = f"{settings.WEBHOOK_URL_BASE}{reservation_number}/{_wh_token}"
 
         data = {
             "amount": int(schedule.price),
@@ -501,7 +569,181 @@ class EmailVerifyView(View):
         })
 
 
-# ===== Cancel =====
+# ===== Customer Cancel (public, no login required) =====
+
+class CustomerCancelView(View):
+    """公開キャンセルページ（認証不要）。キャンセル番号入力→確認画面表示。"""
+
+    def get(self, request, reservation_number):
+        schedule = get_object_or_404(
+            Schedule, reservation_number=reservation_number, is_temporary=False,
+        )
+        if schedule.is_cancelled:
+            return render(request, 'booking/customer_cancel_form.html', {
+                'error': 'この予約は既にキャンセル済みです。',
+            })
+        return render(request, 'booking/customer_cancel_form.html')
+
+    def post(self, request, reservation_number):
+        schedule = get_object_or_404(
+            Schedule, reservation_number=reservation_number, is_temporary=False,
+        )
+        if schedule.is_cancelled:
+            return render(request, 'booking/customer_cancel_form.html', {
+                'error': 'この予約は既にキャンセル済みです。',
+            })
+
+        cancel_token_input = request.POST.get('cancel_token', '').strip().upper()
+        if not cancel_token_input or not _hmac.compare_digest(
+            cancel_token_input, schedule.cancel_token or '',
+        ):
+            return render(request, 'booking/customer_cancel_form.html', {
+                'error': 'キャンセル番号が正しくありません。',
+            })
+
+        # 検証OK→確認画面
+        return render(request, 'booking/customer_cancel_confirm.html', {
+            'schedule': schedule,
+            'cancel_token': cancel_token_input,
+        })
+
+
+class CustomerCancelConfirmView(View):
+    """キャンセル実行（POST only）。"""
+
+    def get(self, request, reservation_number):
+        """GET アクセスはキャンセルフォームにリダイレクト。"""
+        return redirect('booking:customer_cancel', reservation_number=reservation_number)
+
+    def post(self, request, reservation_number):
+        schedule = get_object_or_404(
+            Schedule,
+            reservation_number=reservation_number,
+            is_temporary=False,
+        )
+        if schedule.is_cancelled:
+            return render(request, 'booking/customer_cancel_done.html', {
+                'schedule': schedule,
+            })
+
+        cancel_token_input = request.POST.get('cancel_token', '').strip().upper()
+        if not cancel_token_input or not _hmac.compare_digest(
+            cancel_token_input, schedule.cancel_token or '',
+        ):
+            return render(request, 'booking/customer_cancel_form.html', {
+                'error': 'キャンセル番号が正しくありません。',
+            })
+
+        # キャンセル実行
+        Schedule.objects.filter(pk=schedule.pk).update(is_cancelled=True)
+        schedule.is_cancelled = True
+
+        # 1. 管理者メール通知（返金対応依頼）
+        self._notify_admin_email(schedule)
+
+        # 2. 顧客にLINEキャンセル完了メッセージ
+        self._notify_customer_line(schedule)
+
+        # 3. スタッフにLINEキャンセル通知
+        self._notify_staff_line(schedule)
+
+        return render(request, 'booking/customer_cancel_done.html', {
+            'schedule': schedule,
+        })
+
+    @staticmethod
+    def _notify_admin_email(schedule):
+        """管理者に返金対応依頼メールを送信。"""
+        try:
+            notification_emails = getattr(settings, 'NOTIFICATION_EMAILS', [])
+            if not notification_emails:
+                admin_email = getattr(settings, 'DEFAULT_FROM_EMAIL', None)
+                notification_emails = [admin_email] if admin_email else []
+            if not notification_emails:
+                return
+
+            local_tz = pytz.timezone('Asia/Tokyo')
+            local_start = schedule.start.astimezone(local_tz)
+
+            refund_note = ''
+            if schedule.price and int(schedule.price) >= 100:
+                refund_note = (
+                    '\n\n【要対応】決済済み予約のキャンセルです。'
+                    '\nSTORES管理画面から手動返金を行ってください。'
+                    f'\n返金金額: {schedule.price:,}円'
+                )
+
+            send_mail(
+                subject=f'[要対応] 予約キャンセル - {schedule.reservation_number}',
+                message=(
+                    f'顧客がオンラインで予約をキャンセルしました。\n\n'
+                    f'予約番号: {schedule.reservation_number}\n'
+                    f'顧客名: {schedule.customer_name or "不明"}\n'
+                    f'日時: {local_start.strftime("%Y年%m月%d日 %H:%M")}\n'
+                    f'担当: {schedule.staff.name}\n'
+                    f'料金: {schedule.price:,}円'
+                    + refund_note
+                ),
+                from_email=settings.DEFAULT_FROM_EMAIL,
+                recipient_list=notification_emails,
+                fail_silently=True,
+            )
+        except Exception as e:
+            logger.warning('CustomerCancelConfirmView: 管理者メール通知に失敗: %s', e)
+
+    @staticmethod
+    def _notify_customer_line(schedule):
+        """顧客にLINEでキャンセル完了通知。"""
+        try:
+            user_id = schedule.get_line_user_id()
+            if not user_id:
+                return
+            local_tz = pytz.timezone('Asia/Tokyo')
+            local_start = schedule.start.astimezone(local_tz)
+            refund_line = ''
+            if schedule.price and int(schedule.price) >= 100:
+                refund_line = '\n\n返金は店舗スタッフが対応いたします。処理完了後にご連絡いたします。'
+            line_bot_api = LineBotApi(settings.LINE_ACCESS_TOKEN)
+            line_bot_api.push_message(
+                user_id,
+                TextSendMessage(
+                    text=(
+                        f'【キャンセル完了】ご予約のキャンセルが完了しました。'
+                        f'\n\n予約番号: {schedule.reservation_number}'
+                        f'\n日時: {local_start.strftime("%Y年%m月%d日 %H:%M")}'
+                        f'\n担当: {schedule.staff.name}'
+                        + refund_line
+                    )
+                ),
+            )
+        except Exception as e:
+            logger.warning('CustomerCancelConfirmView: 顧客LINE通知に失敗: %s', e)
+
+    @staticmethod
+    def _notify_staff_line(schedule):
+        """スタッフにLINEでキャンセル通知。"""
+        try:
+            staff_line_id = getattr(schedule.staff, 'line_id', None)
+            if not staff_line_id:
+                return
+            local_tz = pytz.timezone('Asia/Tokyo')
+            local_start = schedule.start.astimezone(local_tz)
+            line_bot_api = LineBotApi(settings.LINE_ACCESS_TOKEN)
+            line_bot_api.push_message(
+                staff_line_id,
+                TextSendMessage(
+                    text=(
+                        f'【キャンセル通知】予約がキャンセルされました。'
+                        f'\n顧客名: {schedule.customer_name or "不明"}'
+                        f'\n日時: {local_start.strftime("%Y年%m月%d日 %H:%M")}'
+                    )
+                ),
+            )
+        except Exception as e:
+            logger.warning('CustomerCancelConfirmView: スタッフLINE通知に失敗: %s', e)
+
+
+# ===== Cancel (admin/staff, login required) =====
 
 class CancelReservationView(LoginRequiredMixin, View):
     def post(self, request, schedule_id):
@@ -611,27 +853,41 @@ def process_payment(payment_response, request, order_id):
             logger.warning('Failed to decrypt LINE user id: %s', e)
 
         if user_id:
-            timer_url = reverse('booking:LINETimerView', args=[user_id])
-            encoded_timer_url = quote(timer_url)
+            local_tz = pytz.timezone('Asia/Tokyo')
+            local_start = schedule.start.astimezone(local_tz)
+            local_end = schedule.end.astimezone(local_tz)
             qr_page_url = (
                 f'{settings.SITE_BASE_URL}/reservation/'
                 f'{schedule.reservation_number}/qr/'
             )
+            cancel_page_url = (
+                f'{settings.SITE_BASE_URL}/cancel/{schedule.reservation_number}/'
+            )
             store = schedule.staff.store
             access_lines = _build_access_lines(store)
-            backup_line = ''
+            checkin_line = ''
             if schedule.checkin_backup_code:
-                backup_line = (
-                    f'\n\nチェックインQRコード: {qr_page_url}'
+                checkin_line = (
+                    f'\n\n■ チェックイン'
+                    f'\nQRコード: {qr_page_url}'
                     f'\n口頭確認コード: {schedule.checkin_backup_code}'
                     f'\n（QRが読み取れない場合、スタッフにこの6桁コードをお伝えください）'
                 )
+            duration_min = int((schedule.end - schedule.start).total_seconds() // 60)
             message_text = (
-                '【予約確定】決済が完了しました。'
-                + backup_line
-                + '\n\n予約情報・タイマー: '
-                + '<' + settings.SITE_BASE_URL + '/' + encoded_timer_url + '>'
+                f'【予約確定】決済が完了しました。'
+                f'\n\n■ 予約情報'
+                f'\n予約番号: {schedule.reservation_number}'
+                f'\n日時: {local_start.strftime("%Y年%m月%d日 %H:%M")}〜{local_end.strftime("%H:%M")}（{duration_min}分）'
+                f'\n担当: {schedule.staff.name}'
+                f'\n料金: {schedule.price:,}円（決済済み）'
+                + checkin_line
                 + access_lines
+                + f'\n\n■ キャンセル'
+                + f'\nキャンセル番号: {schedule.cancel_token}'
+                + f'\n{cancel_page_url}'
+                + f'\n（上記URLでキャンセル番号を入力してください）'
+                + f'\n※ 返金は店舗スタッフが対応いたします。処理にお時間をいただく場合がございます。'
             )
             try:
                 line_bot_api.push_message(user_id, TextSendMessage(text=message_text))
@@ -655,6 +911,19 @@ def process_payment(payment_response, request, order_id):
                     f'\n口頭確認コード: {schedule.checkin_backup_code}'
                     f'\n（QRが読み取れない場合、スタッフにこの6桁コードをお伝えください）'
                 )
+            email_cancel_url = (
+                f'{settings.SITE_BASE_URL}/cancel/{schedule.reservation_number}/'
+            )
+            email_cancel_section = (
+                f'\n\n■ キャンセル'
+                f'\nキャンセル番号: {schedule.cancel_token}'
+                f'\n{email_cancel_url}'
+                f'\n（上記URLでキャンセル番号を入力してください）'
+            )
+            if int(schedule.price) >= 100:
+                email_cancel_section += (
+                    f'\n※ 返金は店舗スタッフが対応いたします。処理にお時間をいただく場合がございます。'
+                )
             try:
                 send_mail(
                     subject='予約確定のお知らせ',
@@ -665,8 +934,9 @@ def process_payment(payment_response, request, order_id):
                         f'日時: {local_time.strftime("%Y年%m月%d日 %H:%M")}\n'
                         f'料金: {schedule.price}円'
                         + email_backup
-                        + f'\n\nご予約ありがとうございます。'
                         + access_lines
+                        + email_cancel_section
+                        + f'\n\nご予約ありがとうございます。'
                     ),
                     from_email=settings.DEFAULT_FROM_EMAIL,
                     recipient_list=[schedule.customer_email],
@@ -685,20 +955,16 @@ def coiney_webhook(request, orderId):
     if not request.content_type or not request.content_type.startswith('application/json'):
         return JsonResponse({"error": "Content-Type must be application/json"}, status=400)
 
-    # Webhook署名検証
-    webhook_secret = getattr(settings, 'COINEY_WEBHOOK_SECRET', None)
-    if webhook_secret:
+    # Webhookトークン検証（URLクエリパラメータ方式）
+    expected_token = getattr(settings, 'COINEY_WEBHOOK_TOKEN', '')
+    if expected_token:
         import hmac as _hmac
-        signature = request.headers.get('X-Coiney-Signature', '')
-        expected = _hmac.new(
-            webhook_secret.encode(), request.body, hashlib.sha256
-        ).hexdigest()
-        if not _hmac.compare_digest(signature, expected):
-            logger.warning('coiney_webhook: 署名検証に失敗しました orderId=%s', orderId)
-            return JsonResponse({"error": "Invalid signature"}, status=403)
+        received_token = request.GET.get('token', '')
+        if not _hmac.compare_digest(received_token, expected_token):
+            logger.warning('coiney_webhook: トークン検証失敗 orderId=%s', orderId)
+            return JsonResponse({"error": "Invalid token"}, status=403)
     else:
-        logger.error('coiney_webhook: COINEY_WEBHOOK_SECRET が未設定です。Webhook を受け付けられません。')
-        return JsonResponse({"error": "Webhook secret not configured"}, status=500)
+        logger.warning('coiney_webhook: COINEY_WEBHOOK_TOKEN 未設定。トークン検証をスキップします。')
 
     # リクエストヘッダーのログ出力（機密情報を除外）
     safe_meta = {k: v for k, v in request.META.items()

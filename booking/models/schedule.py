@@ -5,6 +5,8 @@ from django.utils.translation import gettext_lazy as _
 from django.utils import timezone
 from django.core.exceptions import ImproperlyConfigured
 
+import secrets
+import string
 import uuid
 import hashlib
 from typing import Optional
@@ -54,6 +56,13 @@ class Schedule(models.Model):
     email_verified = models.BooleanField(_('メール認証済み'), default=False)
     payment_url = models.URLField(_('決済URL'), blank=True, null=True)
 
+    # 顧客キャンセル用トークン
+    cancel_token = models.CharField(
+        _('キャンセル番号'), max_length=8,
+        unique=True, null=True, blank=True,
+        help_text=_('顧客キャンセル用8桁コード'),
+    )
+
     # QRチェックイン
     checkin_qr = models.ImageField(_('チェックインQR'), upload_to='checkin_qr/', blank=True, null=True)
     is_checked_in = models.BooleanField(_('チェックイン済み'), default=False)
@@ -85,6 +94,21 @@ class Schedule(models.Model):
         end = timezone.localtime(self.end).strftime('%Y/%m/%d %H:%M:%S')
         customer_name = self.customer_name if self.customer_name else "No customer"
         return f'{self.reservation_number} {start} ~ {end} {self.staff} Customer: {customer_name}'
+
+    def save(self, **kwargs):
+        if not self.cancel_token:
+            self.cancel_token = self._generate_cancel_token()
+        super().save(**kwargs)
+
+    @staticmethod
+    def _generate_cancel_token():
+        """8文字の英大文字+数字トークンを生成（衝突時はリトライ）。"""
+        alphabet = string.ascii_uppercase + string.digits
+        for _ in range(10):
+            token = ''.join(secrets.choice(alphabet) for _ in range(8))
+            if not Schedule.objects.filter(cancel_token=token).exists():
+                return token
+        raise RuntimeError('cancel_token の一意生成に失敗しました')
 
     # ===== LINE user_id 保管（暗号化 + ハッシュ） =====
     @staticmethod

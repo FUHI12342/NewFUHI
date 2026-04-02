@@ -1,0 +1,100 @@
+{% extends 'booking/base.html' %}
+{% load i18n %}
+
+{% block title %}{% trans "予約完了" %} | {{ block.super }}{% endblock %}
+
+{% block content %}
+<div class="max-w-md mx-auto mt-10 mb-10">
+    <div class="bg-white rounded-2xl shadow-lg border border-gray-100 p-8">
+
+        <!-- Success Icon -->
+        <div class="mb-6 text-center">
+            <div class="w-16 h-16 mx-auto bg-green-100 rounded-full flex items-center justify-center">
+                <svg class="w-9 h-9 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
+                </svg>
+            </div>
+        </div>
+
+        <h1 class="text-2xl font-bold text-salon-dark mb-3 text-center">{% trans "予約完了" %}</h1>
+
+        <!-- 予約情報 -->
+        <div class="bg-gray-50 rounded-lg p-4 mb-6 space-y-2">
+            <div class="flex justify-between text-sm">
+                <span class="text-gray-500">{% trans "予約番号" %}</span>
+                <span class="font-mono text-salon-dark">{{ reservation_number|truncatechars:12 }}</span>
+            </div>
+            <div class="flex justify-between text-sm">
+                <span class="text-gray-500">{% trans "日時" %}</span>
+                <span class="text-salon-dark">{{ start_display }}</span>
+            </div>
+            <div class="flex justify-between text-sm">
+                <span class="text-gray-500">{% trans "担当" %}</span>
+                <span class="text-salon-dark">{{ staff_name }}</span>
+            </div>
+            {% if price %}
+            <div class="flex justify-between text-sm">
+                <span class="text-gray-500">{% trans "料金" %}</span>
+                <span class="text-salon-dark">{{ price }}{% trans "円" %}</span>
+            </div>
+            {% endif %}
+        </div>
+
+        {% if payment_url %}
+        <!-- 有料予約: 決済ボタン -->
+        <div class="mb-6">
+            <p class="text-sm text-gray-600 mb-3 text-center">{% trans "以下のボタンから決済を行ってください。" %}</p>
+            <a href="{{ payment_url }}"
+               class="block w-full bg-salon-brown text-white py-3 rounded-lg font-medium text-center hover:opacity-80 transition">
+                {% trans "決済する" %}
+            </a>
+            <p class="text-xs text-gray-500 mt-2 text-center">{% trans "15分以内にお支払いがない場合、仮予約は自動キャンセルされます。" %}</p>
+            <p class="text-xs text-gray-500 mt-1 text-center">{% trans "※ キャンセル時の返金は店舗スタッフが対応いたします。処理にお時間をいただく場合がございます。" %}</p>
+        </div>
+        {% endif %}
+
+        {% if qr_page_url %}
+        <!-- 無料予約: QRコード -->
+        <div class="mb-6">
+            <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 space-y-2">
+                <p class="text-sm font-medium text-blue-800">{% trans "チェックインQRコード" %}</p>
+                <a href="{{ qr_page_url }}" class="text-sm text-blue-600 underline break-all">{{ qr_page_url }}</a>
+                {% if backup_code %}
+                <p class="text-sm text-blue-700 mt-2">{% trans "口頭確認コード:" %} <span class="font-mono font-bold">{{ backup_code }}</span></p>
+                <p class="text-xs text-blue-600">{% trans "（QRが読み取れない場合、スタッフにこの6桁コードをお伝えください）" %}</p>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+
+        {% if cancel_token %}
+        <!-- キャンセル情報 -->
+        <div class="mb-6">
+            <div class="bg-gray-50 rounded-lg p-4">
+                <p class="text-sm font-medium text-gray-700 mb-1">{% trans "キャンセル番号" %}</p>
+                <p class="font-mono text-lg font-bold text-salon-dark tracking-widest">{{ cancel_token }}</p>
+                <p class="text-xs text-gray-500 mt-1">{% trans "キャンセル時に必要です。控えておいてください。" %}</p>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- 友達追加リンク -->
+        {% if friend_add_url %}
+        <div class="bg-[#06C755]/10 border border-[#06C755]/30 rounded-lg p-4 mb-6 text-center">
+            <p class="text-sm text-gray-700 mb-3">{% trans "LINE友達追加で次回から予約情報をLINEで受け取れます" %}</p>
+            <a href="{{ friend_add_url }}"
+               class="inline-flex items-center gap-2 bg-[#06C755] hover:bg-[#05b34c] text-white font-bold py-2 px-5 rounded-full transition shadow-md text-sm">
+                <svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M19.365 9.863c.349 0 .63.285.63.631 0 .345-.281.63-.63.63H17.61v1.125h1.755c.349 0 .63.283.63.63 0 .344-.281.629-.63.629h-2.386c-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.63-.63h2.386c.346 0 .627.285.627.63 0 .349-.281.63-.63.63H17.61v1.125h1.755zm-3.855 3.016c0 .27-.174.51-.432.596-.064.021-.133.031-.199.031-.211 0-.391-.09-.51-.25l-2.443-3.317v2.94c0 .344-.279.629-.631.629-.346 0-.626-.285-.626-.629V8.108c0-.27.173-.51.43-.595.06-.023.136-.033.194-.033.195 0 .375.104.495.254l2.462 3.33V8.108c0-.345.282-.63.63-.63.345 0 .63.285.63.63v4.771zm-5.741 0c0 .344-.282.629-.631.629-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.63-.63.346 0 .628.285.628.63v4.771zm-2.466.629H4.917c-.345 0-.63-.285-.63-.629V8.108c0-.345.285-.63.63-.63.348 0 .63.285.63.63v4.141h1.756c.348 0 .629.283.629.63 0 .344-.282.629-.629.629M24 10.314C24 4.943 18.615.572 12 .572S0 4.943 0 10.314c0 4.811 4.27 8.842 10.035 9.608.391.082.923.258 1.058.59.12.301.079.766.038 1.08l-.164 1.02c-.045.301-.24 1.186 1.049.645 1.291-.539 6.916-4.078 9.436-6.975C23.176 14.393 24 12.458 24 10.314"/>
+                </svg>
+                {% trans "友達追加する" %}
+            </a>
+        </div>
+        {% endif %}
+
+        <div class="text-center">
+            <a href="{% url 'booking:booking_top' %}" class="text-sm text-gray-500 hover:underline">{% trans "トップへ戻る" %}</a>
+        </div>
+    </div>
+</div>
+{% endblock %}

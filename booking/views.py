@@ -40,6 +40,7 @@ from booking.models import (
     UserSerializer,
     SiteSettings,
     HeroBanner,
+    HomepageCustomBlock,
     Notice,
     StoreScheduleConfig,
     ShiftPeriod,
@@ -181,6 +182,11 @@ class BookingTopPage(generic.TemplateView):
         if site_settings.show_hero_banner:
             context['hero_banners'] = HeroBanner.objects.filter(is_active=True).order_by('sort_order')
 
+        # カスタムブロック (HomepageCustomBlock)
+        active_blocks = HomepageCustomBlock.objects.filter(is_active=True)
+        context['custom_blocks_above'] = active_blocks.filter(position='above_cards')
+        context['custom_blocks_below'] = active_blocks.filter(position='below_cards')
+
         # 予約ランキング（直近30日の予約数上位）
         if site_settings.show_ranking:
             from django.db.models import Count
@@ -217,6 +223,11 @@ class BookingTopPage(generic.TemplateView):
             context['recommended_stores'] = Store.objects.filter(
                 is_recommended=True,
             )[:site_settings.ranking_limit]
+
+        # セクションベースレイアウト
+        from booking.services.page_layout_service import get_page_sections
+        store = Store.objects.first()
+        context['page_sections'] = get_page_sections(store, 'home')
 
         return context
 
@@ -546,6 +557,8 @@ from .views_booking import (  # noqa: F401, E402
     EmailBookingView,
     EmailVerifyView,
     CancelReservationView,
+    CustomerCancelView,
+    CustomerCancelConfirmView,
     ReservationQRView,
     CheckinScanView,
     CheckinAPIView,

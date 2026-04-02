@@ -51,6 +51,7 @@ def encryption_settings(settings):
     settings.LINE_USER_ID_ENCRYPTION_KEY = test_key
     settings.LINE_USER_ID_HASH_PEPPER = 'test-pepper'
     settings.IOT_ENCRYPTION_KEY = test_key
+    settings.CHECKIN_QR_SECRET = 'test-qr-secret-for-pytest-only-32chars!'
 
 
 # ==============================
