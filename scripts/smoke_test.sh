@@ -162,7 +162,7 @@ if [ "$LOGGED_IN" = "1" ]; then
     echo ""
 
     echo "[ 公開ページ（認証済み＝メンテバイパス） ]"
-    check_status "${BASE_URL}/ja/booking/" "200" "予約トップ" "auth"
+    check_status "${BASE_URL}/ja/" "200" "予約トップ" "auth"
     echo ""
 fi
 
