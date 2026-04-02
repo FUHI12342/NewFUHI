@@ -42,9 +42,45 @@
         {% endif %}
     </div>
 
-    <!-- X(Twitter) タイムライン埋め込み -->
-    {% if site_settings.twitter_url %}
-    <div class="mb-3" style="max-height:400px;overflow-y:auto;border:1px solid rgba(140,135,108,0.2);border-radius:8px;">
+    {% with has_instagram=site_settings.instagram_url has_twitter=site_settings.twitter_url %}
+    {% if has_instagram or has_twitter %}
+    <!-- タブ切替（両方ある場合のみ表示） -->
+    {% if has_instagram and has_twitter %}
+    <div class="flex gap-1 mb-3" id="sns-tabs">
+        <button type="button" data-tab="instagram"
+                class="sns-tab flex-1 text-xs font-bold py-1.5 px-2 rounded-t border border-b-0 transition"
+                style="background:linear-gradient(45deg,#f09433,#e6683c,#dc2743);color:#fff;border-color:rgba(140,135,108,0.2);">
+            Instagram
+        </button>
+        <button type="button" data-tab="twitter"
+                class="sns-tab flex-1 text-xs font-bold py-1.5 px-2 rounded-t border border-b-0 transition"
+                style="background:#f5f0e8;color:#8c876c;border-color:rgba(140,135,108,0.2);">
+            X
+        </button>
+    </div>
+    {% endif %}
+
+    <!-- Instagram 埋め込み（デフォルト表示） -->
+    {% if has_instagram %}
+    <div id="sns-panel-instagram" class="sns-panel"
+         style="max-height:480px;overflow-y:auto;border:1px solid rgba(140,135,108,0.2);border-radius:{% if has_twitter %}0 0 8px 8px{% else %}8px{% endif %};">
+        {% if site_settings.instagram_embed_html %}
+            {{ site_settings.instagram_embed_html|safe }}
+        {% else %}
+            <div class="p-4 text-center text-sm text-gray-500">
+                <a href="{{ site_settings.instagram_url }}" target="_blank" rel="noopener noreferrer"
+                   class="text-salon-brown hover:underline">
+                    Instagram {% trans "を見る" %}
+                </a>
+            </div>
+        {% endif %}
+    </div>
+    {% endif %}
+
+    <!-- X(Twitter) タイムライン埋め込み（切替で表示） -->
+    {% if has_twitter %}
+    <div id="sns-panel-twitter" class="sns-panel"
+         style="{% if has_instagram %}display:none;{% endif %}max-height:400px;overflow-y:auto;border:1px solid rgba(140,135,108,0.2);border-radius:{% if has_instagram %}0 0 8px 8px{% else %}8px{% endif %};">
         <a class="twitter-timeline"
            data-height="400"
            data-chrome="noheader nofooter noborders transparent"
@@ -56,14 +92,50 @@
     </div>
     {% endif %}
 
-    <!-- Instagram 埋め込み -->
-    {% if site_settings.instagram_embed_html %}
-    <div style="max-height:480px;overflow-y:auto;border:1px solid rgba(140,135,108,0.2);border-radius:8px;">
-        {{ site_settings.instagram_embed_html|safe }}
-    </div>
+    {% if has_instagram and has_twitter %}
+    <script>
+    (function(){
+      var tabs = document.querySelectorAll('#sns-tabs .sns-tab');
+      var panels = document.querySelectorAll('.sns-panel');
+      var twitterLoaded = false;
+      tabs.forEach(function(tab){
+        tab.addEventListener('click', function(){
+          var target = tab.getAttribute('data-tab');
+          // パネル切替
+          panels.forEach(function(p){ p.style.display = 'none'; });
+          var panel = document.getElementById('sns-panel-' + target);
+          if(panel) panel.style.display = 'block';
+          // タブスタイル切替
+          tabs.forEach(function(t){
+            if(t.getAttribute('data-tab') === target){
+              if(target === 'instagram'){
+                t.style.background = 'linear-gradient(45deg,#f09433,#e6683c,#dc2743)';
+                t.style.color = '#fff';
+              } else {
+                t.style.background = '#000';
+                t.style.color = '#fff';
+              }
+            } else {
+              t.style.background = '#f5f0e8';
+              t.style.color = '#8c876c';
+            }
+          });
+          // Xタイムラインの遅延読み込み
+          if(target === 'twitter' && !twitterLoaded){
+            twitterLoaded = true;
+            if(window.twttr && window.twttr.widgets){
+              window.twttr.widgets.load(panel);
+            }
+          }
+        });
+      });
+    })();
+    </script>
     {% endif %}
+    {% endif %}
+    {% endwith %}
 
-    <!-- SNS ウィジェットスクリプト（1回だけ読み込み） -->
+    <!-- SNS ウィジェットスクリプト -->
     {% if site_settings.twitter_url %}
     <script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
     {% endif %}
