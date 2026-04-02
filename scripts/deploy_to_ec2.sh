@@ -123,14 +123,10 @@ echo ""
 
 # ========== Step 2.9: メンテナンスモード ON ==========
 echo -e "${YELLOW}[2.9/6] メンテナンスモード ON...${NC}"
-$SSH_CMD "cd '$REMOTE_PATH' && source .venv/bin/activate && set -a && source .env && set +a && \
-    python manage.py shell -c \"
-from booking.models import SiteSettings
-s = SiteSettings.load()
-s.maintenance_mode = True
-s.save(update_fields=['maintenance_mode'])
-print('Maintenance mode: ON')
-\"" 2>&1 || echo -e "${YELLOW}  メンテナンスモード切替スキップ（初回デプロイ等）${NC}"
+# 直接SQLで切替（マイグレーション未適用のカラム追加に影響されない）
+$SSH_CMD "cd '$REMOTE_PATH' && sqlite3 db.sqlite3 \
+    \"UPDATE booking_sitesettings SET maintenance_mode=1 WHERE id=1;\" && \
+    echo 'Maintenance mode: ON'" 2>&1 || echo -e "${YELLOW}  メンテナンスモード切替スキップ（初回デプロイ等）${NC}"
 echo ""
 
 # ========== Step 3: 依存関係インストール & マイグレーション ==========
@@ -219,14 +215,9 @@ echo ""
 if [ "$SMOKE_RESULT" -eq 0 ]; then
     # スモークテスト合格 → メンテナンスモード OFF
     echo -e "${GREEN}メンテナンスモード OFF...${NC}"
-    $SSH_CMD "cd '$REMOTE_PATH' && source .venv/bin/activate && set -a && source .env && set +a && \
-        python manage.py shell -c \"
-from booking.models import SiteSettings
-s = SiteSettings.load()
-s.maintenance_mode = False
-s.save(update_fields=['maintenance_mode'])
-print('Maintenance mode: OFF')
-\"" 2>&1 || echo -e "${YELLOW}  メンテナンスモード切替スキップ${NC}"
+    $SSH_CMD "cd '$REMOTE_PATH' && sqlite3 db.sqlite3 \
+        \"UPDATE booking_sitesettings SET maintenance_mode=0 WHERE id=1;\" && \
+        echo 'Maintenance mode: OFF'" 2>&1 || echo -e "${YELLOW}  メンテナンスモード切替スキップ${NC}"
 
     echo ""
     echo "========================================"
