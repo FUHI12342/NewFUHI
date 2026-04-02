@@ -3,13 +3,35 @@
 <div class="bg-salon-beige rounded-lg p-4">
     <h3 class="text-base font-bold text-salon-brown border-b border-salon-brown/30 pb-2 mb-3">{% trans "メディア掲載情報" %}</h3>
     {% for media in medias %}
-    <a href="{{ media.link }}" target="_blank" rel="noopener noreferrer" class="flex items-start gap-2 mb-3 hover:opacity-80 transition">
+    <a href="{{ media.link }}" target="_blank" rel="noopener noreferrer" class="flex items-start gap-2 mb-3 hover:opacity-80 transition" style="min-width:0;">
         <img src="https://www.google.com/s2/favicons?domain={{ media.link }}" alt="" class="w-5 h-5 mt-0.5 flex-shrink-0">
-        <div>
-            <p class="text-sm font-medium leading-tight text-marquee" style="max-width:100%" title="{{ media.title }}">{{ media.title }}{% if forloop.first %} <span class="inline-block bg-red-500 text-white text-[10px] px-1.5 py-0.5 rounded">NEW</span>{% endif %}</p>
-            <p class="text-xs text-gray-500 mt-0.5 text-marquee" style="max-width:100%" title="{{ media.description }}">{{ media.description }}</p>
+        <div class="min-w-0 flex-1 overflow-hidden">
+            <p class="text-sm font-medium leading-tight sidebar-marquee" title="{{ media.title }}">
+                <span class="sidebar-marquee-inner">{{ media.title }}{% if forloop.first %} <span class="inline-block bg-red-500 text-white text-[10px] px-1.5 py-0.5 rounded align-middle">NEW</span>{% endif %}</span>
+            </p>
+            <p class="text-xs text-gray-500 mt-0.5 truncate" title="{{ media.description }}">{{ media.description }}</p>
         </div>
     </a>
     {% endfor %}
 </div>
+<style>
+.sidebar-marquee {
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+.sidebar-marquee .sidebar-marquee-inner {
+    display: inline-block;
+    white-space: nowrap;
+    animation: sidebar-marquee-scroll 8s linear 3s infinite;
+}
+@keyframes sidebar-marquee-scroll {
+    0%   { transform: translateX(0); }
+    10%  { transform: translateX(0); }
+    45%  { transform: translateX(calc(-100% + 200px)); }
+    55%  { transform: translateX(calc(-100% + 200px)); }
+    90%  { transform: translateX(0); }
+    100% { transform: translateX(0); }
+}
+</style>
 {% endif %}
