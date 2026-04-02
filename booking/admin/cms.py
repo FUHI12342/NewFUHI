@@ -98,11 +98,15 @@ class SiteSettingsAdmin(admin.ModelAdmin):
         (_('ヒーローバナー / ランキング'), {'fields': (
             'show_hero_banner', 'show_ranking', 'ranking_limit',
         )}),
-        (_('サイドバー表示'), {'fields': (
-            'show_sidebar_notice', 'show_sidebar_company',
-            'show_sidebar_media', 'show_sidebar_social',
-            'show_sidebar_external_links',
-        )}),
+        (_('サイドバー表示'), {
+            'fields': (
+                'show_sidebar_notice', 'show_sidebar_company',
+                'show_sidebar_media', 'show_sidebar_social',
+                'show_sidebar_external_links',
+                'sidebar_order',
+            ),
+            'description': _('並び順はセクションキーのリスト: notice, company, sns, media, external_links（空の場合はデフォルト順）'),
+        }),
         (_('SNS連携'), {'fields': ('twitter_url', 'instagram_url', 'threads_url', 'tiktok_url', 'instagram_embed_html')}),
         (_('法定ページ'), {
             'fields': ('privacy_policy_html', 'tokushoho_html'),

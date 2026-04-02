@@ -27,6 +27,14 @@ def global_context(request):
     site_settings = SiteSettings.load()
     # staff_label を現在の言語に合わせて上書きしたコピーを作成
     localized_staff_label = _get_localized_staff_label(site_settings)
+    # サイドバー並び順
+    default_order = ['notice', 'sns', 'media', 'external_links', 'company']
+    sidebar_order = site_settings.sidebar_order if site_settings.sidebar_order else default_order
+    # 未登録のセクションがあれば末尾に追加
+    for key in default_order:
+        if key not in sidebar_order:
+            sidebar_order.append(key)
+
     context = {
         'stores': list(Store.objects.all()),
         'company': Company.objects.first(),
@@ -38,6 +46,7 @@ def global_context(request):
         'site_settings': site_settings,
         'staff_label': localized_staff_label,
         'price_label': site_settings.price_label if site_settings else '鑑定料',
+        'sidebar_order': sidebar_order,
     }
     cache.set(cache_key, context, 60)
     return context

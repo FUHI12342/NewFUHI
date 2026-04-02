@@ -320,6 +320,12 @@ class SiteSettings(models.Model):
     # 外部リンク
     show_sidebar_external_links = models.BooleanField(_('外部リンク表示'), default=True)
 
+    # サイドバー並び順（JSON: セクションキーのリスト）
+    sidebar_order = models.JSONField(
+        _('サイドバー並び順'), blank=True, default=list,
+        help_text=_('セクションの表示順序。例: ["notice","sns","media","external_links","company"]'),
+    )
+
     # Instagram埋め込みHTML
     instagram_embed_html = models.TextField(_('Instagram埋め込みHTML'), blank=True, default='',
         help_text=_('Instagramの投稿埋め込みHTMLを貼り付けてください'))

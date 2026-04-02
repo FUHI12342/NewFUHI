@@ -1,0 +1,11 @@
+{% load i18n %}
+{% if site_settings.show_sidebar_company and company %}
+<div class="bg-salon-beige rounded-lg p-4">
+    <h3 class="text-base font-bold text-salon-brown border-b border-salon-brown/30 pb-2 mb-3">{% trans "運営会社" %}</h3>
+    <p class="text-sm leading-relaxed">
+        {{ company.name }}<br>
+        {{ company.address }}<br>
+        TEL: {{ company.tel }}
+    </p>
+</div>
+{% endif %}

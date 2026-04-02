@@ -1,0 +1,18 @@
+{% load i18n %}
+{% if site_settings.show_sidebar_external_links and external_links %}
+<div class="bg-salon-beige rounded-lg p-4">
+    <h3 class="text-base font-bold text-salon-brown border-b border-salon-brown/30 pb-2 mb-3">{% trans "外部リンク" %}</h3>
+    {% for link in external_links %}
+    <a href="{{ link.url }}" {% if link.open_in_new_tab %}target="_blank" rel="noopener noreferrer"{% endif %}
+       class="flex items-start gap-2 mb-3 hover:opacity-80 transition">
+        <img src="https://www.google.com/s2/favicons?domain={{ link.url }}" alt="" class="w-5 h-5 mt-0.5 flex-shrink-0">
+        <div>
+            <p class="text-sm font-medium leading-tight">{{ link.title }}</p>
+            {% if link.description %}
+            <p class="text-xs text-gray-500 mt-0.5">{{ link.description }}</p>
+            {% endif %}
+        </div>
+    </a>
+    {% endfor %}
+</div>
+{% endif %}
