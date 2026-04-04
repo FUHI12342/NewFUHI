@@ -321,9 +321,9 @@ class SiteSettingsAdmin(admin.ModelAdmin):
       var scShift = '[timebaibai type="shift" store="' + s.pk + '" api_key="' + s.key + '"]';
 
       codeSection = '<div class="eg-tabs" id="' + tabId + '-tabs">'
-        + '<button class="eg-tab active" data-tab="' + tabId + '-html" onclick="embedSwitchTab(this)">HTML</button>'
-        + '<button class="eg-tab" data-tab="' + tabId + '-sc" onclick="embedSwitchTab(this)">WordPress</button>'
-        + '<button class="eg-tab" data-tab="' + tabId + '-preview" onclick="embedSwitchTab(this)">Preview</button>'
+        + '<button type="button" class="eg-tab active" data-tab="' + tabId + '-html" onclick="embedSwitchTab(this)">HTML</button>'
+        + '<button type="button" class="eg-tab" data-tab="' + tabId + '-sc" onclick="embedSwitchTab(this)">WordPress</button>'
+        + '<button type="button" class="eg-tab" data-tab="' + tabId + '-preview" onclick="embedSwitchTab(this)">Preview</button>'
         + '</div>'
         + '<div class="eg-tab-content active" id="' + tabId + '-html">'
         + '<div style="margin-bottom:6px;font-size:11px;color:#64748b;">iframe HTML &#8212; そのまま貼付OK（プラグイン不要）</div>'
