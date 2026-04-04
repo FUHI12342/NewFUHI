@@ -205,7 +205,7 @@ class SiteSettingsAdmin(admin.ModelAdmin):
         rows = []
         for store in stores:
             has_key = bool(store.embed_api_key)
-            key_display = store.embed_api_key if has_key else '（未発行）'
+            key_display = store.embed_api_key if has_key else ''
             booking_url = f'/embed/booking/{store.pk}/?api_key={store.embed_api_key}' if has_key else ''
             shift_url = f'/embed/shift/{store.pk}/?api_key={store.embed_api_key}' if has_key else ''
             rows.append({
@@ -219,22 +219,64 @@ class SiteSettingsAdmin(admin.ModelAdmin):
         stores_json = json.dumps(rows, ensure_ascii=False)
         demo_url = '/embed/demo/'
         return mark_safe('''
-<div id="embed-generator" style="margin-top:8px;">
+<style>
+#embed-generator { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+.eg-card { border:1px solid #e2e8f0; border-radius:12px; padding:20px; margin-bottom:16px; background:#fff; box-shadow:0 1px 3px rgba(0,0,0,.06); transition:box-shadow .2s; }
+.eg-card:hover { box-shadow:0 4px 12px rgba(0,0,0,.08); }
+.eg-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:14px; padding-bottom:12px; border-bottom:1px solid #f1f5f9; }
+.eg-store-name { font-size:15px; font-weight:700; color:#0f172a; }
+.eg-store-id { font-size:11px; color:#94a3b8; font-weight:400; margin-left:8px; }
+.eg-btn { border:none; padding:7px 18px; border-radius:8px; font-size:12px; font-weight:600; cursor:pointer; transition:all .15s; }
+.eg-btn:hover { transform:translateY(-1px); box-shadow:0 2px 8px rgba(0,0,0,.15); }
+.eg-btn-blue { background:#3b82f6; color:#fff; }
+.eg-btn-green { background:#10b981; color:#fff; }
+.eg-btn-gray { background:#64748b; color:#fff; }
+.eg-btn-sm { padding:4px 12px; font-size:11px; border-radius:6px; }
+.eg-key-row { display:flex; align-items:center; gap:8px; margin-bottom:16px; }
+.eg-key-label { font-size:11px; color:#64748b; font-weight:600; text-transform:uppercase; letter-spacing:.5px; }
+.eg-key-value { font-family:"SF Mono",Monaco,Consolas,monospace; font-size:12px; background:#f8fafc; border:1px solid #e2e8f0; padding:4px 10px; border-radius:6px; color:#334155; user-select:all; }
+.eg-key-none { font-size:12px; color:#cbd5e1; font-style:italic; }
+.eg-tabs { display:flex; gap:0; margin-bottom:12px; border-bottom:2px solid #e2e8f0; }
+.eg-tab { padding:8px 20px; font-size:12px; font-weight:600; cursor:pointer; border:none; background:none; color:#94a3b8; border-bottom:2px solid transparent; margin-bottom:-2px; transition:all .15s; }
+.eg-tab.active { color:#3b82f6; border-bottom-color:#3b82f6; }
+.eg-tab:hover:not(.active) { color:#64748b; }
+.eg-tab-content { display:none; }
+.eg-tab-content.active { display:block; }
+.eg-grid { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+.eg-code-box { background:#1e293b; border-radius:8px; padding:12px; position:relative; }
+.eg-code-label { font-size:11px; font-weight:600; color:#94a3b8; margin-bottom:8px; display:flex; justify-content:space-between; align-items:center; }
+.eg-code { font-family:"SF Mono",Monaco,Consolas,monospace; font-size:11px; line-height:1.6; color:#e2e8f0; word-break:break-all; user-select:all; }
+.eg-copy-btn { background:rgba(255,255,255,.1); color:#e2e8f0; border:1px solid rgba(255,255,255,.15); padding:3px 10px; border-radius:5px; font-size:10px; cursor:pointer; transition:all .15s; }
+.eg-copy-btn:hover { background:rgba(255,255,255,.2); }
+.eg-copy-btn.copied { background:#10b981; border-color:#10b981; color:#fff; }
+.eg-empty { padding:16px 20px; background:#fffbeb; border:1px dashed #fbbf24; border-radius:8px; text-align:center; color:#92400e; font-size:13px; }
+.eg-info { margin-top:16px; display:flex; gap:12px; }
+.eg-info-card { flex:1; padding:14px 16px; border-radius:10px; }
+.eg-info-demo { background:#f0f9ff; border:1px solid #bae6fd; }
+.eg-info-wp { background:#f0fdf4; border:1px solid #bbf7d0; }
+.eg-info-title { font-size:12px; font-weight:700; margin-bottom:4px; }
+.eg-info-desc { font-size:11px; color:#64748b; line-height:1.5; }
+.eg-dl-btn { display:inline-block; margin-top:8px; background:#16a34a; color:#fff; text-decoration:none; padding:5px 14px; border-radius:6px; font-size:11px; font-weight:600; transition:all .15s; }
+.eg-dl-btn:hover { background:#15803d; transform:translateY(-1px); color:#fff; }
+</style>
+<div id="embed-generator">
   <div id="embed-stores"></div>
-  <div style="margin-top:16px;padding:12px;background:#f0f9ff;border:1px solid #bae6fd;border-radius:8px;">
-    <strong>デモページ:</strong>
-    <a href="''' + demo_url + '''" target="_blank" style="color:#2563eb;">''' + demo_url + '''</a>
-    <span style="color:#6b7280;font-size:12px;margin-left:8px;">（APIキー設定済みの最初の店舗で表示）</span>
-  </div>
-  <div style="margin-top:12px;padding:12px;background:#f0fdf4;border:1px solid #bbf7d0;border-radius:8px;">
-    <div style="display:flex;align-items:center;justify-content:space-between;">
-      <div>
-        <strong style="color:#166534;">WordPressプラグイン</strong>
-        <span style="color:#6b7280;font-size:12px;margin-left:8px;">ショートコードを使う場合のみ必要（HTMLコードはプラグイン不要でそのまま貼れます）</span>
+  <div class="eg-info">
+    <div class="eg-info-card eg-info-demo">
+      <div class="eg-info-title" style="color:#1d4ed8;">デモページ</div>
+      <div class="eg-info-desc">
+        <a href="''' + demo_url + '''" target="_blank" style="color:#2563eb;font-weight:600;">''' + demo_url + '''</a><br>
+        APIキー設定済みの最初の店舗データで表示
       </div>
-      <a href="/admin/booking/sitesettings/embed-download-plugin/"
-         style="background:#16a34a;color:#fff;text-decoration:none;padding:6px 16px;border-radius:6px;font-size:12px;font-weight:600;">
-        timebaibai-embed.php をダウンロード
+    </div>
+    <div class="eg-info-card eg-info-wp">
+      <div class="eg-info-title" style="color:#166534;">WordPressプラグイン</div>
+      <div class="eg-info-desc">
+        ショートコードを使う場合のみ必要<br>
+        HTMLコードならプラグイン不要
+      </div>
+      <a href="/admin/booking/sitesettings/embed-download-plugin/" class="eg-dl-btn">
+        timebaibai-embed.php
       </a>
     </div>
   </div>
@@ -245,96 +287,116 @@ class SiteSettingsAdmin(admin.ModelAdmin):
   var container = document.getElementById('embed-stores');
   var csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
 
-  function getOrigin() {
-    return location.origin;
+  function getOrigin() { return location.origin; }
+
+  function esc(str) {
+    return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
   }
 
   function renderStore(s) {
     var div = document.createElement('div');
+    div.className = 'eg-card';
     div.id = 'embed-store-' + s.pk;
-    div.style.cssText = 'border:1px solid #e5e7eb;border-radius:8px;padding:16px;margin-bottom:12px;background:#fff;';
 
-    var header = '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">'
-      + '<strong style="font-size:14px;color:#1e3a5f;">' + s.name + ' (ID: ' + s.pk + ')</strong>'
-      + '<button type="button" onclick="embedGenKey(' + s.pk + ')" '
-      + 'style="background:#2563eb;color:#fff;border:none;padding:6px 16px;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;">'
+    var header = '<div class="eg-header">'
+      + '<div><span class="eg-store-name">' + esc(s.name) + '</span><span class="eg-store-id">ID: ' + s.pk + '</span></div>'
+      + '<button type="button" class="eg-btn ' + (s.has_key ? 'eg-btn-gray' : 'eg-btn-blue') + '" onclick="embedGenKey(' + s.pk + ')">'
       + (s.has_key ? 'APIキー再発行' : 'APIキー発行')
       + '</button></div>';
 
-    var keyRow = '<div style="margin-bottom:8px;font-size:12px;color:#6b7280;">'
-      + 'APIキー: <code id="embed-key-' + s.pk + '" style="background:#f3f4f6;padding:2px 6px;border-radius:3px;user-select:all;">' + s.key + '</code></div>';
+    var keyRow = '<div class="eg-key-row">'
+      + '<span class="eg-key-label">API Key</span>'
+      + (s.has_key
+        ? '<code class="eg-key-value" id="embed-key-' + s.pk + '">' + esc(s.key) + '</code>'
+        : '<span class="eg-key-none">未発行 &#8212; 右上のボタンで発行</span>')
+      + '</div>';
 
     var codeSection = '';
     if (s.has_key) {
-      var bookingCode = '&lt;iframe src=&quot;' + getOrigin() + s.booking_url + '&quot; width=&quot;100%&quot; height=&quot;600&quot; style=&quot;border:none; max-width:100%;&quot; loading=&quot;lazy&quot;&gt;&lt;/iframe&gt;';
-      var shiftCode = '&lt;iframe src=&quot;' + getOrigin() + s.shift_url + '&quot; width=&quot;100%&quot; height=&quot;400&quot; style=&quot;border:none; max-width:100%;&quot; loading=&quot;lazy&quot;&gt;&lt;/iframe&gt;';
-      var scBooking = '[timebaibai type=&quot;booking&quot; store=&quot;' + s.pk + '&quot; api_key=&quot;' + s.key + '&quot;]';
-      var scShift = '[timebaibai type=&quot;shift&quot; store=&quot;' + s.pk + '&quot; api_key=&quot;' + s.key + '&quot;]';
-      codeSection = '<div style="margin-bottom:8px;"><span style="font-size:11px;font-weight:600;color:#166534;background:#dcfce7;padding:2px 8px;border-radius:3px;">HTMLコード（プラグイン不要・そのまま貼付OK）</span></div>'
-        + '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">'
-        + embedCodeBox('予約カレンダー', bookingCode, 'booking-' + s.pk)
-        + embedCodeBox('シフト表示', shiftCode, 'shift-' + s.pk)
+      var tabId = 'tab-' + s.pk;
+      var o = getOrigin();
+      var bookingHtml = '<iframe src="' + o + s.booking_url + '" width="100%" height="600" style="border:none; max-width:100%;" loading="lazy"></iframe>';
+      var shiftHtml = '<iframe src="' + o + s.shift_url + '" width="100%" height="400" style="border:none; max-width:100%;" loading="lazy"></iframe>';
+      var scBooking = '[timebaibai type="booking" store="' + s.pk + '" api_key="' + s.key + '"]';
+      var scShift = '[timebaibai type="shift" store="' + s.pk + '" api_key="' + s.key + '"]';
+
+      codeSection = '<div class="eg-tabs" id="' + tabId + '-tabs">'
+        + '<button class="eg-tab active" data-tab="' + tabId + '-html" onclick="embedSwitchTab(this)">HTML</button>'
+        + '<button class="eg-tab" data-tab="' + tabId + '-sc" onclick="embedSwitchTab(this)">WordPress</button>'
+        + '<button class="eg-tab" data-tab="' + tabId + '-preview" onclick="embedSwitchTab(this)">Preview</button>'
         + '</div>'
-        + '<div style="margin-top:10px;margin-bottom:8px;"><span style="font-size:11px;font-weight:600;color:#1e40af;background:#dbeafe;padding:2px 8px;border-radius:3px;">WordPress ショートコード（要プラグイン）</span></div>'
-        + '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">'
-        + embedCodeBox('予約カレンダー', scBooking, 'sc-booking-' + s.pk)
-        + embedCodeBox('シフト表示', scShift, 'sc-shift-' + s.pk)
-        + '</div>'
-        + '<div style="margin-top:8px;padding:8px 12px;background:#eff6ff;border:1px solid #bfdbfe;border-radius:6px;font-size:11px;color:#1e40af;">'
-        + 'ショートコードを使う場合は上部の「timebaibai-embed.php をダウンロード」からプラグインを取得し、WordPressにインストールしてください。HTMLコードならプラグイン不要です。'
-        + '</div>';
+        + '<div class="eg-tab-content active" id="' + tabId + '-html">'
+        + '<div style="margin-bottom:6px;font-size:11px;color:#64748b;">iframe HTML &#8212; そのまま貼付OK（プラグイン不要）</div>'
+        + '<div class="eg-grid">'
+        + codeBox('予約カレンダー', esc(bookingHtml), 'html-booking-' + s.pk)
+        + codeBox('シフト表示', esc(shiftHtml), 'html-shift-' + s.pk)
+        + '</div></div>'
+        + '<div class="eg-tab-content" id="' + tabId + '-sc">'
+        + '<div style="margin-bottom:6px;font-size:11px;color:#64748b;">WordPress ショートコード &#8212; 要プラグイン（上でダウンロード可）</div>'
+        + '<div class="eg-grid">'
+        + codeBox('予約カレンダー', esc(scBooking), 'sc-booking-' + s.pk)
+        + codeBox('シフト表示', esc(scShift), 'sc-shift-' + s.pk)
+        + '</div></div>'
+        + '<div class="eg-tab-content" id="' + tabId + '-preview">'
+        + '<div style="margin-bottom:6px;font-size:11px;color:#64748b;">実際の表示プレビュー（予約カレンダー）</div>'
+        + '<div style="border:1px solid #e2e8f0;border-radius:8px;overflow:hidden;">'
+        + '<iframe src="' + o + s.booking_url + '" width="100%" height="400" style="border:none;" loading="lazy"></iframe>'
+        + '</div></div>';
     } else {
-      codeSection = '<div style="padding:12px;background:#fef3c7;border-radius:6px;font-size:12px;color:#92400e;">APIキーを発行すると埋め込みコードが表示されます</div>';
+      codeSection = '<div class="eg-empty">APIキーを発行すると埋め込みコードが表示されます</div>';
     }
 
     div.innerHTML = header + keyRow + codeSection;
     return div;
   }
 
-  function embedCodeBox(label, code, id) {
-    return '<div style="background:#f9fafb;border:1px solid #e5e7eb;border-radius:6px;padding:10px;">'
-      + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">'
-      + '<span style="font-size:12px;font-weight:600;color:#374151;">' + label + '</span>'
-      + '<button type="button" onclick="embedCopy(\\'' + id + '\\')" '
-      + 'style="background:#10b981;color:#fff;border:none;padding:3px 10px;border-radius:4px;font-size:11px;cursor:pointer;">コピー</button>'
-      + '</div>'
-      + '<code id="embed-code-' + id + '" style="display:block;font-size:11px;line-height:1.5;word-break:break-all;color:#1f2937;user-select:all;">' + code + '</code>'
+  function codeBox(label, code, id) {
+    return '<div class="eg-code-box">'
+      + '<div class="eg-code-label"><span>' + label + '</span>'
+      + '<button type="button" class="eg-copy-btn" onclick="embedCopy(\\'' + id + '\\', this)">Copy</button></div>'
+      + '<div class="eg-code" id="embed-code-' + id + '">' + code + '</div>'
       + '</div>';
   }
 
-  stores.forEach(function(s) {
-    container.appendChild(renderStore(s));
-  });
+  stores.forEach(function(s) { container.appendChild(renderStore(s)); });
+
+  window.embedSwitchTab = function(btn) {
+    var tabs = btn.parentElement;
+    tabs.querySelectorAll('.eg-tab').forEach(function(t) { t.classList.remove('active'); });
+    btn.classList.add('active');
+    var parent = tabs.parentElement;
+    parent.querySelectorAll('.eg-tab-content').forEach(function(c) { c.classList.remove('active'); });
+    document.getElementById(btn.dataset.tab).classList.add('active');
+  };
 
   window.embedGenKey = function(storeId) {
-    if (!confirm('APIキーを' + (stores.find(function(s){return s.pk===storeId}).has_key ? '再' : '') + '発行しますか？')) return;
+    var s = stores.find(function(x){return x.pk===storeId});
+    if (!confirm((s.has_key ? 'APIキーを再発行' : 'APIキーを発行') + 'しますか？')) return;
     fetch('/admin/booking/sitesettings/embed-generate-key/' + storeId + '/', {
       method: 'POST',
       headers: {'X-CSRFToken': csrfToken, 'Content-Type': 'application/json'},
     }).then(function(r){return r.json()}).then(function(data) {
       if (data.ok) {
-        var idx = stores.findIndex(function(s){return s.pk===storeId});
+        var idx = stores.findIndex(function(x){return x.pk===storeId});
         stores[idx].has_key = true;
         stores[idx].key = data.api_key;
         stores[idx].booking_url = '/embed/booking/' + storeId + '/?api_key=' + data.api_key;
         stores[idx].shift_url = '/embed/shift/' + storeId + '/?api_key=' + data.api_key;
         var old = document.getElementById('embed-store-' + storeId);
         old.replaceWith(renderStore(stores[idx]));
-        alert('APIキーを発行しました: ' + data.store_name);
       } else {
-        alert('エラー: ' + (data.error || 'unknown'));
+        alert('Error: ' + (data.error || 'unknown'));
       }
     });
   };
 
-  window.embedCopy = function(id) {
+  window.embedCopy = function(id, btn) {
     var el = document.getElementById('embed-code-' + id);
-    var text = el.textContent.replace(/&lt;/g,'<').replace(/&gt;/g,'>').replace(/&quot;/g,'"').replace(/&amp;/g,'&');
+    var text = el.textContent;
     navigator.clipboard.writeText(text).then(function() {
-      var btn = el.parentElement.querySelector('button');
-      btn.textContent = 'コピー済み';
-      btn.style.background = '#6b7280';
-      setTimeout(function(){ btn.textContent = 'コピー'; btn.style.background = '#10b981'; }, 2000);
+      btn.textContent = 'Copied!';
+      btn.classList.add('copied');
+      setTimeout(function(){ btn.textContent = 'Copy'; btn.classList.remove('copied'); }, 2000);
     });
   };
 })();
