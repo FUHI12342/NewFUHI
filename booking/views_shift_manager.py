@@ -15,6 +15,7 @@ from booking.models import (
     ShiftVacancy, ShiftSwapRequest,
 )
 from booking.services.shift_scheduler import get_required_counts
+from booking.services.demo_data_service import get_demo_exclusion
 
 logger = logging.getLogger(__name__)
 
@@ -74,6 +75,7 @@ def _render_calendar_section(request, store, week_start_str=None, staff_type_fil
         period__store=store,
         date__gte=week_dates[0],
         date__lte=week_dates[-1],
+        **get_demo_exclusion(),
     ).select_related('staff') if store else ShiftAssignment.objects.none()
 
     grid = {}
@@ -175,6 +177,7 @@ class ManagerShiftCalendarView(AdminSidebarMixin, TemplateView):
             period__store=store,
             date__gte=week_dates[0],
             date__lte=week_dates[-1],
+            **get_demo_exclusion(),
         ).select_related('staff', 'period') if store else ShiftAssignment.objects.none()
         if staff_type_filter in ('fortune_teller', 'store_staff'):
             assign_qs = assign_qs.filter(staff__staff_type=staff_type_filter)
@@ -182,7 +185,7 @@ class ManagerShiftCalendarView(AdminSidebarMixin, TemplateView):
 
         templates = ShiftTemplate.objects.filter(store=store, is_active=True) if store else ShiftTemplate.objects.none()
 
-        periods = ShiftPeriod.objects.filter(store=store).order_by('-year_month') if store else ShiftPeriod.objects.none()
+        periods = ShiftPeriod.objects.filter(store=store, **get_demo_exclusion()).order_by('-year_month') if store else ShiftPeriod.objects.none()
 
         period_id = self.request.GET.get('period_id')
         if period_id:
@@ -318,11 +321,13 @@ class TodayShiftTimelineView(AdminSidebarMixin, TemplateView):
             staffs = [staff_obj]
             assignments = ShiftAssignment.objects.filter(
                 staff=staff_obj, date=today,
+                **get_demo_exclusion(),
             ).select_related('staff', 'period')
         elif store:
             staffs = list(Staff.objects.filter(store=store).order_by('name'))
             assignments = ShiftAssignment.objects.filter(
                 period__store=store, date=today,
+                **get_demo_exclusion(),
             ).select_related('staff', 'period')
         else:
             staffs = []

@@ -42,6 +42,7 @@ class ShiftPeriod(models.Model):
     status = models.CharField(_('状態'), max_length=20, choices=STATUS_CHOICES, default='open')
     created_by = models.ForeignKey('Staff', on_delete=models.SET_NULL, null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
+    is_demo = models.BooleanField(_('デモデータ'), default=False, db_index=True)
 
     class Meta:
         app_label = 'booking'
@@ -103,6 +104,7 @@ class ShiftAssignment(models.Model):
     note = models.TextField(_('備考'), blank=True, default='')
     is_synced = models.BooleanField(_('Schedule同期済み'), default=False)
     created_at = models.DateTimeField(auto_now_add=True)
+    is_demo = models.BooleanField(_('デモデータ'), default=False, db_index=True)
 
     class Meta:
         app_label = 'booking'

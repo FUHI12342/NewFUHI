@@ -20,6 +20,7 @@ from booking.models import (
     Store, Staff, AttendanceTOTPConfig, AttendanceStamp, WorkAttendance,
     ShiftAssignment,
 )
+from booking.services.demo_data_service import get_demo_exclusion
 
 logger = logging.getLogger(__name__)
 
@@ -97,6 +98,7 @@ class AttendanceBoardView(AdminSidebarMixin, TemplateView):
             staff__store=store,
             stamped_at__date=today,
             is_valid=True,
+            **get_demo_exclusion(),
         ).select_related('staff').order_by('stamped_at') if store else []
 
         # スタッフごとのステータス構築
@@ -404,6 +406,7 @@ class AttendanceDayStatusAPI(LoginRequiredMixin, View):
             staff__store=store,
             stamped_at__date=today,
             is_valid=True,
+            **get_demo_exclusion(),
         ).select_related('staff').order_by('stamped_at') if store else []
 
         result = {}
@@ -440,6 +443,7 @@ class AttendanceDayStatusHTMLView(LoginRequiredMixin, View):
             staff__store=store,
             stamped_at__date=today,
             is_valid=True,
+            **get_demo_exclusion(),
         ).select_related('staff').order_by('stamped_at') if store else []
 
         staff_status = {}

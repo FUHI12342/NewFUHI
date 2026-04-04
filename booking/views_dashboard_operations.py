@@ -17,6 +17,7 @@ from .models import (
     TableSeat,
 )
 from .views_dashboard_base import DashboardAuthMixin, PERIOD_TRUNC_MAP, _clamp_int
+from .services.demo_data_service import get_demo_exclusion
 
 RESERVATION_DAYS_DEFAULT = 30
 RESERVATION_DAYS_MAX = 365
@@ -150,11 +151,15 @@ class ShiftSummaryAPIView(DashboardAuthMixin, APIView):
         period_scope = self.build_scope(store, 'period__store')
         store_scope = self.build_scope(store, 'store')
 
-        assignments = ShiftAssignment.objects.filter(date__gte=current_month_start, **period_scope)
+        assignments = ShiftAssignment.objects.filter(
+            date__gte=current_month_start, **period_scope, **get_demo_exclusion(),
+        )
         total_assignments = assignments.count()
         synced_assignments = assignments.filter(is_synced=True).count()
 
-        open_periods = ShiftPeriod.objects.filter(status='open', **store_scope).count()
+        open_periods = ShiftPeriod.objects.filter(
+            status='open', **store_scope, **get_demo_exclusion(),
+        ).count()
 
         staff_shifts = (
             assignments

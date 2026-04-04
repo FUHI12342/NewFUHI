@@ -401,6 +401,7 @@ class AttendanceStamp(models.Model):
     longitude = models.FloatField(_('経度'), null=True, blank=True)
     is_valid = models.BooleanField(_('有効'), default=True)
     invalidation_reason = models.CharField(_('無効理由'), max_length=100, blank=True, default='')
+    is_demo = models.BooleanField(_('デモデータ'), default=False, db_index=True)
 
     class Meta:
         app_label = 'booking'
