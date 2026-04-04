@@ -89,7 +89,8 @@
 
     <!-- Backup Code Tab -->
     <div id="tab-code" class="tab-panel">
-        <p class="text-sm text-gray-600 mb-4">{% trans "お客様から口頭で伝えられた6桁コードを入力してください。" %}</p>
+        <p class="text-sm text-gray-600 mb-2">{% trans "お客様から口頭で伝えられた6桁コードを入力してください。" %}</p>
+        <p class="text-xs text-amber-600 bg-amber-50 border border-amber-200 rounded px-3 py-2 mb-4">{% trans "※ 口頭コードは当日の予約のみ有効です。予約開始30分前〜終了までチェックイン可能です。" %}</p>
         <div class="bg-white rounded-xl shadow-md p-6 border border-gray-200">
             <label class="block text-sm font-bold mb-2" for="backup-code-input">{% trans "6桁コード" %}</label>
             <input type="text" id="backup-code-input" maxlength="6" inputmode="numeric" pattern="[0-9]*"
