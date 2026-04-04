@@ -189,10 +189,12 @@ class LineCallbackView(View):
             if temporary_booking is None:
                 return HttpResponse('仮予約情報がありません')
 
+            _start = dt.fromisoformat(temporary_booking['start'])
+            _end = dt.fromisoformat(temporary_booking['end'])
             schedule = Schedule(
                 reservation_number=temporary_booking['reservation_number'],
-                start=timezone.make_aware(dt.fromisoformat(temporary_booking['start'])),
-                end=timezone.make_aware(dt.fromisoformat(temporary_booking['end'])),
+                start=_start if timezone.is_aware(_start) else timezone.make_aware(_start),
+                end=_end if timezone.is_aware(_end) else timezone.make_aware(_end),
                 price=temporary_booking['price'],
                 customer_name=customer_name,
                 hashed_id=hashed_id,
@@ -496,10 +498,12 @@ class EmailVerifyView(View):
             return redirect('booking:email_booking')
 
         # 仮予約作成
+        _start = dt.fromisoformat(temporary_booking['start'])
+        _end = dt.fromisoformat(temporary_booking['end'])
         schedule = Schedule(
             reservation_number=temporary_booking['reservation_number'],
-            start=timezone.make_aware(dt.fromisoformat(temporary_booking['start'])),
-            end=timezone.make_aware(dt.fromisoformat(temporary_booking['end'])),
+            start=_start if timezone.is_aware(_start) else timezone.make_aware(_start),
+            end=_end if timezone.is_aware(_end) else timezone.make_aware(_end),
             price=temporary_booking['price'],
             customer_name=email_booking['customer_name'],
             staff_id=temporary_booking['staff_id'],
