@@ -258,6 +258,32 @@ class SiteSettingsAdmin(admin.ModelAdmin):
 .eg-info-desc { font-size:11px; color:#64748b; line-height:1.5; }
 .eg-dl-btn { display:inline-block; margin-top:8px; background:#16a34a; color:#fff; text-decoration:none; padding:5px 14px; border-radius:6px; font-size:11px; font-weight:600; transition:all .15s; }
 .eg-dl-btn:hover { background:#15803d; transform:translateY(-1px); color:#fff; }
+
+/* ── Mobile responsive ── */
+@media (max-width: 767px) {
+  .eg-card { padding:14px; margin-bottom:12px; }
+  .eg-header { flex-wrap:wrap; gap:8px; padding-bottom:10px; margin-bottom:10px; }
+  .eg-header > div:first-child { width:100%; }
+  .eg-header > button { width:100%; text-align:center; }
+  .eg-store-name { font-size:14px; }
+  .eg-store-id { display:block; margin-left:0; margin-top:2px; }
+  .eg-key-row { flex-wrap:wrap; gap:4px; }
+  .eg-key-label { width:100%; }
+  .eg-key-value { font-size:10px; word-break:break-all; width:100%; overflow-x:auto; display:block; padding:6px 8px; }
+  .eg-key-none { display:block; width:100%; }
+  .eg-grid { grid-template-columns:1fr !important; gap:8px; }
+  .eg-tabs { overflow-x:auto; -webkit-overflow-scrolling:touch; }
+  .eg-tab { padding:8px 14px; font-size:11px; flex-shrink:0; }
+  .eg-code-box { padding:10px; }
+  .eg-code { font-size:10px; line-height:1.5; }
+  .eg-copy-btn { touch-action:manipulation; padding:4px 12px; }
+  .eg-info { flex-direction:column; gap:8px; }
+  .eg-info-card { padding:12px 14px; }
+  .eg-info-title { font-size:12px; }
+  .eg-info-desc { font-size:11px; }
+  .eg-empty { padding:14px; font-size:12px; }
+  .eg-btn { padding:8px 14px; font-size:12px; }
+}
 </style>
 <div id="embed-generator">
   <div id="embed-stores"></div>
