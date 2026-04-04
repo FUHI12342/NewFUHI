@@ -12,7 +12,7 @@ from django.utils.html import format_html
 from django.utils.safestring import mark_safe
 from django.utils.translation import gettext_lazy as _
 
-from django.http import JsonResponse
+from django.http import HttpResponse, JsonResponse
 from django.urls import path
 
 from ..admin_site import custom_site
@@ -159,6 +159,9 @@ class SiteSettingsAdmin(admin.ModelAdmin):
             path('embed-generate-key/<int:store_id>/',
                  self.admin_site.admin_view(self._generate_embed_key_view),
                  name='sitesettings_embed_generate_key'),
+            path('embed-download-plugin/',
+                 self.admin_site.admin_view(self._download_plugin_view),
+                 name='sitesettings_embed_download_plugin'),
         ]
         return custom_urls + urls
 
@@ -179,6 +182,22 @@ class SiteSettingsAdmin(admin.ModelAdmin):
             'store_id': store.pk,
             'store_name': store.name,
         })
+
+    def _download_plugin_view(self, request):
+        """WordPressプラグインファイルをダウンロード"""
+        import os
+        plugin_path = os.path.join(
+            os.path.dirname(os.path.dirname(os.path.dirname(__file__))),
+            'docs', 'wordpress', 'timebaibai-embed.php',
+        )
+        try:
+            with open(plugin_path, 'r', encoding='utf-8') as f:
+                content = f.read()
+        except FileNotFoundError:
+            return HttpResponse('Plugin file not found', status=404)
+        response = HttpResponse(content, content_type='application/octet-stream')
+        response['Content-Disposition'] = 'attachment; filename="timebaibai-embed.php"'
+        return response
 
     def embed_code_generator(self, obj):
         """埋め込みコード自動生成UI（readonly_field）"""
@@ -206,6 +225,18 @@ class SiteSettingsAdmin(admin.ModelAdmin):
     <strong>デモページ:</strong>
     <a href="''' + demo_url + '''" target="_blank" style="color:#2563eb;">''' + demo_url + '''</a>
     <span style="color:#6b7280;font-size:12px;margin-left:8px;">（APIキー設定済みの最初の店舗で表示）</span>
+  </div>
+  <div style="margin-top:12px;padding:12px;background:#f0fdf4;border:1px solid #bbf7d0;border-radius:8px;">
+    <div style="display:flex;align-items:center;justify-content:space-between;">
+      <div>
+        <strong style="color:#166534;">WordPressプラグイン</strong>
+        <span style="color:#6b7280;font-size:12px;margin-left:8px;">ショートコードを使う場合のみ必要（HTMLコードはプラグイン不要でそのまま貼れます）</span>
+      </div>
+      <a href="/admin/booking/sitesettings/embed-download-plugin/"
+         style="background:#16a34a;color:#fff;text-decoration:none;padding:6px 16px;border-radius:6px;font-size:12px;font-weight:600;">
+        timebaibai-embed.php をダウンロード
+      </a>
+    </div>
   </div>
 </div>
 <script>
@@ -239,18 +270,18 @@ class SiteSettingsAdmin(admin.ModelAdmin):
       var shiftCode = '&lt;iframe src=&quot;' + getOrigin() + s.shift_url + '&quot; width=&quot;100%&quot; height=&quot;400&quot; style=&quot;border:none; max-width:100%;&quot; loading=&quot;lazy&quot;&gt;&lt;/iframe&gt;';
       var scBooking = '[timebaibai type=&quot;booking&quot; store=&quot;' + s.pk + '&quot; api_key=&quot;' + s.key + '&quot;]';
       var scShift = '[timebaibai type=&quot;shift&quot; store=&quot;' + s.pk + '&quot; api_key=&quot;' + s.key + '&quot;]';
-      codeSection = '<div style="margin-bottom:8px;"><span style="font-size:11px;font-weight:600;color:#6b7280;background:#f3f4f6;padding:2px 8px;border-radius:3px;">HTMLコード</span></div>'
+      codeSection = '<div style="margin-bottom:8px;"><span style="font-size:11px;font-weight:600;color:#166534;background:#dcfce7;padding:2px 8px;border-radius:3px;">HTMLコード（プラグイン不要・そのまま貼付OK）</span></div>'
         + '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">'
         + embedCodeBox('予約カレンダー', bookingCode, 'booking-' + s.pk)
         + embedCodeBox('シフト表示', shiftCode, 'shift-' + s.pk)
         + '</div>'
-        + '<div style="margin-top:10px;margin-bottom:8px;"><span style="font-size:11px;font-weight:600;color:#6b7280;background:#dbeafe;padding:2px 8px;border-radius:3px;">WordPress ショートコード</span></div>'
+        + '<div style="margin-top:10px;margin-bottom:8px;"><span style="font-size:11px;font-weight:600;color:#1e40af;background:#dbeafe;padding:2px 8px;border-radius:3px;">WordPress ショートコード（要プラグイン）</span></div>'
         + '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">'
         + embedCodeBox('予約カレンダー', scBooking, 'sc-booking-' + s.pk)
         + embedCodeBox('シフト表示', scShift, 'sc-shift-' + s.pk)
         + '</div>'
         + '<div style="margin-top:8px;padding:8px 12px;background:#eff6ff;border:1px solid #bfdbfe;border-radius:6px;font-size:11px;color:#1e40af;">'
-        + 'ショートコードを使うにはWordPressに timebaibai-embed.php プラグインをインストールしてください'
+        + 'ショートコードを使う場合は上部の「timebaibai-embed.php をダウンロード」からプラグインを取得し、WordPressにインストールしてください。HTMLコードならプラグイン不要です。'
         + '</div>';
     } else {
       codeSection = '<div style="padding:12px;background:#fef3c7;border-radius:6px;font-size:12px;color:#92400e;">APIキーを発行すると埋め込みコードが表示されます</div>';
