@@ -652,3 +652,89 @@
     color: #93c5fd;
     border-bottom-color: #2d3a5c;
 }
+
+/* ======================================================================
+   スマホ対応: パンくず・タブ・ヘッダー
+   ====================================================================== */
+@media (max-width: 767px) {
+    /* ── app-content-header: タイトル+パンくず縦積み ── */
+    .app-content-header {
+        padding: 8px 12px !important;
+    }
+    .app-content-header .container-fluid > .row {
+        flex-direction: column;
+        gap: 2px;
+    }
+    .app-content-header .col-sm-6 {
+        width: 100%;
+        max-width: 100%;
+        flex: none;
+    }
+    .app-content-header h3 {
+        font-size: 15px !important;
+        margin-bottom: 0 !important;
+    }
+    .app-content-header .float-sm-end {
+        float: none !important;
+    }
+
+    /* ── パンくずリスト: 横スクロール+省略 ── */
+    .breadcrumb {
+        font-size: 11px !important;
+        padding: 4px 0 !important;
+        margin-bottom: 4px !important;
+        flex-wrap: nowrap !important;
+        overflow-x: auto !important;
+        -webkit-overflow-scrolling: touch;
+        white-space: nowrap;
+        scrollbar-width: none;
+        background: transparent !important;
+    }
+    .breadcrumb::-webkit-scrollbar {
+        display: none;
+    }
+    .breadcrumb-item {
+        flex-shrink: 0;
+        max-width: 120px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+    .breadcrumb-item.active {
+        max-width: 180px;
+    }
+    .breadcrumb-item + .breadcrumb-item::before {
+        padding: 0 3px !important;
+        font-size: 10px;
+    }
+
+    /* ── タブ: 横スクロール化（折り返し防止） ── */
+    .nav.nav-tabs,
+    #jazzy-tabs,
+    ul.changeform-tabs {
+        display: flex !important;
+        flex-wrap: nowrap !important;
+        overflow-x: auto !important;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none;
+        border-bottom-width: 2px;
+    }
+    .nav.nav-tabs::-webkit-scrollbar,
+    #jazzy-tabs::-webkit-scrollbar,
+    ul.changeform-tabs::-webkit-scrollbar {
+        display: none;
+    }
+    .nav.nav-tabs .nav-item,
+    #jazzy-tabs .nav-item,
+    ul.changeform-tabs li {
+        flex-shrink: 0;
+        white-space: nowrap;
+    }
+    .nav.nav-tabs .nav-link,
+    #jazzy-tabs .nav-link,
+    ul.changeform-tabs li a {
+        padding: 6px 12px !important;
+        font-size: 12px !important;
+        white-space: nowrap;
+    }
+}
