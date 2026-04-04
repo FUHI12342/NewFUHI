@@ -9,6 +9,7 @@ from django import forms
 from django.contrib import admin
 from django.db import models
 from django.utils.html import format_html
+from django.utils.safestring import mark_safe
 from django.utils.translation import gettext_lazy as _
 
 from django.http import JsonResponse
@@ -198,26 +199,26 @@ class SiteSettingsAdmin(admin.ModelAdmin):
             })
         stores_json = json.dumps(rows, ensure_ascii=False)
         demo_url = '/embed/demo/'
-        return format_html('''
+        return mark_safe('''
 <div id="embed-generator" style="margin-top:8px;">
   <div id="embed-stores"></div>
   <div style="margin-top:16px;padding:12px;background:#f0f9ff;border:1px solid #bae6fd;border-radius:8px;">
     <strong>デモページ:</strong>
-    <a href="{demo_url}" target="_blank" style="color:#2563eb;">{demo_url}</a>
+    <a href="''' + demo_url + '''" target="_blank" style="color:#2563eb;">''' + demo_url + '''</a>
     <span style="color:#6b7280;font-size:12px;margin-left:8px;">（APIキー設定済みの最初の店舗で表示）</span>
   </div>
 </div>
 <script>
-(function() {{
-  var stores = {stores_json};
+(function() {
+  var stores = ''' + stores_json + ''';
   var container = document.getElementById('embed-stores');
   var csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
 
-  function getOrigin() {{
+  function getOrigin() {
     return location.origin;
-  }}
+  }
 
-  function renderStore(s) {{
+  function renderStore(s) {
     var div = document.createElement('div');
     div.id = 'embed-store-' + s.pk;
     div.style.cssText = 'border:1px solid #e5e7eb;border-radius:8px;padding:16px;margin-bottom:12px;background:#fff;';
@@ -233,7 +234,7 @@ class SiteSettingsAdmin(admin.ModelAdmin):
       + 'APIキー: <code id="embed-key-' + s.pk + '" style="background:#f3f4f6;padding:2px 6px;border-radius:3px;user-select:all;">' + s.key + '</code></div>';
 
     var codeSection = '';
-    if (s.has_key) {{
+    if (s.has_key) {
       var bookingCode = '&lt;iframe src=&quot;' + getOrigin() + s.booking_url + '&quot; width=&quot;100%&quot; height=&quot;600&quot; style=&quot;border:none; max-width:100%;&quot; loading=&quot;lazy&quot;&gt;&lt;/iframe&gt;';
       var shiftCode = '&lt;iframe src=&quot;' + getOrigin() + s.shift_url + '&quot; width=&quot;100%&quot; height=&quot;400&quot; style=&quot;border:none; max-width:100%;&quot; loading=&quot;lazy&quot;&gt;&lt;/iframe&gt;';
       var scBooking = '[timebaibai type=&quot;booking&quot; store=&quot;' + s.pk + '&quot; api_key=&quot;' + s.key + '&quot;]';
@@ -249,39 +250,39 @@ class SiteSettingsAdmin(admin.ModelAdmin):
         + embedCodeBox('シフト表示', scShift, 'sc-shift-' + s.pk)
         + '</div>'
         + '<div style="margin-top:8px;padding:8px 12px;background:#eff6ff;border:1px solid #bfdbfe;border-radius:6px;font-size:11px;color:#1e40af;">'
-        + 'ショートコードを使う場合は <a href="/docs/wordpress/timebaibai-embed.php" target="_blank" style="color:#2563eb;font-weight:600;">timebaibai-embed.php</a> プラグインをWordPressにインストールしてください'
+        + 'ショートコードを使うにはWordPressに timebaibai-embed.php プラグインをインストールしてください'
         + '</div>';
-    }} else {{
+    } else {
       codeSection = '<div style="padding:12px;background:#fef3c7;border-radius:6px;font-size:12px;color:#92400e;">APIキーを発行すると埋め込みコードが表示されます</div>';
-    }}
+    }
 
     div.innerHTML = header + keyRow + codeSection;
     return div;
-  }}
+  }
 
-  function embedCodeBox(label, code, id) {{
+  function embedCodeBox(label, code, id) {
     return '<div style="background:#f9fafb;border:1px solid #e5e7eb;border-radius:6px;padding:10px;">'
       + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">'
       + '<span style="font-size:12px;font-weight:600;color:#374151;">' + label + '</span>'
-      + '<button type="button" onclick="embedCopy(\'' + id + '\')" '
+      + '<button type="button" onclick="embedCopy(\\'' + id + '\\')" '
       + 'style="background:#10b981;color:#fff;border:none;padding:3px 10px;border-radius:4px;font-size:11px;cursor:pointer;">コピー</button>'
       + '</div>'
       + '<code id="embed-code-' + id + '" style="display:block;font-size:11px;line-height:1.5;word-break:break-all;color:#1f2937;user-select:all;">' + code + '</code>'
       + '</div>';
-  }}
+  }
 
-  stores.forEach(function(s) {{
+  stores.forEach(function(s) {
     container.appendChild(renderStore(s));
-  }});
+  });
 
-  window.embedGenKey = function(storeId) {{
-    if (!confirm('APIキーを' + (stores.find(function(s){{return s.pk===storeId}}).has_key ? '再' : '') + '発行しますか？')) return;
-    fetch('/admin/booking/sitesettings/embed-generate-key/' + storeId + '/', {{
+  window.embedGenKey = function(storeId) {
+    if (!confirm('APIキーを' + (stores.find(function(s){return s.pk===storeId}).has_key ? '再' : '') + '発行しますか？')) return;
+    fetch('/admin/booking/sitesettings/embed-generate-key/' + storeId + '/', {
       method: 'POST',
-      headers: {{'X-CSRFToken': csrfToken, 'Content-Type': 'application/json'}},
-    }}).then(function(r){{return r.json()}}).then(function(data) {{
-      if (data.ok) {{
-        var idx = stores.findIndex(function(s){{return s.pk===storeId}});
+      headers: {'X-CSRFToken': csrfToken, 'Content-Type': 'application/json'},
+    }).then(function(r){return r.json()}).then(function(data) {
+      if (data.ok) {
+        var idx = stores.findIndex(function(s){return s.pk===storeId});
         stores[idx].has_key = true;
         stores[idx].key = data.api_key;
         stores[idx].booking_url = '/embed/booking/' + storeId + '/?api_key=' + data.api_key;
@@ -289,25 +290,25 @@ class SiteSettingsAdmin(admin.ModelAdmin):
         var old = document.getElementById('embed-store-' + storeId);
         old.replaceWith(renderStore(stores[idx]));
         alert('APIキーを発行しました: ' + data.store_name);
-      }} else {{
+      } else {
         alert('エラー: ' + (data.error || 'unknown'));
-      }}
-    }});
-  }};
+      }
+    });
+  };
 
-  window.embedCopy = function(id) {{
+  window.embedCopy = function(id) {
     var el = document.getElementById('embed-code-' + id);
     var text = el.textContent.replace(/&lt;/g,'<').replace(/&gt;/g,'>').replace(/&quot;/g,'"').replace(/&amp;/g,'&');
-    navigator.clipboard.writeText(text).then(function() {{
+    navigator.clipboard.writeText(text).then(function() {
       var btn = el.parentElement.querySelector('button');
       btn.textContent = 'コピー済み';
       btn.style.background = '#6b7280';
-      setTimeout(function(){{ btn.textContent = 'コピー'; btn.style.background = '#10b981'; }}, 2000);
-    }});
-  }};
-}})();
+      setTimeout(function(){ btn.textContent = 'コピー'; btn.style.background = '#10b981'; }, 2000);
+    });
+  };
+})();
 </script>
-''', demo_url=demo_url, stores_json=stores_json)
+''')
 
     embed_code_generator.short_description = _('埋め込みコード')
 
