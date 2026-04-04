@@ -128,27 +128,6 @@
   }
   .site-save-bar .bar-btn-history:hover { color: #fff; background: rgba(255,255,255,0.15); }
 
-  /* ── fieldsetタブを折り返さず横一列に ── */
-  .nav.nav-tabs.jazzy-tabs,
-  .changeform-navigation,
-  ul.changeform-tabs {
-    display: flex !important;
-    flex-wrap: nowrap !important;
-    overflow-x: auto !important;
-    width: 100% !important;
-    gap: 0 !important;
-  }
-  .nav.nav-tabs.jazzy-tabs .nav-item,
-  .changeform-navigation li,
-  ul.changeform-tabs li {
-    flex-shrink: 0;
-    white-space: nowrap;
-  }
-  .nav.nav-tabs.jazzy-tabs .nav-link {
-    padding: 8px 14px;
-    font-size: 13px;
-  }
-
   /* ── Mobile responsive ── */
   @media (max-width: 767px) {
     .site-save-bar {
@@ -184,13 +163,6 @@
     .sub-model-card .btn-add {
       text-align: center;
       width: 100%;
-    }
-
-    .nav.nav-tabs.jazzy-tabs .nav-link,
-    .changeform-navigation li a,
-    ul.changeform-tabs li a {
-      padding: 6px 10px;
-      font-size: 12px;
     }
   }
 </style>
