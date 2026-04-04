@@ -236,9 +236,20 @@ class SiteSettingsAdmin(admin.ModelAdmin):
     if (s.has_key) {{
       var bookingCode = '&lt;iframe src=&quot;' + getOrigin() + s.booking_url + '&quot; width=&quot;100%&quot; height=&quot;600&quot; style=&quot;border:none; max-width:100%;&quot; loading=&quot;lazy&quot;&gt;&lt;/iframe&gt;';
       var shiftCode = '&lt;iframe src=&quot;' + getOrigin() + s.shift_url + '&quot; width=&quot;100%&quot; height=&quot;400&quot; style=&quot;border:none; max-width:100%;&quot; loading=&quot;lazy&quot;&gt;&lt;/iframe&gt;';
-      codeSection = '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">'
+      var scBooking = '[timebaibai type=&quot;booking&quot; store=&quot;' + s.pk + '&quot; api_key=&quot;' + s.key + '&quot;]';
+      var scShift = '[timebaibai type=&quot;shift&quot; store=&quot;' + s.pk + '&quot; api_key=&quot;' + s.key + '&quot;]';
+      codeSection = '<div style="margin-bottom:8px;"><span style="font-size:11px;font-weight:600;color:#6b7280;background:#f3f4f6;padding:2px 8px;border-radius:3px;">HTMLコード</span></div>'
+        + '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">'
         + embedCodeBox('予約カレンダー', bookingCode, 'booking-' + s.pk)
         + embedCodeBox('シフト表示', shiftCode, 'shift-' + s.pk)
+        + '</div>'
+        + '<div style="margin-top:10px;margin-bottom:8px;"><span style="font-size:11px;font-weight:600;color:#6b7280;background:#dbeafe;padding:2px 8px;border-radius:3px;">WordPress ショートコード</span></div>'
+        + '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">'
+        + embedCodeBox('予約カレンダー', scBooking, 'sc-booking-' + s.pk)
+        + embedCodeBox('シフト表示', scShift, 'sc-shift-' + s.pk)
+        + '</div>'
+        + '<div style="margin-top:8px;padding:8px 12px;background:#eff6ff;border:1px solid #bfdbfe;border-radius:6px;font-size:11px;color:#1e40af;">'
+        + 'ショートコードを使う場合は <a href="/docs/wordpress/timebaibai-embed.php" target="_blank" style="color:#2563eb;font-weight:600;">timebaibai-embed.php</a> プラグインをWordPressにインストールしてください'
         + '</div>';
     }} else {{
       codeSection = '<div style="padding:12px;background:#fef3c7;border-radius:6px;font-size:12px;color:#92400e;">APIキーを発行すると埋め込みコードが表示されます</div>';
