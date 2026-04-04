@@ -104,6 +104,31 @@ class Schedule(models.Model):
         related_name='checkins_performed',
     )
 
+    # LINEリマインダー
+    reminder_sent_day_before = models.BooleanField(_('前日リマインダー送信済み'), default=False)
+    reminder_sent_same_day = models.BooleanField(_('当日リマインダー送信済み'), default=False)
+
+    # 仮予約確認フロー
+    CONFIRMATION_CHOICES = [
+        ('none', _('通常')),
+        ('pending', _('確認待ち')),
+        ('confirmed', _('確定')),
+        ('rejected', _('却下')),
+    ]
+    confirmation_status = models.CharField(
+        _('確認ステータス'), max_length=20,
+        choices=CONFIRMATION_CHOICES, default='none',
+    )
+    confirmed_at = models.DateTimeField(_('確認日時'), null=True, blank=True)
+    confirmed_by = models.ForeignKey(
+        'Staff', verbose_name=_('確認者'),
+        on_delete=models.SET_NULL, null=True, blank=True,
+        related_name='confirmations',
+    )
+    rejection_reason = models.CharField(_('却下理由'), max_length=200, blank=True, default='')
+
+    is_demo = models.BooleanField(_('デモデータ'), default=False, db_index=True)
+
     class Meta:
         app_label = 'booking'
         verbose_name = _('予約確定済みのスケジュール')

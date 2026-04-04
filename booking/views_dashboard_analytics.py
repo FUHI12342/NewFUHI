@@ -32,7 +32,8 @@ class CohortAnalysisAPIView(DashboardAuthMixin, APIView):
 
         orders = (
             Order.objects
-            .filter(created_at__gte=since, customer_line_user_hash__isnull=False, **scope)
+            .filter(created_at__gte=since, customer_line_user_hash__isnull=False,
+                    **scope, **self.build_demo_filter())
             .exclude(customer_line_user_hash='')
             .annotate(month=TruncMonth('created_at'))
             .values('customer_line_user_hash', 'month')
@@ -173,7 +174,8 @@ class InsightsAPIView(DashboardAuthMixin, APIView):
 
         scope = self.build_scope(store, 'store')
         unread_only = request.GET.get('unread', '').lower() in ('1', 'true')
-        qs = BusinessInsight.objects.select_related('store').filter(**scope)
+        qs = BusinessInsight.objects.select_related('store').filter(
+            **scope, **self.build_demo_filter())
         if unread_only:
             qs = qs.filter(is_read=False)
         qs = qs.order_by('-created_at')[:50]

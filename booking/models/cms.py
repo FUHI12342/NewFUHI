@@ -185,6 +185,7 @@ class BusinessInsight(models.Model):
     message = models.TextField(_('メッセージ'))
     data = models.JSONField(_('関連データ'), default=dict, blank=True)
     is_read = models.BooleanField(_('既読'), default=False)
+    is_demo = models.BooleanField(_('デモデータ'), default=False, db_index=True)
     created_at = models.DateTimeField(_('作成日時'), auto_now_add=True, db_index=True)
 
     class Meta:
@@ -227,6 +228,7 @@ class CustomerFeedback(models.Model):
         _('感情分析'), max_length=10, choices=SENTIMENT_CHOICES,
         blank=True, default='',
     )
+    is_demo = models.BooleanField(_('デモデータ'), default=False, db_index=True)
     created_at = models.DateTimeField(_('作成日時'), auto_now_add=True, db_index=True)
 
     class Meta:
@@ -345,6 +347,18 @@ class SiteSettings(models.Model):
     # AIチャットウィジェット
     show_ai_chat = models.BooleanField(_('AIアシスタント表示'), default=False,
         help_text=_('フロントページにAIアシスタントチャットを表示するかどうか'))
+
+    # デモモード
+    demo_mode_enabled = models.BooleanField(_('デモモード'), default=False,
+        help_text=_('ONにするとデモデータもダッシュボードに表示します。OFFで実データのみ表示'))
+
+    # LINE機能フィーチャーフラグ
+    line_chatbot_enabled = models.BooleanField(_('LINEチャットボット'), default=False,
+        help_text=_('LINEからのチャットボット予約を有効化'))
+    line_reminder_enabled = models.BooleanField(_('LINEリマインダー'), default=False,
+        help_text=_('予約前日・当日のLINEリマインダー送信を有効化'))
+    line_segment_enabled = models.BooleanField(_('LINEセグメント配信'), default=False,
+        help_text=_('顧客セグメント別のLINE配信機能を有効化'))
 
     # 管理画面サイドバー機能ON/OFF
     show_admin_reservation = models.BooleanField(_('予約管理を表示'), default=True,
@@ -759,6 +773,7 @@ class VisitorCount(models.Model):
     pir_count = models.IntegerField(_('PIR検知数'), default=0)
     estimated_visitors = models.IntegerField(_('推定来客数'), default=0)
     order_count = models.IntegerField(_('注文数'), default=0)
+    is_demo = models.BooleanField(_('デモデータ'), default=False, db_index=True)
 
     class Meta:
         app_label = 'booking'
@@ -819,6 +834,7 @@ class StaffRecommendationResult(models.Model):
     recommended_staff_count = models.IntegerField(_('推薦スタッフ数'))
     confidence = models.FloatField(_('信頼度'), default=0)
     factors = models.JSONField(_('特徴量重要度'), default=dict)
+    is_demo = models.BooleanField(_('デモデータ'), default=False, db_index=True)
     created_at = models.DateTimeField(_('作成日時'), auto_now_add=True)
 
     class Meta:

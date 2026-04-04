@@ -63,6 +63,8 @@ from .cms import (  # noqa: F401
 )
 from .helpers import _is_owner_or_super  # noqa: F401
 from . import social_posting  # noqa: F401
+from . import line  # noqa: F401
+from . import backup  # noqa: F401
 
 
 # Python Social Auth の非表示（不要なら管理画面から外す）

@@ -146,6 +146,9 @@ def generate_html():
         ('zengin_export.py', '全銀フォーマットCSV生成', 'PayrollPeriod→全銀CSV(ヘッダー/データ/トレーラー/エンド)'),
         ('ai_chat.py', 'AIチャットサービス', 'Gemini API + RAGナレッジベース(管理画面ガイド/予約ガイド)'),
         ('qr_service.py', 'QRコード生成', '予約チェックインQR、テーブル注文QR'),
+        ('line_bot_service.py', 'LINE Messaging共通サービス', 'push_text/reply_text/push_flex/get_customer_or_create、署名検証'),
+        ('demo_data_service.py', 'デモデータフィルタサービス', 'is_demo_mode_active(60秒キャッシュ)、get_demo_exclusion(prefix)、invalidate_demo_mode_cache'),
+        ('backup_service.py', '自動バックアップサービス', 'sqlite3.backup()アトミックバックアップ、S3アップロード、ローカル保持ポリシー、LINE Notify通知'),
     ]
 
     # Celeryタスク一覧
@@ -157,6 +160,11 @@ def generate_html():
         ('run_security_audit', '毎日03:00', 'セキュリティ自己診断(12項目)'),
         ('cleanup_security_logs', '毎週日曜04:00', '90日超セキュリティログ削除'),
         ('check_aws_costs', '毎日06:00', 'AWSコスト最適化チェック(6項目)'),
+        ('send_day_before_reminders', '毎日18:00', 'LINE前日リマインダー送信'),
+        ('send_same_day_reminders', '30分ごと', 'LINE当日リマインダー送信(2時間前)'),
+        ('recompute_customer_segments', '毎日04:30', 'LINE顧客セグメント日次再計算'),
+        ('generate_live_demo_data_task', '30分ごと', 'デモモード有効時に当日デモデータ自動生成'),
+        ('run_scheduled_backup', '毎分', 'BackupConfig間隔に基づくバックアップ実行判定'),
     ]
 
     # 管理コマンド一覧
@@ -166,6 +174,10 @@ def generate_html():
         ('security_audit', '--json, --verbose, --category', 'セキュリティ自己診断実行(12チェック)'),
         ('cleanup_security_logs', '--days (default: 90)', '古いセキュリティログを削除'),
         ('check_aws_costs', '--threshold, --json, --region', 'AWSコスト監視(EC2/S3/EBS/EIP/RDS)'),
+        ('seed_mock_data', '(引数なし)', 'モックデータ生成(is_demo=Trueでマーク)'),
+        ('generate_live_demo_data', '(引数なし)', '当日分デモデータ生成(Order/Schedule/VisitorCount)'),
+        ('create_backup', '(引数なし)', 'SQLiteデータベース手動バックアップ'),
+        ('backfill_line_customers', '(引数なし)', '既存予約からLineCustomerレコードをバックフィル'),
     ]
 
     html = f'''<!DOCTYPE html>
@@ -225,7 +237,7 @@ li {{ margin: 2px 0; }}
 <div class="cover">
 <h1>NewFUHI<br>システム仕様書</h1>
 <p class="subtitle">占いサロン管理プラットフォーム — Django + IoT + AWS</p>
-<p class="date">Version 1.1 — {today}</p>
+<p class="date">Version 1.3 — {today}</p>
 <p style="margin-top:60px;color:#a0aec0;font-size:10pt;">Confidential — 社内技術資料</p>
 </div>
 
@@ -253,7 +265,7 @@ li {{ margin: 2px 0; }}
 <table>
 <tr><th>項目</th><th>内容</th></tr>
 <tr><td>文書名</td><td>NewFUHI システム仕様書</td></tr>
-<tr><td>バージョン</td><td>1.1</td></tr>
+<tr><td>バージョン</td><td>1.3</td></tr>
 <tr><td>最終更新日</td><td>{today}</td></tr>
 <tr><td>作成者</td><td>開発チーム</td></tr>
 <tr><td>機密区分</td><td>社内限定</td></tr>
@@ -263,7 +275,9 @@ li {{ margin: 2px 0; }}
 <table>
 <tr><th>バージョン</th><th>日付</th><th>変更内容</th></tr>
 <tr><td>1.0</td><td>2026-03-18</td><td>初版作成</td></tr>
-<tr><td>1.1</td><td>{today}</td><td>シフト改善: カバレッジベース自動配置、不足枠(ShiftVacancy)、交代・欠勤申請(ShiftSwapRequest)、最低勤務時間追加</td></tr>
+<tr><td>1.1</td><td>2026-03-18</td><td>シフト改善: カバレッジベース自動配置、不足枠(ShiftVacancy)、交代・欠勤申請(ShiftSwapRequest)、最低勤務時間追加</td></tr>
+<tr><td>1.2</td><td>2026-04-02</td><td>LINE機能拡張: Webhook/チャットボット予約/リマインダー/セグメント配信/仮予約確認フロー</td></tr>
+<tr><td>1.3</td><td>{today}</td><td>デモモード切替 + 自動バックアップ: is_demoフラグ、ダッシュボードフィルタ、BackupConfig/History、Celeryタスク</td></tr>
 </table>
 
 <!-- 2. エグゼクティブサマリ -->
@@ -280,6 +294,9 @@ li {{ margin: 2px 0; }}
 <li><strong>セキュリティ監査</strong>: 12項目自己診断、ログ監視、AWSコスト監視</li>
 <li><strong>多言語対応</strong>: 7言語（日本語/英語/繁体字/簡体字/韓国語/スペイン語/ポルトガル語）</li>
 <li><strong>CMS</strong>: ヒーローバナー、カスタムブロック、バナー広告</li>
+<li><strong>LINE連携</strong>: Webhookボット予約、リマインダー通知、セグメント配信、仮予約確認フロー</li>
+<li><strong>デモモード</strong>: 管理画面からON/OFF切替、デモデータの自動生成・表示制御</li>
+<li><strong>自動バックアップ</strong>: SQLiteアトミックバックアップ、S3連携、保持ポリシー、管理画面設定</li>
 </ul>
 
 <h2>技術スタック</h2>
@@ -652,12 +669,16 @@ Customer ──▶ BookingTopPage ──▶ StaffCalendar ──▶ PreBooking
 <h2>11.4 バックアップ戦略</h2>
 <table>
 <tr><th>対象</th><th>方法</th><th>スケジュール</th><th>保持期間</th></tr>
-<tr><td>SQLite DB</td><td>sqlite3 .backup → S3 upload</td><td>毎日 AM 2:00 (cron)</td><td>ローカル30日 / S3 90日</td></tr>
+<tr><td>SQLite DB (自動)</td><td>Python sqlite3.backup() → S3 upload</td><td>管理画面設定(off/毎分/毎時/毎日)</td><td>ローカル30件 / S3 90日</td></tr>
+<tr><td>SQLite DB (レガシー)</td><td>sqlite3 .backup → S3 upload</td><td>毎日 AM 2:00 (cron)</td><td>ローカル30日 / S3 90日</td></tr>
 <tr><td>Media ファイル</td><td>aws s3 sync</td><td>毎日 AM 2:00 (cron)</td><td>S3に常時同期</td></tr>
 <tr><td>通知</td><td>LINE Notify (成功/失敗)</td><td>バックアップ完了時</td><td>-</td></tr>
 </table>
 <div class="info">
-バックアップスクリプト: <code>scripts/backup_to_s3.sh</code><br>
+<strong>新バックアップシステム (v1.3):</strong> 管理画面 → BackupConfig でinterval/S3/保持数を設定。<br>
+Celeryタスク <code>run_scheduled_backup</code> が毎分チェック、<code>BackupHistory</code> に履歴記録。<br>
+手動実行: <code>python manage.py create_backup</code> or 管理画面アクション<br><br>
+<strong>レガシー:</strong> <code>scripts/backup_to_s3.sh</code><br>
 S3バケット: <code>s3://mee-newfuhi-backups/</code> (db/, media/)<br>
 環境検出: EC2 (/home/ubuntu/NewFUHI) と Mac (/Users/adon/NewFUHI) を自動判別
 </div>
@@ -725,6 +746,9 @@ S3バケット: <code>s3://mee-newfuhi-backups/</code> (db/, media/)<br>
 <tr><td><code>booking/services/zengin_export.py</code></td><td>~131</td><td>全銀CSV生成</td></tr>
 <tr><td><code>booking/services/ai_chat.py</code></td><td>~131</td><td>AIチャット</td></tr>
 <tr><td><code>booking/services/qr_service.py</code></td><td>~29</td><td>QRコード生成</td></tr>
+<tr><td><code>booking/services/line_bot_service.py</code></td><td>~120</td><td>LINE Messaging共通サービス</td></tr>
+<tr><td><code>booking/services/demo_data_service.py</code></td><td>~40</td><td>デモデータフィルタサービス</td></tr>
+<tr><td><code>booking/services/backup_service.py</code></td><td>~150</td><td>自動バックアップサービス</td></tr>
 </table>
 
 <h2>12.2 テストカバレッジ</h2>

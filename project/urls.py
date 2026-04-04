@@ -8,6 +8,7 @@ from django.conf.urls.i18n import i18n_patterns
 
 from booking import views as booking_views
 from booking.admin_site import custom_site
+from booking.views_line_webhook import line_webhook as line_webhook_view
 from booking.health import healthz
 from booking.views_debug import AdminDebugPanelView, IoTDeviceDebugView
 from booking.views_restaurant_dashboard import RestaurantDashboardView
@@ -32,6 +33,10 @@ from booking.views_page_builder import (
     CustomPageView,
 )
 from booking.views_site_wizard import SiteSetupWizardView
+from booking.views_line_admin import (
+    LineSegmentView, LineSegmentSendView,
+    LinePendingView, LineReservationConfirmView, LineReservationRejectView,
+)
 import booking.admin
 
 # Non-i18n URLs (APIs, health check, legacy redirects, embed)
@@ -67,6 +72,13 @@ urlpatterns = [
 
     # Language switching
     path("i18n/", include("django.conf.urls.i18n")),
+
+    # LINE Webhook
+    path("line/webhook/", line_webhook_view, name="line_webhook"),
+
+    # LINE予約確認/却下API
+    path("api/line/reservations/<int:pk>/confirm/", LineReservationConfirmView.as_view(), name="line_reservation_confirm"),
+    path("api/line/reservations/<int:pk>/reject/", LineReservationRejectView.as_view(), name="line_reservation_reject"),
 
     # Table ordering (QR entry - no i18n prefix)
     path("t/", include("booking.table_urls")),
@@ -281,6 +293,25 @@ urlpatterns += i18n_patterns(
         "admin/theme/presets/",
         custom_site.admin_view(ThemePresetsAPIView.as_view()),
         name="admin_theme_presets_api",
+    ),
+
+    # LINE管理: セグメント配信
+    path(
+        "admin/line/segment/",
+        custom_site.admin_view(LineSegmentView.as_view()),
+        name="admin_line_segment",
+    ),
+    path(
+        "admin/line/segment/send/",
+        custom_site.admin_view(LineSegmentSendView.as_view()),
+        name="admin_line_segment_send",
+    ),
+
+    # LINE管理: 仮予約確認
+    path(
+        "admin/line/pending/",
+        custom_site.admin_view(LinePendingView.as_view()),
+        name="admin_line_pending",
     ),
 
     # SNS OAuth

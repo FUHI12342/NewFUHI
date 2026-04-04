@@ -346,6 +346,12 @@
 {% block content %}
 <div class="dashboard-wrap" id="dashboard-root">
 
+  {% if demo_mode_enabled %}
+  <div style="background:#f59e0b;color:#fff;padding:6px 16px;border-radius:6px;margin-bottom:12px;display:inline-block;font-weight:bold;font-size:0.875rem;">
+    <i class="fas fa-flask"></i> DEMO MODE — デモデータ表示中
+  </div>
+  {% endif %}
+
   {# ===== Quick Links ===== #}
   <div class="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-2 mb-4">
     <a href="{% url 'admin_shift_calendar' %}" class="quick-link-card">

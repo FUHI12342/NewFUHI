@@ -74,6 +74,8 @@ class Order(models.Model):
     shipping_note = models.TextField(_('発送メモ'), blank=True, default='')
     shipping_fee = models.PositiveIntegerField(_('送料'), default=0)
 
+    is_demo = models.BooleanField(_('デモデータ'), default=False, db_index=True)
+
     created_at = models.DateTimeField(auto_now_add=True, db_index=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -236,6 +238,7 @@ class POSTransaction(models.Model):
     receipt_number = models.CharField(_('レシート番号'), max_length=20, unique=True)
     staff = models.ForeignKey('Staff', verbose_name=_('担当'), on_delete=models.SET_NULL, null=True, blank=True)
     completed_at = models.DateTimeField(_('完了日時'), null=True, blank=True)
+    is_demo = models.BooleanField(_('デモデータ'), default=False, db_index=True)
 
     class Meta:
         app_label = 'booking'

@@ -1,0 +1,124 @@
+{% extends "admin/base_site.html" %}
+{% load i18n %}
+
+{% block title %}仮予約確認{% endblock %}
+
+{% block content %}
+<style>
+    .pending-table { width: 100%; border-collapse: collapse; margin-top: 16px; }
+    .pending-table th, .pending-table td { padding: 10px 12px; text-align: left; border-bottom: 1px solid #ddd; }
+    .pending-table th { background: #f5f5f5; font-weight: bold; }
+    .pending-table tr:hover { background: #f9f9f9; }
+    .btn { padding: 6px 16px; border: none; border-radius: 4px; cursor: pointer; font-size: 13px; }
+    .btn-confirm { background: #28a745; color: white; }
+    .btn-confirm:hover { background: #218838; }
+    .btn-reject { background: #dc3545; color: white; margin-left: 4px; }
+    .btn-reject:hover { background: #c82333; }
+    .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+    .empty-msg { padding: 40px; text-align: center; color: #999; font-size: 1.1em; }
+    .reject-reason { margin-top: 4px; }
+    .reject-reason input { padding: 4px 8px; border: 1px solid #ddd; border-radius: 4px; width: 200px; }
+    .result-toast { position: fixed; top: 20px; right: 20px; padding: 12px 20px; border-radius: 4px; color: white; z-index: 1000; display: none; }
+    .result-toast.success { background: #28a745; display: block; }
+    .result-toast.error { background: #dc3545; display: block; }
+    .status-badge { padding: 2px 8px; border-radius: 10px; font-size: 12px; }
+    .status-pending { background: #fff3cd; color: #856404; }
+    .status-confirmed { background: #d4edda; color: #155724; }
+    .status-rejected { background: #f8d7da; color: #721c24; }
+</style>
+
+<h2>仮予約確認</h2>
+
+{% if schedules %}
+<table class="pending-table">
+    <thead>
+        <tr>
+            <th>予約番号</th>
+            <th>日時</th>
+            <th>顧客</th>
+            <th>スタッフ</th>
+            <th>店舗</th>
+            <th>料金</th>
+            <th>操作</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for s in schedules %}
+        <tr id="row-{{ s.id }}">
+            <td>{{ s.reservation_number|truncatechars:12 }}</td>
+            <td>{{ s.start|date:"Y/m/d H:i" }}</td>
+            <td>{{ s.customer_name|default:"—" }}</td>
+            <td>{{ s.staff.name }}</td>
+            <td>{{ s.store.name|default:"—" }}</td>
+            <td>{{ s.price }}円</td>
+            <td>
+                <button class="btn btn-confirm" onclick="confirmReservation({{ s.id }})">確定</button>
+                <button class="btn btn-reject" onclick="showRejectForm({{ s.id }})">却下</button>
+                <div class="reject-reason" id="reject-form-{{ s.id }}" style="display:none;">
+                    <input type="text" id="reject-reason-{{ s.id }}" placeholder="却下理由（任意）">
+                    <button class="btn btn-reject" onclick="rejectReservation({{ s.id }})">却下実行</button>
+                </div>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% else %}
+<div class="empty-msg">確認待ちの予約はありません。</div>
+{% endif %}
+
+<div class="result-toast" id="toast"></div>
+
+<script>
+function confirmReservation(id) {
+    if (!confirm('この予約を確定しますか？')) return;
+    apiCall(id, 'confirm', {});
+}
+
+function showRejectForm(id) {
+    var el = document.getElementById('reject-form-' + id);
+    el.style.display = el.style.display === 'none' ? 'block' : 'none';
+}
+
+function rejectReservation(id) {
+    var reason = document.getElementById('reject-reason-' + id).value;
+    apiCall(id, 'reject', {reason: reason});
+}
+
+function apiCall(id, action, extraData) {
+    fetch('/api/line/reservations/' + id + '/' + action + '/', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCookie('csrftoken'),
+        },
+        body: JSON.stringify(extraData),
+    })
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+        if (data.success) {
+            showToast(data.message, 'success');
+            document.getElementById('row-' + id).style.opacity = '0.4';
+            document.getElementById('row-' + id).querySelectorAll('.btn').forEach(function(b) { b.disabled = true; });
+        } else {
+            showToast(data.error || 'エラー', 'error');
+        }
+    })
+    .catch(function() { showToast('通信エラー', 'error'); });
+}
+
+function showToast(msg, type) {
+    var el = document.getElementById('toast');
+    el.textContent = msg;
+    el.className = 'result-toast ' + type;
+    setTimeout(function() { el.className = 'result-toast'; }, 3000);
+}
+
+function getCookie(name) {
+    var value = '; ' + document.cookie;
+    var parts = value.split('; ' + name + '=');
+    if (parts.length === 2) return parts.pop().split(';').shift();
+    return '';
+}
+</script>
+{% endblock %}

@@ -38,7 +38,8 @@ class SalesStatsAPIView(DashboardAuthMixin, APIView):
 
         trend = (
             OrderItem.objects
-            .filter(order__created_at__gte=since, **scope, **channel_filter)
+            .filter(order__created_at__gte=since, **scope, **channel_filter,
+                    **self.build_demo_filter('order__'))
             .annotate(date=trunc_fn('order__created_at'))
             .values('date')
             .annotate(total=Sum(F('qty') * F('unit_price')))
@@ -48,7 +49,8 @@ class SalesStatsAPIView(DashboardAuthMixin, APIView):
 
         top_products = (
             OrderItem.objects
-            .filter(order__created_at__gte=since, **scope, **channel_filter)
+            .filter(order__created_at__gte=since, **scope, **channel_filter,
+                    **self.build_demo_filter('order__'))
             .values('product__name')
             .annotate(total=Sum('qty'))
             .order_by('-total')[:10]
@@ -73,7 +75,8 @@ class MenuEngineeringAPIView(DashboardAuthMixin, APIView):
 
         product_stats = (
             OrderItem.objects
-            .filter(order__created_at__gte=since, **scope, **channel_filter)
+            .filter(order__created_at__gte=since, **scope, **channel_filter,
+                    **self.build_demo_filter('order__'))
             .values('product_id', 'product__name', 'product__price', 'product__margin_rate')
             .annotate(
                 qty_sold=Sum('qty'),
@@ -141,7 +144,8 @@ class ABCAnalysisAPIView(DashboardAuthMixin, APIView):
 
         product_revenue = (
             OrderItem.objects
-            .filter(order__created_at__gte=since, **scope, **channel_filter)
+            .filter(order__created_at__gte=since, **scope, **channel_filter,
+                    **self.build_demo_filter('order__'))
             .values('product_id', 'product__name')
             .annotate(
                 revenue=Sum(F('qty') * F('unit_price')),
@@ -212,7 +216,8 @@ class SalesHeatmapAPIView(DashboardAuthMixin, APIView):
 
         data = (
             OrderItem.objects
-            .filter(order__created_at__gte=since, **scope, **channel_filter)
+            .filter(order__created_at__gte=since, **scope, **channel_filter,
+                    **self.build_demo_filter('order__'))
             .annotate(
                 weekday=ExtractWeekDay('order__created_at'),
                 hour=ExtractHour('order__created_at'),
@@ -264,7 +269,8 @@ class AOVTrendAPIView(DashboardAuthMixin, APIView):
 
         trend = (
             OrderItem.objects
-            .filter(order__created_at__gte=since, **scope, **channel_filter)
+            .filter(order__created_at__gte=since, **scope, **channel_filter,
+                    **self.build_demo_filter('order__'))
             .annotate(date=trunc_fn('order__created_at'))
             .values('date')
             .annotate(
@@ -369,6 +375,7 @@ class ChannelSalesAPIView(DashboardAuthMixin, APIView):
                 order__created_at__gte=since,
                 order__channel__in=channels,
                 **scope,
+                **self.build_demo_filter('order__'),
             )
             .annotate(date=trunc_fn('order__created_at'))
             .values('date', 'order__channel')

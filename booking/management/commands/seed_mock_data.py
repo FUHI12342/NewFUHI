@@ -148,6 +148,9 @@ class Command(BaseCommand):
         # ── 送料設定 ──
         self._seed_shipping_config()
 
+        # ── 全デモデータに is_demo=True をマーク ──
+        self._mark_all_as_demo()
+
         self.stdout.write(self.style.SUCCESS('\n=== モックデータ投入完了 ==='))
 
     # ═════════════════════════════════════════════
@@ -2334,6 +2337,19 @@ class Command(BaseCommand):
             },
         )
         self.stdout.write(self.style.SUCCESS('  ShippingConfig: 1件'))
+
+    def _mark_all_as_demo(self):
+        """全seedデータに is_demo=True をバルク設定"""
+        self.stdout.write('デモフラグ設定...')
+        total = 0
+        for model_cls in (
+            Order, POSTransaction, Schedule, VisitorCount,
+            WorkAttendance, CustomerFeedback, BusinessInsight,
+            StaffRecommendationResult,
+        ):
+            count = model_cls.objects.filter(is_demo=False).update(is_demo=True)
+            total += count
+        self.stdout.write(self.style.SUCCESS(f'  is_demo=True: {total}件'))
 
 
 # F() import shortcut

@@ -11,9 +11,12 @@ from django.db import models
 from django.utils.html import format_html
 from django.utils.translation import gettext_lazy as _
 
+from django.http import JsonResponse
+from django.urls import path
+
 from ..admin_site import custom_site
 from ..models import (
-    Staff,
+    Staff, Store,
     Company, Notice, Media,
     SiteSettings, AdminSidebarSettings,
     HomepageCustomBlock, HeroBanner, BannerAd, ExternalLink,
@@ -95,6 +98,8 @@ class SiteSettingsAdmin(admin.ModelAdmin):
     change_form_template = 'admin/booking/sitesettings/change_form.html'
     save_on_top = True
 
+    readonly_fields = ('embed_code_generator',)
+
     fieldsets = (
         (_('基本設定'), {'fields': ('site_name', 'staff_label', 'staff_label_i18n', 'price_label')}),
         (_('ホームページカード表示'), {'fields': (
@@ -126,16 +131,174 @@ class SiteSettingsAdmin(admin.ModelAdmin):
             ),
             'description': _('エラー報告やセキュリティイベント発生時のメール・SHANON通知設定'),
         }),
+        (_('デモモード'), {
+            'fields': ('demo_mode_enabled',),
+            'description': _('ONにするとデモデータもダッシュボードに表示。OFFで実データのみ'),
+        }),
+        (_('LINE連携'), {
+            'fields': (
+                'line_chatbot_enabled', 'line_reminder_enabled',
+                'line_segment_enabled',
+            ),
+            'description': _('LINE Bot機能のON/OFF。管理画面から即座に切り替え可能'),
+        }),
         (_('メンテナンスモード'), {
             'fields': ('maintenance_mode', 'maintenance_message'),
             'description': _('ONにするとログイン済みスタッフ以外にメンテナンス画面を表示します'),
         }),
         (_('外部埋め込み'), {
-            'fields': ('embed_enabled',),
+            'fields': ('embed_enabled', 'embed_code_generator'),
             'description': _('WordPress等の外部サイトからiframeで予約カレンダー・シフト表示を埋め込む機能'),
-            'classes': ('collapse',),
         }),
     )
+
+    def get_urls(self):
+        urls = super().get_urls()
+        custom_urls = [
+            path('embed-generate-key/<int:store_id>/',
+                 self.admin_site.admin_view(self._generate_embed_key_view),
+                 name='sitesettings_embed_generate_key'),
+        ]
+        return custom_urls + urls
+
+    def _generate_embed_key_view(self, request, store_id):
+        """AJAX: 店舗の埋め込みAPIキーを生成/再生成"""
+        if request.method != 'POST':
+            return JsonResponse({'error': 'POST only'}, status=405)
+        from booking.views_embed import generate_embed_api_key
+        try:
+            store = Store.objects.get(pk=store_id)
+        except Store.DoesNotExist:
+            return JsonResponse({'error': 'store not found'}, status=404)
+        store.embed_api_key = generate_embed_api_key()
+        store.save(update_fields=['embed_api_key'])
+        return JsonResponse({
+            'ok': True,
+            'api_key': store.embed_api_key,
+            'store_id': store.pk,
+            'store_name': store.name,
+        })
+
+    def embed_code_generator(self, obj):
+        """埋め込みコード自動生成UI（readonly_field）"""
+        stores = Store.objects.all().order_by('pk')
+        rows = []
+        for store in stores:
+            has_key = bool(store.embed_api_key)
+            key_display = store.embed_api_key if has_key else '（未発行）'
+            booking_url = f'/embed/booking/{store.pk}/?api_key={store.embed_api_key}' if has_key else ''
+            shift_url = f'/embed/shift/{store.pk}/?api_key={store.embed_api_key}' if has_key else ''
+            rows.append({
+                'pk': store.pk,
+                'name': store.name,
+                'has_key': has_key,
+                'key': key_display,
+                'booking_url': booking_url,
+                'shift_url': shift_url,
+            })
+        stores_json = json.dumps(rows, ensure_ascii=False)
+        demo_url = '/embed/demo/'
+        return format_html('''
+<div id="embed-generator" style="margin-top:8px;">
+  <div id="embed-stores"></div>
+  <div style="margin-top:16px;padding:12px;background:#f0f9ff;border:1px solid #bae6fd;border-radius:8px;">
+    <strong>デモページ:</strong>
+    <a href="{demo_url}" target="_blank" style="color:#2563eb;">{demo_url}</a>
+    <span style="color:#6b7280;font-size:12px;margin-left:8px;">（APIキー設定済みの最初の店舗で表示）</span>
+  </div>
+</div>
+<script>
+(function() {{
+  var stores = {stores_json};
+  var container = document.getElementById('embed-stores');
+  var csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+
+  function getOrigin() {{
+    return location.origin;
+  }}
+
+  function renderStore(s) {{
+    var div = document.createElement('div');
+    div.id = 'embed-store-' + s.pk;
+    div.style.cssText = 'border:1px solid #e5e7eb;border-radius:8px;padding:16px;margin-bottom:12px;background:#fff;';
+
+    var header = '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">'
+      + '<strong style="font-size:14px;color:#1e3a5f;">' + s.name + ' (ID: ' + s.pk + ')</strong>'
+      + '<button type="button" onclick="embedGenKey(' + s.pk + ')" '
+      + 'style="background:#2563eb;color:#fff;border:none;padding:6px 16px;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;">'
+      + (s.has_key ? 'APIキー再発行' : 'APIキー発行')
+      + '</button></div>';
+
+    var keyRow = '<div style="margin-bottom:8px;font-size:12px;color:#6b7280;">'
+      + 'APIキー: <code id="embed-key-' + s.pk + '" style="background:#f3f4f6;padding:2px 6px;border-radius:3px;user-select:all;">' + s.key + '</code></div>';
+
+    var codeSection = '';
+    if (s.has_key) {{
+      var bookingCode = '&lt;iframe src=&quot;' + getOrigin() + s.booking_url + '&quot; width=&quot;100%&quot; height=&quot;600&quot; style=&quot;border:none; max-width:100%;&quot; loading=&quot;lazy&quot;&gt;&lt;/iframe&gt;';
+      var shiftCode = '&lt;iframe src=&quot;' + getOrigin() + s.shift_url + '&quot; width=&quot;100%&quot; height=&quot;400&quot; style=&quot;border:none; max-width:100%;&quot; loading=&quot;lazy&quot;&gt;&lt;/iframe&gt;';
+      codeSection = '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">'
+        + embedCodeBox('予約カレンダー', bookingCode, 'booking-' + s.pk)
+        + embedCodeBox('シフト表示', shiftCode, 'shift-' + s.pk)
+        + '</div>';
+    }} else {{
+      codeSection = '<div style="padding:12px;background:#fef3c7;border-radius:6px;font-size:12px;color:#92400e;">APIキーを発行すると埋め込みコードが表示されます</div>';
+    }}
+
+    div.innerHTML = header + keyRow + codeSection;
+    return div;
+  }}
+
+  function embedCodeBox(label, code, id) {{
+    return '<div style="background:#f9fafb;border:1px solid #e5e7eb;border-radius:6px;padding:10px;">'
+      + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">'
+      + '<span style="font-size:12px;font-weight:600;color:#374151;">' + label + '</span>'
+      + '<button type="button" onclick="embedCopy(\'' + id + '\')" '
+      + 'style="background:#10b981;color:#fff;border:none;padding:3px 10px;border-radius:4px;font-size:11px;cursor:pointer;">コピー</button>'
+      + '</div>'
+      + '<code id="embed-code-' + id + '" style="display:block;font-size:11px;line-height:1.5;word-break:break-all;color:#1f2937;user-select:all;">' + code + '</code>'
+      + '</div>';
+  }}
+
+  stores.forEach(function(s) {{
+    container.appendChild(renderStore(s));
+  }});
+
+  window.embedGenKey = function(storeId) {{
+    if (!confirm('APIキーを' + (stores.find(function(s){{return s.pk===storeId}}).has_key ? '再' : '') + '発行しますか？')) return;
+    fetch('/admin/booking/sitesettings/embed-generate-key/' + storeId + '/', {{
+      method: 'POST',
+      headers: {{'X-CSRFToken': csrfToken, 'Content-Type': 'application/json'}},
+    }}).then(function(r){{return r.json()}}).then(function(data) {{
+      if (data.ok) {{
+        var idx = stores.findIndex(function(s){{return s.pk===storeId}});
+        stores[idx].has_key = true;
+        stores[idx].key = data.api_key;
+        stores[idx].booking_url = '/embed/booking/' + storeId + '/?api_key=' + data.api_key;
+        stores[idx].shift_url = '/embed/shift/' + storeId + '/?api_key=' + data.api_key;
+        var old = document.getElementById('embed-store-' + storeId);
+        old.replaceWith(renderStore(stores[idx]));
+        alert('APIキーを発行しました: ' + data.store_name);
+      }} else {{
+        alert('エラー: ' + (data.error || 'unknown'));
+      }}
+    }});
+  }};
+
+  window.embedCopy = function(id) {{
+    var el = document.getElementById('embed-code-' + id);
+    var text = el.textContent.replace(/&lt;/g,'<').replace(/&gt;/g,'>').replace(/&quot;/g,'"').replace(/&amp;/g,'&');
+    navigator.clipboard.writeText(text).then(function() {{
+      var btn = el.parentElement.querySelector('button');
+      btn.textContent = 'コピー済み';
+      btn.style.background = '#6b7280';
+      setTimeout(function(){{ btn.textContent = 'コピー'; btn.style.background = '#10b981'; }}, 2000);
+    }});
+  }};
+}})();
+</script>
+''', demo_url=demo_url, stores_json=stores_json)
+
+    embed_code_generator.short_description = _('埋め込みコード')
 
     def has_view_permission(self, request, obj=None):
         if _is_owner_or_super(request):
@@ -197,6 +360,9 @@ class SiteSettingsAdmin(admin.ModelAdmin):
                 method='POST',
                 detail=detail,
             )
+        if change and 'demo_mode_enabled' in form.changed_data:
+            from booking.services.demo_data_service import invalidate_demo_mode_cache
+            invalidate_demo_mode_cache()
         super().save_model(request, obj, form, change)
 
 

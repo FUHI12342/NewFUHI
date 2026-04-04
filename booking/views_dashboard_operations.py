@@ -40,9 +40,10 @@ class ReservationStatsAPIView(DashboardAuthMixin, APIView):
         since = now - timedelta(days=days)
         scope = self.build_scope(store, 'staff__store')
 
+        demo_filter = self.build_demo_filter()
         daily = (
             Schedule.objects
-            .filter(start__gte=since, **scope)
+            .filter(start__gte=since, **scope, **demo_filter)
             .annotate(date=TruncDate('start'))
             .values('date')
             .annotate(
@@ -54,11 +55,14 @@ class ReservationStatsAPIView(DashboardAuthMixin, APIView):
         daily_list = [{'date': d['date'].isoformat(), 'count': d['count'], 'cancelled': d['cancelled']} for d in daily]
 
         future_count = Schedule.objects.filter(
-            start__gte=now, is_cancelled=False, is_temporary=False, **scope
+            start__gte=now, is_cancelled=False, is_temporary=False,
+            **scope, **demo_filter,
         ).count()
 
-        total = Schedule.objects.filter(start__gte=since, **scope).count()
-        cancelled = Schedule.objects.filter(start__gte=since, is_cancelled=True, **scope).count()
+        total = Schedule.objects.filter(start__gte=since, **scope, **demo_filter).count()
+        cancelled = Schedule.objects.filter(
+            start__gte=since, is_cancelled=True, **scope, **demo_filter,
+        ).count()
         cancel_rate = round(cancelled / total, 4) if total > 0 else 0
 
         return Response({
@@ -242,9 +246,11 @@ class KPIScoreCardAPIView(DashboardAuthMixin, APIView):
         scope = self.build_scope(store, 'store')
         order_scope = self.build_scope(store, 'order__store')
 
+        demo_filter = self.build_demo_filter()
         revenue_data = (
             OrderItem.objects
-            .filter(order__created_at__gte=since, **order_scope)
+            .filter(order__created_at__gte=since, **order_scope,
+                    **self.build_demo_filter('order__'))
             .aggregate(
                 total_revenue=Sum(F('qty') * F('unit_price')),
                 total_orders=Count('order_id', distinct=True),
@@ -256,7 +262,8 @@ class KPIScoreCardAPIView(DashboardAuthMixin, APIView):
 
         customer_orders = (
             Order.objects
-            .filter(created_at__gte=since, customer_line_user_hash__isnull=False, **scope)
+            .filter(created_at__gte=since, customer_line_user_hash__isnull=False,
+                    **scope, **demo_filter)
             .exclude(customer_line_user_hash='')
             .values('customer_line_user_hash')
             .annotate(visit_count=Count('id'))
@@ -379,7 +386,8 @@ class CustomerFeedbackAPIView(DashboardAuthMixin, APIView):
             return err
 
         scope = self.build_scope(store, 'store')
-        qs = CustomerFeedback.objects.select_related('store').filter(**scope).order_by('-created_at')[:100]
+        qs = CustomerFeedback.objects.select_related('store').filter(
+            **scope, **self.build_demo_filter()).order_by('-created_at')[:100]
         feedbacks = [{
             'id': f.id,
             'nps_score': f.nps_score,
@@ -407,7 +415,8 @@ class NPSStatsAPIView(DashboardAuthMixin, APIView):
         since = now - timedelta(days=days)
         scope = self.build_scope(store, 'store')
 
-        qs = CustomerFeedback.objects.filter(created_at__gte=since, **scope)
+        qs = CustomerFeedback.objects.filter(
+            created_at__gte=since, **scope, **self.build_demo_filter())
         total = qs.count()
 
         if total == 0:

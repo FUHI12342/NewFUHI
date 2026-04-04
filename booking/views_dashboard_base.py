@@ -104,6 +104,11 @@ class DashboardAuthMixin:
             return {}
         return {prefix: store}
 
+    def build_demo_filter(self, prefix=''):
+        """Return filter kwargs that exclude demo data when demo mode is OFF."""
+        from booking.services.demo_data_service import get_demo_exclusion
+        return get_demo_exclusion(prefix)
+
 
 class RestaurantDashboardView(AdminSidebarMixin, TemplateView):
     """Restaurant activity dashboard (admin)."""
@@ -118,6 +123,7 @@ class RestaurantDashboardView(AdminSidebarMixin, TemplateView):
         ctx['show_pos'] = settings.show_admin_pos
         ctx['show_reservation'] = settings.show_admin_reservation
         ctx['staff_label'] = settings.staff_label or 'スタッフ'
+        ctx['demo_mode_enabled'] = settings.demo_mode_enabled
         return ctx
 
 

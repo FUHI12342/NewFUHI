@@ -20,6 +20,7 @@ def delete_temporary_schedules():
         temporary_booked_at__lt=now - timezone.timedelta(minutes=10),
         is_temporary=True,
         is_cancelled=False,
+        confirmation_status='none',  # 仮予約確認中は削除しない
     ).delete()
 
 
@@ -324,3 +325,83 @@ def task_check_scheduled_posts():
             logger.info("Scheduled post dispatched: draft_id=%d", draft.pk)
         except Exception as e:
             logger.error("Scheduled post failed for draft %d: %s", draft.pk, e)
+
+
+@shared_task
+def send_day_before_reminders():
+    """前日リマインダー送信（毎日18:00 JST）"""
+    from booking.models import SiteSettings
+    if not SiteSettings.load().line_reminder_enabled:
+        return
+    from booking.services.line_reminder import send_day_before_reminders as _send
+    _send()
+
+
+@shared_task
+def send_same_day_reminders():
+    """当日リマインダー送信（30分ごと）"""
+    from booking.models import SiteSettings
+    if not SiteSettings.load().line_reminder_enabled:
+        return
+    from booking.services.line_reminder import send_same_day_reminders as _send
+    _send()
+
+
+@shared_task
+def recompute_customer_segments():
+    """顧客セグメント日次再計算"""
+    from booking.models import SiteSettings
+    if not SiteSettings.load().line_segment_enabled:
+        return
+    from booking.services.line_segment import recompute_segments
+    recompute_segments()
+
+
+@shared_task
+def task_send_segment_message(customer_ids, message_text):
+    """セグメント配信タスク"""
+    from booking.models import SiteSettings
+    if not SiteSettings.load().line_segment_enabled:
+        return
+    from booking.services.line_segment import send_segment_message
+    send_segment_message(customer_ids, message_text)
+
+
+@shared_task
+def generate_live_demo_data_task():
+    """30分毎: デモモード有効時に当日デモデータを生成"""
+    from booking.models import SiteSettings
+    if not SiteSettings.load().demo_mode_enabled:
+        return
+    from django.core.management import call_command
+    call_command('generate_live_demo_data')
+    logger.info('Live demo data generation completed')
+
+
+@shared_task
+def run_scheduled_backup():
+    """毎分実行: BackupConfigの間隔設定に基づきバックアップ実行判定"""
+    from booking.models import BackupConfig, BackupHistory
+
+    config = BackupConfig.load()
+    if not config.is_active or config.interval == 'off':
+        return
+
+    intervals = {'minute': 60, 'hourly': 3600, 'daily': 86400}
+    interval_seconds = intervals.get(config.interval, 86400)
+
+    last_success = (
+        BackupHistory.objects
+        .filter(status='success')
+        .order_by('-started_at')
+        .first()
+    )
+
+    if last_success:
+        elapsed = (timezone.now() - last_success.started_at).total_seconds()
+        if elapsed < interval_seconds * 0.9:
+            return  # まだ早い
+
+    from booking.services.backup_service import create_backup
+    create_backup(trigger='scheduled')
+    logger.info('Scheduled backup completed')

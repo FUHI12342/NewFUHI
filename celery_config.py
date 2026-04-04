@@ -67,6 +67,30 @@ app.conf.beat_schedule = {
         "task": "booking.tasks.task_check_scheduled_posts",
         "schedule": 300.0,
     },
+    # LINE リマインダー
+    "line-reminder-day-before": {
+        "task": "booking.tasks.send_day_before_reminders",
+        "schedule": crontab(hour=18, minute=0),  # 毎日18:00 JST
+    },
+    "line-reminder-same-day": {
+        "task": "booking.tasks.send_same_day_reminders",
+        "schedule": crontab(minute='*/30'),  # 30分ごと
+    },
+    # LINE セグメント日次更新
+    "line-recompute-segments": {
+        "task": "booking.tasks.recompute_customer_segments",
+        "schedule": crontab(hour=4, minute=30),  # 毎日04:30
+    },
+    # デモデータ自動生成（30分毎）
+    "generate-live-demo-data": {
+        "task": "booking.tasks.generate_live_demo_data_task",
+        "schedule": crontab(minute='*/30'),
+    },
+    # 自動バックアップ（毎分実行、内部で間隔判定）
+    "run-scheduled-backup": {
+        "task": "booking.tasks.run_scheduled_backup",
+        "schedule": 60.0,
+    },
 }
 
 # 互換のため明示（settings.py 側で CELERY_TASK_SERIALIZER などを設定しているなら不要）

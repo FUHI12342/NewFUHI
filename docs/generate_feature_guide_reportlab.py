@@ -144,7 +144,7 @@ def build_pdf(output_path):
         'Cover2', fontName='HeiseiKakuGo-W5', fontSize=22,
         textColor=BLUE, alignment=TA_CENTER, leading=30, spaceAfter=12)))
     story.append(Spacer(1, 6 * mm))
-    story.append(Paragraph('SNS自動投稿 + AI生成 + WordPress埋め込み', S_SUBTITLE))
+    story.append(Paragraph('全機能ガイド', S_SUBTITLE))
     story.append(Paragraph('占いサロンチャンス 管理者向け', S_SUBTITLE))
     story.append(Spacer(1, 20 * mm))
     story.append(Paragraph(today, ParagraphStyle(
@@ -166,6 +166,9 @@ def build_pdf(output_path):
         '5. コスト試算',
         '6. WordPress iframe埋め込み',
         '7. 初期セットアップ手順と日常運用',
+        '8. LINE連携機能',
+        '9. デモモード切替',
+        '10. 自動バックアップ',
     ]
     for item in toc_items:
         story.append(Paragraph(item, ParagraphStyle(
@@ -472,6 +475,149 @@ def build_pdf(output_path):
         '・Instagram/GBP ブラウザ投稿: 1日1-2件推奨（BAN防止）<br/>'
         '・ブラウザ投稿を使う場合、EC2にPlaywrightのインストールが必要',
         BG_YELLOW))
+
+    # ==================== 8. LINE連携機能 ====================
+    story.append(PageBreak())
+    story.append(Paragraph('8. LINE連携機能', S_H1))
+    story.append(hr())
+
+    story.append(Paragraph('<b>概要</b>', S_H2))
+    story.append(Paragraph(
+        'LINE公式アカウントを通じて予約受付、リマインダー送信、セグメント配信を自動化します。'
+        'すべてフィーチャーフラグで個別にON/OFF制御できます。', S_BODY))
+    story.append(Spacer(1, 3 * mm))
+
+    story.append(Paragraph('<b>機能一覧</b>', S_H2))
+    story.append(make_table(
+        ['機能', 'フラグ', '説明'],
+        [
+            ['Webhook受信', '常時有効', '友だち追加/ブロック検知、メッセージ/Postback受信'],
+            ['チャットボット予約', 'line_chatbot_enabled', 'LINEトーク内で店舗→スタッフ→日時→予約確定'],
+            ['リマインダー', 'line_reminder_enabled', '前日18:00 / 当日2時間前に自動LINE通知'],
+            ['セグメント配信', 'line_segment_enabled', '新規/リピーター/VIP/休眠 別一括配信'],
+            ['リッチメニュー', '常時有効', '予約する/予約確認/お問い合わせのPostback対応'],
+            ['仮予約確認', '常時有効', '管理画面から予約の確定/却下 + LINE通知'],
+        ],
+        [40 * mm, 45 * mm, 85 * mm],
+    ))
+    story.append(Spacer(1, 3 * mm))
+
+    story.append(Paragraph('<b>フラグ設定方法</b>', S_H2))
+    story.append(step(1, '管理画面 →「メインサイト設定」を開く'))
+    story.append(step(2, '「LINE連携」セクションまでスクロール'))
+    story.append(step(3, '必要なフラグをONにして「保存」'))
+    story.append(Spacer(1, 3 * mm))
+
+    story.append(Paragraph('<b>チャットボット予約フロー</b>', S_H2))
+    story.append(note_box(
+        '1. 顧客がLINEリッチメニュー「予約する」をタップ<br/>'
+        '2. 店舗一覧から選択<br/>'
+        '3. スタッフ一覧から選択<br/>'
+        '4. カレンダーから日付選択<br/>'
+        '5. 空き時間枠から選択<br/>'
+        '6. 確認画面で「予約確定」<br/>'
+        '7. 予約完了メッセージ + QRコード受信', BG_BLUE))
+    story.append(Spacer(1, 3 * mm))
+
+    story.append(Paragraph('<b>セグメント配信</b>', S_H2))
+    story.append(make_table(
+        ['セグメント', '条件', '配信例'],
+        [
+            ['新規', '初回予約から30日以内', '初来店ありがとうクーポン'],
+            ['リピーター', '2回以上来店、直近90日内', '常連様限定メニュー案内'],
+            ['VIP', '5回以上来店', 'VIP限定イベント招待'],
+            ['休眠', '最終来店90日以上前', 'お久しぶり割引クーポン'],
+        ],
+        [30 * mm, 55 * mm, 85 * mm],
+    ))
+
+    # ==================== 9. デモモード切替 ====================
+    story.append(PageBreak())
+    story.append(Paragraph('9. デモモード切替', S_H1))
+    story.append(hr())
+
+    story.append(Paragraph('<b>概要</b>', S_H2))
+    story.append(Paragraph(
+        'デモモードをONにすると、ダッシュボードにデモデータ（模擬データ）も表示されます。'
+        'OFFにすると実データのみ表示。営業デモや機能紹介に活用できます。', S_BODY))
+    story.append(Spacer(1, 3 * mm))
+
+    story.append(Paragraph('<b>設定方法</b>', S_H2))
+    story.append(step(1, '管理画面 →「メインサイト設定」を開く'))
+    story.append(step(2, '「デモモード」セクションまでスクロール'))
+    story.append(step(3, '「デモモード」チェックボックスをON/OFFにして「保存」'))
+    story.append(Spacer(1, 3 * mm))
+
+    story.append(Paragraph('<b>動作の違い</b>', S_H2))
+    story.append(make_table(
+        ['設定', 'ダッシュボード表示', 'バナー'],
+        [
+            ['デモモードON', 'デモデータ + 実データの両方を表示', '「DEMO MODE」バナーが表示される'],
+            ['デモモードOFF（デフォルト）', '実データのみ表示', 'バナーなし（通常運用）'],
+        ],
+        [45 * mm, 80 * mm, 45 * mm],
+    ))
+    story.append(Spacer(1, 3 * mm))
+
+    story.append(Paragraph('<b>デモデータ自動生成</b>', S_H2))
+    story.append(Paragraph(
+        'デモモードON時、30分ごとにCeleryが当日分のデモ注文・予約・来客数を自動生成します。'
+        '手動生成も可能:', S_BODY))
+    story.append(note_box(
+        'python manage.py generate_live_demo_data', BG_BLUE))
+    story.append(Spacer(1, 3 * mm))
+
+    story.append(note_box(
+        '<b>注意:</b> デモデータは is_demo=True フラグで管理されています。'
+        'デモモードOFF時にダッシュボードから自動的に除外されるため、'
+        '実際の売上データに影響はありません。', BG_YELLOW))
+
+    # ==================== 10. 自動バックアップ ====================
+    story.append(PageBreak())
+    story.append(Paragraph('10. 自動バックアップ', S_H1))
+    story.append(hr())
+
+    story.append(Paragraph('<b>概要</b>', S_H2))
+    story.append(Paragraph(
+        'SQLiteデータベースのアトミックバックアップを管理画面から設定・実行できます。'
+        'S3へのアップロード、ローカル保持ポリシー、LINE通知に対応しています。', S_BODY))
+    story.append(Spacer(1, 3 * mm))
+
+    story.append(Paragraph('<b>バックアップ設定</b>', S_H2))
+    story.append(step(1, '管理画面 →「バックアップ設定」を開く'))
+    story.append(step(2, 'バックアップ間隔を選択（OFF / 毎分 / 毎時 / 毎日）'))
+    story.append(step(3, 'S3アップロード、保持数、LINE通知を設定して「保存」'))
+    story.append(Spacer(1, 3 * mm))
+
+    story.append(Paragraph('<b>設定項目一覧</b>', S_H2))
+    story.append(make_table(
+        ['項目', 'デフォルト', '説明'],
+        [
+            ['バックアップ間隔', 'OFF', 'off / 毎分 / 毎時 / 毎日'],
+            ['S3アップロード', 'ON', 'バックアップファイルをS3に自動アップロード'],
+            ['S3バケット', 'mee-newfuhi-backups', 'アップロード先S3バケット名'],
+            ['ローカル保持数', '30', 'ローカルに保持するバックアップファイル数'],
+            ['S3保持日数', '90', 'S3上のバックアップ保持日数'],
+            ['LINE通知', 'ON', 'バックアップ完了/失敗時にLINE Notify通知'],
+        ],
+        [40 * mm, 40 * mm, 90 * mm],
+    ))
+    story.append(Spacer(1, 3 * mm))
+
+    story.append(Paragraph('<b>手動バックアップ</b>', S_H2))
+    story.append(Paragraph('管理画面から:', S_BODY))
+    story.append(step(1, '管理画面 →「バックアップ設定」を開く'))
+    story.append(step(2, '右上の「手動バックアップ実行」ボタンをクリック'))
+    story.append(Spacer(1, 2 * mm))
+    story.append(Paragraph('コマンドラインから:', S_BODY))
+    story.append(note_box('python manage.py create_backup', BG_BLUE))
+    story.append(Spacer(1, 3 * mm))
+
+    story.append(Paragraph('<b>バックアップ履歴</b>', S_H2))
+    story.append(Paragraph(
+        '管理画面 →「バックアップ履歴」で過去のバックアップ実行結果を確認できます。'
+        'ステータス（成功/失敗/実行中）、ファイルサイズ、S3アップロード状況、'
+        'エラーメッセージが一覧表示されます。', S_BODY))
 
     # ビルド
     doc.build(story)

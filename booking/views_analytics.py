@@ -35,8 +35,10 @@ class VisitorAnalyticsDashboardView(AdminSidebarMixin, TemplateView):
         today = date.today()
 
         # 今日のサマリー
+        from booking.services.demo_data_service import get_demo_exclusion
+        demo_filter = get_demo_exclusion()
         today_data = VisitorCount.objects.filter(
-            store=store, date=today,
+            store=store, date=today, **demo_filter,
         ) if store else VisitorCount.objects.none()
 
         from django.db.models import Sum
@@ -69,9 +71,11 @@ class VisitorCountAPIView(View):
             days = 7
 
         date_from = date.today() - timedelta(days=days)
+        from booking.services.demo_data_service import get_demo_exclusion
         records = VisitorCount.objects.filter(
             store=store,
             date__gte=date_from,
+            **get_demo_exclusion(),
         ).order_by('date', 'hour') if store else []
 
         data = [{

@@ -219,6 +219,7 @@ class WorkAttendance(models.Model):
         'ShiftAssignment', verbose_name=_('元シフト'), on_delete=models.SET_NULL,
         null=True, blank=True, related_name='derived_attendances',
     )
+    is_demo = models.BooleanField(_('デモデータ'), default=False, db_index=True)
 
     class Meta:
         app_label = 'booking'

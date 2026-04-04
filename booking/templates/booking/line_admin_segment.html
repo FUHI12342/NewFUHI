@@ -1,0 +1,131 @@
+{% extends "admin/base_site.html" %}
+{% load i18n %}
+
+{% block title %}LINEセグメント配信{% endblock %}
+
+{% block content %}
+<style>
+    .segment-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin: 20px 0; }
+    .segment-card { border: 1px solid #ddd; border-radius: 8px; padding: 16px; text-align: center; cursor: pointer; transition: border-color 0.2s; }
+    .segment-card:hover, .segment-card.selected { border-color: #417690; background: #f0f6fa; }
+    .segment-card .count { font-size: 2em; font-weight: bold; color: #417690; }
+    .segment-card .label { color: #666; margin-top: 4px; }
+    .send-form { margin-top: 20px; max-width: 600px; }
+    .send-form textarea { width: 100%; min-height: 120px; padding: 8px; border: 1px solid #ddd; border-radius: 4px; }
+    .send-form button { margin-top: 10px; padding: 10px 24px; background: #417690; color: white; border: none; border-radius: 4px; cursor: pointer; }
+    .send-form button:hover { background: #205067; }
+    .send-form button:disabled { background: #999; cursor: not-allowed; }
+    .result-msg { margin-top: 12px; padding: 10px; border-radius: 4px; display: none; }
+    .result-msg.success { display: block; background: #dff0d8; color: #3c763d; }
+    .result-msg.error { display: block; background: #f2dede; color: #a94442; }
+    .store-filter { margin-bottom: 16px; }
+    .store-filter select { padding: 6px 12px; border: 1px solid #ddd; border-radius: 4px; }
+</style>
+
+<h2>LINEセグメント配信</h2>
+
+<div class="store-filter">
+    <label>店舗フィルター:
+        <select id="storeFilter" onchange="filterByStore()">
+            <option value="">全店舗</option>
+            {% for store in stores %}
+            <option value="{{ store.id }}" {% if selected_store_id == store.id %}selected{% endif %}>{{ store.name }}</option>
+            {% endfor %}
+        </select>
+    </label>
+</div>
+
+<div class="segment-grid">
+    {% for key, info in segment_counts.items %}
+    <div class="segment-card" data-segment="{{ key }}" onclick="selectSegment('{{ key }}')">
+        <div class="count">{{ info.count }}</div>
+        <div class="label">{{ info.label }}</div>
+    </div>
+    {% endfor %}
+</div>
+
+<div class="send-form" id="sendForm" style="display:none;">
+    <h3>メッセージ作成 (<span id="selectedSegmentLabel"></span>)</h3>
+    <textarea id="messageText" placeholder="配信メッセージを入力してください..."></textarea>
+    <div>
+        <button onclick="sendMessage()" id="sendBtn">送信</button>
+        <span id="charCount" style="margin-left:12px;color:#666;">0/500文字</span>
+    </div>
+    <div class="result-msg" id="resultMsg"></div>
+</div>
+
+<script>
+let selectedSegment = '';
+
+function filterByStore() {
+    const storeId = document.getElementById('storeFilter').value;
+    const url = new URL(window.location.href);
+    if (storeId) { url.searchParams.set('store_id', storeId); }
+    else { url.searchParams.delete('store_id'); }
+    window.location.href = url.toString();
+}
+
+function selectSegment(seg) {
+    selectedSegment = seg;
+    document.querySelectorAll('.segment-card').forEach(c => c.classList.remove('selected'));
+    document.querySelector(`[data-segment="${seg}"]`).classList.add('selected');
+    document.getElementById('sendForm').style.display = 'block';
+    const labels = {new: '新規', regular: 'リピーター', vip: 'VIP', dormant: '休眠'};
+    document.getElementById('selectedSegmentLabel').textContent = labels[seg] || seg;
+}
+
+document.getElementById('messageText').addEventListener('input', function() {
+    document.getElementById('charCount').textContent = this.value.length + '/500文字';
+});
+
+function sendMessage() {
+    const msg = document.getElementById('messageText').value.trim();
+    if (!msg) { showResult('メッセージを入力してください', 'error'); return; }
+    if (msg.length > 500) { showResult('500文字以内にしてください', 'error'); return; }
+    if (!confirm('配信を実行しますか？')) return;
+
+    const btn = document.getElementById('sendBtn');
+    btn.disabled = true;
+    btn.textContent = '送信中...';
+
+    const storeId = document.getElementById('storeFilter').value;
+    fetch('{% url "admin_line_segment_send" %}', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCookie('csrftoken'),
+        },
+        body: JSON.stringify({
+            segment: selectedSegment,
+            message: msg,
+            store_id: storeId || null,
+        }),
+    })
+    .then(r => r.json())
+    .then(data => {
+        btn.disabled = false;
+        btn.textContent = '送信';
+        if (data.success) { showResult(data.message, 'success'); }
+        else { showResult(data.error || 'エラーが発生しました', 'error'); }
+    })
+    .catch(() => {
+        btn.disabled = false;
+        btn.textContent = '送信';
+        showResult('通信エラーが発生しました', 'error');
+    });
+}
+
+function showResult(msg, type) {
+    const el = document.getElementById('resultMsg');
+    el.textContent = msg;
+    el.className = 'result-msg ' + type;
+}
+
+function getCookie(name) {
+    const value = `; ${document.cookie}`;
+    const parts = value.split(`; ${name}=`);
+    if (parts.length === 2) return parts.pop().split(';').shift();
+    return '';
+}
+</script>
+{% endblock %}

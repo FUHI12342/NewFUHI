@@ -120,3 +120,9 @@ from .social_posting import (  # noqa: F401
     KnowledgeEntry,
     DraftPost,
 )
+
+# LINE Customer
+from .line_customer import LineCustomer, LineMessageLog  # noqa: F401
+
+# Backup
+from .backup import BackupConfig, BackupHistory  # noqa: F401
