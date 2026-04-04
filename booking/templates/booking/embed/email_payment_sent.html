@@ -1,0 +1,44 @@
+{% extends 'booking/embed/embed_base.html' %}
+{% load i18n %}
+
+{% block title %}{% trans "決済URL送信完了" %}{% endblock %}
+
+{% block content %}
+<div class="text-center py-6 space-y-4">
+
+  {% if payment_url_sent %}
+  <!-- Success -->
+  <div class="bg-emerald-50 rounded-full w-16 h-16 flex items-center justify-center mx-auto">
+    <svg class="w-8 h-8 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+    </svg>
+  </div>
+
+  <h2 class="text-base font-bold">{% trans "決済URLをメールで送信しました" %}</h2>
+
+  <p class="text-sm text-gray-600">
+    {{ customer_name }}{% trans "様" %}<br>
+    <span class="font-medium">{{ customer_email }}</span>
+  </p>
+
+  <div class="bg-amber-50 border border-amber-200 rounded-lg p-3 text-left text-sm">
+    <p class="text-amber-800 font-medium text-xs">{% trans "ご注意" %}</p>
+    <p class="text-amber-700 text-xs">
+      {% trans "15分以内にお支払いがない場合、仮予約は自動キャンセルされます。メールをご確認の上、お早めにお支払いください。" %}
+    </p>
+  </div>
+
+  {% else %}
+  <!-- Error -->
+  <div class="bg-rose-50 rounded-full w-16 h-16 flex items-center justify-center mx-auto">
+    <svg class="w-8 h-8 text-rose-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+    </svg>
+  </div>
+
+  <h2 class="text-base font-bold">{% trans "決済URLの取得に失敗しました" %}</h2>
+  <p class="text-sm text-gray-600">{% trans "申し訳ございません。しばらくしてからもう一度お試しください。" %}</p>
+  {% endif %}
+
+</div>
+{% endblock %}

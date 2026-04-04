@@ -11,8 +11,7 @@
   {% if staffs %}
   <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
     {% for staff in staffs %}
-    <a href="/staff/{{ staff.pk }}/calendar/?embed=1"
-       target="_top"
+    <a href="/embed/calendar/{{ store.pk }}/{{ staff.pk }}/?api_key={{ api_key }}"
        class="block border border-gray-200 rounded-lg p-3 hover:border-indigo-400 hover:shadow transition">
       <div class="flex items-center gap-3">
         {% if staff.thumbnail %}

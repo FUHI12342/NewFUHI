@@ -62,6 +62,12 @@ class Schedule(models.Model):
     email_verified = models.BooleanField(_('メール認証済み'), default=False)
     payment_url = models.URLField(_('決済URL'), blank=True, null=True)
 
+    # 埋め込み予約フロー用トークン
+    embed_token = models.CharField(
+        _('埋め込みトークン'), max_length=43,
+        unique=True, null=True, blank=True, db_index=True,
+    )
+
     # 顧客キャンセル用トークン
     cancel_token = models.CharField(
         _('キャンセル番号'), max_length=8,

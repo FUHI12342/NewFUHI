@@ -1,0 +1,118 @@
+{% extends 'booking/embed/embed_base.html' %}
+{% load i18n %}
+
+{% block title %}{% trans "予約カレンダー" %} - {{ staff.name }}{% endblock %}
+
+{% block content %}
+<div class="space-y-3">
+
+  <!-- Heading -->
+  <div class="text-center">
+    <h2 class="text-base font-bold">{{ staff.name }}</h2>
+    <p class="text-xs text-gray-500">{{ store.name }}</p>
+  </div>
+
+  <!-- Date Range & Navigation -->
+  <div class="flex items-center justify-between bg-gray-50 rounded-lg px-3 py-2">
+    <a href="/embed/calendar/{{ store.pk }}/{{ staff.pk }}/{{ before.year }}/{{ before.month }}/{{ before.day }}/?api_key={{ api_key }}"
+       class="text-indigo-600 hover:text-indigo-800">
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+      </svg>
+    </a>
+    <span class="text-sm font-bold">
+      {{ start_day|date:"m/d" }} &ndash; {{ end_day|date:"m/d" }}
+    </span>
+    <a href="/embed/calendar/{{ store.pk }}/{{ staff.pk }}/{{ next.year }}/{{ next.month }}/{{ next.day }}/?api_key={{ api_key }}"
+       class="text-indigo-600 hover:text-indigo-800">
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+      </svg>
+    </a>
+  </div>
+
+  <!-- Legend -->
+  <div class="flex items-center gap-3 text-[10px]">
+    <span class="inline-flex items-center gap-0.5">
+      <span class="inline-block w-5 h-5 leading-5 text-center rounded bg-green-100 text-green-700 font-bold">&cir;</span>
+      {% trans "空き" %}
+    </span>
+    <span class="inline-flex items-center gap-0.5">
+      <span class="inline-block w-5 h-5 leading-5 text-center rounded bg-red-100 text-red-600 font-bold">&times;</span>
+      {% trans "予約済" %}
+    </span>
+    <span class="inline-flex items-center gap-0.5">
+      <span class="inline-block w-5 h-5 leading-5 text-center rounded bg-yellow-100 text-yellow-700 font-bold text-[9px]">仮</span>
+      {% trans "仮予約" %}
+    </span>
+  </div>
+
+  <!-- Calendar Table -->
+  <div class="overflow-x-auto rounded-lg border border-gray-200">
+    <table class="w-full text-center text-xs border-collapse min-w-[360px]">
+      <thead>
+        <tr class="bg-gray-50">
+          <th class="px-1 py-2 border-b border-gray-200 w-10"></th>
+          {% for day in days %}
+          <th class="px-1 py-2 border-b border-gray-200 text-[10px]
+            {% if day in public_holidays %}text-red-600{% elif day.weekday == 5 %}text-blue-600{% elif day.weekday == 6 %}text-red-600{% endif %}
+          ">
+            <div>{{ day|date:"m/d" }}</div>
+            <div class="font-normal">{{ day|date:"D" }}</div>
+          </th>
+          {% endfor %}
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-gray-100">
+        {% for slot_label, schedules in calendar.items %}
+        <tr class="hover:bg-gray-50/50">
+          <td class="px-1 py-1 text-[10px] font-medium text-gray-500 bg-gray-50 border-r border-gray-100 whitespace-nowrap">
+            {{ slot_label }}
+          </td>
+          {% for dt, book in schedules.items %}
+          <td class="px-0.5 py-1">
+            {% if dt <= today %}
+              <span class="inline-block w-5 h-5 leading-5 rounded text-gray-300">&ndash;</span>
+            {% elif book == 'Booked' %}
+              <span class="inline-block w-5 h-5 leading-5 rounded bg-red-100 text-red-600 font-bold">&times;</span>
+            {% elif book == 'Temp' %}
+              <span class="inline-block w-5 h-5 leading-5 rounded bg-yellow-100 text-yellow-700 font-bold text-[9px]">仮</span>
+            {% else %}
+              <a href="#" class="inline-block w-5 h-5 leading-5 rounded bg-green-100 text-green-700 font-bold hover:bg-green-200 transition"
+                 data-hour="{{ slot_label }}" data-date="{{ dt|date:'Y-m-d' }}">&cir;</a>
+            {% endif %}
+          </td>
+          {% endfor %}
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Back link -->
+  <div class="text-center">
+    <a href="/embed/booking/{{ store.pk }}/?api_key={{ api_key }}"
+       class="text-xs text-gray-500 hover:text-indigo-600 underline">
+      {% trans "一覧に戻る" %}
+    </a>
+  </div>
+
+</div>
+
+<script>
+// Fix prebooking links with proper hour/minute
+var base = '/embed/prebooking/{{ store.pk }}/{{ staff.pk }}/';
+var apiKey = '{{ api_key }}';
+document.querySelectorAll('a[data-hour]').forEach(function(a) {
+    var parts = a.dataset.hour.split(':');
+    var hour = parseInt(parts[0]);
+    var minute = parseInt(parts[1] || '0');
+    var date = a.dataset.date.split('-');
+    var url = base + date[0] + '/' + parseInt(date[1]) + '/' + parseInt(date[2]) + '/' + hour + '/';
+    if (minute > 0) {
+        url += minute + '/';
+    }
+    a.href = url + '?api_key=' + apiKey;
+});
+</script>
+{% endblock %}

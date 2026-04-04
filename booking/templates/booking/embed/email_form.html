@@ -1,0 +1,49 @@
+{% extends 'booking/embed/embed_base.html' %}
+{% load i18n %}
+
+{% block title %}{% trans "メールで予約" %}{% endblock %}
+
+{% block content %}
+<div class="space-y-4">
+
+  <h2 class="text-base font-bold text-center">{% trans "メールアドレスとお名前を入力" %}</h2>
+
+  {% if error %}
+  <div class="bg-rose-50 border border-rose-200 rounded-lg p-3 text-rose-700 text-sm">
+    {{ error }}
+  </div>
+  {% endif %}
+
+  {% if schedule %}
+  <div class="bg-gray-50 rounded-lg p-3 text-xs">
+    <span class="font-medium">{{ staff.name }}</span> /
+    {{ schedule.price }}{% trans "円" %}
+  </div>
+  {% endif %}
+
+  <form method="post" action="?api_key={{ api_key }}">
+
+    <div class="mb-3">
+      <label for="id_customer_name" class="block text-sm font-medium mb-1">{% trans "お名前" %}</label>
+      <input type="text" name="customer_name" id="id_customer_name"
+             value="{{ customer_name|default:'' }}"
+             required maxlength="255"
+             class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 outline-none">
+    </div>
+
+    <div class="mb-4">
+      <label for="id_customer_email" class="block text-sm font-medium mb-1">{% trans "メールアドレス" %}</label>
+      <input type="email" name="customer_email" id="id_customer_email"
+             value="{{ customer_email|default:'' }}"
+             required
+             class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 outline-none">
+    </div>
+
+    <button type="submit"
+            class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-2.5 rounded-lg transition text-sm">
+      {% trans "認証コードを送信" %}
+    </button>
+  </form>
+
+</div>
+{% endblock %}

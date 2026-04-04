@@ -1,0 +1,23 @@
+{% extends 'booking/embed/embed_base.html' %}
+{% load i18n %}
+
+{% block title %}{% trans "期限切れ" %}{% endblock %}
+
+{% block content %}
+<div class="text-center py-8 space-y-4">
+
+  <div class="bg-amber-50 rounded-full w-16 h-16 flex items-center justify-center mx-auto">
+    <svg class="w-8 h-8 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+    </svg>
+  </div>
+
+  <h2 class="text-base font-bold">{% trans "予約の有効期限が切れまし���" %}</h2>
+
+  <p class="text-sm text-gray-600">
+    {% trans "仮予約の有効期限（15分）が過ぎたため、予約は自動キャンセルされました。お手数ですが、最初からやり直してください。" %}
+  </p>
+
+</div>
+{% endblock %}
