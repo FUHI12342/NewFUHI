@@ -59,40 +59,33 @@
 
 </div>
 
-<!-- In-app browser modal -->
-<div id="inapp-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-  <div class="bg-white rounded-2xl max-w-sm w-full p-5 space-y-4 shadow-xl">
-    <div class="text-center">
-      <div class="bg-amber-50 rounded-full w-14 h-14 flex items-center justify-center mx-auto mb-3">
-        <svg class="w-7 h-7 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+<!-- In-app browser modal (bottom-sheet style for mobile iframe) -->
+<div id="inapp-modal" class="hidden" style="position:absolute;inset:0;z-index:50;background:rgba(0,0,0,.4);">
+  <div style="position:absolute;bottom:0;left:0;right:0;background:#fff;border-radius:16px 16px 0 0;padding:20px 16px calc(env(safe-area-inset-bottom,0px) + 16px);box-shadow:0 -4px 20px rgba(0,0,0,.15);">
+    <div style="width:36px;height:4px;background:#d1d5db;border-radius:2px;margin:0 auto 12px;"></div>
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
+      <div style="width:36px;height:36px;background:#fffbeb;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+        <svg style="width:20px;height:20px;color:#f59e0b;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                 d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4.5c-.77-.833-2.694-.833-3.464 0L3.34 16.5c-.77.833.192 2.5 1.732 2.5z"/>
         </svg>
       </div>
-      <h3 class="text-base font-bold">ブラウザで開いてください</h3>
-      <p class="text-sm text-gray-600 mt-2 leading-relaxed">
-        アプリ内ブラウザではLINEログインが正常に動作しません。<br>
-        SafariまたはChromeで開き直してください。
-      </p>
-    </div>
-
-    <!-- URL copy area -->
-    <div class="bg-gray-50 rounded-lg p-3">
-      <p class="text-[11px] text-gray-500 mb-1.5">このURLをコピーしてSafari等で開いてください：</p>
-      <div class="flex items-center gap-2">
-        <input id="inapp-url" type="text" readonly
-               class="flex-1 text-xs bg-white border rounded px-2 py-1.5 text-gray-700 select-all"
-               value="">
-        <button id="inapp-copy" type="button"
-                class="flex-shrink-0 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded px-3 py-1.5 transition">
-          コピー
-        </button>
+      <div>
+        <p style="font-size:14px;font-weight:700;margin:0;">Safariで開いてください</p>
+        <p style="font-size:12px;color:#6b7280;margin:2px 0 0;">アプリ内ブラウザではLINEログインが使えません</p>
       </div>
-      <p id="inapp-copied" class="hidden text-xs text-green-600 mt-1.5 font-bold text-center">コピーしました！</p>
     </div>
-
+    <button id="inapp-copy" type="button"
+            style="width:100%;padding:12px;background:#4f46e5;color:#fff;font-size:14px;font-weight:700;border:none;border-radius:10px;cursor:pointer;">
+      URLをコピーする
+    </button>
+    <p id="inapp-copied" style="display:none;text-align:center;font-size:12px;color:#16a34a;font-weight:700;margin:8px 0 0;">
+      コピーしました！ Safariに貼り付けて開いてください
+    </p>
+    <input id="inapp-url" type="text" readonly value=""
+           style="position:absolute;left:-9999px;opacity:0;">
     <button id="inapp-close" type="button"
-            class="w-full text-sm text-gray-500 hover:text-gray-700 py-1">
+            style="width:100%;padding:8px;margin-top:8px;background:none;border:none;font-size:13px;color:#9ca3af;cursor:pointer;">
       閉じる
     </button>
   </div>
@@ -102,49 +95,41 @@
 (function() {
   var ua = navigator.userAgent || '';
   var isInApp = /FBAN|FBAV|FB_IAB|Instagram|Line\/|Twitter|MicroMessenger/i.test(ua);
-
   if (!isInApp) return;
 
-  var lineBtn = document.getElementById('line-btn');
-  var modal   = document.getElementById('inapp-modal');
-  var urlBox  = document.getElementById('inapp-url');
-  var copyBtn = document.getElementById('inapp-copy');
+  var lineBtn   = document.getElementById('line-btn');
+  var modal     = document.getElementById('inapp-modal');
+  var urlBox    = document.getElementById('inapp-url');
+  var copyBtn   = document.getElementById('inapp-copy');
   var copiedMsg = document.getElementById('inapp-copied');
   var closeBtn  = document.getElementById('inapp-close');
+  var lineUrl   = lineBtn.href;
 
-  // Build the full LINE redirect URL for Safari
-  var lineUrl = lineBtn.href;
+  function showModal() { modal.style.display = 'block'; }
+  function hideModal() { modal.style.display = 'none'; copiedMsg.style.display = 'none'; }
 
   lineBtn.addEventListener('click', function(e) {
     e.preventDefault();
     urlBox.value = lineUrl;
-    modal.classList.remove('hidden');
+    showModal();
   });
 
   copyBtn.addEventListener('click', function() {
     if (navigator.clipboard && navigator.clipboard.writeText) {
       navigator.clipboard.writeText(lineUrl).then(function() {
-        copiedMsg.classList.remove('hidden');
+        copiedMsg.style.display = 'block';
       });
     } else {
-      // Fallback: select + copy
+      urlBox.style.position = 'static'; urlBox.style.opacity = '1';
       urlBox.select();
       document.execCommand('copy');
-      copiedMsg.classList.remove('hidden');
+      urlBox.style.position = 'absolute'; urlBox.style.opacity = '0';
+      copiedMsg.style.display = 'block';
     }
   });
 
-  closeBtn.addEventListener('click', function() {
-    modal.classList.add('hidden');
-    copiedMsg.classList.add('hidden');
-  });
-
-  modal.addEventListener('click', function(e) {
-    if (e.target === modal) {
-      modal.classList.add('hidden');
-      copiedMsg.classList.add('hidden');
-    }
-  });
+  closeBtn.addEventListener('click', hideModal);
+  modal.addEventListener('click', function(e) { if (e.target === modal) hideModal(); });
 })();
 </script>
 {% endblock %}
