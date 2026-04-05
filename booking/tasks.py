@@ -15,13 +15,16 @@ logger = logging.getLogger(__name__)
 
 @shared_task
 def delete_temporary_schedules():
+    """20分経過した仮予約を自動キャンセル"""
     now = timezone.now()
-    Schedule.objects.filter(
-        temporary_booked_at__lt=now - timezone.timedelta(minutes=10),
+    expired = Schedule.objects.filter(
+        temporary_booked_at__lt=now - timezone.timedelta(minutes=20),
         is_temporary=True,
         is_cancelled=False,
-        confirmation_status='none',  # 仮予約確認中は削除しない
-    ).delete()
+    )
+    count = expired.update(is_cancelled=True)
+    if count:
+        logger.info('仮予約 %d件を自動キャンセルしました', count)
 
 
 @shared_task

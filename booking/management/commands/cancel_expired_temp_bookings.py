@@ -1,4 +1,4 @@
-"""仮予約を15分経過で自動キャンセルするコマンド
+"""仮予約を20分経過で自動キャンセルするコマンド
 
 cron で毎分実行:
   * * * * * cd /home/ubuntu/NewFUHI && .venv/bin/python manage.py cancel_expired_temp_bookings
@@ -13,10 +13,10 @@ from booking.models import Schedule
 
 
 class Command(BaseCommand):
-    help = '15分以上経過した仮予約(is_temporary=True)を自動キャンセルする'
+    help = '20分以上経過した仮予約(is_temporary=True)を自動キャンセルする'
 
     def handle(self, *args, **options):
-        cutoff = timezone.now() - timedelta(minutes=15)
+        cutoff = timezone.now() - timedelta(minutes=20)
         expired = Schedule.objects.filter(
             is_temporary=True,
             is_cancelled=False,

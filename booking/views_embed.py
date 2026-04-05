@@ -167,7 +167,7 @@ class EmbedTokenMixin:
 
     def get_embed_schedule(self, embed_token):
         """embed_token で仮予約を取得。期限切れ/無効ならNone。"""
-        cutoff = timezone.now() - datetime.timedelta(minutes=30)
+        cutoff = timezone.now() - datetime.timedelta(minutes=20)
         return Schedule.objects.filter(
             embed_token=embed_token,
             is_temporary=True,
