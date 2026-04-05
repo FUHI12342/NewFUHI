@@ -41,6 +41,10 @@
         <span class="block text-xs opacity-80">{% trans "LINEアカウントで予約（別タブで開きます）" %}</span>
       </div>
     </a>
+    <!-- In-app browser tip (JS shows only when needed) -->
+    <p id="inapp-tip" style="display:none;text-align:center;font-size:11px;color:#6b7280;margin:-4px 0 0;padding:0 8px;">
+      LINEアプリが開いたら「ログイン」を押して進んでください
+    </p>
 
     <!-- Email (iframe内) -->
     <a href="/embed/email/{{ embed_token }}/?api_key={{ api_key }}"
@@ -59,77 +63,13 @@
 
 </div>
 
-<!-- In-app browser modal (bottom-sheet style for mobile iframe) -->
-<div id="inapp-modal" class="hidden" style="position:absolute;inset:0;z-index:50;background:rgba(0,0,0,.4);">
-  <div style="position:absolute;bottom:0;left:0;right:0;background:#fff;border-radius:16px 16px 0 0;padding:20px 16px calc(env(safe-area-inset-bottom,0px) + 16px);box-shadow:0 -4px 20px rgba(0,0,0,.15);">
-    <div style="width:36px;height:4px;background:#d1d5db;border-radius:2px;margin:0 auto 12px;"></div>
-    <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
-      <div style="width:36px;height:36px;background:#fffbeb;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
-        <svg style="width:20px;height:20px;color:#f59e0b;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4.5c-.77-.833-2.694-.833-3.464 0L3.34 16.5c-.77.833.192 2.5 1.732 2.5z"/>
-        </svg>
-      </div>
-      <div>
-        <p style="font-size:14px;font-weight:700;margin:0;">Safariで開いてください</p>
-        <p style="font-size:12px;color:#6b7280;margin:2px 0 0;">アプリ内ブラウザではLINEログインが使えません</p>
-      </div>
-    </div>
-    <button id="inapp-copy" type="button"
-            style="width:100%;padding:12px;background:#4f46e5;color:#fff;font-size:14px;font-weight:700;border:none;border-radius:10px;cursor:pointer;">
-      URLをコピーする
-    </button>
-    <p id="inapp-copied" style="display:none;text-align:center;font-size:12px;color:#16a34a;font-weight:700;margin:8px 0 0;">
-      コピーしました！ Safariに貼り付けて開いてください
-    </p>
-    <input id="inapp-url" type="text" readonly value=""
-           style="position:absolute;left:-9999px;opacity:0;">
-    <button id="inapp-close" type="button"
-            style="width:100%;padding:8px;margin-top:8px;background:none;border:none;font-size:13px;color:#9ca3af;cursor:pointer;">
-      閉じる
-    </button>
-  </div>
-</div>
-
 <script>
 (function() {
   var ua = navigator.userAgent || '';
-  var isInApp = /FBAN|FBAV|FB_IAB|Instagram|Line\/|Twitter|MicroMessenger/i.test(ua);
-  if (!isInApp) return;
-
-  var lineBtn   = document.getElementById('line-btn');
-  var modal     = document.getElementById('inapp-modal');
-  var urlBox    = document.getElementById('inapp-url');
-  var copyBtn   = document.getElementById('inapp-copy');
-  var copiedMsg = document.getElementById('inapp-copied');
-  var closeBtn  = document.getElementById('inapp-close');
-  var lineUrl   = lineBtn.href;
-
-  function showModal() { modal.style.display = 'block'; }
-  function hideModal() { modal.style.display = 'none'; copiedMsg.style.display = 'none'; }
-
-  lineBtn.addEventListener('click', function(e) {
-    e.preventDefault();
-    urlBox.value = lineUrl;
-    showModal();
-  });
-
-  copyBtn.addEventListener('click', function() {
-    if (navigator.clipboard && navigator.clipboard.writeText) {
-      navigator.clipboard.writeText(lineUrl).then(function() {
-        copiedMsg.style.display = 'block';
-      });
-    } else {
-      urlBox.style.position = 'static'; urlBox.style.opacity = '1';
-      urlBox.select();
-      document.execCommand('copy');
-      urlBox.style.position = 'absolute'; urlBox.style.opacity = '0';
-      copiedMsg.style.display = 'block';
-    }
-  });
-
-  closeBtn.addEventListener('click', hideModal);
-  modal.addEventListener('click', function(e) { if (e.target === modal) hideModal(); });
+  if (/FBAN|FBAV|FB_IAB|Instagram|Line\/|Twitter|MicroMessenger/i.test(ua)) {
+    var tip = document.getElementById('inapp-tip');
+    if (tip) tip.style.display = 'block';
+  }
 })();
 </script>
 {% endblock %}
