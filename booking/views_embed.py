@@ -143,9 +143,13 @@ class EmbedDemoView(View):
         if not store:
             raise Http404("No store with embed API key configured")
 
+        casts = Staff.objects.filter(
+            store=store, staff_type='fortune_teller',
+        ).order_by('name')
         context = {
             'store': store,
             'api_key': store.embed_api_key,
+            'casts': casts,
         }
         return TemplateResponse(request, 'booking/embed/demo.html', context)
 
@@ -163,7 +167,7 @@ class EmbedTokenMixin:
 
     def get_embed_schedule(self, embed_token):
         """embed_token で仮予約を取得。期限切れ/無効ならNone。"""
-        cutoff = timezone.now() - datetime.timedelta(minutes=15)
+        cutoff = timezone.now() - datetime.timedelta(minutes=30)
         return Schedule.objects.filter(
             embed_token=embed_token,
             is_temporary=True,
@@ -553,11 +557,23 @@ class EmbedEmailVerifyView(EmbedTokenMixin, View):
 @method_decorator(xframe_options_exempt, name='dispatch')
 @method_decorator(csrf_exempt, name='dispatch')
 class EmbedLineRedirectView(EmbedTokenMixin, View):
-    """embed_token → セッションに移行 → LINE OAuthへ（新タブで開く前提）"""
+    """embed_token → セッションに移行 → LINE OAuthへ（新タブで開く前提）
+
+    冪等: 同じURLへの再アクセス（back/reload/ブラウザハンドオフ）でも
+    セッションに既にデータがあればそのまま LINE OAuth へリダイレクト。
+    """
 
     def get(self, request, embed_token):
+        # 既にセッションに仮予約情報がある場合はそのまま LINE OAuth へ
+        existing = request.session.get('temporary_booking')
+        if existing and existing.get('_embed_token') == embed_token:
+            return redirect('booking:line_enter')
+
         schedule = self.get_embed_schedule(embed_token)
         if not schedule:
+            # セッションに別トークンのデータがあれば（前回の残り）それも使う
+            if existing:
+                return redirect('booking:line_enter')
             return TemplateResponse(
                 request, 'booking/embed/expired.html', status=410)
 
@@ -576,10 +592,11 @@ class EmbedLineRedirectView(EmbedTokenMixin, View):
             'staff_id': schedule.staff_id,
             'staff_name': schedule.staff.name,
             'store_id': schedule.store_id,
+            '_embed_token': embed_token,
         }
 
-        # embed_token付きScheduleは削除（セッション側で管理）
-        schedule.delete()
+        # Scheduleは削除せずトークンをクリア（再アクセス防止 + DB保持）
+        Schedule.objects.filter(pk=schedule.pk).update(embed_token=None)
 
         return redirect('booking:line_enter')
 

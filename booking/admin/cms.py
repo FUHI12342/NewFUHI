@@ -208,6 +208,10 @@ class SiteSettingsAdmin(admin.ModelAdmin):
             key_display = store.embed_api_key if has_key else ''
             booking_url = f'/embed/booking/{store.pk}/?api_key={store.embed_api_key}' if has_key else ''
             shift_url = f'/embed/shift/{store.pk}/?api_key={store.embed_api_key}' if has_key else ''
+            cast_list = list(
+                Staff.objects.filter(store=store, staff_type='fortune_teller')
+                .order_by('name').values('pk', 'name')
+            )
             rows.append({
                 'pk': store.pk,
                 'name': store.name,
@@ -215,6 +219,7 @@ class SiteSettingsAdmin(admin.ModelAdmin):
                 'key': key_display,
                 'booking_url': booking_url,
                 'shift_url': shift_url,
+                'casts': cast_list,
             })
         stores_json = json.dumps(rows, ensure_ascii=False)
         demo_url = '/embed/demo/'
@@ -346,9 +351,24 @@ class SiteSettingsAdmin(admin.ModelAdmin):
       var scBooking = '[timebaibai type="booking" store="' + s.pk + '" api_key="' + s.key + '"]';
       var scShift = '[timebaibai type="shift" store="' + s.pk + '" api_key="' + s.key + '"]';
 
+      // キャスト別コード生成
+      var castSection = '';
+      if (s.casts && s.casts.length > 0) {
+        castSection = '<div style="margin-bottom:6px;font-size:11px;color:#64748b;">キャスト別 &#8212; 個別ページに直接リンク</div><div class="eg-grid">';
+        s.casts.forEach(function(c) {
+          var castUrl = o + '/embed/calendar/' + s.pk + '/' + c.pk + '/?api_key=' + s.key;
+          var castHtml = '<iframe src="' + castUrl + '" width="100%" height="600" style="border:none; max-width:100%;" loading="lazy"></iframe>';
+          var castSc = '[timebaibai type="booking" store="' + s.pk + '" staff="' + c.pk + '" api_key="' + s.key + '"]';
+          castSection += codeBox(esc(c.name) + ' (HTML)', esc(castHtml), 'cast-html-' + s.pk + '-' + c.pk);
+          castSection += codeBox(esc(c.name) + ' (WP)', esc(castSc), 'cast-sc-' + s.pk + '-' + c.pk);
+        });
+        castSection += '</div>';
+      }
+
       codeSection = '<div class="eg-tabs" id="' + tabId + '-tabs">'
         + '<button type="button" class="eg-tab active" data-tab="' + tabId + '-html" onclick="embedSwitchTab(this)">HTML</button>'
         + '<button type="button" class="eg-tab" data-tab="' + tabId + '-sc" onclick="embedSwitchTab(this)">WordPress</button>'
+        + (s.casts && s.casts.length > 0 ? '<button type="button" class="eg-tab" data-tab="' + tabId + '-cast" onclick="embedSwitchTab(this)">キャスト別</button>' : '')
         + '<button type="button" class="eg-tab" data-tab="' + tabId + '-preview" onclick="embedSwitchTab(this)">Preview</button>'
         + '</div>'
         + '<div class="eg-tab-content active" id="' + tabId + '-html">'
@@ -363,6 +383,7 @@ class SiteSettingsAdmin(admin.ModelAdmin):
         + codeBox('予約カレンダー', esc(scBooking), 'sc-booking-' + s.pk)
         + codeBox('シフト表示', esc(scShift), 'sc-shift-' + s.pk)
         + '</div></div>'
+        + (castSection ? '<div class="eg-tab-content" id="' + tabId + '-cast">' + castSection + '</div>' : '')
         + '<div class="eg-tab-content" id="' + tabId + '-preview">'
         + '<div style="margin-bottom:6px;font-size:11px;color:#64748b;">実際の表示プレビュー（予約カレンダー）</div>'
         + '<div style="border:1px solid #e2e8f0;border-radius:8px;overflow:hidden;">'

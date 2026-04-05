@@ -29,7 +29,8 @@
   <div class="grid grid-cols-1 gap-3">
 
     <!-- LINE (新タブで開く) -->
-    <a href="/embed/line/{{ embed_token }}/?api_key={{ api_key }}"
+    <a id="line-btn"
+       href="/embed/line/{{ embed_token }}/?api_key={{ api_key }}"
        target="_blank" rel="noopener"
        class="flex items-center gap-3 bg-[#06C755] hover:bg-[#05b04d] text-white rounded-xl p-4 shadow transition">
       <svg class="w-10 h-10 flex-shrink-0" fill="currentColor" viewBox="0 0 24 24">
@@ -57,4 +58,93 @@
   </div>
 
 </div>
+
+<!-- In-app browser modal -->
+<div id="inapp-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+  <div class="bg-white rounded-2xl max-w-sm w-full p-5 space-y-4 shadow-xl">
+    <div class="text-center">
+      <div class="bg-amber-50 rounded-full w-14 h-14 flex items-center justify-center mx-auto mb-3">
+        <svg class="w-7 h-7 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4.5c-.77-.833-2.694-.833-3.464 0L3.34 16.5c-.77.833.192 2.5 1.732 2.5z"/>
+        </svg>
+      </div>
+      <h3 class="text-base font-bold">ブラウザで開いてください</h3>
+      <p class="text-sm text-gray-600 mt-2 leading-relaxed">
+        アプリ内ブラウザではLINEログインが正常に動作しません。<br>
+        SafariまたはChromeで開き直してください。
+      </p>
+    </div>
+
+    <!-- URL copy area -->
+    <div class="bg-gray-50 rounded-lg p-3">
+      <p class="text-[11px] text-gray-500 mb-1.5">このURLをコピーしてSafari等で開いてください：</p>
+      <div class="flex items-center gap-2">
+        <input id="inapp-url" type="text" readonly
+               class="flex-1 text-xs bg-white border rounded px-2 py-1.5 text-gray-700 select-all"
+               value="">
+        <button id="inapp-copy" type="button"
+                class="flex-shrink-0 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded px-3 py-1.5 transition">
+          コピー
+        </button>
+      </div>
+      <p id="inapp-copied" class="hidden text-xs text-green-600 mt-1.5 font-bold text-center">コピーしました！</p>
+    </div>
+
+    <button id="inapp-close" type="button"
+            class="w-full text-sm text-gray-500 hover:text-gray-700 py-1">
+      閉じる
+    </button>
+  </div>
+</div>
+
+<script>
+(function() {
+  var ua = navigator.userAgent || '';
+  var isInApp = /FBAN|FBAV|FB_IAB|Instagram|Line\/|Twitter|MicroMessenger/i.test(ua);
+
+  if (!isInApp) return;
+
+  var lineBtn = document.getElementById('line-btn');
+  var modal   = document.getElementById('inapp-modal');
+  var urlBox  = document.getElementById('inapp-url');
+  var copyBtn = document.getElementById('inapp-copy');
+  var copiedMsg = document.getElementById('inapp-copied');
+  var closeBtn  = document.getElementById('inapp-close');
+
+  // Build the full LINE redirect URL for Safari
+  var lineUrl = lineBtn.href;
+
+  lineBtn.addEventListener('click', function(e) {
+    e.preventDefault();
+    urlBox.value = lineUrl;
+    modal.classList.remove('hidden');
+  });
+
+  copyBtn.addEventListener('click', function() {
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(lineUrl).then(function() {
+        copiedMsg.classList.remove('hidden');
+      });
+    } else {
+      // Fallback: select + copy
+      urlBox.select();
+      document.execCommand('copy');
+      copiedMsg.classList.remove('hidden');
+    }
+  });
+
+  closeBtn.addEventListener('click', function() {
+    modal.classList.add('hidden');
+    copiedMsg.classList.add('hidden');
+  });
+
+  modal.addEventListener('click', function(e) {
+    if (e.target === modal) {
+      modal.classList.add('hidden');
+      copiedMsg.classList.add('hidden');
+    }
+  });
+})();
+</script>
 {% endblock %}
