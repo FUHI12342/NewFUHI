@@ -23,6 +23,7 @@ class ScheduleAdmin(admin.ModelAdmin):
     list_display = (
         'short_reservation_number',
         'customer_name',
+        'pen_name',
         'start',
         'end',
         'staff',
@@ -35,7 +36,7 @@ class ScheduleAdmin(admin.ModelAdmin):
         'has_line_user',
     )
     list_filter = ('is_checked_in', 'is_temporary', 'is_cancelled', 'refund_status', 'store')
-    search_fields = ('customer_name', 'hashed_id', 'reservation_number', 'line_user_hash', 'checkin_backup_code')
+    search_fields = ('customer_name', 'pen_name', 'hashed_id', 'reservation_number', 'line_user_hash', 'checkin_backup_code')
     ordering = ('-start',)
     list_per_page = 10
 

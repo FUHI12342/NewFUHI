@@ -20,9 +20,15 @@
     </div>
     <div class="flex justify-between mt-1">
       <span class="text-gray-500">{% trans "料金" %}</span>
+      {% if free_booking_mode %}
+      <span class="font-bold text-emerald-600">{% trans "無料" %}</span>
+      {% else %}
       <span class="font-bold text-indigo-600">{{ schedule.price }} {% trans "円" %}</span>
+      {% endif %}
     </div>
+    {% if not free_booking_mode %}
     <p class="text-[10px] text-rose-500 mt-2">{% trans "※ 20分以内にお支払いがない場合、仮予約は自動キャンセルされます。" %}</p>
+    {% endif %}
   </div>
 
   <!-- Channel Buttons -->

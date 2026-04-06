@@ -24,11 +24,20 @@
   <form method="post" action="?api_key={{ api_key }}">
 
     <div class="mb-3">
-      <label for="id_customer_name" class="block text-sm font-medium mb-1">{% trans "お名前" %}</label>
+      <label for="id_customer_name" class="block text-sm font-medium mb-1">{% trans "お名前（本名）" %}</label>
       <input type="text" name="customer_name" id="id_customer_name"
              value="{{ customer_name|default:'' }}"
              required maxlength="255"
              class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 outline-none">
+    </div>
+
+    <div class="mb-3">
+      <label for="id_pen_name" class="block text-sm font-medium mb-1">{% trans "ペンネーム（任意）" %}</label>
+      <input type="text" name="pen_name" id="id_pen_name"
+             value="{{ pen_name|default:'' }}"
+             maxlength="255"
+             class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 outline-none">
+      <p class="text-gray-400 text-[11px] mt-1">{% trans "鑑定時に使用するお名前があればご入力ください" %}</p>
     </div>
 
     <div class="mb-4">

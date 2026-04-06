@@ -23,6 +23,12 @@
       <span class="text-gray-500">{% trans "お名前" %}</span>
       <span class="font-bold">{{ schedule.customer_name }}</span>
     </div>
+    {% if schedule.pen_name %}
+    <div class="flex justify-between">
+      <span class="text-gray-500">{% trans "ペンネーム" %}</span>
+      <span class="font-bold">{{ schedule.pen_name }}</span>
+    </div>
+    {% endif %}
     <div class="flex justify-between">
       <span class="text-gray-500">{% trans "予約番号" %}</span>
       <span class="font-mono text-xs">{{ schedule.reservation_number }}</span>

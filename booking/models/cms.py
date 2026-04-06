@@ -412,6 +412,12 @@ class SiteSettings(models.Model):
         help_text=_('ONにするとWordPress等からのiframe埋め込みが利用可能になります'),
     )
 
+    # 無料予約モード
+    free_booking_mode = models.BooleanField(
+        _('無料予約モード'), default=False,
+        help_text=_('ONにすると全予約が決済スキップ・即確定になります'),
+    )
+
     # 法定ページ（HTML編集可能）
     privacy_policy_html = models.TextField(_('プライバシーポリシー'), blank=True, default='',
         help_text=_('HTMLで記述。空の場合はデフォルトテンプレートが表示されます。'))

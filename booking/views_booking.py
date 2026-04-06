@@ -41,7 +41,7 @@ from linebot import LineBotApi
 from linebot.exceptions import LineBotApiError
 from linebot.models import TextSendMessage
 
-from booking.models import Schedule, Staff, Store
+from booking.models import Schedule, SiteSettings, Staff, Store
 
 logger = logging.getLogger(__name__)
 
@@ -216,7 +216,8 @@ class LineCallbackView(View):
 
             reservation_number = schedule.reservation_number
 
-            if int(schedule.price) >= 100:
+            site_settings = SiteSettings.load()
+            if not site_settings.free_booking_mode and int(schedule.price) >= 100:
                 # 有料予約: Coiney で決済URL を発行
                 payment_api_url = settings.PAYMENT_API_URL
                 pay_headers = {
@@ -408,7 +409,8 @@ class LineSuccessView(View):
 
 class EmailBookingForm(forms.Form):
     from django.utils.translation import gettext_lazy as _
-    customer_name = forms.CharField(max_length=255, label=_('お名前'))
+    customer_name = forms.CharField(max_length=255, label=_('お名前（本名）'))
+    pen_name = forms.CharField(max_length=255, label=_('ペンネーム（任意）'), required=False)
     customer_email = forms.EmailField(label=_('メールアドレス'))
 
 
@@ -432,6 +434,7 @@ class EmailBookingView(View):
             return render(request, 'booking/email_form.html', {'form': form, 'booking': booking})
 
         customer_name = form.cleaned_data['customer_name']
+        pen_name = form.cleaned_data.get('pen_name', '')
         customer_email = form.cleaned_data['customer_email']
 
         # 6桁OTP生成
@@ -442,6 +445,7 @@ class EmailBookingView(View):
         # セッションに保存
         request.session['email_booking'] = {
             'customer_name': customer_name,
+            'pen_name': pen_name,
             'customer_email': customer_email,
             'otp_hash': otp_hash,
             'otp_expires': otp_expires.isoformat(),
@@ -506,6 +510,7 @@ class EmailVerifyView(View):
             end=_end if timezone.is_aware(_end) else timezone.make_aware(_end),
             price=temporary_booking['price'],
             customer_name=email_booking['customer_name'],
+            pen_name=email_booking.get('pen_name', ''),
             staff_id=temporary_booking['staff_id'],
             store_id=temporary_booking.get('store_id'),
             is_temporary=True,
@@ -516,7 +521,60 @@ class EmailVerifyView(View):
         )
         schedule.save()
 
-        # Coiney決済URL取得
+        # 無料予約モード判定
+        site_settings = SiteSettings.load()
+        if site_settings.free_booking_mode or int(schedule.price) == 0:
+            # 無料モード: 決済スキップ・即確定
+            schedule.is_temporary = False
+            schedule.save(update_fields=['is_temporary'])
+
+            # QR + バックアップコード生成
+            from booking.services.checkin_token import (
+                generate_backup_code as _gen_backup,
+                generate_signed_checkin_qr as _gen_qr,
+            )
+            try:
+                staff_obj = Staff.objects.select_related('store').get(pk=schedule.staff_id)
+                qr_file = _gen_qr(str(schedule.reservation_number), schedule.end)
+                schedule.checkin_qr.save(qr_file.name, qr_file, save=True)
+                backup_code = _gen_backup(staff_obj.store, schedule.start.date())
+                Schedule.objects.filter(pk=schedule.pk).update(checkin_backup_code=backup_code)
+            except Exception as e:
+                logger.warning('無料予約QR/バックアップコード生成エラー(email): %s', e)
+
+            # スタッフ通知
+            from booking.services.staff_notifications import notify_booking_to_staff
+            notify_booking_to_staff(schedule)
+
+            # 確認メール送信
+            try:
+                send_mail(
+                    subject='予約確定のお知らせ',
+                    message=(
+                        f'{email_booking["customer_name"]}様\n\n'
+                        f'ご予約が確定しました。\n\n'
+                        f'予約番号: {schedule.reservation_number}\n'
+                        f'キャンセル番号: {schedule.cancel_token}\n\n'
+                        f'ご予約ありがとうございます。'
+                    ),
+                    from_email=settings.DEFAULT_FROM_EMAIL,
+                    recipient_list=[email_booking['customer_email']],
+                    fail_silently=False,
+                )
+            except Exception as e:
+                logger.error('予約確定メール送信失敗: %s', e)
+
+            # セッションクリア
+            del request.session['temporary_booking']
+            del request.session['email_booking']
+
+            return render(request, 'booking/email_booking_complete.html', {
+                'schedule': schedule,
+                'customer_name': email_booking['customer_name'],
+                'pen_name': email_booking.get('pen_name', ''),
+            })
+
+        # 有料予約: Coiney決済URL取得
         from datetime import timedelta as td
         now = timezone.now()
         expired_on = now + td(days=1)

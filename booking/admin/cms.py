@@ -147,6 +147,10 @@ class SiteSettingsAdmin(admin.ModelAdmin):
             'fields': ('maintenance_mode', 'maintenance_message'),
             'description': _('ONにするとログイン済みスタッフ以外にメンテナンス画面を表示します'),
         }),
+        (_('予約設定'), {
+            'fields': ('free_booking_mode',),
+            'description': _('無料予約モード: ONにすると全予約が決済スキップ・即確定になります。イベントや体験予約などに。'),
+        }),
         (_('外部埋め込み'), {
             'fields': ('embed_enabled', 'embed_code_generator'),
             'description': _('WordPress等の外部サイトからiframeで予約カレンダー・シフト表示を埋め込む機能'),

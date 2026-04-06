@@ -1,0 +1,44 @@
+{% extends 'booking/base.html' %}
+{% load i18n %}
+
+{% block title %}{% trans "予約完了" %} | {{ block.super }}{% endblock %}
+
+{% block content %}
+
+<div class="max-w-lg mx-auto text-center py-10">
+
+    <div class="bg-emerald-50 rounded-full w-20 h-20 flex items-center justify-center mx-auto mb-6">
+        <svg class="w-10 h-10 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+        </svg>
+    </div>
+
+    <h1 class="text-2xl font-bold text-salon-dark mb-4">{% trans "ご予約が完了しました" %}</h1>
+
+    <div class="bg-salon-beige rounded-lg p-4 mb-6 text-left">
+        <dl class="grid grid-cols-[auto_1fr] gap-x-4 gap-y-2 text-sm">
+            <dt class="font-medium text-salon-dark">{% trans "お名前" %}</dt>
+            <dd class="text-gray-600">{{ customer_name }}</dd>
+            {% if pen_name %}
+            <dt class="font-medium text-salon-dark">{% trans "ペンネーム" %}</dt>
+            <dd class="text-gray-600">{{ pen_name }}</dd>
+            {% endif %}
+            <dt class="font-medium text-salon-dark">{% trans "予約番号" %}</dt>
+            <dd class="text-gray-600 font-mono text-xs">{{ schedule.reservation_number }}</dd>
+            <dt class="font-medium text-salon-dark">{% trans "キャンセル番号" %}</dt>
+            <dd class="text-gray-600 font-mono">{{ schedule.cancel_token }}</dd>
+        </dl>
+    </div>
+
+    <p class="text-gray-600 text-sm mb-6">
+        {% trans "確認メールをお送りしました。ご予約ありがとうございます。" %}
+    </p>
+
+    <a href="{% url 'booking:booking_top' %}"
+       class="inline-block bg-salon-brown hover:bg-salon-dark text-white font-medium px-6 py-2.5 rounded-lg transition">
+        {% trans "トップに戻る" %}
+    </a>
+
+</div>
+
+{% endblock %}

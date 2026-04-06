@@ -504,6 +504,7 @@ class BookingChannelChoice(generic.TemplateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['booking'] = self.request.session.get('temporary_booking')
+        context['free_booking_mode'] = SiteSettings.load().free_booking_mode
         return context
 
 

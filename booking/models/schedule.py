@@ -37,6 +37,7 @@ class Schedule(models.Model):
     )
 
     customer_name = models.CharField(_('予約者名'), max_length=255, null=True, blank=True)
+    pen_name = models.CharField(_('ペンネーム'), max_length=255, blank=True, default='')
     hashed_id = models.CharField(max_length=255, null=True, blank=True, db_index=True)
 
     # ▼追加：生のLINE user_idは保存しない（検索用ハッシュ + 復号用暗号文のみ保存）

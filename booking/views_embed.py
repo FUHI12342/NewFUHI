@@ -338,6 +338,7 @@ class EmbedChannelChoiceView(EmbedAuthMixin, EmbedTokenMixin, View):
 
         api_key = request.GET.get('api_key', '')
         store = schedule.get_store()
+        site_settings = SiteSettings.load()
         tz_jst = pytz.timezone('Asia/Tokyo')
         start_display = timezone.localtime(
             schedule.start, tz_jst).strftime('%Y年%m月%d日 %H:%M')
@@ -349,6 +350,7 @@ class EmbedChannelChoiceView(EmbedAuthMixin, EmbedTokenMixin, View):
             'embed_token': embed_token,
             'start_display': start_display,
             'api_key': api_key,
+            'free_booking_mode': site_settings.free_booking_mode,
         }
         response = TemplateResponse(
             request, 'booking/embed/channel_choice.html', context)
@@ -384,6 +386,7 @@ class EmbedEmailBookingView(EmbedTokenMixin, View):
 
         api_key = request.GET.get('api_key', '')
         customer_name = request.POST.get('customer_name', '').strip()
+        pen_name = request.POST.get('pen_name', '').strip()
         customer_email = request.POST.get('customer_email', '').strip()
 
         error = None
@@ -403,6 +406,7 @@ class EmbedEmailBookingView(EmbedTokenMixin, View):
                 'api_key': api_key,
                 'error': error,
                 'customer_name': customer_name,
+                'pen_name': pen_name,
                 'customer_email': customer_email,
             }
             return TemplateResponse(
@@ -414,12 +418,13 @@ class EmbedEmailBookingView(EmbedTokenMixin, View):
         otp_expires = timezone.now() + datetime.timedelta(minutes=10)
 
         schedule.customer_name = customer_name
+        schedule.pen_name = pen_name
         schedule.customer_email = customer_email
         schedule.email_otp_hash = otp_hash
         schedule.email_otp_expires = otp_expires
         schedule.booking_channel = 'email'
         schedule.save(update_fields=[
-            'customer_name', 'customer_email',
+            'customer_name', 'pen_name', 'customer_email',
             'email_otp_hash', 'email_otp_expires', 'booking_channel',
         ])
 
@@ -445,6 +450,7 @@ class EmbedEmailBookingView(EmbedTokenMixin, View):
                 'api_key': api_key,
                 'error': 'メール送信に失敗しました。もう一度お試しください。',
                 'customer_name': customer_name,
+                'pen_name': pen_name,
                 'customer_email': customer_email,
             }
             return TemplateResponse(
@@ -510,8 +516,9 @@ class EmbedEmailVerifyView(EmbedTokenMixin, View):
         schedule.email_verified = True
         schedule.save(update_fields=['email_verified'])
 
-        # 無料の場合は即確定
-        if schedule.price == 0:
+        # 無料予約モード or 無料の場合は即確定
+        site_settings = SiteSettings.load()
+        if site_settings.free_booking_mode or schedule.price == 0:
             schedule.is_temporary = False
             schedule.save(update_fields=['is_temporary'])
             return TemplateResponse(
