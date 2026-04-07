@@ -726,6 +726,9 @@ class CustomerCancelConfirmView(View):
         # 3. スタッフにLINEキャンセル通知
         self._notify_staff_line(schedule)
 
+        # 4. 顧客にキャンセル完了メール（メール予約の場合）
+        self._notify_customer_email(schedule)
+
         return render(request, 'booking/customer_cancel_done.html', {
             'schedule': schedule,
         })
@@ -797,6 +800,35 @@ class CustomerCancelConfirmView(View):
             )
         except Exception as e:
             logger.warning('CustomerCancelConfirmView: 顧客LINE通知に失敗: %s', e)
+
+    @staticmethod
+    def _notify_customer_email(schedule):
+        """顧客にキャンセル完了メールを送信（メール予約の場合）。"""
+        try:
+            if not schedule.customer_email:
+                return
+            local_tz = pytz.timezone('Asia/Tokyo')
+            local_start = schedule.start.astimezone(local_tz)
+            refund_note = ''
+            if schedule.price and int(schedule.price) >= 100:
+                refund_note = '\n\n返金については、店舗より別途ご連絡いたします。'
+            send_mail(
+                subject='予約キャンセル完了のお知らせ',
+                message=(
+                    f'{schedule.customer_name}様\n\n'
+                    f'ご予約のキャンセルが完了しました。\n\n'
+                    f'予約番号: {schedule.reservation_number}\n'
+                    f'日時: {local_start.strftime("%Y年%m月%d日 %H:%M")}\n'
+                    f'担当: {schedule.staff.name}'
+                    + refund_note
+                    + '\n\nまたのご利用をお待ちしております。'
+                ),
+                from_email=settings.DEFAULT_FROM_EMAIL,
+                recipient_list=[schedule.customer_email],
+                fail_silently=True,
+            )
+        except Exception as e:
+            logger.warning('CustomerCancelConfirmView: 顧客キャンセルメール送信失敗: %s', e)
 
     @staticmethod
     def _notify_staff_line(schedule):
