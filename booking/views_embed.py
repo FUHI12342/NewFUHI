@@ -447,7 +447,6 @@ class EmbedEmailBookingView(EmbedTokenMixin, View):
                 'api_key': api_key,
                 'error': 'メール送信に失敗しました。もう一度お試しください。',
                 'customer_name': customer_name,
-                'pen_name': pen_name,
                 'customer_email': customer_email,
             }
             return TemplateResponse(
