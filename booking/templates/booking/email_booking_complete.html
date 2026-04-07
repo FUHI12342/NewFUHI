@@ -17,12 +17,8 @@
 
     <div class="bg-salon-beige rounded-lg p-4 mb-6 text-left">
         <dl class="grid grid-cols-[auto_1fr] gap-x-4 gap-y-2 text-sm">
-            <dt class="font-medium text-salon-dark">{% trans "お名前" %}</dt>
+            <dt class="font-medium text-salon-dark">{% trans "予約者名" %}</dt>
             <dd class="text-gray-600">{{ customer_name }}</dd>
-            {% if pen_name %}
-            <dt class="font-medium text-salon-dark">{% trans "ペンネーム" %}</dt>
-            <dd class="text-gray-600">{{ pen_name }}</dd>
-            {% endif %}
             <dt class="font-medium text-salon-dark">{% trans "予約番号" %}</dt>
             <dd class="text-gray-600 font-mono text-xs">{{ schedule.reservation_number }}</dd>
             <dt class="font-medium text-salon-dark">{% trans "キャンセル番号" %}</dt>

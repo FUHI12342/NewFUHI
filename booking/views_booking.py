@@ -409,8 +409,7 @@ class LineSuccessView(View):
 
 class EmailBookingForm(forms.Form):
     from django.utils.translation import gettext_lazy as _
-    customer_name = forms.CharField(max_length=255, label=_('お名前（本名）'))
-    pen_name = forms.CharField(max_length=255, label=_('ペンネーム（任意）'), required=False)
+    customer_name = forms.CharField(max_length=255, label=_('予約者名（ペンネーム可）'))
     customer_email = forms.EmailField(label=_('メールアドレス'))
 
 
@@ -434,7 +433,6 @@ class EmailBookingView(View):
             return render(request, 'booking/email_form.html', {'form': form, 'booking': booking})
 
         customer_name = form.cleaned_data['customer_name']
-        pen_name = form.cleaned_data.get('pen_name', '')
         customer_email = form.cleaned_data['customer_email']
 
         # 6桁OTP生成
@@ -445,7 +443,6 @@ class EmailBookingView(View):
         # セッションに保存
         request.session['email_booking'] = {
             'customer_name': customer_name,
-            'pen_name': pen_name,
             'customer_email': customer_email,
             'otp_hash': otp_hash,
             'otp_expires': otp_expires.isoformat(),
@@ -510,7 +507,6 @@ class EmailVerifyView(View):
             end=_end if timezone.is_aware(_end) else timezone.make_aware(_end),
             price=temporary_booking['price'],
             customer_name=email_booking['customer_name'],
-            pen_name=email_booking.get('pen_name', ''),
             staff_id=temporary_booking['staff_id'],
             store_id=temporary_booking.get('store_id'),
             is_temporary=True,
@@ -571,7 +567,6 @@ class EmailVerifyView(View):
             return render(request, 'booking/email_booking_complete.html', {
                 'schedule': schedule,
                 'customer_name': email_booking['customer_name'],
-                'pen_name': email_booking.get('pen_name', ''),
             })
 
         # 有料予約: Coiney決済URL取得

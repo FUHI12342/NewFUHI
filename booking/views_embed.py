@@ -386,12 +386,11 @@ class EmbedEmailBookingView(EmbedTokenMixin, View):
 
         api_key = request.GET.get('api_key', '')
         customer_name = request.POST.get('customer_name', '').strip()
-        pen_name = request.POST.get('pen_name', '').strip()
         customer_email = request.POST.get('customer_email', '').strip()
 
         error = None
         if not customer_name or not customer_email:
-            error = 'お名前とメールアドレスを入力してください。'
+            error = '予約者名とメールアドレスを入力してください。'
         elif customer_email:
             try:
                 validate_email(customer_email)
@@ -406,7 +405,6 @@ class EmbedEmailBookingView(EmbedTokenMixin, View):
                 'api_key': api_key,
                 'error': error,
                 'customer_name': customer_name,
-                'pen_name': pen_name,
                 'customer_email': customer_email,
             }
             return TemplateResponse(
@@ -418,13 +416,12 @@ class EmbedEmailBookingView(EmbedTokenMixin, View):
         otp_expires = timezone.now() + datetime.timedelta(minutes=10)
 
         schedule.customer_name = customer_name
-        schedule.pen_name = pen_name
         schedule.customer_email = customer_email
         schedule.email_otp_hash = otp_hash
         schedule.email_otp_expires = otp_expires
         schedule.booking_channel = 'email'
         schedule.save(update_fields=[
-            'customer_name', 'pen_name', 'customer_email',
+            'customer_name', 'customer_email',
             'email_otp_hash', 'email_otp_expires', 'booking_channel',
         ])
 

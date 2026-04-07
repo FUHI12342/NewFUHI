@@ -20,7 +20,7 @@
     </ol>
 </nav>
 
-<h1 class="text-2xl font-bold text-salon-dark mb-6">{% trans "メールアドレスとお名前を入力してください" %}</h1>
+<h1 class="text-2xl font-bold text-salon-dark mb-6">{% trans "予約者名とメールアドレスを入力してください" %}</h1>
 
 {% if messages %}
 <div class="mb-4">
@@ -41,7 +41,7 @@
     {% csrf_token %}
 
     <div class="mb-4">
-        <label for="id_customer_name" class="block text-sm font-medium text-salon-dark mb-1">{% trans "お名前（本名）" %}</label>
+        <label for="id_customer_name" class="block text-sm font-medium text-salon-dark mb-1">{% trans "予約者名（ペンネーム可）" %}</label>
         <input type="text" name="customer_name" id="id_customer_name"
                value="{{ form.customer_name.value|default:'' }}"
                required maxlength="255"
@@ -49,15 +49,6 @@
         {% if form.customer_name.errors %}
         <p class="text-rose-500 text-xs mt-1">{{ form.customer_name.errors.0 }}</p>
         {% endif %}
-    </div>
-
-    <div class="mb-4">
-        <label for="id_pen_name" class="block text-sm font-medium text-salon-dark mb-1">{% trans "ペンネーム（任意）" %}</label>
-        <input type="text" name="pen_name" id="id_pen_name"
-               value="{{ form.pen_name.value|default:'' }}"
-               maxlength="255"
-               class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-salon-brown/50 focus:border-salon-brown outline-none">
-        <p class="text-gray-400 text-xs mt-1">{% trans "鑑定時に使用するお名前があればご入力ください" %}</p>
     </div>
 
     <div class="mb-6">
