@@ -380,8 +380,47 @@ class StoreThemeInline(admin.StackedInline):
         js = ('js/store_theme_preset.js',)
 
 
+class WeekdayCheckboxWidget(forms.CheckboxSelectMultiple):
+    """曜日チェックボックスウィジェット"""
+    pass
+
+
+class RegularHolidayField(forms.MultipleChoiceField):
+    """定休日をカンマ区切り文字列で保存するフィールド"""
+
+    def __init__(self, *args, **kwargs):
+        kwargs['choices'] = Store.WEEKDAY_CHOICES
+        kwargs['widget'] = WeekdayCheckboxWidget
+        kwargs['required'] = False
+        super().__init__(*args, **kwargs)
+
+    def prepare_value(self, value):
+        if isinstance(value, str):
+            return [v.strip() for v in value.split(',') if v.strip()]
+        return value or []
+
+
+class StoreAdminForm(forms.ModelForm):
+    regular_holiday = RegularHolidayField(label=_('定休日'))
+
+    class Meta:
+        model = Store
+        fields = '__all__'
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if self.instance and self.instance.pk:
+            val = self.instance.regular_holiday or ''
+            self.initial['regular_holiday'] = [v.strip() for v in val.split(',') if v.strip()]
+
+    def clean_regular_holiday(self):
+        days = self.cleaned_data.get('regular_holiday', [])
+        return ','.join(days)
+
+
 class StoreAdmin(admin.ModelAdmin):
-    list_display = ('name', 'address', 'nearest_station', 'business_hours', 'regular_holiday', 'default_language', 'is_recommended')
+    form = StoreAdminForm
+    list_display = ('name', 'address', 'nearest_station', 'business_hours', 'regular_holiday_display', 'default_language', 'is_recommended')
     list_editable = ('is_recommended',)
     search_fields = ('name', 'address', 'nearest_station')
     list_per_page = 10
@@ -390,6 +429,13 @@ class StoreAdmin(admin.ModelAdmin):
 
     class Media:
         js = ('js/store_change_tabs.js',)
+
+    @admin.display(description=_('定休日'))
+    def regular_holiday_display(self, obj):
+        if not obj.regular_holiday:
+            return _('なし')
+        day_map = dict(Store.WEEKDAY_CHOICES)
+        return ', '.join(str(day_map.get(d.strip(), d.strip())) for d in obj.regular_holiday.split(',') if d.strip())
 
     fieldsets = (
         (None, {'fields': ('name', 'address', 'business_hours', 'nearest_station', 'regular_holiday', 'is_recommended', 'default_language')}),
@@ -424,6 +470,9 @@ class StoreAdmin(admin.ModelAdmin):
             },
         ]
         return super().change_view(request, object_id, form_url, extra_context)
+
+    def has_delete_permission(self, request, obj=None):
+        return False
 
     @admin.action(description=_('選択した店舗の埋め込みAPIキーを生成'))
     def generate_embed_api_key(self, request, queryset):

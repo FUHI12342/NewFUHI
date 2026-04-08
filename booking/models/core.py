@@ -56,7 +56,19 @@ class Store(models.Model):
     address = models.CharField(_('住所'), max_length=255, default='')
     business_hours = models.CharField(_('営業時間'), max_length=255, default='')
     nearest_station = models.CharField(_('最寄り駅'), max_length=255, default='')
-    regular_holiday = models.CharField(_('定休日'), max_length=255, default='')
+    WEEKDAY_CHOICES = [
+        ('mon', _('月曜日')),
+        ('tue', _('火曜日')),
+        ('wed', _('水曜日')),
+        ('thu', _('木曜日')),
+        ('fri', _('金曜日')),
+        ('sat', _('土曜日')),
+        ('sun', _('日曜日')),
+    ]
+    regular_holiday = models.CharField(
+        _('定休日'), max_length=255, blank=True, default='',
+        help_text=_('定休日なしの場合は空欄'),
+    )
     description = models.TextField(_('店舗情報'), default='', blank=True)
     is_recommended = models.BooleanField(_('おすすめ'), default=False)
 
