@@ -38,10 +38,17 @@
   .wf-panel-muted { color: #6b7280; font-size: 14px; }
 
   /* ===== 期間カード ===== */
-  .period-cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 12px; }
+  .period-cards {
+    display: flex; gap: 12px; overflow-x: auto; -webkit-overflow-scrolling: touch;
+    padding-bottom: 8px; scroll-behavior: smooth;
+  }
+  .period-cards::-webkit-scrollbar { height: 6px; }
+  .period-cards::-webkit-scrollbar-thumb { background: #d1d5db; border-radius: 3px; }
+  .period-cards::-webkit-scrollbar-track { background: transparent; }
   .period-card {
     border: 1px solid #e5e7eb; border-radius: 8px; padding: 16px;
     transition: box-shadow .15s;
+    min-width: 200px; flex-shrink: 0;
   }
   .period-card:hover { box-shadow: 0 2px 8px rgba(0,0,0,.08); }
   .period-card.selected { border-color: #3B82F6; box-shadow: 0 0 0 2px rgba(59,130,246,.2); }
@@ -260,8 +267,8 @@
     .wf-step-num { width: 22px; height: 22px; font-size: 11px; }
     .wf-step-label { font-size: 10px; }
 
-    /* Period cards: single column */
-    .period-cards { grid-template-columns: 1fr !important; }
+    /* Period cards: narrower on mobile */
+    .period-cards .period-card { min-width: 180px; }
 
     /* Shift grid: allow horizontal scroll */
     .shift-grid-wrap { margin: 0 -8px; padding: 0 8px; }
@@ -837,6 +844,12 @@
       </div>
       {% endfor %}
     </div>
+    <script>
+    (function(){
+      var sel = document.querySelector('.period-card.selected');
+      if (sel) sel.scrollIntoView({behavior:'instant', inline:'center', block:'nearest'});
+    })();
+    </script>
     {% else %}
     <p class="wf-panel-muted" style="margin-top:12px;">
       {% trans "シフト期間がありません。「新規募集」ボタンから作成してください。" %}
