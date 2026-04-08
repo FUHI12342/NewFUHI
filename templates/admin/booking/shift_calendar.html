@@ -859,34 +859,6 @@
     {% endif %}
   </div>
 
-  {# ===== 休業日設定パネル ===== #}
-  <div class="wf-panel" style="margin-bottom:20px;" x-show="showClosedDates" x-cloak>
-    <div>
-      <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;">
-        <button class="btn btn-outline btn-sm" @click="prevClosedMonth()">◀</button>
-        <strong x-text="closedMonthLabel" style="min-width:100px;text-align:center;"></strong>
-        <button class="btn btn-outline btn-sm" @click="nextClosedMonth()">▶</button>
-      </div>
-      <div class="closed-cal-grid">
-        <template x-for="dow in ['{% trans '日' %}','{% trans '月' %}','{% trans '火' %}','{% trans '水' %}','{% trans '木' %}','{% trans '金' %}','{% trans '土' %}']">
-          <div class="closed-cal-header" x-text="dow"></div>
-        </template>
-        <template x-for="cell in closedCalDays">
-          <div class="closed-cal-cell"
-               :class="cell && cell.closed ? 'closed-day' : ''"
-               @click="cell && toggleClosed(cell.date)"
-               :title="cell && cell.closed ? '{% trans 'クリックで営業日に戻す' %}' : '{% trans 'クリックで休業日に設定' %}'">
-            <span x-text="cell ? cell.day : ''"></span>
-            <span x-show="cell && cell.closed" class="closed-mark">✕</span>
-          </div>
-        </template>
-      </div>
-      <p style="font-size:12px;color:#6b7280;margin-top:8px;">
-        {% trans "日付をクリックして休業日をトグルします。休業日はシフト自動配置で除外されます。" %}
-      </p>
-    </div>
-  </div>
-
   {# ===== 希望提出状況パネル ===== #}
   {% if active_period %}
   <div class="wf-panel">
@@ -1074,25 +1046,51 @@
   {# ===== 3ボタンバー ===== #}
   {% if not is_staff_role %}
   <div style="display:flex;gap:8px;margin-bottom:20px;flex-wrap:wrap;">
-    <button class="btn btn-outline" style="flex:1;min-width:140px;display:flex;align-items:center;justify-content:center;gap:6px;"
+    <button class="btn" style="flex:1;min-width:140px;display:flex;align-items:center;justify-content:center;gap:6px;"
             @click="showClosedDates = !showClosedDates; showProxy = false; showStaffing = false; if(showClosedDates) loadClosedDates();"
-            :class="showClosedDates && 'btn-primary'" :style="showClosedDates && 'color:#fff;border-color:#3B82F6;'">
+            :style="showClosedDates ? 'background:#3B82F6;color:#fff;border:1px solid #3B82F6;' : 'background:#fff;color:#374151;border:1px solid #d1d5db;'">
       <i class="fas fa-store-slash"></i> {% trans "休業日設定" %}
     </button>
     {% if active_period and active_period.status == 'open' %}
-    <button class="btn btn-outline" style="flex:1;min-width:140px;display:flex;align-items:center;justify-content:center;gap:6px;"
+    <button class="btn" style="flex:1;min-width:140px;display:flex;align-items:center;justify-content:center;gap:6px;"
             @click="showProxy = !showProxy; showClosedDates = false; showStaffing = false;"
-            :class="showProxy && 'btn-primary'" :style="showProxy && 'color:#fff;border-color:#3B82F6;'">
+            :style="showProxy ? 'background:#3B82F6;color:#fff;border:1px solid #3B82F6;' : 'background:#fff;color:#374151;border:1px solid #d1d5db;'">
       <i class="fas fa-user-edit"></i> {% trans "シフト代理記入" %}
     </button>
     {% endif %}
-    <button class="btn btn-outline" style="flex:1;min-width:140px;display:flex;align-items:center;justify-content:center;gap:6px;"
-            @click="showStaffing = !showStaffing; showClosedDates = false; showProxy = false; if(showStaffing && !window._staffingLoaded) { window._staffingLoaded = true; }"
-            :class="showStaffing && 'btn-primary'" :style="showStaffing && 'color:#fff;border-color:#3B82F6;'">
+    <button class="btn" style="flex:1;min-width:140px;display:flex;align-items:center;justify-content:center;gap:6px;"
+            @click="showStaffing = !showStaffing; showClosedDates = false; showProxy = false;"
+            :style="showStaffing ? 'background:#3B82F6;color:#fff;border:1px solid #3B82F6;' : 'background:#fff;color:#374151;border:1px solid #d1d5db;'">
       <i class="fas fa-users-cog"></i> {% trans "必要人数設定" %}
     </button>
   </div>
   {% endif %}
+
+  {# ===== 休業日設定パネル ===== #}
+  <div class="wf-panel" style="margin-bottom:20px;" x-show="showClosedDates" x-cloak>
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;">
+      <button class="btn btn-outline btn-sm" @click="prevClosedMonth()">◀</button>
+      <strong x-text="closedMonthLabel" style="min-width:100px;text-align:center;"></strong>
+      <button class="btn btn-outline btn-sm" @click="nextClosedMonth()">▶</button>
+    </div>
+    <div class="closed-cal-grid">
+      <template x-for="dow in ['{% trans '日' %}','{% trans '月' %}','{% trans '火' %}','{% trans '水' %}','{% trans '木' %}','{% trans '金' %}','{% trans '土' %}']">
+        <div class="closed-cal-header" x-text="dow"></div>
+      </template>
+      <template x-for="cell in closedCalDays">
+        <div class="closed-cal-cell"
+             :class="cell && cell.closed ? 'closed-day' : ''"
+             @click="cell && toggleClosed(cell.date)"
+             :title="cell && cell.closed ? '{% trans 'クリックで営業日に戻す' %}' : '{% trans 'クリックで休業日に設定' %}'">
+          <span x-text="cell ? cell.day : ''"></span>
+          <span x-show="cell && cell.closed" class="closed-mark">✕</span>
+        </div>
+      </template>
+    </div>
+    <p style="font-size:12px;color:#6b7280;margin-top:8px;">
+      {% trans "日付をクリックして休業日をトグルします。休業日はシフト自動配置で除外されます。" %}
+    </p>
+  </div>
 
   {# ===== 必要人数設定パネル（インライン） ===== #}
   {% if not is_staff_role %}
@@ -1217,202 +1215,230 @@
   </div>
   {% endif %}
 
-  {# ===== 代理入力パネル ===== #}
+  {# ===== 代理入力パネル（複数日一括申請） ===== #}
   {% if active_period and active_period.status == 'open' %}
-  <div class="wf-panel" x-show="showProxy" x-cloak x-data="{
-    proxyStaffId: '',
-    proxyDate: null,
-    proxyCalMonth: {% if active_period %}new Date('{{ active_period.year_month|date:"Y-m-d" }}').getMonth(){% else %}new Date().getMonth(){% endif %},
-    proxyCalYear: {% if active_period %}new Date('{{ active_period.year_month|date:"Y-m-d" }}').getFullYear(){% else %}new Date().getFullYear(){% endif %},
-    proxyCalDays: [],
-    proxyRequests: [],
-    proxyRequestDates: new Set(),
-    proxyStartHour: 10,
-    proxyEndHour: 18,
-    proxyPreference: 'preferred',
-    proxyNote: '',
+  <div class="wf-panel" style="margin-bottom:20px;" x-show="showProxy" x-cloak x-data="{
+    pxStaffId: '',
+    pxCalMonth: new Date('{{ active_period.year_month|date:"Y-m-d" }}').getMonth(),
+    pxCalYear: new Date('{{ active_period.year_month|date:"Y-m-d" }}').getFullYear(),
+    pxCalDays: [],
+    pxSelectedDates: [],
+    pxStartHour: 10,
+    pxEndHour: 18,
+    pxPreference: 'preferred',
+    pxNote: '',
+    pxSubmitting: false,
+    pxMsg: '',
+    pxMsgType: 'success',
+    pxExistingRequests: [],
+    pxExistingDates: new Set(),
 
-    buildProxyCalDays() {
-      const first = new Date(this.proxyCalYear, this.proxyCalMonth, 1);
-      const lastDay = new Date(this.proxyCalYear, this.proxyCalMonth + 1, 0).getDate();
+    buildCalDays() {
+      const first = new Date(this.pxCalYear, this.pxCalMonth, 1);
+      const lastDay = new Date(this.pxCalYear, this.pxCalMonth + 1, 0).getDate();
       const startDow = first.getDay();
       const days = [];
       for (let i = 0; i < startDow; i++) days.push(null);
       for (let d = 1; d <= lastDay; d++) {
-        const ds = `${this.proxyCalYear}-${String(this.proxyCalMonth+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
-        days.push({day: d, date: ds});
+        const ds = `${this.pxCalYear}-${String(this.pxCalMonth+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+        days.push({ day: d, date: ds });
       }
-      this.proxyCalDays = days;
+      this.pxCalDays = days;
+    },
+    prevMonth() { if (this.pxCalMonth === 0) { this.pxCalMonth = 11; this.pxCalYear--; } else this.pxCalMonth--; this.buildCalDays(); },
+    nextMonth() { if (this.pxCalMonth === 11) { this.pxCalMonth = 0; this.pxCalYear++; } else this.pxCalMonth++; this.buildCalDays(); },
+    get calMonthLabel() { return `${this.pxCalYear}年${this.pxCalMonth + 1}月`; },
+
+    toggleDate(dateStr) {
+      const idx = this.pxSelectedDates.indexOf(dateStr);
+      if (idx >= 0) { this.pxSelectedDates.splice(idx, 1); }
+      else { this.pxSelectedDates.push(dateStr); this.pxSelectedDates.sort(); }
+    },
+    isSelected(dateStr) { return this.pxSelectedDates.includes(dateStr); },
+    removeDate(dateStr) { this.pxSelectedDates = this.pxSelectedDates.filter(d => d !== dateStr); },
+
+    async loadExisting() {
+      if (!this.pxStaffId) { this.pxExistingRequests = []; this.pxExistingDates = new Set(); return; }
+      try {
+        const res = await fetch(`/api/shift/my-requests/?staff_id=${this.pxStaffId}&period_id={{ active_period.id }}`, {credentials: 'same-origin'});
+        if (res.ok) {
+          const body = await res.json();
+          this.pxExistingRequests = body.data;
+          this.pxExistingDates = new Set(this.pxExistingRequests.map(r => r.date));
+        }
+      } catch (e) {}
     },
 
-    prevProxyMonth() {
-      if (this.proxyCalMonth === 0) { this.proxyCalMonth = 11; this.proxyCalYear--; }
-      else this.proxyCalMonth--;
-      this.buildProxyCalDays();
-    },
-    nextProxyMonth() {
-      if (this.proxyCalMonth === 11) { this.proxyCalMonth = 0; this.proxyCalYear++; }
-      else this.proxyCalMonth++;
-      this.buildProxyCalDays();
-    },
-
-    get proxyCalMonthLabel() {
-      return `${this.proxyCalYear}年${this.proxyCalMonth + 1}月`;
-    },
-
-    async loadProxyRequests() {
-      if (!this.proxyStaffId) { this.proxyRequests = []; this.proxyRequestDates = new Set(); return; }
-      const url = `/api/shift/my-requests/?staff_id=${this.proxyStaffId}&period_id={{ active_period.id }}`;
-      const res = await fetch(url, {credentials: 'same-origin'});
-      if (res.ok) {
-        const body = await res.json();
-        this.proxyRequests = body.data;
-        this.proxyRequestDates = new Set(this.proxyRequests.map(r => r.date));
+    async submitBatch() {
+      if (!this.pxStaffId || this.pxSelectedDates.length === 0) return;
+      this.pxSubmitting = true;
+      this.pxMsg = '';
+      let ok = 0, fail = 0;
+      for (const dateStr of this.pxSelectedDates) {
+        try {
+          const res = await fetch('/api/shift/my-requests/', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json', 'X-CSRFToken': '{{ csrf_token }}'},
+            body: JSON.stringify({
+              staff_id: parseInt(this.pxStaffId),
+              period_id: {{ active_period.id }},
+              date: dateStr,
+              start_hour: parseInt(this.pxStartHour),
+              end_hour: parseInt(this.pxEndHour),
+              preference: this.pxPreference,
+              note: this.pxNote,
+            }),
+            credentials: 'same-origin',
+          });
+          if (res.ok) ok++; else fail++;
+        } catch (e) { fail++; }
       }
-    },
-
-    async submitProxyRequest() {
-      if (!this.proxyStaffId || !this.proxyDate) return;
-      const res = await fetch('/api/shift/my-requests/', {
-        method: 'POST',
-        headers: {'Content-Type': 'application/json', 'X-CSRFToken': '{{ csrf_token }}'},
-        body: JSON.stringify({
-          staff_id: parseInt(this.proxyStaffId),
-          period_id: {{ active_period.id }},
-          date: this.proxyDate,
-          start_hour: parseInt(this.proxyStartHour),
-          end_hour: parseInt(this.proxyEndHour),
-          preference: this.proxyPreference,
-          note: this.proxyNote,
-        }),
-        credentials: 'same-origin',
-      });
-      if (res.ok) {
-        await this.loadProxyRequests();
-        this.proxyNote = '';
-        // 提出状況を更新するためページをリロード
-        location.reload();
+      this.pxSelectedDates = [];
+      this.pxNote = '';
+      await this.loadExisting();
+      this.pxSubmitting = false;
+      if (fail === 0) {
+        this.pxMsg = ok + '{% trans "件の希望を申請しました" %}';
+        this.pxMsgType = 'success';
       } else {
-        const d = await res.json();
-        alert(d.error || 'エラーが発生しました');
+        this.pxMsg = ok + '{% trans "件成功、" %}' + fail + '{% trans "件失敗" %}';
+        this.pxMsgType = 'error';
       }
+      setTimeout(() => { this.pxMsg = ''; }, 4000);
     },
 
-    async deleteProxyRequest(id) {
-      const res = await fetch(`/api/shift/my-requests/${id}/?staff_id=${this.proxyStaffId}`, {
-        method: 'DELETE',
-        headers: {'X-CSRFToken': '{{ csrf_token }}'},
-        credentials: 'same-origin',
+    async deleteExisting(id) {
+      await fetch(`/api/shift/my-requests/${id}/?staff_id=${this.pxStaffId}`, {
+        method: 'DELETE', headers: {'X-CSRFToken': '{{ csrf_token }}'}, credentials: 'same-origin',
       });
-      if (res.ok) await this.loadProxyRequests();
+      await this.loadExisting();
     },
 
-    proxyPrefLabel(pref) {
-      const m = {preferred: '{% trans '希望' %}', available: '{% trans '出勤可能' %}', unavailable: '{% trans '出勤不可' %}'};
-      return m[pref] || pref;
+    prefLabel(p) {
+      return {preferred: '{% trans "希望" %}', available: '{% trans "出勤可能" %}', unavailable: '{% trans "出勤不可" %}'}[p] || p;
     },
-  }" x-init="buildProxyCalDays()">
-    <div>
-      {# スタッフ選択 #}
-      <div style="margin-bottom:16px;">
-        <label style="font-size:12px;font-weight:600;color:#6b7280;display:block;margin-bottom:4px;">{% trans "対象スタッフ" %}</label>
-        <select x-model="proxyStaffId" @change="loadProxyRequests(); proxyDate = null;" style="padding:6px 12px;border:1px solid #d1d5db;border-radius:4px;font-size:14px;min-width:200px;">
-          <option value="">{% trans "スタッフを選択..." %}</option>
-          {% for s in staffs %}
-          <option value="{{ s.id }}">{{ s.name }}{% if s.staff_type == 'fortune_teller' %} ({% trans "キャスト" %}){% else %} ({% trans "スタッフ" %}){% endif %}</option>
-          {% endfor %}
-        </select>
-      </div>
+  }" x-init="buildCalDays()">
 
-      <template x-if="proxyStaffId">
-        <div>
-          {# カレンダー #}
-          <div style="margin-bottom:16px;">
+    {# スタッフ選択 #}
+    <div style="margin-bottom:16px;">
+      <label style="font-size:12px;font-weight:600;color:#6b7280;display:block;margin-bottom:4px;">{% trans "対象スタッフ" %}</label>
+      <select x-model="pxStaffId" @change="loadExisting(); pxSelectedDates = [];" style="padding:6px 12px;border:1px solid #d1d5db;border-radius:4px;font-size:14px;min-width:200px;">
+        <option value="">{% trans "スタッフを選択..." %}</option>
+        {% for s in staffs %}
+        <option value="{{ s.id }}">{{ s.name }}{% if s.staff_type == 'fortune_teller' %} ({% trans "キャスト" %}){% else %} ({% trans "スタッフ" %}){% endif %}</option>
+        {% endfor %}
+      </select>
+    </div>
+
+    <template x-if="pxStaffId">
+      <div>
+        {# カレンダー（複数選択） #}
+        <div style="display:flex;gap:24px;flex-wrap:wrap;">
+          <div style="flex:1;min-width:260px;">
             <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;">
-              <button class="btn btn-outline btn-sm" @click="prevProxyMonth()">◀</button>
-              <strong x-text="proxyCalMonthLabel" style="min-width:100px;text-align:center;"></strong>
-              <button class="btn btn-outline btn-sm" @click="nextProxyMonth()">▶</button>
+              <button class="btn btn-outline btn-sm" @click="prevMonth()">&#9664;</button>
+              <strong x-text="calMonthLabel" style="min-width:100px;text-align:center;"></strong>
+              <button class="btn btn-outline btn-sm" @click="nextMonth()">&#9654;</button>
             </div>
             <div class="ms-cal-grid">
               <template x-for="dow in ['{% trans '日' %}','{% trans '月' %}','{% trans '火' %}','{% trans '水' %}','{% trans '木' %}','{% trans '金' %}','{% trans '土' %}']">
                 <div class="ms-cal-header" x-text="dow"></div>
               </template>
-              <template x-for="cell in proxyCalDays">
+              <template x-for="cell in pxCalDays">
                 <div class="ms-cal-cell"
                      :class="{
-                       'selected': cell && cell.date === proxyDate,
-                       'has-request': cell && proxyRequestDates.has(cell.date),
+                       'selected': cell && isSelected(cell.date),
+                       'has-request': cell && pxExistingDates.has(cell.date),
                      }"
-                     @click="cell && (proxyDate = cell.date)">
+                     @click="cell && toggleDate(cell.date)">
                   <span x-text="cell ? cell.day : ''"></span>
                 </div>
               </template>
             </div>
+            <p style="font-size:11px;color:#6b7280;margin-top:6px;">{% trans "複数の日付をクリックして選択できます" %}</p>
           </div>
 
-          {# 希望入力フォーム #}
-          <div x-show="proxyDate" style="padding-top:16px;border-top:1px solid #e5e7eb;">
-            <h3 style="font-size:14px;">
-              <span x-text="proxyDate"></span> {% trans "のシフト希望" %}
-            </h3>
-            <div class="ms-form">
-              <div>
-                <label>{% trans "開始時間" %}</label>
-                <select x-model="proxyStartHour">
-                  <template x-for="h in Array.from({length:16}, (_, i) => i + 8)">
-                    <option :value="h" x-text="h + ':00'"></option>
-                  </template>
-                </select>
-              </div>
-              <div>
-                <label>{% trans "終了時間" %}</label>
-                <select x-model="proxyEndHour">
-                  <template x-for="h in Array.from({length:16}, (_, i) => i + 9)">
-                    <option :value="h" x-text="h + ':00'"></option>
-                  </template>
-                </select>
-              </div>
-              <div>
-                <label>{% trans "希望区分" %}</label>
-                <select x-model="proxyPreference">
-                  <option value="preferred">{% trans "希望" %}</option>
-                  <option value="available">{% trans "出勤可能" %}</option>
-                  <option value="unavailable">{% trans "出勤不可" %}</option>
-                </select>
-              </div>
-              <div>
-                <label>{% trans "備考" %}</label>
-                <input type="text" x-model="proxyNote" placeholder="{% trans '任意' %}" style="width:140px;">
-              </div>
-              <button class="btn btn-primary btn-sm" @click="submitProxyRequest()">
-                {% trans "送信" %}
-              </button>
-            </div>
-          </div>
-
-          {# 送信済み希望一覧 #}
-          <div style="margin-top:16px;padding-top:16px;border-top:1px solid #e5e7eb;">
-            <h4 style="font-size:14px;margin:0 0 8px;">{% trans "送信済みの希望" %}</h4>
-            <template x-if="proxyRequests.length === 0">
-              <p style="color:#6b7280;font-size:13px;">{% trans "まだ希望を送信していません。" %}</p>
+          {# 右側: 選択日一覧 + 時間帯設定 #}
+          <div style="flex:1;min-width:240px;">
+            <h4 style="font-size:14px;margin:0 0 8px;">{% trans "選択中の日付" %} (<span x-text="pxSelectedDates.length"></span>{% trans "件" %})</h4>
+            <template x-if="pxSelectedDates.length === 0">
+              <p style="color:#6b7280;font-size:13px;">{% trans "カレンダーから日付を選択してください" %}</p>
             </template>
-            <div class="ms-req-list">
-              <template x-for="req in proxyRequests" :key="req.id">
-                <div class="ms-req-item">
-                  <span style="font-weight:600;" x-text="req.date"></span>
-                  <span x-text="req.start_hour + ':00 - ' + req.end_hour + ':00'"></span>
-                  <span class="ms-pref-badge" :class="'pref-' + req.preference" x-text="proxyPrefLabel(req.preference)"></span>
-                  <span x-show="req.note" style="color:#6b7280;" x-text="req.note"></span>
-                  <button class="btn btn-danger btn-sm" style="margin-left:auto;" @click="deleteProxyRequest(req.id)">
-                    {% trans "削除" %}
-                  </button>
+            <div style="max-height:120px;overflow-y:auto;margin-bottom:12px;">
+              <template x-for="d in pxSelectedDates" :key="d">
+                <div style="display:flex;align-items:center;gap:6px;padding:3px 0;font-size:13px;">
+                  <span x-text="d" style="font-weight:600;"></span>
+                  <button @click="removeDate(d)" style="border:none;background:none;color:#EF4444;cursor:pointer;font-size:14px;padding:0 4px;">&#10005;</button>
                 </div>
               </template>
             </div>
+
+            <div style="border-top:1px solid #e5e7eb;padding-top:12px;">
+              <div class="ms-form" style="gap:8px;">
+                <div>
+                  <label>{% trans "開始時間" %}</label>
+                  <select x-model="pxStartHour">
+                    <template x-for="h in Array.from({length:16}, (_, i) => i + 8)">
+                      <option :value="h" x-text="h + ':00'"></option>
+                    </template>
+                  </select>
+                </div>
+                <div>
+                  <label>{% trans "終了時間" %}</label>
+                  <select x-model="pxEndHour">
+                    <template x-for="h in Array.from({length:16}, (_, i) => i + 9)">
+                      <option :value="h" x-text="h + ':00'"></option>
+                    </template>
+                  </select>
+                </div>
+                <div>
+                  <label>{% trans "希望区分" %}</label>
+                  <select x-model="pxPreference">
+                    <option value="preferred">{% trans "希望" %}</option>
+                    <option value="available">{% trans "出勤可能" %}</option>
+                    <option value="unavailable">{% trans "出勤不可" %}</option>
+                  </select>
+                </div>
+                <div>
+                  <label>{% trans "備考" %}</label>
+                  <input type="text" x-model="pxNote" placeholder="{% trans '任意' %}" style="width:140px;">
+                </div>
+              </div>
+              <div style="margin-top:12px;">
+                <button class="btn btn-primary btn-sm" @click="submitBatch()"
+                        :disabled="pxSubmitting || pxSelectedDates.length === 0">
+                  <span x-show="!pxSubmitting">{% trans "まとめて申請" %} (<span x-text="pxSelectedDates.length"></span>{% trans "件" %})</span>
+                  <span x-show="pxSubmitting">{% trans "送信中..." %}</span>
+                </button>
+                <span x-show="pxMsg" x-text="pxMsg" style="margin-left:8px;font-size:13px;font-weight:600;"
+                      :style="pxMsgType === 'success' ? 'color:#10B981;' : 'color:#EF4444;'" x-cloak></span>
+              </div>
+            </div>
           </div>
         </div>
-      </template>
-    </div>
+
+        {# 提出済み希望一覧 #}
+        <div style="margin-top:16px;padding-top:16px;border-top:1px solid #e5e7eb;">
+          <h4 style="font-size:14px;margin:0 0 8px;">{% trans "提出済みの希望" %}</h4>
+          <template x-if="pxExistingRequests.length === 0">
+            <p style="color:#6b7280;font-size:13px;">{% trans "まだ希望を送信していません。" %}</p>
+          </template>
+          <div class="ms-req-list">
+            <template x-for="req in pxExistingRequests" :key="req.id">
+              <div class="ms-req-item">
+                <span style="font-weight:600;" x-text="req.date"></span>
+                <span x-text="req.start_hour + ':00 - ' + req.end_hour + ':00'"></span>
+                <span class="ms-pref-badge" :class="'pref-' + req.preference" x-text="prefLabel(req.preference)"></span>
+                <span x-show="req.note" style="color:#6b7280;" x-text="req.note"></span>
+                <button class="btn btn-danger btn-sm" style="margin-left:auto;padding:2px 8px;font-size:11px;" @click="deleteExisting(req.id)">
+                  {% trans "削除" %}
+                </button>
+              </div>
+            </template>
+          </div>
+        </div>
+      </div>
+    </template>
   </div>
   {% endif %}
 
