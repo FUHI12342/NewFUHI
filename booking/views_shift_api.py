@@ -30,9 +30,14 @@ _TIME_RE = re.compile(r'^\d{1,2}:\d{2}(:\d{2})?$')
 
 
 def _validate_time_str(val):
-    """HH:MM 形式の文字列バリデーション。不正ならNone。"""
+    """HH:MM 形式の文字列を datetime.time に変換。不正ならNone。"""
     if val and _TIME_RE.match(str(val)):
-        return str(val)
+        parts = str(val).split(':')
+        try:
+            from datetime import time as dt_time
+            return dt_time(int(parts[0]), int(parts[1]))
+        except (ValueError, IndexError):
+            return None
     return None
 
 
