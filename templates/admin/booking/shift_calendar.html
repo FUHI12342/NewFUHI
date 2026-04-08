@@ -1436,17 +1436,14 @@
 <script>
 // セル更新後にhtmx.processを呼び、サイドバーを閉じる
 document.addEventListener('htmx:afterSwap', function(e) {
-  var t = e.detail.target;
-  if (t && t.classList && t.classList.contains('shift-cell')) {
-    htmx.process(t);
-    // Alpine.js の showSidebar を false にしてサイドバーを閉じる
-    var scope = document.querySelector('[x-data]');
-    if (scope && scope.__x) scope.__x.$data.showSidebar = false;
-    else if (typeof Alpine !== 'undefined') {
+  try {
+    var t = e.detail.target;
+    if (t && t.classList && t.classList.contains('shift-cell')) {
+      htmx.process(t);
       var sd = document.getElementById('sidebar');
       if (sd) sd.classList.add('hidden');
     }
-  }
+  } catch(err) { console.warn('afterSwap handler error:', err); }
 });
 
 var SHIFT_COLORS = ['#3B82F6','#10B981','#F59E0B','#8B5CF6','#6366F1','#EF4444','#EC4899','#14B8A6','#F97316','#06B6D4'];
@@ -1519,9 +1516,19 @@ function createShiftFromSidebar(staffId, dateStr) {
     if (cell) {
       cell.innerHTML = html;
       htmx.process(cell);
-      // 作成直後に編集サイドバーを開く
+      // 作成直後に編集サイドバーをfetchで開く
       var block = cell.querySelector('.shift-block[hx-get]');
-      if (block) htmx.trigger(block, 'click');
+      if (block) {
+        var url = block.getAttribute('hx-get');
+        if (url) {
+          fetch(url, {credentials: 'same-origin'})
+            .then(function(r) { return r.text(); })
+            .then(function(shtml) {
+              document.getElementById('sidebar-content').innerHTML = shtml;
+              htmx.process(document.getElementById('sidebar-content'));
+            });
+        }
+      }
     }
   })
   .catch(err => alert(err.message));

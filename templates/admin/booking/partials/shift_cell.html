@@ -1,7 +1,8 @@
 {% if assignment %}
 <div class="shift-block" style="background:{{ assignment.color }}"
      hx-get="/api/shift/detail/{{ assignment.id }}/"
-     hx-target="#sidebar-content" hx-swap="innerHTML">
+     hx-target="#sidebar-content" hx-swap="innerHTML"
+     onclick="event.stopPropagation()">
   {% if assignment.start_time %}
     {{ assignment.start_time|time:"H:i" }}-{{ assignment.end_time|time:"H:i" }}
   {% else %}
