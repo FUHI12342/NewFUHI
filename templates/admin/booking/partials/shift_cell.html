@@ -2,7 +2,7 @@
 <div class="shift-block" style="background:{{ assignment.color }}"
      hx-get="/api/shift/detail/{{ assignment.id }}/"
      hx-target="#sidebar-content" hx-swap="innerHTML"
-     onclick="event.stopPropagation()">
+     onclick="event.stopPropagation(); var sd=document.getElementById('sidebar'); if(sd){sd.classList.remove('hidden')}">
   {% if assignment.start_time %}
     {{ assignment.start_time|time:"H:i" }}-{{ assignment.end_time|time:"H:i" }}
   {% else %}
