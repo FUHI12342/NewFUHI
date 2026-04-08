@@ -195,10 +195,7 @@ class ShiftAssignmentAPIView(View):
         if ownership_err:
             return ownership_err
 
-        try:
-            data = json.loads(request.body)
-        except json.JSONDecodeError:
-            return error_response('Invalid JSON')
+        data = _parse_body(request)
 
         is_approved = assignment.period.status == 'approved'
 
@@ -265,10 +262,13 @@ class ShiftAssignmentAPIView(View):
                 validated_time = _validate_time_str(data['start_time'])
                 if validated_time:
                     assignment.start_time = validated_time
+                    assignment.start_hour = validated_time.hour
             if 'end_time' in data:
                 validated_time = _validate_time_str(data['end_time'])
                 if validated_time:
                     assignment.end_time = validated_time
+                    end_h = validated_time.hour + (1 if validated_time.minute > 0 else 0)
+                    assignment.end_hour = end_h
             if 'template_id' in data:
                 template = get_object_or_404(ShiftTemplate, pk=data['template_id'], store=store)
                 assignment.start_time = template.start_time
