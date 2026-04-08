@@ -157,14 +157,27 @@ class ShiftAssignmentAPIView(View):
         if data.get('note'):
             kwargs['note'] = truncate_note(data['note'])
 
-        assignment = ShiftAssignment.objects.create(**kwargs)
+        # 同一スロットに既存シフトがあれば更新、なければ新規作成
+        existing = ShiftAssignment.objects.filter(
+            period=period, staff=staff, date=date_str, start_hour=start_h,
+        ).first()
+        if existing:
+            for key, val in kwargs.items():
+                if key not in ('period', 'staff', 'date', 'start_hour'):
+                    setattr(existing, key, val)
+            existing.save()
+            assignment = existing
+            status_code = 200
+        else:
+            assignment = ShiftAssignment.objects.create(**kwargs)
+            status_code = 201
 
         html = render_to_string('admin/booking/partials/shift_cell.html', {
             'assignment': assignment,
             'date': assignment.date,
             'staff': staff,
         }, request=request)
-        return HttpResponse(html, status=201)
+        return HttpResponse(html, status=status_code)
 
     def put(self, request, pk=None):
         """シフト更新（approved 期間の場合は変更ログ + Schedule 更新 + 差分通知）"""
