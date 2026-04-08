@@ -1,0 +1,351 @@
+{% extends "admin/base_site.html" %}
+{% load i18n static %}
+{% block title %}{{ title }}{% endblock %}
+
+{% block extrastyle %}
+<script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.14.9/dist/cdn.min.js"></script>
+<style>
+  .sr-tabs { display: flex; border-bottom: 2px solid #e5e7eb; margin-bottom: 20px; gap: 0; }
+  .sr-tab {
+    padding: 10px 24px; font-size: 14px; font-weight: 600; cursor: pointer;
+    border-bottom: 3px solid transparent; margin-bottom: -2px; color: #6b7280;
+    transition: all .15s;
+  }
+  .sr-tab:hover { color: #374151; }
+  .sr-tab.active { color: #3B82F6; border-bottom-color: #3B82F6; }
+
+  .sr-panel {
+    background: #fff; border: 1px solid #e5e7eb; border-radius: 8px;
+    padding: 20px; margin-bottom: 20px;
+  }
+
+  .sr-table { width: 100%; border-collapse: collapse; }
+  .sr-table th, .sr-table td {
+    border: 1px solid #e5e7eb; padding: 8px 12px; text-align: center;
+    font-size: 14px;
+  }
+  .sr-table th { background: #f9fafb; font-weight: 600; }
+  .sr-table td:first-child { text-align: left; font-weight: 600; background: #f9fafb; }
+  .sr-table input[type=number] {
+    width: 60px; text-align: center; border: 1px solid #d1d5db;
+    border-radius: 4px; padding: 4px; font-size: 14px;
+  }
+  .sr-table input[type=number]:focus { outline: 2px solid #3B82F6; border-color: transparent; }
+
+  .btn { padding: 8px 20px; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 14px; transition: opacity .15s; }
+  .btn:hover { opacity: 0.85; }
+  .btn:disabled { opacity: 0.4; cursor: not-allowed; }
+  .btn-primary { background: #3B82F6; color: #fff; }
+  .btn-success { background: #10B981; color: #fff; }
+  .btn-danger { background: #EF4444; color: #fff; }
+  .btn-outline { background: #fff; color: #374151; border: 1px solid #d1d5db; }
+  .btn-sm { padding: 4px 12px; font-size: 12px; }
+
+  .override-form { display: flex; gap: 8px; align-items: flex-end; flex-wrap: wrap; margin-bottom: 16px; }
+  .override-form label { font-size: 12px; font-weight: 600; color: #6b7280; display: block; margin-bottom: 2px; }
+  .override-form input, .override-form select {
+    padding: 6px 10px; border: 1px solid #d1d5db; border-radius: 4px; font-size: 14px;
+  }
+
+  .override-table { width: 100%; border-collapse: collapse; margin-top: 12px; }
+  .override-table th, .override-table td {
+    border: 1px solid #e5e7eb; padding: 8px 12px; text-align: left; font-size: 13px;
+  }
+  .override-table th { background: #f9fafb; font-weight: 600; }
+
+  .toast {
+    position: fixed; bottom: 20px; right: 20px; z-index: 999;
+    padding: 12px 20px; border-radius: 8px; color: #fff; font-weight: 600;
+    box-shadow: 0 4px 12px rgba(0,0,0,.15); transition: opacity .3s;
+  }
+  .toast-success { background: #10B981; }
+  .toast-error { background: #EF4444; }
+
+  .month-nav { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; }
+  .month-nav button { padding: 4px 12px; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div x-data="staffingApp()" x-init="init()">
+  {# ===== タブ ===== #}
+  <div class="sr-tabs">
+    <div class="sr-tab" :class="tab === 'weekly' && 'active'" @click="tab = 'weekly'">
+      <i class="fas fa-calendar-week" style="margin-right:6px;"></i>{% trans "曜日別デフォルト" %}
+    </div>
+    <div class="sr-tab" :class="tab === 'override' && 'active'" @click="tab = 'override'; loadOverrides()">
+      <i class="fas fa-calendar-day" style="margin-right:6px;"></i>{% trans "日付指定オーバーライド" %}
+    </div>
+  </div>
+
+  {# ===== 曜日別タブ ===== #}
+  <div x-show="tab === 'weekly'" x-cloak>
+    <div class="sr-panel">
+      <h3 style="margin:0 0 16px;">{% trans "曜日ごとのデフォルト必要人数" %}</h3>
+      <p style="font-size:13px;color:#6b7280;margin-bottom:16px;">
+        {% trans "各曜日の種別ごとに必要なスタッフ人数を設定します。日付指定オーバーライドが無い日はこの設定が使われます。" %}
+      </p>
+      <table class="sr-table">
+        <thead>
+          <tr>
+            <th>{% trans "種別" %}</th>
+            {% for dl in day_labels %}
+            <th>{{ dl }}</th>
+            {% endfor %}
+          </tr>
+        </thead>
+        <tbody>
+          <template x-for="(row, ri) in weeklyData" :key="row.staff_type">
+            <tr>
+              <td x-text="row.label"></td>
+              <template x-for="(count, di) in row.counts" :key="di">
+                <td>
+                  <input type="number" min="0" max="99"
+                         :value="count"
+                         @change="weeklyData[ri].counts[di] = parseInt($event.target.value) || 0">
+                </td>
+              </template>
+            </tr>
+          </template>
+        </tbody>
+      </table>
+      <div style="margin-top:16px;display:flex;gap:8px;">
+        <button class="btn btn-primary" @click="saveWeekly()" :disabled="saving">
+          <span x-show="!saving">{% trans "保存" %}</span>
+          <span x-show="saving">{% trans "保存中..." %}</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  {# ===== 日付指定タブ ===== #}
+  <div x-show="tab === 'override'" x-cloak>
+    <div class="sr-panel">
+      <h3 style="margin:0 0 16px;">{% trans "日付指定オーバーライド" %}</h3>
+      <p style="font-size:13px;color:#6b7280;margin-bottom:16px;">
+        {% trans "特定日の必要人数を上書きします（イベント日・棚卸し日など）。設定がある日は曜日別デフォルトより優先されます。" %}
+      </p>
+
+      {# 追加フォーム #}
+      <div class="override-form">
+        <div>
+          <label>{% trans "日付" %}</label>
+          <input type="date" x-model="newOverride.date">
+        </div>
+        <div>
+          <label>{% trans "種別" %}</label>
+          <select x-model="newOverride.staff_type">
+            <option value="fortune_teller">{% trans "キャスト" %}</option>
+            <option value="store_staff">{% trans "スタッフ" %}</option>
+          </select>
+        </div>
+        <div>
+          <label>{% trans "人数" %}</label>
+          <input type="number" min="0" max="99" x-model.number="newOverride.required_count" style="width:60px;">
+        </div>
+        <div>
+          <label>{% trans "理由" %}</label>
+          <input type="text" x-model="newOverride.reason" placeholder="{% trans '例: イベント開催' %}" style="width:160px;">
+        </div>
+        <button class="btn btn-success btn-sm" @click="addOverride()" :disabled="saving">
+          {% trans "追加" %}
+        </button>
+      </div>
+
+      {# 月ナビゲーション #}
+      <div class="month-nav">
+        <button class="btn btn-outline btn-sm" @click="prevMonth()">&#9664;</button>
+        <strong x-text="overrideMonthLabel" style="min-width:100px;text-align:center;"></strong>
+        <button class="btn btn-outline btn-sm" @click="nextMonth()">&#9654;</button>
+      </div>
+
+      {# 一覧テーブル #}
+      <table class="override-table">
+        <thead>
+          <tr>
+            <th>{% trans "日付" %}</th>
+            <th>{% trans "種別" %}</th>
+            <th>{% trans "人数" %}</th>
+            <th>{% trans "理由" %}</th>
+            <th style="width:60px;"></th>
+          </tr>
+        </thead>
+        <tbody>
+          <template x-for="ov in overrides" :key="ov.id">
+            <tr>
+              <td x-text="ov.date"></td>
+              <td x-text="ov.staff_type === 'fortune_teller' ? '{% trans "キャスト" %}' : '{% trans "スタッフ" %}'"></td>
+              <td x-text="ov.required_count"></td>
+              <td x-text="ov.reason || '-'"></td>
+              <td>
+                <button class="btn btn-danger btn-sm" @click="deleteOverride(ov.id)" :disabled="saving"
+                        style="padding:2px 8px;font-size:11px;">{% trans "削除" %}</button>
+              </td>
+            </tr>
+          </template>
+          <template x-if="overrides.length === 0">
+            <tr><td colspan="5" style="text-align:center;color:#6b7280;">{% trans "この月のオーバーライドはありません" %}</td></tr>
+          </template>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  {# トースト通知 #}
+  <div x-show="toast.show" x-transition class="toast" :class="toast.type === 'success' ? 'toast-success' : 'toast-error'"
+       x-text="toast.msg" x-cloak></div>
+</div>
+
+<script>
+function staffingApp() {
+  const csrfToken = '{{ csrf_token }}';
+  const matrixData = {{ matrix|safe }};
+
+  return {
+    tab: 'weekly',
+    saving: false,
+    toast: { show: false, msg: '', type: 'success' },
+
+    // 曜日別
+    weeklyData: [],
+
+    // 日付指定
+    overrides: [],
+    overrideYear: new Date().getFullYear(),
+    overrideMonth: new Date().getMonth() + 1,
+    newOverride: {
+      date: '', staff_type: 'fortune_teller', required_count: 1, reason: ''
+    },
+
+    get overrideMonthLabel() {
+      return `${this.overrideYear}年${String(this.overrideMonth).padStart(2, '0')}月`;
+    },
+
+    init() {
+      // Django テンプレートから初期データを受け取り
+      this.weeklyData = matrixData.map(row => ({
+        staff_type: row.staff_type,
+        label: row.label,
+        counts: [...row.counts],
+      }));
+    },
+
+    showToast(msg, type = 'success') {
+      this.toast = { show: true, msg, type };
+      setTimeout(() => { this.toast.show = false; }, 3000);
+    },
+
+    async saveWeekly() {
+      this.saving = true;
+      const items = [];
+      for (const row of this.weeklyData) {
+        for (let d = 0; d < 7; d++) {
+          items.push({
+            day_of_week: d,
+            staff_type: row.staff_type,
+            required_count: row.counts[d],
+          });
+        }
+      }
+      try {
+        const res = await fetch('/api/shift/staffing/', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrfToken },
+          body: JSON.stringify({ items }),
+        });
+        const data = await res.json();
+        if (data.success) {
+          this.showToast('{% trans "保存しました" %}');
+        } else {
+          this.showToast(data.error || '{% trans "保存に失敗しました" %}', 'error');
+        }
+      } catch (e) {
+        this.showToast('{% trans "通信エラー" %}', 'error');
+      }
+      this.saving = false;
+    },
+
+    async loadOverrides() {
+      try {
+        const res = await fetch(`/api/shift/staffing/overrides/?year=${this.overrideYear}&month=${this.overrideMonth}`);
+        const data = await res.json();
+        if (data.success) {
+          this.overrides = data.data;
+        }
+      } catch (e) {
+        this.showToast('{% trans "読み込みエラー" %}', 'error');
+      }
+    },
+
+    prevMonth() {
+      if (this.overrideMonth === 1) {
+        this.overrideMonth = 12; this.overrideYear--;
+      } else {
+        this.overrideMonth--;
+      }
+      this.loadOverrides();
+    },
+
+    nextMonth() {
+      if (this.overrideMonth === 12) {
+        this.overrideMonth = 1; this.overrideYear++;
+      } else {
+        this.overrideMonth++;
+      }
+      this.loadOverrides();
+    },
+
+    async addOverride() {
+      if (!this.newOverride.date || !this.newOverride.staff_type) {
+        this.showToast('{% trans "日付と種別は必須です" %}', 'error');
+        return;
+      }
+      this.saving = true;
+      try {
+        const res = await fetch('/api/shift/staffing/overrides/', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrfToken },
+          body: JSON.stringify(this.newOverride),
+        });
+        const data = await res.json();
+        if (data.success) {
+          this.showToast('{% trans "追加しました" %}');
+          this.newOverride = { date: '', staff_type: 'fortune_teller', required_count: 1, reason: '' };
+          // 追加した月に自動切り替え
+          const d = new Date(data.data.date);
+          this.overrideYear = d.getFullYear();
+          this.overrideMonth = d.getMonth() + 1;
+          this.loadOverrides();
+        } else {
+          this.showToast(data.error || '{% trans "追加に失敗しました" %}', 'error');
+        }
+      } catch (e) {
+        this.showToast('{% trans "通信エラー" %}', 'error');
+      }
+      this.saving = false;
+    },
+
+    async deleteOverride(id) {
+      if (!confirm('{% trans "削除しますか？" %}')) return;
+      this.saving = true;
+      try {
+        const res = await fetch(`/api/shift/staffing/overrides/${id}/`, {
+          method: 'DELETE',
+          headers: { 'X-CSRFToken': csrfToken },
+        });
+        const data = await res.json();
+        if (data.success) {
+          this.showToast('{% trans "削除しました" %}');
+          this.loadOverrides();
+        } else {
+          this.showToast(data.error || '{% trans "削除に失敗しました" %}', 'error');
+        }
+      } catch (e) {
+        this.showToast('{% trans "通信エラー" %}', 'error');
+      }
+      this.saving = false;
+    },
+  };
+}
+</script>
+{% endblock %}

@@ -13,6 +13,7 @@ from booking.models import (
     Store, Staff, ShiftPeriod, ShiftAssignment,
     ShiftTemplate, ShiftPublishHistory, ShiftRequest,
     ShiftVacancy, ShiftSwapRequest,
+    ShiftStaffRequirement,
 )
 from booking.services.shift_scheduler import get_required_counts
 from booking.services.demo_data_service import get_demo_exclusion
@@ -383,5 +384,46 @@ class TodayShiftTimelineView(AdminSidebarMixin, TemplateView):
             'staff_shifts': staff_shifts,
             'staff_shifts_json': staff_shifts_json,
             'today_coverage': today_coverage,
+        })
+        return ctx
+
+
+class StaffingRequirementView(AdminSidebarMixin, TemplateView):
+    """必要人数設定 統合ページ（曜日別 + 日付指定）"""
+    template_name = 'admin/booking/staffing_requirement.html'
+
+    def get_context_data(self, **kwargs):
+        ctx = super().get_context_data(**kwargs)
+        store = _get_user_store(self.request)
+
+        # 曜日別デフォルトを staff_type × day_of_week のマトリクスに変換
+        staff_types = [
+            ('fortune_teller', _('キャスト')),
+            ('store_staff', _('スタッフ')),
+        ]
+        day_labels = [
+            _('月'), _('火'), _('水'), _('木'), _('金'), _('土'), _('日'),
+        ]
+
+        # 既存データを dict 化
+        reqs = {}
+        if store:
+            for r in ShiftStaffRequirement.objects.filter(store=store):
+                reqs[(r.staff_type, r.day_of_week)] = r.required_count
+
+        # テンプレート用マトリクス: [{staff_type, label, counts: [day0..day6]}]
+        matrix = []
+        for st, label in staff_types:
+            counts = [reqs.get((st, d), 0) for d in range(7)]
+            matrix.append({'staff_type': st, 'label': str(label), 'counts': counts})
+
+        ctx.update({
+            'title': _('必要人数設定'),
+            'has_permission': True,
+            'store': store,
+            'stores': Store.objects.all(),
+            'staff_types': staff_types,
+            'day_labels': day_labels,
+            'matrix': json.dumps(matrix, ensure_ascii=False),
         })
         return ctx

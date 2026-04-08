@@ -12,7 +12,7 @@ from booking.views_line_webhook import line_webhook as line_webhook_view
 from booking.health import healthz
 from booking.views_debug import AdminDebugPanelView, IoTDeviceDebugView
 from booking.views_restaurant_dashboard import RestaurantDashboardView
-from booking.views_shift_manager import ManagerShiftCalendarView, TodayShiftTimelineView
+from booking.views_shift_manager import ManagerShiftCalendarView, TodayShiftTimelineView, StaffingRequirementView
 from django.views.generic import RedirectView
 from django.http import HttpResponsePermanentRedirect
 from booking.views_attendance import AttendanceQRDisplayView, AttendanceBoardView, AttendancePINDisplayView
@@ -126,6 +126,13 @@ urlpatterns += i18n_patterns(
         "admin/shift/today/",
         custom_site.admin_view(TodayShiftTimelineView.as_view()),
         name="admin_today_shift",
+    ),
+
+    # 必要人数設定（統合ページ）
+    path(
+        "admin/shift/staffing/",
+        custom_site.admin_view(StaffingRequirementView.as_view()),
+        name="admin_staffing_requirement",
     ),
 
     # 旧マイシフト → シフトカレンダーへリダイレクト（後方互換）

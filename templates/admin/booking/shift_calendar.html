@@ -597,6 +597,7 @@
   pendingReviseAssignmentId: null,
   showNewPeriod: false,
   showClosedDates: false,
+  showProxy: false,
   closedDates: new Set(),
   closedMonth: new Date().getMonth(),
   closedYear: new Date().getFullYear(),
@@ -857,15 +858,26 @@
     {% endif %}
   </div>
 
+  {# ===== 3ボタンバー ===== #}
+  <div style="display:flex;gap:8px;margin-bottom:20px;flex-wrap:wrap;">
+    <button class="btn btn-outline" style="flex:1;min-width:140px;display:flex;align-items:center;justify-content:center;gap:6px;"
+            @click="showClosedDates = !showClosedDates; showProxy = false; if(showClosedDates) loadClosedDates()">
+      <i class="fas fa-store-slash"></i> {% trans "休業日設定" %}
+    </button>
+    {% if active_period and active_period.status == 'open' %}
+    <button class="btn btn-outline" style="flex:1;min-width:140px;display:flex;align-items:center;justify-content:center;gap:6px;"
+            @click="showProxy = !showProxy; showClosedDates = false;">
+      <i class="fas fa-user-edit"></i> {% trans "シフト代理記入" %}
+    </button>
+    {% endif %}
+    <a href="/admin/shift/staffing/" class="btn btn-outline" style="flex:1;min-width:140px;display:flex;align-items:center;justify-content:center;gap:6px;text-decoration:none;">
+      <i class="fas fa-users-cog"></i> {% trans "必要人数設定" %}
+    </a>
+  </div>
+
   {# ===== 休業日設定パネル ===== #}
-  <div class="wf-panel" style="margin-bottom:20px;">
-    <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;">
-      <h3><i class="fas fa-store-slash" style="margin-right:6px;"></i>{% trans "休業日設定" %}</h3>
-      <button class="btn btn-outline btn-sm" @click="showClosedDates = !showClosedDates; if(showClosedDates) loadClosedDates()">
-        <span x-text="showClosedDates ? '{% trans '閉じる' %}' : '{% trans '開く' %}'"></span>
-      </button>
-    </div>
-    <div x-show="showClosedDates" x-cloak style="margin-top:12px;">
+  <div class="wf-panel" style="margin-bottom:20px;" x-show="showClosedDates" x-cloak>
+    <div>
       <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;">
         <button class="btn btn-outline btn-sm" @click="prevClosedMonth()">◀</button>
         <strong x-text="closedMonthLabel" style="min-width:100px;text-align:center;"></strong>
@@ -1077,8 +1089,7 @@
 
   {# ===== 代理入力パネル ===== #}
   {% if active_period and active_period.status == 'open' %}
-  <div class="wf-panel" x-data="{
-    showProxy: false,
+  <div class="wf-panel" x-show="showProxy" x-cloak x-data="{
     proxyStaffId: '',
     proxyDate: null,
     proxyCalMonth: {% if active_period %}new Date('{{ active_period.year_month|date:"Y-m-d" }}').getMonth(){% else %}new Date().getMonth(){% endif %},
@@ -1171,13 +1182,7 @@
       return m[pref] || pref;
     },
   }" x-init="buildProxyCalDays()">
-    <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;">
-      <h3><i class="fas fa-user-edit" style="margin-right:6px;"></i>{% trans "シフト希望 代理入力" %}</h3>
-      <button class="btn btn-outline btn-sm" @click="showProxy = !showProxy">
-        <span x-text="showProxy ? '{% trans '閉じる' %}' : '{% trans '開く' %}'"></span>
-      </button>
-    </div>
-    <div x-show="showProxy" x-cloak style="margin-top:12px;">
+    <div>
       {# スタッフ選択 #}
       <div style="margin-bottom:16px;">
         <label style="font-size:12px;font-weight:600;color:#6b7280;display:block;margin-bottom:4px;">{% trans "対象スタッフ" %}</label>

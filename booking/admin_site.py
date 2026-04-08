@@ -103,8 +103,7 @@ SIDEBAR_CUSTOM_LINKS = {
     'shift': [
         {'name': _('シフトカレンダー'), 'admin_url': '/admin/shift/calendar/', 'icon': 'fas fa-calendar-alt'},
         {'name': _('本日のシフト'), 'admin_url': '/admin/shift/today/', 'icon': 'fas fa-clock'},
-        {'name': _('必要人数設定（曜日別）'), 'admin_url': '/admin/booking/shiftstaffrequirement/', 'icon': 'fas fa-users-cog'},
-        {'name': _('必要人数設定（日付指定）'), 'admin_url': '/admin/booking/shiftstaffrequirementoverride/', 'icon': 'fas fa-calendar-day'},
+        {'name': _('必要人数設定'), 'admin_url': '/admin/shift/staffing/', 'icon': 'fas fa-users-cog'},
     ],
     'staff_manage': [
         {'name': _('従業員一覧'), 'admin_url': '/admin/booking/staff/', 'icon': 'fas fa-users'},
@@ -152,8 +151,7 @@ SIDEBAR_CUSTOM_LINKS_BY_ROLE = {
         'manager': [
             {'name': _('シフトカレンダー'), 'admin_url': '/admin/shift/calendar/', 'icon': 'fas fa-calendar-alt'},
             {'name': _('本日のシフト'), 'admin_url': '/admin/shift/today/', 'icon': 'fas fa-clock'},
-            {'name': _('必要人数設定（曜日別）'), 'admin_url': '/admin/booking/shiftstaffrequirement/', 'icon': 'fas fa-users-cog'},
-            {'name': _('必要人数設定（日付指定）'), 'admin_url': '/admin/booking/shiftstaffrequirementoverride/', 'icon': 'fas fa-calendar-day'},
+            {'name': _('必要人数設定'), 'admin_url': '/admin/shift/staffing/', 'icon': 'fas fa-users-cog'},
         ],
         'staff': [
             {'name': _('シフトカレンダー'), 'admin_url': '/admin/shift/calendar/', 'icon': 'fas fa-calendar-alt'},

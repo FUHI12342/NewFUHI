@@ -19,6 +19,7 @@ from .views_shift_api import (
     ShiftSwapRequestAPIView,
 )
 from .views_shift_staff import StaffShiftRequestAPIView
+from .views_shift_staffing_api import StaffingRequirementAPIView, StaffingOverrideAPIView
 
 app_name = 'shift_api'
 
@@ -47,4 +48,8 @@ urlpatterns = [
     # 交代・欠勤申請
     path('swap-requests/', ShiftSwapRequestAPIView.as_view(), name='shift_swap_requests'),
     path('swap-requests/<int:pk>/', ShiftSwapRequestAPIView.as_view(), name='shift_swap_request_detail'),
+    # 必要人数設定
+    path('staffing/', StaffingRequirementAPIView.as_view(), name='staffing_requirements'),
+    path('staffing/overrides/', StaffingOverrideAPIView.as_view(), name='staffing_overrides'),
+    path('staffing/overrides/<int:pk>/', StaffingOverrideAPIView.as_view(), name='staffing_override_detail'),
 ]
