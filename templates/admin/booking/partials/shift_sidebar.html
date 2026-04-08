@@ -22,12 +22,12 @@
 
   <div style="margin-bottom:10px;">
     <label>開始時刻:</label>
-    <input type="time" name="start_time" value="{{ assignment.start_time|time:'H:i'|default:'' }}" style="width:100%;padding:4px;">
+    <input type="time" name="start_time" value="{{ assignment.start_time|time:'H:i'|default:'' }}" step="300" style="width:100%;padding:4px;">
   </div>
 
   <div style="margin-bottom:10px;">
     <label>終了時刻:</label>
-    <input type="time" name="end_time" value="{{ assignment.end_time|time:'H:i'|default:'' }}" style="width:100%;padding:4px;">
+    <input type="time" name="end_time" value="{{ assignment.end_time|time:'H:i'|default:'' }}" step="300" style="width:100%;padding:4px;">
   </div>
 
   <div style="margin-bottom:10px;">

@@ -1434,6 +1434,21 @@
 </div>
 
 <script>
+// セル更新後にhtmx.processを呼び、サイドバーを閉じる
+document.addEventListener('htmx:afterSwap', function(e) {
+  var t = e.detail.target;
+  if (t && t.classList && t.classList.contains('shift-cell')) {
+    htmx.process(t);
+    // Alpine.js の showSidebar を false にしてサイドバーを閉じる
+    var scope = document.querySelector('[x-data]');
+    if (scope && scope.__x) scope.__x.$data.showSidebar = false;
+    else if (typeof Alpine !== 'undefined') {
+      var sd = document.getElementById('sidebar');
+      if (sd) sd.classList.add('hidden');
+    }
+  }
+});
+
 var SHIFT_COLORS = ['#3B82F6','#10B981','#F59E0B','#8B5CF6','#6366F1','#EF4444','#EC4899','#14B8A6','#F97316','#06B6D4'];
 function _colorPalette(inputId, selected) {
   return '<div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:4px;">' +
@@ -1452,9 +1467,9 @@ function openNewShiftSidebar(staffId, staffName, dateStr) {
     '<p><strong>' + staffName + '</strong> - ' + dateStr + '</p>' +
     '<div style="margin-top:12px;">' +
     '  <div style="margin-bottom:10px;"><label>{% trans "開始時刻" %}:</label>' +
-    '  <input type="time" id="new-start-time" value="09:00" style="width:100%;padding:4px;"></div>' +
+    '  <input type="time" id="new-start-time" value="09:00" step="300" style="width:100%;padding:4px;"></div>' +
     '  <div style="margin-bottom:10px;"><label>{% trans "終了時刻" %}:</label>' +
-    '  <input type="time" id="new-end-time" value="17:00" style="width:100%;padding:4px;"></div>' +
+    '  <input type="time" id="new-end-time" value="17:00" step="300" style="width:100%;padding:4px;"></div>' +
     '  <div style="margin-bottom:10px;"><label>{% trans "表示色" %}:</label>' +
     '  <input type="hidden" id="new-color" value="' + defaultColor + '">' +
     _colorPalette('new-color', defaultColor) + '</div>' +
