@@ -77,7 +77,7 @@
       </thead>
       <tbody class="divide-y divide-gray-100">
         {% for slot_label, schedules in calendar.items %}
-        <tr class="hover:bg-gray-50/50">
+        <tr class="transition-colors">
           <td class="cal-time px-1 py-1 text-[10px] font-medium text-gray-500 bg-gray-50 border-r border-gray-100 whitespace-nowrap">
             {{ slot_label }}
           </td>
@@ -111,6 +111,12 @@
 
 </div>
 
+<style>
+.hour-shaded { background-color: rgba(243, 244, 246, 0.5); }
+.hour-shaded:hover { background-color: rgba(229, 231, 235, 0.6) !important; }
+tr:not(.hour-shaded):hover { background-color: rgba(249, 250, 251, 0.5); }
+.hour-border td { border-top: 2px solid #d1d5db !important; }
+</style>
 <script>
 // Fix prebooking links with proper hour/minute
 var base = '/embed/prebooking/{{ store.pk }}/{{ staff.pk }}/';
@@ -126,5 +132,24 @@ document.querySelectorAll('a[data-hour]').forEach(function(a) {
     }
     a.href = url + '?api_key=' + apiKey;
 });
+
+// Alternating hour shading for readability
+(function() {
+    var rows = document.querySelectorAll('tbody tr');
+    var lastHour = -1, toggle = false;
+    rows.forEach(function(tr) {
+        var td = tr.querySelector('td');
+        if (!td) return;
+        var hour = parseInt(td.textContent.trim().split(':')[0]);
+        if (hour !== lastHour) {
+            if (lastHour >= 0) {
+                toggle = !toggle;
+                tr.classList.add('hour-border');
+            }
+            lastHour = hour;
+        }
+        if (toggle) tr.classList.add('hour-shaded');
+    });
+})();
 </script>
 {% endblock %}
