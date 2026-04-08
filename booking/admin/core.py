@@ -387,6 +387,10 @@ class StoreAdmin(admin.ModelAdmin):
     list_per_page = 10
     ordering = ('name',)
     inlines = [StoreScheduleConfigInline, AdminThemeInline, StoreThemeInline]
+
+    class Media:
+        js = ('js/store_change_tabs.js',)
+
     fieldsets = (
         (None, {'fields': ('name', 'address', 'business_hours', 'nearest_station', 'regular_holiday', 'is_recommended', 'default_language')}),
         (_('店舗紹介'), {'fields': ('description', 'access_info', 'map_url', 'google_maps_embed')}),
