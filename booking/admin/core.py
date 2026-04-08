@@ -313,6 +313,22 @@ class StoreScheduleConfigInline(admin.StackedInline):
     model = StoreScheduleConfig
     extra = 0
     max_num = 1
+    verbose_name = _('店舗スケジュール設定')
+    verbose_name_plural = _('店舗スケジュール設定')
+    fieldsets = (
+        (_('営業時間'), {
+            'fields': ('open_hour', 'close_hour'),
+            'description': '営業開始・終了時間（0〜23の整数）',
+        }),
+        (_('予約カレンダー設定'), {
+            'fields': ('slot_duration',),
+            'description': 'カレンダーの1コマの長さを選択してください',
+        }),
+        (_('シフト設定'), {
+            'fields': ('min_shift_hours',),
+            'classes': ('collapse',),
+        }),
+    )
 
 
 class AdminThemeInline(admin.StackedInline):

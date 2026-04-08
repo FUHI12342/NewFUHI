@@ -11,8 +11,15 @@ class StoreScheduleConfig(models.Model):
     store = models.OneToOneField('Store', on_delete=models.CASCADE, related_name='schedule_config')
     open_hour = models.IntegerField(_('営業開始時間'), default=9)      # 0-23
     close_hour = models.IntegerField(_('営業終了時間'), default=21)     # 0-23
-    slot_duration = models.IntegerField(_('予約コマ(分)'), default=60,
-        help_text=_('15, 30, 45, 60 のいずれか'))
+    SLOT_DURATION_CHOICES = [
+        (30, _('30分')),
+        (60, _('60分（デフォルト）')),
+    ]
+    slot_duration = models.IntegerField(
+        _('予約枠の単位'), default=60,
+        choices=SLOT_DURATION_CHOICES,
+        help_text=_('カレンダーの1コマの長さ'),
+    )
     min_shift_hours = models.IntegerField(
         _('最低シフト時間(時間)'), default=2,
         validators=[MinValueValidator(1), MaxValueValidator(12)],
