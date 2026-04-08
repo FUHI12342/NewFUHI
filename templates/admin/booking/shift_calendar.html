@@ -1464,7 +1464,11 @@ function createShiftFromSidebar(staffId, dateStr) {
   })
   .then(r => {
     if (r.ok) return r.text();
-    return r.json().then(d => { throw new Error(d.error || 'エラー'); });
+    var ct = r.headers.get('content-type') || '';
+    if (ct.indexOf('application/json') !== -1) {
+      return r.json().then(d => { throw new Error(d.error || 'エラー'); });
+    }
+    throw new Error('サーバーエラーが発生しました (HTTP ' + r.status + ')');
   })
   .then(html => {
     const cell = document.getElementById(`cell-${staffId}-${dateStr}`);
@@ -1488,8 +1492,13 @@ function createPeriod() {
     credentials: 'same-origin',
   })
   .then(r => {
-    if (r.status === 409) return r.json().then(d => { throw new Error(d.error); });
-    if (!r.ok) return r.json().then(d => { throw new Error(d.error || 'エラーが発生しました'); });
+    if (!r.ok) {
+      var ct = r.headers.get('content-type') || '';
+      if (ct.indexOf('application/json') !== -1) {
+        return r.json().then(d => { throw new Error(d.error || 'エラーが発生しました'); });
+      }
+      throw new Error('サーバーエラーが発生しました (HTTP ' + r.status + ')');
+    }
     return r.json();
   })
   .then(() => { location.reload(); })

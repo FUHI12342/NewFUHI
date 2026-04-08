@@ -70,10 +70,23 @@ class ShiftPeriodAPIView(View):
         except (Staff.DoesNotExist, AttributeError):
             pass
 
+        parsed_deadline = None
+        if deadline:
+            from django.utils.dateparse import parse_datetime, parse_date
+            from django.utils import timezone as tz
+            dt = parse_datetime(deadline)
+            if dt is None:
+                d = parse_date(deadline)
+                if d:
+                    dt = datetime.datetime.combine(d, datetime.time.min)
+            if dt and tz.is_naive(dt):
+                dt = tz.make_aware(dt)
+            parsed_deadline = dt
+
         period = ShiftPeriod.objects.create(
             store=store,
             year_month=year_month,
-            deadline=deadline or None,
+            deadline=parsed_deadline,
             status='open',
             created_by=created_by,
         )
