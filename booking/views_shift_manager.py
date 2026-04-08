@@ -278,6 +278,18 @@ class ManagerShiftCalendarView(AdminSidebarMixin, TemplateView):
             'swap_pending_count': swap_pending_count,
         })
 
+        # 必要人数設定（インライン展開用）
+        if not is_staff_role:
+            staffing_reqs = {}
+            if store:
+                for r in ShiftStaffRequirement.objects.filter(store=store):
+                    staffing_reqs[(r.staff_type, r.day_of_week)] = r.required_count
+            staffing_matrix = []
+            for st, label in [('fortune_teller', _('キャスト')), ('store_staff', _('スタッフ'))]:
+                counts = [staffing_reqs.get((st, d), 0) for d in range(7)]
+                staffing_matrix.append({'staff_type': st, 'label': str(label), 'counts': counts})
+            ctx['staffing_matrix'] = json.dumps(staffing_matrix, ensure_ascii=False)
+
         # スタッフ用追加コンテキスト
         if is_staff_role and staff:
             open_periods = ShiftPeriod.objects.filter(

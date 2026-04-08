@@ -598,6 +598,7 @@
   showNewPeriod: false,
   showClosedDates: false,
   showProxy: false,
+  showStaffing: false,
   closedDates: new Set(),
   closedMonth: new Date().getMonth(),
   closedYear: new Date().getFullYear(),
@@ -858,23 +859,6 @@
     {% endif %}
   </div>
 
-  {# ===== 3ボタンバー ===== #}
-  <div style="display:flex;gap:8px;margin-bottom:20px;flex-wrap:wrap;">
-    <button class="btn btn-outline" style="flex:1;min-width:140px;display:flex;align-items:center;justify-content:center;gap:6px;"
-            @click="showClosedDates = !showClosedDates; showProxy = false; if(showClosedDates) loadClosedDates()">
-      <i class="fas fa-store-slash"></i> {% trans "休業日設定" %}
-    </button>
-    {% if active_period and active_period.status == 'open' %}
-    <button class="btn btn-outline" style="flex:1;min-width:140px;display:flex;align-items:center;justify-content:center;gap:6px;"
-            @click="showProxy = !showProxy; showClosedDates = false;">
-      <i class="fas fa-user-edit"></i> {% trans "シフト代理記入" %}
-    </button>
-    {% endif %}
-    <a href="/admin/shift/staffing/" class="btn btn-outline" style="flex:1;min-width:140px;display:flex;align-items:center;justify-content:center;gap:6px;text-decoration:none;">
-      <i class="fas fa-users-cog"></i> {% trans "必要人数設定" %}
-    </a>
-  </div>
-
   {# ===== 休業日設定パネル ===== #}
   <div class="wf-panel" style="margin-bottom:20px;" x-show="showClosedDates" x-cloak>
     <div>
@@ -1084,6 +1068,152 @@
     </div>
     {% endif %}
 
+  </div>
+  {% endif %}
+
+  {# ===== 3ボタンバー ===== #}
+  {% if not is_staff_role %}
+  <div style="display:flex;gap:8px;margin-bottom:20px;flex-wrap:wrap;">
+    <button class="btn btn-outline" style="flex:1;min-width:140px;display:flex;align-items:center;justify-content:center;gap:6px;"
+            @click="showClosedDates = !showClosedDates; showProxy = false; showStaffing = false; if(showClosedDates) loadClosedDates();"
+            :class="showClosedDates && 'btn-primary'" :style="showClosedDates && 'color:#fff;border-color:#3B82F6;'">
+      <i class="fas fa-store-slash"></i> {% trans "休業日設定" %}
+    </button>
+    {% if active_period and active_period.status == 'open' %}
+    <button class="btn btn-outline" style="flex:1;min-width:140px;display:flex;align-items:center;justify-content:center;gap:6px;"
+            @click="showProxy = !showProxy; showClosedDates = false; showStaffing = false;"
+            :class="showProxy && 'btn-primary'" :style="showProxy && 'color:#fff;border-color:#3B82F6;'">
+      <i class="fas fa-user-edit"></i> {% trans "シフト代理記入" %}
+    </button>
+    {% endif %}
+    <button class="btn btn-outline" style="flex:1;min-width:140px;display:flex;align-items:center;justify-content:center;gap:6px;"
+            @click="showStaffing = !showStaffing; showClosedDates = false; showProxy = false; if(showStaffing && !window._staffingLoaded) { window._staffingLoaded = true; }"
+            :class="showStaffing && 'btn-primary'" :style="showStaffing && 'color:#fff;border-color:#3B82F6;'">
+      <i class="fas fa-users-cog"></i> {% trans "必要人数設定" %}
+    </button>
+  </div>
+  {% endif %}
+
+  {# ===== 必要人数設定パネル（インライン） ===== #}
+  {% if not is_staff_role %}
+  <div class="wf-panel" style="margin-bottom:20px;" x-show="showStaffing" x-cloak
+       x-data="staffingInline()" x-init="init()">
+    {# タブ #}
+    <div style="display:flex;border-bottom:2px solid #e5e7eb;margin-bottom:16px;gap:0;">
+      <div style="padding:8px 20px;font-size:13px;font-weight:600;cursor:pointer;border-bottom:3px solid transparent;margin-bottom:-2px;"
+           :style="stTab === 'weekly' ? 'color:#3B82F6;border-bottom-color:#3B82F6;' : 'color:#6b7280;'"
+           @click="stTab = 'weekly'">
+        {% trans "曜日別デフォルト" %}
+      </div>
+      <div style="padding:8px 20px;font-size:13px;font-weight:600;cursor:pointer;border-bottom:3px solid transparent;margin-bottom:-2px;"
+           :style="stTab === 'override' ? 'color:#3B82F6;border-bottom-color:#3B82F6;' : 'color:#6b7280;'"
+           @click="stTab = 'override'; loadOverrides()">
+        {% trans "日付指定オーバーライド" %}
+      </div>
+    </div>
+
+    {# 曜日別 #}
+    <div x-show="stTab === 'weekly'">
+      <div style="overflow-x:auto;">
+        <table style="width:100%;border-collapse:collapse;">
+          <thead>
+            <tr>
+              <th style="border:1px solid #e5e7eb;padding:6px 10px;background:#f9fafb;font-size:13px;text-align:left;">{% trans "種別" %}</th>
+              <th style="border:1px solid #e5e7eb;padding:6px 10px;background:#f9fafb;font-size:13px;text-align:center;">{% trans "月" %}</th>
+              <th style="border:1px solid #e5e7eb;padding:6px 10px;background:#f9fafb;font-size:13px;text-align:center;">{% trans "火" %}</th>
+              <th style="border:1px solid #e5e7eb;padding:6px 10px;background:#f9fafb;font-size:13px;text-align:center;">{% trans "水" %}</th>
+              <th style="border:1px solid #e5e7eb;padding:6px 10px;background:#f9fafb;font-size:13px;text-align:center;">{% trans "木" %}</th>
+              <th style="border:1px solid #e5e7eb;padding:6px 10px;background:#f9fafb;font-size:13px;text-align:center;">{% trans "金" %}</th>
+              <th style="border:1px solid #e5e7eb;padding:6px 10px;background:#f9fafb;font-size:13px;text-align:center;">{% trans "土" %}</th>
+              <th style="border:1px solid #e5e7eb;padding:6px 10px;background:#f9fafb;font-size:13px;text-align:center;">{% trans "日" %}</th>
+            </tr>
+          </thead>
+          <tbody>
+            <template x-for="(row, ri) in weeklyData" :key="row.staff_type">
+              <tr>
+                <td style="border:1px solid #e5e7eb;padding:6px 10px;font-weight:600;background:#f9fafb;font-size:13px;" x-text="row.label"></td>
+                <template x-for="(count, di) in row.counts" :key="di">
+                  <td style="border:1px solid #e5e7eb;padding:4px;text-align:center;">
+                    <input type="number" min="0" max="99" :value="count"
+                           @change="weeklyData[ri].counts[di] = parseInt($event.target.value) || 0"
+                           style="width:50px;text-align:center;border:1px solid #d1d5db;border-radius:4px;padding:3px;font-size:13px;">
+                  </td>
+                </template>
+              </tr>
+            </template>
+          </tbody>
+        </table>
+      </div>
+      <div style="margin-top:12px;">
+        <button class="btn btn-primary btn-sm" @click="saveWeekly()" :disabled="stSaving">
+          <span x-show="!stSaving">{% trans "保存" %}</span>
+          <span x-show="stSaving">{% trans "保存中..." %}</span>
+        </button>
+        <span x-show="stMsg" x-text="stMsg" style="margin-left:8px;font-size:13px;font-weight:600;"
+              :style="stMsgType === 'success' ? 'color:#10B981;' : 'color:#EF4444;'" x-cloak></span>
+      </div>
+    </div>
+
+    {# 日付指定 #}
+    <div x-show="stTab === 'override'">
+      <div style="display:flex;gap:8px;align-items:flex-end;flex-wrap:wrap;margin-bottom:12px;">
+        <div>
+          <label style="font-size:11px;font-weight:600;color:#6b7280;display:block;margin-bottom:2px;">{% trans "日付" %}</label>
+          <input type="date" x-model="newOv.date" style="padding:4px 8px;border:1px solid #d1d5db;border-radius:4px;font-size:13px;">
+        </div>
+        <div>
+          <label style="font-size:11px;font-weight:600;color:#6b7280;display:block;margin-bottom:2px;">{% trans "種別" %}</label>
+          <select x-model="newOv.staff_type" style="padding:4px 8px;border:1px solid #d1d5db;border-radius:4px;font-size:13px;">
+            <option value="fortune_teller">{% trans "キャスト" %}</option>
+            <option value="store_staff">{% trans "スタッフ" %}</option>
+          </select>
+        </div>
+        <div>
+          <label style="font-size:11px;font-weight:600;color:#6b7280;display:block;margin-bottom:2px;">{% trans "人数" %}</label>
+          <input type="number" min="0" max="99" x-model.number="newOv.required_count" style="width:50px;padding:4px;border:1px solid #d1d5db;border-radius:4px;font-size:13px;text-align:center;">
+        </div>
+        <div>
+          <label style="font-size:11px;font-weight:600;color:#6b7280;display:block;margin-bottom:2px;">{% trans "理由" %}</label>
+          <input type="text" x-model="newOv.reason" placeholder="{% trans '例: イベント' %}" style="width:120px;padding:4px 8px;border:1px solid #d1d5db;border-radius:4px;font-size:13px;">
+        </div>
+        <button class="btn btn-success btn-sm" @click="addOverride()" :disabled="stSaving">{% trans "追加" %}</button>
+      </div>
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:8px;">
+        <button class="btn btn-outline btn-sm" @click="prevOvMonth()">&#9664;</button>
+        <strong x-text="ovMonthLabel" style="min-width:90px;text-align:center;font-size:13px;"></strong>
+        <button class="btn btn-outline btn-sm" @click="nextOvMonth()">&#9654;</button>
+      </div>
+      <table style="width:100%;border-collapse:collapse;font-size:13px;">
+        <thead>
+          <tr>
+            <th style="border:1px solid #e5e7eb;padding:4px 8px;background:#f9fafb;text-align:left;">{% trans "日付" %}</th>
+            <th style="border:1px solid #e5e7eb;padding:4px 8px;background:#f9fafb;text-align:left;">{% trans "種別" %}</th>
+            <th style="border:1px solid #e5e7eb;padding:4px 8px;background:#f9fafb;text-align:center;">{% trans "人数" %}</th>
+            <th style="border:1px solid #e5e7eb;padding:4px 8px;background:#f9fafb;text-align:left;">{% trans "理由" %}</th>
+            <th style="border:1px solid #e5e7eb;padding:4px 8px;background:#f9fafb;width:50px;"></th>
+          </tr>
+        </thead>
+        <tbody>
+          <template x-for="ov in overrides" :key="ov.id">
+            <tr>
+              <td style="border:1px solid #e5e7eb;padding:4px 8px;" x-text="ov.date"></td>
+              <td style="border:1px solid #e5e7eb;padding:4px 8px;" x-text="ov.staff_type === 'fortune_teller' ? '{% trans "キャスト" %}' : '{% trans "スタッフ" %}'"></td>
+              <td style="border:1px solid #e5e7eb;padding:4px 8px;text-align:center;" x-text="ov.required_count"></td>
+              <td style="border:1px solid #e5e7eb;padding:4px 8px;" x-text="ov.reason || '-'"></td>
+              <td style="border:1px solid #e5e7eb;padding:4px 8px;text-align:center;">
+                <button class="btn btn-danger btn-sm" @click="deleteOverride(ov.id)" :disabled="stSaving"
+                        style="padding:1px 6px;font-size:11px;">{% trans "削除" %}</button>
+              </td>
+            </tr>
+          </template>
+          <template x-if="overrides.length === 0">
+            <tr><td colspan="5" style="border:1px solid #e5e7eb;padding:8px;text-align:center;color:#6b7280;">{% trans "この月のオーバーライドはありません" %}</td></tr>
+          </template>
+        </tbody>
+      </table>
+      <span x-show="stMsg" x-text="stMsg" style="display:block;margin-top:8px;font-size:13px;font-weight:600;"
+            :style="stMsgType === 'success' ? 'color:#10B981;' : 'color:#EF4444;'" x-cloak></span>
+    </div>
   </div>
   {% endif %}
 
@@ -1538,6 +1668,77 @@ function createPeriod() {
       '<div style="padding:8px;background:#fee2e2;color:#991b1b;border-radius:6px;margin-top:8px;">' +
       err.message + '</div>';
   });
+}
+
+// ===== 必要人数設定インライン =====
+function staffingInline() {
+  const csrfToken = '{{ csrf_token }}';
+  const matrixRaw = {% if staffing_matrix %}{{ staffing_matrix|safe }}{% else %}[]{% endif %};
+  return {
+    stTab: 'weekly',
+    stSaving: false,
+    stMsg: '',
+    stMsgType: 'success',
+    weeklyData: [],
+    overrides: [],
+    ovYear: new Date().getFullYear(),
+    ovMonth: new Date().getMonth() + 1,
+    newOv: { date: '', staff_type: 'fortune_teller', required_count: 1, reason: '' },
+    get ovMonthLabel() { return `${this.ovYear}年${String(this.ovMonth).padStart(2,'0')}月`; },
+    init() {
+      this.weeklyData = matrixRaw.map(r => ({ staff_type: r.staff_type, label: r.label, counts: [...r.counts] }));
+    },
+    flashMsg(msg, type) {
+      this.stMsg = msg; this.stMsgType = type;
+      setTimeout(() => { this.stMsg = ''; }, 3000);
+    },
+    async saveWeekly() {
+      this.stSaving = true;
+      const items = [];
+      for (const row of this.weeklyData) for (let d = 0; d < 7; d++) items.push({ day_of_week: d, staff_type: row.staff_type, required_count: row.counts[d] });
+      try {
+        const r = await fetch('/api/shift/staffing/', { method: 'PUT', headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrfToken }, body: JSON.stringify({ items }) });
+        const d = await r.json();
+        this.flashMsg(d.success ? '{% trans "保存しました" %}' : (d.error || '{% trans "エラー" %}'), d.success ? 'success' : 'error');
+      } catch (e) { this.flashMsg('{% trans "通信エラー" %}', 'error'); }
+      this.stSaving = false;
+    },
+    async loadOverrides() {
+      try {
+        const r = await fetch(`/api/shift/staffing/overrides/?year=${this.ovYear}&month=${this.ovMonth}`);
+        const d = await r.json();
+        if (d.success) this.overrides = d.data;
+      } catch (e) { this.flashMsg('{% trans "読み込みエラー" %}', 'error'); }
+    },
+    prevOvMonth() { if (this.ovMonth === 1) { this.ovMonth = 12; this.ovYear--; } else this.ovMonth--; this.loadOverrides(); },
+    nextOvMonth() { if (this.ovMonth === 12) { this.ovMonth = 1; this.ovYear++; } else this.ovMonth++; this.loadOverrides(); },
+    async addOverride() {
+      if (!this.newOv.date || !this.newOv.staff_type) { this.flashMsg('{% trans "日付と種別は必須" %}', 'error'); return; }
+      this.stSaving = true;
+      try {
+        const r = await fetch('/api/shift/staffing/overrides/', { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrfToken }, body: JSON.stringify(this.newOv) });
+        const d = await r.json();
+        if (d.success) {
+          this.flashMsg('{% trans "追加しました" %}', 'success');
+          this.newOv = { date: '', staff_type: 'fortune_teller', required_count: 1, reason: '' };
+          const dt = new Date(d.data.date); this.ovYear = dt.getFullYear(); this.ovMonth = dt.getMonth() + 1;
+          this.loadOverrides();
+        } else { this.flashMsg(d.error || '{% trans "エラー" %}', 'error'); }
+      } catch (e) { this.flashMsg('{% trans "通信エラー" %}', 'error'); }
+      this.stSaving = false;
+    },
+    async deleteOverride(id) {
+      if (!confirm('{% trans "削除しますか？" %}')) return;
+      this.stSaving = true;
+      try {
+        const r = await fetch(`/api/shift/staffing/overrides/${id}/`, { method: 'DELETE', headers: { 'X-CSRFToken': csrfToken } });
+        const d = await r.json();
+        if (d.success) { this.flashMsg('{% trans "削除しました" %}', 'success'); this.loadOverrides(); }
+        else { this.flashMsg(d.error || '{% trans "エラー" %}', 'error'); }
+      } catch (e) { this.flashMsg('{% trans "通信エラー" %}', 'error'); }
+      this.stSaving = false;
+    },
+  };
 }
 
 window.TOUR_STORAGE_KEY = 'shift_calendar_tour_seen';
