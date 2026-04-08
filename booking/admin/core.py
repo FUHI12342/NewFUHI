@@ -311,8 +311,9 @@ class StaffAdmin(admin.ModelAdmin):
 
 class StoreScheduleConfigInline(admin.StackedInline):
     model = StoreScheduleConfig
-    extra = 0
+    extra = 1
     max_num = 1
+    can_delete = False
     verbose_name = _('店舗スケジュール設定')
     verbose_name_plural = _('店舗スケジュール設定')
     radio_fields = {'slot_duration': admin.HORIZONTAL}
