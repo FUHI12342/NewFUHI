@@ -2,19 +2,13 @@
 <h3>シフト編集</h3>
 <p><strong>{{ assignment.staff.name }}</strong> - {{ assignment.date|date:"Y/m/d" }}</p>
 
-<form hx-put="/api/shift/assignments/{{ assignment.id }}/"
-      hx-target="#cell-{{ assignment.staff_id }}-{{ assignment.date|date:'Y-m-d' }}"
-      hx-swap="innerHTML">
-  {% csrf_token %}
+<form id="shift-edit-form" onsubmit="return saveShift(event, {{ assignment.id }})">
 
   <div style="margin-bottom:10px;">
     <label>テンプレート適用:</label><br>
     {% for t in templates %}
     <button type="button" class="template-chip" style="background:{{ t.color }};margin:2px;"
-            hx-post="/api/shift/apply-template/"
-            hx-vals='{"template_id": {{ t.id }}, "staff_id": {{ assignment.staff_id }}, "date": "{{ assignment.date|date:'Y-m-d' }}"}'
-            hx-target="#cell-{{ assignment.staff_id }}-{{ assignment.date|date:'Y-m-d' }}"
-            hx-swap="innerHTML">
+            onclick="applyTemplate({{ t.id }}, {{ assignment.staff_id }}, '{{ assignment.date|date:'Y-m-d' }}')">
       {{ t.name }} ({{ t.start_time|time:"H:i" }}-{{ t.end_time|time:"H:i" }})
     </button>
     {% endfor %}
@@ -22,12 +16,12 @@
 
   <div style="margin-bottom:10px;">
     <label>開始時刻:</label>
-    <input type="time" name="start_time" value="{{ assignment.start_time|time:'H:i'|default:'' }}" step="300" style="width:100%;padding:4px;">
+    <input type="time" name="start_time" id="edit-start-time" value="{{ assignment.start_time|time:'H:i'|default:'' }}" step="300" style="width:100%;padding:4px;">
   </div>
 
   <div style="margin-bottom:10px;">
     <label>終了時刻:</label>
-    <input type="time" name="end_time" value="{{ assignment.end_time|time:'H:i'|default:'' }}" step="300" style="width:100%;padding:4px;">
+    <input type="time" name="end_time" id="edit-end-time" value="{{ assignment.end_time|time:'H:i'|default:'' }}" step="300" style="width:100%;padding:4px;">
   </div>
 
   <div style="margin-bottom:10px;">
@@ -46,19 +40,61 @@
 
   <div style="margin-bottom:10px;">
     <label>備考:</label>
-    <textarea name="note" rows="3" style="width:100%;padding:4px;">{{ assignment.note }}</textarea>
+    <textarea name="note" id="edit-note" rows="3" style="width:100%;padding:4px;">{{ assignment.note }}</textarea>
   </div>
 
   <div style="display:flex;gap:8px;">
-    <button type="submit" class="btn-primary" style="flex:1;padding:8px;background:#3B82F6;color:#fff;border:none;border-radius:4px;cursor:pointer;">
+    <button type="submit" style="flex:1;padding:8px;background:#3B82F6;color:#fff;border:none;border-radius:4px;cursor:pointer;font-weight:600;">
       保存
     </button>
-    <button type="button" style="flex:1;padding:8px;background:#EF4444;color:#fff;border:none;border-radius:4px;cursor:pointer;"
-            hx-delete="/api/shift/assignments/{{ assignment.id }}/"
-            hx-target="#cell-{{ assignment.staff_id }}-{{ assignment.date|date:'Y-m-d' }}"
-            hx-swap="innerHTML"
-            hx-confirm="このシフトを削除しますか？">
+    <button type="button" style="flex:1;padding:8px;background:#EF4444;color:#fff;border:none;border-radius:4px;cursor:pointer;font-weight:600;"
+            onclick="if(confirm('このシフトを削除しますか？')) deleteShift({{ assignment.id }})">
       削除
     </button>
   </div>
 </form>
+
+<script>
+function saveShift(e, assignmentId) {
+  e.preventDefault();
+  var data = {
+    start_time: document.getElementById('edit-start-time').value,
+    end_time: document.getElementById('edit-end-time').value,
+    color: document.getElementById('edit-color').value,
+    note: document.getElementById('edit-note').value,
+  };
+  fetch('/api/shift/assignments/' + assignmentId + '/', {
+    method: 'PUT',
+    headers: {'Content-Type': 'application/json', 'X-CSRFToken': '{{ csrf_token }}'},
+    body: JSON.stringify(data),
+    credentials: 'same-origin',
+  }).then(function(r) {
+    if (r.ok) location.reload();
+    else r.text().then(function(t) { alert('保存エラー: ' + t); });
+  });
+  return false;
+}
+
+function deleteShift(assignmentId) {
+  fetch('/api/shift/assignments/' + assignmentId + '/', {
+    method: 'DELETE',
+    headers: {'X-CSRFToken': '{{ csrf_token }}'},
+    credentials: 'same-origin',
+  }).then(function(r) {
+    if (r.ok) location.reload();
+    else alert('削除エラー');
+  });
+}
+
+function applyTemplate(templateId, staffId, dateStr) {
+  fetch('/api/shift/apply-template/', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json', 'X-CSRFToken': '{{ csrf_token }}'},
+    body: JSON.stringify({template_id: templateId, staff_id: staffId, date: dateStr}),
+    credentials: 'same-origin',
+  }).then(function(r) {
+    if (r.ok) location.reload();
+    else alert('テンプレート適用エラー');
+  });
+}
+</script>

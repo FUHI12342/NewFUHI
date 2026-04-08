@@ -1434,18 +1434,6 @@
 </div>
 
 <script>
-// セル更新後にhtmx.processを呼び、サイドバーを閉じる
-document.addEventListener('htmx:afterSwap', function(e) {
-  try {
-    var t = e.detail.target;
-    if (t && t.classList && t.classList.contains('shift-cell')) {
-      htmx.process(t);
-      var sd = document.getElementById('sidebar');
-      if (sd) sd.classList.add('hidden');
-    }
-  } catch(err) { console.warn('afterSwap handler error:', err); }
-});
-
 var SHIFT_COLORS = ['#3B82F6','#10B981','#F59E0B','#8B5CF6','#6366F1','#EF4444','#EC4899','#14B8A6','#F97316','#06B6D4'];
 function _colorPalette(inputId, selected) {
   return '<div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:4px;">' +
@@ -1511,26 +1499,7 @@ function createShiftFromSidebar(staffId, dateStr) {
     }
     throw new Error('サーバーエラーが発生しました (HTTP ' + r.status + ')');
   })
-  .then(html => {
-    var cell = document.getElementById('cell-' + staffId + '-' + dateStr);
-    if (cell) {
-      cell.innerHTML = html;
-      htmx.process(cell);
-      // 作成直後に編集サイドバーをfetchで開く
-      var block = cell.querySelector('.shift-block[hx-get]');
-      if (block) {
-        var url = block.getAttribute('hx-get');
-        if (url) {
-          fetch(url, {credentials: 'same-origin'})
-            .then(function(r) { return r.text(); })
-            .then(function(shtml) {
-              document.getElementById('sidebar-content').innerHTML = shtml;
-              htmx.process(document.getElementById('sidebar-content'));
-            });
-        }
-      }
-    }
-  })
+  .then(function() { location.reload(); })
   .catch(err => alert(err.message));
 }
 
