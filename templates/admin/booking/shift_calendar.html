@@ -1087,13 +1087,11 @@
             :style="showClosedDates ? 'background:#3B82F6;color:#fff;border:1px solid #3B82F6;' : 'background:#fff;color:#374151;border:1px solid #d1d5db;'">
       <i class="fas fa-store-slash"></i> {% trans "休業日設定" %}
     </button>
-    {% if active_period and active_period.status == 'open' %}
     <button class="btn" style="flex:1;min-width:140px;display:flex;align-items:center;justify-content:center;gap:6px;"
             @click="showProxy = !showProxy; showClosedDates = false; showStaffing = false;"
             :style="showProxy ? 'background:#3B82F6;color:#fff;border:1px solid #3B82F6;' : 'background:#fff;color:#374151;border:1px solid #d1d5db;'">
       <i class="fas fa-user-edit"></i> {% trans "シフト代理記入" %}
     </button>
-    {% endif %}
     <button class="btn" style="flex:1;min-width:140px;display:flex;align-items:center;justify-content:center;gap:6px;"
             @click="showStaffing = !showStaffing; showClosedDates = false; showProxy = false;"
             :style="showStaffing ? 'background:#3B82F6;color:#fff;border:1px solid #3B82F6;' : 'background:#fff;color:#374151;border:1px solid #d1d5db;'">
@@ -1253,6 +1251,7 @@
 
   {# ===== 代理入力パネル（複数日一括申請） ===== #}
   {% if active_period and active_period.status == 'open' %}
+  {# open期間あり → フル機能 #}
   <div class="wf-panel" style="margin-bottom:20px;" x-show="showProxy" x-cloak x-data="{
     pxStaffId: '',
     pxCalMonth: new Date('{{ active_period.year_month|date:"Y-m-d" }}').getMonth(),
@@ -1475,6 +1474,13 @@
         </div>
       </div>
     </template>
+  </div>
+  {% else %}
+  {# open期間なし → 案内メッセージ #}
+  <div class="wf-panel" style="margin-bottom:20px;" x-show="showProxy" x-cloak>
+    <p style="color:#6b7280;font-size:14px;margin:0;">
+      {% trans "代理記入は「募集中」ステータスの期間でのみ利用可能です。期間カードから募集中の期間を選択してください。" %}
+    </p>
   </div>
   {% endif %}
 
@@ -1828,12 +1834,7 @@ window.TOUR_STEPS = [
   {
     selector: '.shift-tool-bar',
     title: '管理ツールバー',
-    text: '休業日設定・シフト代理記入・必要人数設定の3つのツールをここから開けます。各ボタンをクリックするとパネルが展開します。',
-  },
-  {
-    selector: '.tour-help-btn',
-    title: 'ヘルプ',
-    text: 'このボタンをクリックすると、いつでもこのガイドを再表示できます。',
+    text: '休業日設定・シフト代理記入・必要人数設定の3つのツールをここから開けます。各ボタンをクリックするとパネルが展開します。右上の「ヘルプ」ボタンからいつでもこのガイドを再表示できます。',
   },
 ];
 </script>
