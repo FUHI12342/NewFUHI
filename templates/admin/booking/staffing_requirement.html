@@ -63,6 +63,21 @@
 
   .month-nav { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; }
   .month-nav button { padding: 4px 12px; }
+
+  @media (max-width: 767px) {
+    .sr-panel { padding: 12px; }
+    .sr-tabs { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+    .sr-tab { padding: 8px 14px; font-size: 12px; min-width: 0; white-space: nowrap; }
+    .sr-table th, .sr-table td { padding: 4px 6px; font-size: 12px; }
+    .sr-table input[type=number] { width: 44px; padding: 3px; font-size: 12px; }
+    .sr-table { display: block; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+    .override-form { flex-direction: column; align-items: stretch; gap: 6px; }
+    .override-form input, .override-form select { width: 100%; }
+    .override-table th, .override-table td { padding: 4px 6px; font-size: 12px; }
+    .override-table { display: block; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+    .btn { padding: 6px 14px; font-size: 12px; }
+    .btn-sm { padding: 3px 8px; font-size: 11px; }
+  }
 </style>
 {% endblock %}
 

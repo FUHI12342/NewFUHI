@@ -301,6 +301,37 @@
     /* Panels */
     .wf-panel { padding: 12px; }
     .wf-panel h3 { font-size: 14px; }
+
+    /* 3ボタンバー: 縦積み */
+    .shift-tool-bar { flex-direction: column; }
+    .shift-tool-bar .btn { min-width: unset !important; flex: unset !important; width: 100%; }
+
+    /* 必要人数テーブル: 横スクロール */
+    .shift-tool-bar + div table { font-size: 12px; }
+    .shift-tool-bar + div input[type=number] { width: 40px !important; font-size: 12px !important; padding: 2px !important; }
+
+    /* 日付指定フォーム: 縦積み */
+    .shift-tool-bar ~ div .override-form,
+    .shift-tool-bar ~ div .ms-form { flex-direction: column; align-items: stretch; gap: 6px; }
+    .shift-tool-bar ~ div .ms-form select,
+    .shift-tool-bar ~ div .ms-form input { width: 100%; }
+
+    /* 代理入力: カレンダーとフォームを縦に */
+    .ms-cal-grid { max-width: 100%; }
+    .ms-cal-cell { padding: 6px 2px; font-size: 12px; min-height: 32px; }
+
+    /* スタッフ選択セレクト: フル幅 */
+    .wf-panel select { max-width: 100%; }
+
+    /* ヘルプボタン */
+    .tour-help-btn { padding: 4px 10px; font-size: 12px; }
+
+    /* スタッフ用タブ */
+    .ms-tabs { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+    .ms-tab { min-width: 80px; flex-shrink: 0; font-size: 12px; padding: 8px 12px; }
+
+    /* 希望リスト */
+    .ms-req-item { flex-wrap: wrap; gap: 6px; padding: 6px 8px; font-size: 12px; }
   }
 </style>
 {% endblock %}
@@ -698,11 +729,12 @@
   },
 }" x-init="if(showClosedDates) loadClosedDates()" hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'>
 
-  {# ===== 管理メニュードロップダウン ===== #}
-  <div x-data="{ openMenu: false }" class="admin-menu-wrap">
-    <button @click="openMenu = !openMenu" class="admin-menu-btn">
-      <i class="fas fa-cog"></i> {% trans "管理メニュー" %} ▾
-    </button>
+  {# ===== 管理メニュー + ヘルプ ===== #}
+  <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:16px;">
+    <div x-data="{ openMenu: false }" class="admin-menu-wrap" style="margin-bottom:0;">
+      <button @click="openMenu = !openMenu" class="admin-menu-btn">
+        <i class="fas fa-cog"></i> {% trans "管理メニュー" %} ▾
+      </button>
     <div x-show="openMenu" @click.outside="openMenu = false" x-cloak class="admin-menu-drop">
       <a href="{% url 'admin:booking_shiftperiod_changelist' %}"><i class="fas fa-calendar-alt" style="width:16px;margin-right:6px;"></i>{% trans "シフト募集期間" %}</a>
       <a href="{% url 'admin:booking_shiftrequest_changelist' %}"><i class="fas fa-hand-paper" style="width:16px;margin-right:6px;"></i>{% trans "シフト希望一覧" %}</a>
@@ -713,6 +745,10 @@
       <a href="{% url 'admin:booking_shiftpublishhistory_changelist' %}"><i class="fas fa-history" style="width:16px;margin-right:6px;"></i>{% trans "公開履歴" %}</a>
       <a href="{% url 'admin:booking_storecloseddate_changelist' %}"><i class="fas fa-store-slash" style="width:16px;margin-right:6px;"></i>{% trans "休業日一覧" %}</a>
     </div>
+    </div>
+    <button class="tour-help-btn" onclick="startTour()">
+      <i class="fas fa-question-circle"></i> {% trans "ヘルプ" %}
+    </button>
   </div>
 
   {# ===== テンプレート管理モーダル ===== #}
@@ -921,7 +957,7 @@
                 hx-post="/api/shift/auto-schedule/"
                 hx-vals='{"period_id": "{{ active_period.id }}", "week_start": "{{ week_start }}"}'
                 hx-target="body" hx-swap="none"
-                hx-confirm="{% trans '希望データを元にシフトを自動作成しますか？（既存のシフトは上書きされます）' %}">
+                hx-confirm="{% trans '希望データを元にシフトを自動作成しますか？\n\n⚠️ 注意: 現在のシフト（手動調整含む）は全て削除され、希望データから再作成されます。この操作は元に戻せません。' %}">
           {% trans "自動配置を実行" %}
         </button>
       {% endif %}
@@ -1045,7 +1081,7 @@
 
   {# ===== 3ボタンバー ===== #}
   {% if not is_staff_role %}
-  <div style="display:flex;gap:8px;margin-bottom:20px;flex-wrap:wrap;">
+  <div class="shift-tool-bar" style="display:flex;gap:8px;margin-bottom:20px;flex-wrap:wrap;">
     <button class="btn" style="flex:1;min-width:140px;display:flex;align-items:center;justify-content:center;gap:6px;"
             @click="showClosedDates = !showClosedDates; showProxy = false; showStaffing = false; if(showClosedDates) loadClosedDates();"
             :style="showClosedDates ? 'background:#3B82F6;color:#fff;border:1px solid #3B82F6;' : 'background:#fff;color:#374151;border:1px solid #d1d5db;'">
@@ -1767,7 +1803,7 @@ function staffingInline() {
   };
 }
 
-window.TOUR_STORAGE_KEY = 'shift_calendar_tour_seen';
+window.TOUR_STORAGE_KEY = 'shift_calendar_tour_seen_v2';
 window.TOUR_STEPS = [
   {
     selector: '.wf-steps',
@@ -1777,7 +1813,7 @@ window.TOUR_STEPS = [
   {
     selector: '.wf-panel',
     title: 'シフト期間',
-    text: '「新規募集」でシフト期間を作成し、スタッフに通知を送信します。',
+    text: '「新規募集」でシフト期間を作成し、スタッフに通知を送信します。期間を選択するとグリッドが表示されます。',
   },
   {
     selector: '#week-grid',
@@ -1785,14 +1821,19 @@ window.TOUR_STEPS = [
     text: '各スタッフの週間シフトが表示されます。セルをクリックしてシフトを編集できます。',
   },
   {
-    selector: '.template-chips',
-    title: 'シフトテンプレート',
-    text: '登録済みのシフトテンプレートです。',
+    selector: '.admin-menu-btn',
+    title: '管理メニュー',
+    text: 'シフト募集期間・希望一覧・確定シフト・テンプレートなどの詳細管理ページにアクセスできます。',
+  },
+  {
+    selector: '.shift-tool-bar',
+    title: '管理ツールバー',
+    text: '休業日設定・シフト代理記入・必要人数設定の3つのツールをここから開けます。各ボタンをクリックするとパネルが展開します。',
   },
   {
     selector: '.tour-help-btn',
-    title: 'ヘルプボタン',
-    text: 'このボタンをクリックすると、いつでもこのヘルプを再表示できます。',
+    title: 'ヘルプ',
+    text: 'このボタンをクリックすると、いつでもこのガイドを再表示できます。',
   },
 ];
 </script>
