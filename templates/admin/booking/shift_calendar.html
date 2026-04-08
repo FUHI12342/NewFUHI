@@ -1434,8 +1434,19 @@
 </div>
 
 <script>
+var SHIFT_COLORS = ['#4F86C6','#5BA585','#E8913A','#D46A6A','#9B7DC6','#C7855C','#5AA8B5','#7A8C5E','#C9728E','#6B8EAD'];
+function _colorPalette(inputId, selected) {
+  return '<div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:4px;">' +
+    SHIFT_COLORS.map(function(c) {
+      var sel = c === selected ? 'outline:3px solid #1f2937;' : '';
+      return '<button type="button" style="width:28px;height:28px;border-radius:50%;border:2px solid #fff;box-shadow:0 0 0 1px #ccc;background:'+c+';cursor:pointer;'+sel+'" ' +
+        'onclick="document.getElementById(\''+inputId+'\').value=\''+c+'\';this.parentElement.querySelectorAll(\'button\').forEach(function(b){b.style.outline=\'\'});this.style.outline=\'3px solid #1f2937\'"></button>';
+    }).join('') + '</div>';
+}
+
 function openNewShiftSidebar(staffId, staffName, dateStr) {
-  const el = document.getElementById('sidebar-content');
+  var defaultColor = SHIFT_COLORS[0];
+  var el = document.getElementById('sidebar-content');
   el.innerHTML =
     '<h3>{% trans "新規シフト" %}</h3>' +
     '<p><strong>' + staffName + '</strong> - ' + dateStr + '</p>' +
@@ -1444,17 +1455,21 @@ function openNewShiftSidebar(staffId, staffName, dateStr) {
     '  <input type="time" id="new-start-time" value="09:00" style="width:100%;padding:4px;"></div>' +
     '  <div style="margin-bottom:10px;"><label>{% trans "終了時刻" %}:</label>' +
     '  <input type="time" id="new-end-time" value="17:00" style="width:100%;padding:4px;"></div>' +
+    '  <div style="margin-bottom:10px;"><label>{% trans "表示色" %}:</label>' +
+    '  <input type="hidden" id="new-color" value="' + defaultColor + '">' +
+    _colorPalette('new-color', defaultColor) + '</div>' +
     '  <button class="btn btn-primary btn-sm" style="width:100%;" onclick="createShiftFromSidebar(' + staffId + ', \'' + dateStr + '\')">{% trans "作成" %}</button>' +
     '</div>';
 }
 
 function createShiftFromSidebar(staffId, dateStr) {
-  const startTime = document.getElementById('new-start-time').value;
-  const endTime = document.getElementById('new-end-time').value;
+  var startTime = document.getElementById('new-start-time').value;
+  var endTime = document.getElementById('new-end-time').value;
+  var color = document.getElementById('new-color').value;
   if (!startTime || !endTime) { alert('時刻を入力してください'); return; }
-  const startH = parseInt(startTime.split(':')[0]);
-  const endH = parseInt(endTime.split(':')[0]) + (parseInt(endTime.split(':')[1]) > 0 ? 1 : 0);
-  const periodId = new URLSearchParams(location.search).get('period_id')
+  var startH = parseInt(startTime.split(':')[0]);
+  var endH = parseInt(endTime.split(':')[0]) + (parseInt(endTime.split(':')[1]) > 0 ? 1 : 0);
+  var periodId = new URLSearchParams(location.search).get('period_id')
     || document.querySelector('.period-card.selected')?.getAttribute('data-period-id')
     || '{{ active_period.id }}';
 
@@ -1472,6 +1487,7 @@ function createShiftFromSidebar(staffId, dateStr) {
       end_hour: endH,
       start_time: startTime,
       end_time: endTime,
+      color: color,
     }),
     credentials: 'same-origin',
   })
@@ -1484,10 +1500,13 @@ function createShiftFromSidebar(staffId, dateStr) {
     throw new Error('サーバーエラーが発生しました (HTTP ' + r.status + ')');
   })
   .then(html => {
-    const cell = document.getElementById(`cell-${staffId}-${dateStr}`);
+    var cell = document.getElementById('cell-' + staffId + '-' + dateStr);
     if (cell) {
       cell.innerHTML = html;
       htmx.process(cell);
+      // 作成直後に編集サイドバーを開く
+      var block = cell.querySelector('.shift-block[hx-get]');
+      if (block) htmx.trigger(block, 'click');
     }
   })
   .catch(err => alert(err.message));

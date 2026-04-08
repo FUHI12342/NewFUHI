@@ -107,7 +107,7 @@ class ShiftAssignment(models.Model):
         related_name='shift_assignments',
         help_text=_('未設定の場合はスタッフの主店舗'),
     )
-    color = models.CharField(_('表示色'), max_length=7, default='#3B82F6')
+    color = models.CharField(_('表示色'), max_length=7, default='#4F86C6')
     note = models.TextField(_('備考'), blank=True, default='')
     is_synced = models.BooleanField(_('Schedule同期済み'), default=False)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -139,7 +139,7 @@ class ShiftTemplate(models.Model):
     name = models.CharField(_('テンプレート名'), max_length=100)
     start_time = models.TimeField(_('開始時刻'))
     end_time = models.TimeField(_('終了時刻'))
-    color = models.CharField(_('表示色'), max_length=7, default='#3B82F6')
+    color = models.CharField(_('表示色'), max_length=7, default='#4F86C6')
     is_active = models.BooleanField(_('有効'), default=True)
     sort_order = models.IntegerField(_('並び順'), default=0)
 

@@ -32,7 +32,16 @@
 
   <div style="margin-bottom:10px;">
     <label>表示色:</label>
-    <input type="color" name="color" value="{{ assignment.color }}" style="width:100%;">
+    <input type="hidden" name="color" id="edit-color" value="{{ assignment.color }}">
+    <div id="edit-color-palette"></div>
+    <script>
+      (function(){
+        var el = document.getElementById('edit-color-palette');
+        if (el && typeof _colorPalette === 'function') {
+          el.innerHTML = _colorPalette('edit-color', '{{ assignment.color }}');
+        }
+      })();
+    </script>
   </div>
 
   <div style="margin-bottom:10px;">
