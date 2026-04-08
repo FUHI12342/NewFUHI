@@ -471,9 +471,6 @@ class StoreAdmin(admin.ModelAdmin):
         ]
         return super().change_view(request, object_id, form_url, extra_context)
 
-    def has_delete_permission(self, request, obj=None):
-        return False
-
     @admin.action(description=_('選択した店舗の埋め込みAPIキーを生成'))
     def generate_embed_api_key(self, request, queryset):
         from booking.views_embed import generate_embed_api_key
