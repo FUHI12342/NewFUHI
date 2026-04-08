@@ -58,5 +58,18 @@
 
     // 元の submit-row は非表示（二重表示防止）
     submitRow.style.display = 'none';
+
+    // --- 3. インライン内の「削除」リンクを非表示 ---
+    document.querySelectorAll('.inline-deletelink, .inline-related .delete a, .inline-related a.inline-deletelink').forEach(function (el) {
+      el.style.display = 'none';
+    });
+    // jazzmin stacked inline の「削除」テキストリンク
+    document.querySelectorAll('.inline-related').forEach(function (inline) {
+      inline.querySelectorAll('a').forEach(function (a) {
+        if (a.textContent.trim() === '削除' || a.textContent.trim() === 'Delete') {
+          a.style.display = 'none';
+        }
+      });
+    });
   });
 })();
