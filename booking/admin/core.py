@@ -315,6 +315,7 @@ class StoreScheduleConfigInline(admin.StackedInline):
     max_num = 1
     verbose_name = _('店舗スケジュール設定')
     verbose_name_plural = _('店舗スケジュール設定')
+    radio_fields = {'slot_duration': admin.HORIZONTAL}
     fieldsets = (
         (_('営業時間'), {
             'fields': ('open_hour', 'close_hour'),
