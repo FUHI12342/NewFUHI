@@ -1485,7 +1485,10 @@ function createShiftFromSidebar(staffId, dateStr) {
   })
   .then(html => {
     const cell = document.getElementById(`cell-${staffId}-${dateStr}`);
-    if (cell) cell.innerHTML = html;
+    if (cell) {
+      cell.innerHTML = html;
+      htmx.process(cell);
+    }
   })
   .catch(err => alert(err.message));
 }
