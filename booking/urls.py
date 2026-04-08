@@ -96,8 +96,8 @@ urlpatterns = [
     path('cancel/<str:reservation_number>/', CustomerCancelView.as_view(), name='customer_cancel'),
     path('cancel/<str:reservation_number>/confirm/', CustomerCancelConfirmView.as_view(), name='customer_cancel_confirm'),
 
-    # Users
-    path('users/', UserList.as_view(), name='user_list'),
+    # Users (無効化: UIから未使用)
+    # path('users/', UserList.as_view(), name='user_list'),
 
     # File upload
     path('upload/', views.upload_file, name='upload_file'),
