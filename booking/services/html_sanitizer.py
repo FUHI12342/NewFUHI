@@ -1,4 +1,6 @@
 """HTML sanitization helpers using bleach."""
+import re
+
 import bleach
 
 # Allowed tags for rich-text HTML fields (notice content, policies, etc.)
@@ -54,6 +56,76 @@ def sanitize_embed(html: str) -> str:
         protocols=EMBED_PROTOCOLS,
         strip=True,
     )
+
+
+# --- Page Builder sanitization (GrapesJS) ---
+# Permissive tag list for visual page builder output.
+# Allows structural/styling tags but strips <script>, <object>, <embed>, etc.
+PAGE_BUILDER_TAGS = RICH_TEXT_TAGS + [
+    'section', 'article', 'header', 'footer', 'nav', 'main', 'aside',
+    'figure', 'figcaption', 'picture', 'source', 'video', 'audio',
+    'button', 'label', 'input', 'select', 'option', 'textarea', 'form',
+    'iframe',
+]
+PAGE_BUILDER_ATTRS = {
+    **RICH_TEXT_ATTRS,
+    '*': ['class', 'id', 'style', 'data-gjs-type', 'title', 'role',
+          'aria-label', 'aria-hidden', 'tabindex'],
+    'a': ['href', 'title', 'target', 'rel'],
+    'img': ['src', 'alt', 'width', 'height', 'loading', 'srcset', 'sizes'],
+    'iframe': ['src', 'width', 'height', 'frameborder', 'allowfullscreen',
+               'loading', 'referrerpolicy', 'style'],
+    'source': ['src', 'srcset', 'type', 'media'],
+    'video': ['src', 'width', 'height', 'controls', 'autoplay', 'muted',
+              'loop', 'poster', 'preload'],
+    'audio': ['src', 'controls', 'autoplay', 'muted', 'loop', 'preload'],
+    'input': ['type', 'name', 'value', 'placeholder', 'required', 'disabled'],
+    'select': ['name', 'required', 'disabled'],
+    'option': ['value', 'selected'],
+    'textarea': ['name', 'placeholder', 'rows', 'cols', 'required'],
+    'form': ['action', 'method'],
+    'button': ['type', 'disabled'],
+    'td': ['colspan', 'rowspan', 'style'],
+    'th': ['colspan', 'rowspan', 'style'],
+    'label': ['for'],
+}
+
+# Dangerous CSS patterns to strip
+_DANGEROUS_CSS_RE = re.compile(
+    r'expression\s*\(|'           # IE expression()
+    r'javascript\s*:|'            # javascript: in url()
+    r'vbscript\s*:|'              # vbscript:
+    r'-moz-binding\s*:|'          # Firefox XBL binding
+    r'behavior\s*:',              # IE behavior
+    re.IGNORECASE,
+)
+
+
+def sanitize_page_builder_html(html: str) -> str:
+    """Sanitize GrapesJS page builder HTML output.
+
+    Allows rich structural tags for visual page building but strips
+    <script>, event handlers (onclick, onerror, etc.), and javascript: URIs.
+    """
+    if not html:
+        return html
+    return bleach.clean(
+        html,
+        tags=PAGE_BUILDER_TAGS,
+        attributes=PAGE_BUILDER_ATTRS,
+        protocols=RICH_TEXT_PROTOCOLS + ['https'],
+        strip=True,
+    )
+
+
+def sanitize_css(css: str) -> str:
+    """Sanitize CSS content, stripping dangerous patterns.
+
+    Removes expression(), javascript:, vbscript:, -moz-binding, behavior.
+    """
+    if not css:
+        return css
+    return _DANGEROUS_CSS_RE.sub('/* sanitized */', css)
 
 
 def sanitize_url(url: str) -> str:

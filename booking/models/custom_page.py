@@ -87,6 +87,16 @@ class CustomPage(models.Model):
     def __str__(self):
         return f'{self.store.name} - {self.title}'
 
+    def save(self, *args, **kwargs):
+        from booking.services.html_sanitizer import (
+            sanitize_page_builder_html, sanitize_css,
+        )
+        if self.html_content:
+            self.html_content = sanitize_page_builder_html(self.html_content)
+        if self.css_content:
+            self.css_content = sanitize_css(self.css_content)
+        super().save(*args, **kwargs)
+
     def get_absolute_url(self):
         from django.urls import reverse
         return reverse('booking:custom_page', kwargs={

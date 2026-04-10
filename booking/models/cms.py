@@ -449,11 +449,15 @@ class SiteSettings(models.Model):
 
     def save(self, *args, **kwargs):
         self.pk = 1
-        from booking.services.html_sanitizer import sanitize_rich_text, sanitize_url
+        from booking.services.html_sanitizer import (
+            sanitize_rich_text, sanitize_url, sanitize_embed,
+        )
         if self.privacy_policy_html:
             self.privacy_policy_html = sanitize_rich_text(self.privacy_policy_html)
         if self.tokushoho_html:
             self.tokushoho_html = sanitize_rich_text(self.tokushoho_html)
+        if hasattr(self, 'instagram_embed_html') and self.instagram_embed_html:
+            self.instagram_embed_html = sanitize_embed(self.instagram_embed_html)
         if self.twitter_url:
             self.twitter_url = sanitize_url(self.twitter_url)
         if self.instagram_url:
@@ -463,10 +467,17 @@ class SiteSettings(models.Model):
         if self.tiktok_url:
             self.tiktok_url = sanitize_url(self.tiktok_url)
         super().save(*args, **kwargs)
+        # Invalidate cache on save
+        from django.core.cache import cache
+        cache.delete('site_settings_singleton')
 
     @classmethod
     def load(cls):
-        obj, _ = cls.objects.get_or_create(pk=1)
+        from django.core.cache import cache
+        obj = cache.get('site_settings_singleton')
+        if obj is None:
+            obj, _ = cls.objects.get_or_create(pk=1)
+            cache.set('site_settings_singleton', obj, 60)
         return obj
 
 

@@ -1090,22 +1090,6 @@ class IoTModelRelationshipIntegrityTest(HypothesisTestCase):
         self.assertFalse(IoTEvent.objects.filter(device_id=device_id).exists())
 
 
-# Property-based tests for IoT integration
-# from django.core.files.uploadedfile import SimpleUploadedFile
-# from django.test import TestCase, Client
-# from .models import Staff
-
-# class UploadFileTest(TestCase):
-#     def setUp(self):
-#         self.client = Client()
-
-#     def test_upload_file(self):
-#         with open('path/to/your/test/image.jpg', 'rb') as f:
-#             response = self.client.post('/your/upload/url/', {'thumbnail': SimpleUploadedFile(f.name, f.read())})
-#         self.assertEqual(response.status_code, 302)  # リダイレクトが期待される
-#         self.assertTrue(Staff.objects.filter(thumbnail='thumbnails/image.jpg').exists())  # ファイルが保存されていることを確認
-
-
 class IoTMigrationBackwardCompatibilityTest(HypothesisTestCase):
     """
     **Property 6: Migration Backward Compatibility**

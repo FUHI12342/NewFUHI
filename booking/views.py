@@ -100,12 +100,6 @@ def get_or_create_shift_period(store, year, month, staff=None):
 
 # ===== Small core views =====
 
-class UserList(generics.ListAPIView):
-    """ユーザー一覧API -- 管理者のみアクセス可能"""
-    queryset = User.objects.all()
-    serializer_class = UserSerializer
-    permission_classes = [IsAdminUser]
-
 
 class LoginRedirectView(View):
     """ログイン後のスマートリダイレクト: is_staff -> /admin/, それ以外 -> store_list"""
@@ -156,12 +150,6 @@ def get_reservation_times(request, pk):
 def get_reservation(request, pk):
     """Alias for get_reservation_times (kept for URL compatibility)."""
     return get_reservation_times(request, pk)
-
-
-class CurrentTimeView(APIView):
-    def get(self, request):
-        current_time = timezone.now()
-        return Response({"current_time": str(current_time)})
 
 
 # ===== Booking top / listing views =====
@@ -599,7 +587,6 @@ from .views_booking import (  # noqa: F401, E402
     LineEnterView,
     LineCallbackView,
     PayingSuccessView,
-    LineSuccessView,
     EmailBookingForm,
     EmailBookingView,
     EmailVerifyView,
@@ -616,9 +603,6 @@ from .views_booking import (  # noqa: F401, E402
 
 # views_mypage.py
 from .views_mypage import (  # noqa: F401, E402
-    OnlyStaffMixin,
-    OnlyScheduleMixin,
-    OnlyUserMixin,
     MyPage,
     MyPageWithPk,
     MyPageProfileForm,

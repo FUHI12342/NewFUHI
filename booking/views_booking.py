@@ -7,8 +7,6 @@ import json
 import logging
 import secrets
 import urllib.parse
-from urllib.parse import quote
-
 import jwt
 import pytz
 import requests
@@ -41,7 +39,7 @@ from linebot import LineBotApi
 from linebot.exceptions import LineBotApiError
 from linebot.models import TextSendMessage
 
-from booking.models import Schedule, SiteSettings, Staff, Store
+from booking.models import Schedule, SiteSettings, Staff
 
 logger = logging.getLogger(__name__)
 
@@ -385,24 +383,24 @@ class LineCallbackView(View):
 
 
 class PayingSuccessView(View):
-    """決済成功処理 -- coiney_webhookからのみ呼び出されることを想定"""
-    _called_from_webhook = False
+    """決済成功処理 -- coiney_webhookからのみ呼び出されることを想定
+
+    直接アクセスは拒否。coiney_webhook() から _handle_webhook() を呼ぶ。
+    """
 
     def post(self, request, orderId):
-        if not self._called_from_webhook:
-            logger.warning('PayingSuccessView: webhookを経由せず直接呼び出されました')
-            return JsonResponse({"error": "Forbidden"}, status=403)
+        # Direct access is always forbidden — webhook goes through _handle_webhook
+        logger.warning('PayingSuccessView: webhookを経由せず直接呼び出されました')
+        return JsonResponse({"error": "Forbidden"}, status=403)
+
+    @staticmethod
+    def _handle_webhook(request, orderId):
+        """Called exclusively from coiney_webhook — no auth bypass possible."""
         try:
             payment_response = json.loads(request.body)
         except json.JSONDecodeError:
             return JsonResponse({"error": "Invalid JSON"}, status=400)
         return process_payment(payment_response, request, orderId)
-
-
-class LineSuccessView(View):
-    def get(self, request):
-        profile = request.session.get('profile')
-        return render(request, 'booking/line_success.html', {'profile': profile})
 
 
 # ===== Booking flow views =====
@@ -923,13 +921,27 @@ def _build_access_lines(store):
 
 def process_payment(payment_response, request, order_id):
     if payment_response.get('type') == 'payment.succeeded':
+        from django.db import transaction
         try:
-            schedule = Schedule.objects.select_related('staff__store').get(reservation_number=order_id)
+            with transaction.atomic():
+                schedule = (
+                    Schedule.objects
+                    .select_related('staff__store')
+                    .select_for_update()
+                    .get(reservation_number=order_id)
+                )
+                # Idempotency: skip if already confirmed
+                if not schedule.is_temporary:
+                    logger.info(
+                        "process_payment: already confirmed order_id=%s, skipping",
+                        order_id,
+                    )
+                    return JsonResponse({"status": "already_processed"})
+                schedule.is_temporary = False
+                schedule.save(update_fields=["is_temporary"])
         except Schedule.DoesNotExist:
             logger.error("process_payment: Schedule not found for order_id=%s", order_id)
             return JsonResponse({"error": "reservation not found"}, status=404)
-        schedule.is_temporary = False
-        schedule.save(update_fields=["is_temporary"])
 
         # 署名付きQRコード + 6桁バックアップコード生成
         from booking.services.checkin_token import (
@@ -1087,9 +1099,7 @@ def coiney_webhook(request, orderId):
         if orderId.startswith('ec_order_'):
             from .views_ec_payment import process_ec_payment
             return process_ec_payment(request, orderId)
-        view = PayingSuccessView()
-        view._called_from_webhook = True
-        return view.post(request, orderId)
+        return PayingSuccessView._handle_webhook(request, orderId)
     return JsonResponse({"error": "orderId not found in request body"}, status=400)
 
 

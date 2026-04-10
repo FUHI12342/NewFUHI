@@ -1,21 +1,39 @@
-# TODO
+# TODO -- 未実装タスク・残課題
 
-## デモモード
+最終更新: 2026-04-09
+
+---
+
+## 1. ソースコード内の TODO/FIXME
+
+### booking/services/external_data.py
+- [ ] **L77**: `# TODO: 実際のAPI呼び出し実装` -- OpenWeatherMap API統合（現在はモックデータを返却）
+- [ ] **L136**: `# TODO: 実際のAPI呼び出し実装` -- Google Business Profile API統合（現在はモックデータを返却）
+
+### MB_IoT_device_main/code.py
+- [ ] **L303**: `# TODO: Implement web server request handling` -- Pico Wデバイスのウェブサーバーリクエストハンドリング実装
+
+---
+
+## 2. デモモード
+
 - [ ] デモデータ生成: POSTransaction, WorkAttendance, CustomerFeedback の当日データ生成対応
 - [ ] デモモードAPI: REST APIレスポンスにもデモフィルタ適用
 - [ ] デモデータ一括削除コマンド（`clear_demo_data`）
 
-## 自動バックアップ
+---
+
+## 3. 自動バックアップ
+
 - [ ] S3保持ポリシー実装（`s3_retention_days` に基づく古いS3オブジェクト削除）
 - [ ] バックアップ復元コマンド（`restore_backup`）
 - [ ] バックアップファイルのダウンロード機能（管理画面から）
 - [ ] `exclude_demo_data` オプション実装（デモデータ除外バックアップ）
 - [ ] LINE Notify 通知のテスト送信機能
 
-## PDFドキュメント
-- [ ] 全機能の使用方法PDFを生成・更新（LINE連携、デモモード、バックアップ含む）
+---
 
-## LINE機能拡張
+## 4. LINE機能拡張
 
 ### 未実装・改善
 - [ ] LINE Messaging API v3 への移行（現在v2 line-bot-sdk 3.x）
@@ -32,5 +50,107 @@
 - [ ] backfill_line_customers コマンドの本番実行
 
 ### 既存機能の改善
-- [ ] シフトテスト 34件の失敗修正（LINE機能とは無関係）
 - [ ] line-bot-sdk deprecation warning 対応（v3 utils）
+
+---
+
+## 5. 外部API統合
+
+- [ ] OpenWeatherMap API 実装（`services/external_data.py` -- 現在モック）
+- [ ] Google Business Profile API 実装（`services/external_data.py` -- 現在モック）
+
+---
+
+## 6. AI/チャット機能
+
+- [ ] AIチャット機能の復旧（Gemini APIキー再発行待ち -- `views_chat.py` のコメントアウト解除）
+  - `AdminChatAPIView` -- 管理者チャット
+  - `GuideChatAPIView` -- 公開チャット（廃止済み -- Gemini APIコストリスク対策）
+
+---
+
+## 7. PDFドキュメント
+
+- [ ] 全機能の使用方法PDFを生成・更新（LINE連携、デモモード、バックアップ含む）
+
+---
+
+## 8. テスト
+
+- [ ] シフトテスト34件の失敗修正（LINE機能とは無関係の既存テスト）
+- [ ] テストカバレッジ80%目標への到達（現状未計測）
+- [ ] E2Eテストの継続的実行環境構築（CI/CD統合）
+
+---
+
+## 9. パフォーマンス・スケーラビリティ
+
+- [ ] SQLite → PostgreSQL 移行検討（同時接続数増加時）
+- [ ] 静的ファイルのCDN配信（CloudFront等）
+- [ ] ダッシュボードAPI のキャッシュ戦略（Redis cache）
+- [ ] IoTイベントの大量データ対応（パーティション or アーカイブ）
+
+---
+
+## 10. セキュリティ
+
+- [ ] social-auth-app-django 5.6.0+ への移行（Django 5.1必要 -- Django 5.x 移行と同時に）
+  - 現在 GHSA-wv4w-6qv2-qqfg は CSRF_COOKIE_HTTPONLY + session validation で緩和
+- [ ] Django 5.x LTS 移行計画策定
+- [ ] IoTデバイスのAPIキーローテーション自動化
+- [ ] 管理画面の2FA（TOTP）対応
+
+---
+
+## 11. 運用改善
+
+- [ ] デプロイのゼロダウンタイム化（Blue-Green or Rolling）
+- [ ] ログ集約（CloudWatch Logs or ELK Stack）
+- [ ] アラート閾値の自動チューニング（IoT/在庫）
+- [ ] マルチテナント対応の本格化（現在はマルチストアだが単一DB）
+
+---
+
+## 12. UI/UX
+
+- [ ] モバイルアプリ対応（PWA or ネイティブ）
+- [ ] ダッシュボードのリアルタイム更新（WebSocket）
+- [ ] 管理画面のダークモード復活（現在はライトモード固定）
+
+---
+
+## 13. EC機能
+
+- [ ] PayPay オンライン決済対応（現在はPOS店頭のみ）
+- [ ] 複数配送先対応
+- [ ] クーポン・ポイントシステム
+- [ ] 在庫切れ時の入荷通知メール
+
+---
+
+## 14. SNS投稿
+
+- [ ] Instagram / Threads / TikTok 投稿API統合（現在はX APIのみ）
+- [ ] 投稿のA/Bテスト機能
+- [ ] 投稿パフォーマンス分析（エンゲージメント率追跡）
+
+---
+
+## 優先度分類
+
+### 高（ビジネスインパクト大）
+- 外部API統合（天気・Google Business Profile）
+- LINE機能改善（Flex Message, 配信レポート）
+- シフトテスト修正
+
+### 中（運用効率向上）
+- バックアップ復元コマンド
+- S3保持ポリシー
+- デモデータ一括削除
+- テストカバレッジ向上
+
+### 低（将来的な改善）
+- PostgreSQL移行
+- CDN配信
+- モバイルアプリ
+- WebSocket リアルタイム更新

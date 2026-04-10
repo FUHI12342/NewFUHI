@@ -92,6 +92,12 @@ class StoreTheme(models.Model):
     def __str__(self):
         return f'{self.store.name} - {self.get_preset_display()}'
 
+    def save(self, *args, **kwargs):
+        from booking.services.html_sanitizer import sanitize_css
+        if self.custom_css:
+            self.custom_css = sanitize_css(self.custom_css)
+        super().save(*args, **kwargs)
+
     def apply_preset(self, preset_name):
         """プリセットのカラー値を適用して新しい値を返す（保存はしない）。"""
         from booking.services.theme_presets import THEME_PRESETS

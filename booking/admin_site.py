@@ -10,21 +10,29 @@ import time
 logger = logging.getLogger(__name__)
 
 def get_user_role(request):
+    # Cache on request object to avoid repeated DB queries per page
+    cached = getattr(request, '_user_role', None)
+    if cached is not None:
+        return cached
     if not request.user.is_authenticated:
-        return 'none'
-    if request.user.is_superuser:
-        return 'superuser'
-    staff = Staff.objects.filter(user=request.user).select_related("store").first()
-    if staff:
-        if staff.is_developer:
-            return 'developer'
-        elif staff.is_owner:
-            return 'owner'
-        elif staff.is_store_manager:
-            return 'manager'
+        role = 'none'
+    elif request.user.is_superuser:
+        role = 'superuser'
+    else:
+        staff = Staff.objects.filter(user=request.user).select_related("store").first()
+        if staff:
+            if staff.is_developer:
+                role = 'developer'
+            elif staff.is_owner:
+                role = 'owner'
+            elif staff.is_store_manager:
+                role = 'manager'
+            else:
+                role = 'staff'
         else:
-            return 'staff'
-    return 'none'
+            role = 'none'
+    request._user_role = role
+    return role
 
 
 # 仮想アプリグループ定義

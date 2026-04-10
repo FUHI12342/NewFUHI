@@ -319,6 +319,25 @@ EMAIL_USE_TLS = env_bool("EMAIL_USE_TLS", True)
 
 
 # ====================================
+# Cache
+# ====================================
+_CACHE_URL = os.getenv("CACHE_URL", "")
+if _CACHE_URL:
+    CACHES = {
+        "default": {
+            "BACKEND": "django.core.cache.backends.redis.RedisCache",
+            "LOCATION": _CACHE_URL,
+        }
+    }
+else:
+    CACHES = {
+        "default": {
+            "BACKEND": "django.core.cache.backends.locmem.LocMemCache",
+            "LOCATION": "newfuhi-default",
+        }
+    }
+
+# ====================================
 # Celery
 # ====================================
 CELERY_BROKER_URL = os.getenv("CELERY_BROKER_URL", "redis://localhost:6379/0")

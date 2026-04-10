@@ -53,8 +53,8 @@ def generate_qr_payload(staff_id, totp_code, secret):
     signature = hmac.new(
         secret.encode('utf-8'),
         message.encode('utf-8'),
-        hashlib.sha256,
-    ).hexdigest()[:16]
+        digestmod=hashlib.sha256,
+    ).hexdigest()
     return f"{staff_id}:{totp_code}:{timestamp}:{signature}"
 
 
@@ -80,11 +80,17 @@ def verify_qr_payload(payload, secret, max_age_seconds=60):
 
         # HMAC検証
         message = f"{staff_id}{totp_code}{timestamp_str}"
-        expected = hmac.new(
+        expected_full = hmac.new(
             secret.encode('utf-8'),
             message.encode('utf-8'),
-            hashlib.sha256,
-        ).hexdigest()[:16]
+            digestmod=hashlib.sha256,
+        ).hexdigest()
+
+        # Accept both full-length (new) and truncated (legacy) signatures
+        if len(signature) == 16:
+            expected = expected_full[:16]
+        else:
+            expected = expected_full
 
         if not hmac.compare_digest(signature, expected):
             return False, staff_id, 'Invalid signature'
