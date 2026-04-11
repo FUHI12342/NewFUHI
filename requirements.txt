@@ -17,6 +17,8 @@ cryptography>=46.0.5,<48.0
 bleach>=6.0.0,<7.0
 PyJWT>=2.12.0,<3.0
 argon2-cffi>=23.1.0,<24.0
+django-ratelimit>=4.1.0,<5.0
+django-axes>=7.0.0,<8.0
 
 # Media / QR
 pillow>=12.1.1,<13.0

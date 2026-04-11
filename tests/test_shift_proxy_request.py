@@ -205,7 +205,8 @@ class TestProxyGet:
             f'&period_id={open_period_px.id}',
         )
         assert res.status_code == 200
-        data = res.json()
+        body = res.json()
+        data = body['data']
         assert len(data) == 1
         assert data[0]['date'] == '2026-05-12'
 

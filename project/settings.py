@@ -126,10 +126,15 @@ INSTALLED_APPS = [
 
     # SNSブラウザ投稿（Playwright不要で登録、実行時にPlaywrightが必要）
     "social_browser.apps.SocialBrowserConfig",
+
+    # ログインブルートフォース防御
+    "axes",
 ]
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
+    "booking.middleware.BotFilterMiddleware",
+    "booking.middleware.AIProtectionHeadersMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.locale.LocaleMiddleware",
     "booking.middleware.ForceLanguageMiddleware",
@@ -140,12 +145,20 @@ MIDDLEWARE = [
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "booking.middleware.SecurityAuditMiddleware",
+    "axes.middleware.AxesMiddleware",
 ]
 
 AUTHENTICATION_BACKENDS = [
+    "axes.backends.AxesStandaloneBackend",
     "django.contrib.auth.backends.ModelBackend",
     "social_core.backends.line.LineOAuth2",
 ]
+
+# django-axes: ログインブルートフォース防御
+AXES_FAILURE_LIMIT = 5           # 5回失敗でロック
+AXES_COOLOFF_TIME = 1            # 1時間のクールダウン
+AXES_LOCKOUT_PARAMETERS = [["ip_address", "username"]]
+AXES_RESET_ON_SUCCESS = True     # ログイン成功でカウンターリセット
 
 ROOT_URLCONF = "project.urls"
 

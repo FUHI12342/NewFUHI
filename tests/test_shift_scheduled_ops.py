@@ -109,7 +109,8 @@ class TestRevertScheduled:
             content_type='application/json',
         )
         assert res.status_code == 200
-        data = res.json()
+        body = res.json()
+        data = body['data']
         assert data['status'] == 'open'
         assert data['cancelled'] == 2
 
@@ -173,7 +174,8 @@ class TestReopenForRecruitment:
             content_type='application/json',
         )
         assert res.status_code == 200
-        data = res.json()
+        body = res.json()
+        data = body['data']
         assert data['status'] == 'open'
         assert data['kept_assignments'] == 2
 

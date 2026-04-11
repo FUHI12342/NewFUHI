@@ -121,7 +121,8 @@ class TestShiftTemplateAPI:
     def test_list_templates(self, admin_client, shift_template):
         resp = admin_client.get('/api/shift/templates/')
         assert resp.status_code == 200
-        data = json.loads(resp.content)
+        body = json.loads(resp.content)
+        data = body['data']
         assert len(data) >= 1
 
     def test_create_template(self, admin_client, store):
@@ -161,7 +162,8 @@ class TestShiftBulkAssign:
             content_type='application/json',
         )
         assert resp.status_code == 200
-        data = json.loads(resp.content)
+        body = json.loads(resp.content)
+        data = body['data']
         assert data['created'] == 2
 
     def test_bulk_assign_no_duplicates(self, admin_client, shift_period, staff, shift_template):
@@ -187,7 +189,8 @@ class TestShiftBulkAssign:
             }),
             content_type='application/json',
         )
-        data = json.loads(resp.content)
+        body = json.loads(resp.content)
+        data = body['data']
         assert data['created'] == 0
 
 
@@ -200,7 +203,8 @@ class TestShiftAutoScheduleAPI:
             content_type='application/json',
         )
         assert resp.status_code == 200
-        data = json.loads(resp.content)
+        body = json.loads(resp.content)
+        data = body['data']
         assert data['created'] >= 0
 
     def test_auto_schedule_no_period(self, admin_client):

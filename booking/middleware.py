@@ -1,15 +1,93 @@
-"""セキュリティ監視ミドルウェア + 言語固定ミドルウェア + メンテナンスミドルウェア"""
+"""セキュリティ監視ミドルウェア + 言語固定ミドルウェア + メンテナンスミドルウェア + AI保護"""
+import re
 import threading
 import time
 import logging
 from collections import defaultdict
 
 from django.conf import settings
-from django.http import JsonResponse
+from django.http import HttpResponse, JsonResponse
 from django.shortcuts import render
 from django.utils import translation
 
 logger = logging.getLogger(__name__)
+
+
+# ---------------------------------------------------------------------------
+# AI Protection Headers
+# ---------------------------------------------------------------------------
+
+class AIProtectionHeadersMiddleware:
+    """全レスポンスに AI 訓練拒否ヘッダーを付加する。"""
+
+    def __init__(self, get_response):
+        self.get_response = get_response
+
+    def __call__(self, request):
+        response = self.get_response(request)
+        response['X-Robots-Tag'] = 'noai, noimageai'
+        return response
+
+
+# ---------------------------------------------------------------------------
+# Bot User-Agent Filter
+# ---------------------------------------------------------------------------
+
+_SCRAPER_UA_PATTERNS = [
+    r'python-requests',
+    r'python-urllib',
+    r'curl/',
+    r'wget/',
+    r'scrapy',
+    r'beautifulsoup',
+    r'selenium',
+    r'playwright',
+    r'puppeteer',
+    r'mechanize',
+    r'httrack',
+    r'teleport',
+    r'Go-http-client',
+    r'Java/',
+    r'libwww-perl',
+    r'PHP/',
+]
+_COMPILED_SCRAPER_UA = [re.compile(p, re.IGNORECASE) for p in _SCRAPER_UA_PATTERNS]
+
+# Paths that should bypass bot filtering (webhooks, health checks, APIs with auth)
+_BOT_FILTER_BYPASS = ('/healthz', '/coiney_webhook/', '/line/webhook/', '/api/')
+
+
+class BotFilterMiddleware:
+    """既知のスクレイピングツールの UA をブロックする。
+
+    注意: UA は偽装可能なため、これは初心者ボット向けの防御レイヤー。
+    本格的なボット対策は Cloudflare 等のインフラレベルで行う。
+    """
+
+    def __init__(self, get_response):
+        self.get_response = get_response
+
+    def __call__(self, request):
+        # テスト時はスキップ
+        if getattr(settings, 'TESTING', False):
+            return self.get_response(request)
+
+        # Webhook やヘルスチェックはスキップ
+        if any(request.path.startswith(p) for p in _BOT_FILTER_BYPASS):
+            return self.get_response(request)
+
+        ua = request.META.get('HTTP_USER_AGENT', '')
+
+        # UA が空 = ほぼ確実にボット（ただし一部のヘルスチェッカーは除外済み）
+        if not ua:
+            return HttpResponse(status=403)
+
+        for pattern in _COMPILED_SCRAPER_UA:
+            if pattern.search(ua):
+                logger.info('BotFilter blocked UA: %s path=%s', ua[:200], request.path)
+                return HttpResponse(status=403)
+
+        return self.get_response(request)
 
 
 class MaintenanceMiddleware:

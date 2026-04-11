@@ -144,12 +144,21 @@ def schedule_email(db, staff_member):
 class TestProcessPaymentAccessInfo:
     """process_payment で LINE / メール通知にアクセス情報が含まれるか."""
 
+    @patch('booking.services.staff_notifications.notify_booking_to_staff')
+    @patch('booking.services.checkin_token.generate_backup_code', return_value='123456')
+    @patch('booking.services.checkin_token.generate_signed_checkin_qr')
     @patch('booking.views_booking.LineBotApi')
     def test_line_message_includes_access_info(
-        self, mock_linebot_cls, schedule_line, store_with_access
+        self, mock_linebot_cls, mock_qr, mock_backup, mock_notify,
+        schedule_line, store_with_access, settings,
     ):
+        from django.core.files.uploadedfile import SimpleUploadedFile
+        mock_qr.return_value = SimpleUploadedFile('qr.png', b'\x89PNG', content_type='image/png')
+
         mock_api = MagicMock()
         mock_linebot_cls.return_value = mock_api
+        settings.LINE_ACCESS_TOKEN = 'test-token'
+        settings.SITE_BASE_URL = 'http://testserver'
 
         from booking.views import process_payment
         factory = RequestFactory()
@@ -170,12 +179,22 @@ class TestProcessPaymentAccessInfo:
         assert '西口を出て右折、徒歩3分' in msg_text
         assert 'https://maps.google.com/?q=shinjuku' in msg_text
 
+    @patch('booking.services.staff_notifications.notify_booking_to_staff')
+    @patch('booking.services.checkin_token.generate_backup_code', return_value='123456')
+    @patch('booking.services.checkin_token.generate_signed_checkin_qr')
     @patch('booking.views_booking.send_mail')
     @patch('booking.views_booking.LineBotApi')
     def test_email_includes_access_info(
-        self, mock_linebot_cls, mock_send_mail, schedule_email, store_with_access
+        self, mock_linebot_cls, mock_send_mail, mock_qr, mock_backup, mock_notify,
+        schedule_email, store_with_access, settings,
     ):
+        from django.core.files.uploadedfile import SimpleUploadedFile
+        mock_qr.return_value = SimpleUploadedFile('qr.png', b'\x89PNG', content_type='image/png')
+
         mock_linebot_cls.return_value = MagicMock()
+        settings.LINE_ACCESS_TOKEN = 'test-token'
+        settings.SITE_BASE_URL = 'http://testserver'
+        settings.DEFAULT_FROM_EMAIL = 'noreply@test.com'
 
         from booking.views import process_payment
         factory = RequestFactory()

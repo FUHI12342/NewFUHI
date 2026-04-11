@@ -292,9 +292,11 @@ class EmbedLineRedirectViewTest(TestCase):
         self.assertEqual(resp.status_code, 302)
         self.assertIn('line_enter', resp.url)
 
-        # Schedule should be deleted
-        self.assertFalse(
+        # Schedule should still exist but embed_token should be cleared
+        self.assertTrue(
             Schedule.objects.filter(pk=self.schedule.pk).exists())
+        self.schedule.refresh_from_db()
+        self.assertIsNone(self.schedule.embed_token)
 
         # Session should have temporary_booking
         session = self.client.session

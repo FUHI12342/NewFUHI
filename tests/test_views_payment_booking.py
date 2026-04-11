@@ -160,20 +160,20 @@ class TestCoineyWebhook:
 
     @patch('booking.views_booking.PayingSuccessView')
     def test_valid_token_delegates(self, mock_view_cls, anon_client, settings):
-        """Valid URL token → delegates to PayingSuccessView.post."""
+        """Valid URL token → delegates to PayingSuccessView._handle_webhook."""
         settings.COINEY_WEBHOOK_TOKEN = 'test-token'
 
-        mock_view = MagicMock()
         from django.http import JsonResponse
-        mock_view.post.return_value = JsonResponse({"status": "ok"})
-        mock_view_cls.return_value = mock_view
+        mock_view_cls._handle_webhook = MagicMock(
+            return_value=JsonResponse({"status": "ok"})
+        )
 
         resp = anon_client.post(
             '/coiney_webhook/test-order-id/?token=test-token',
             data=json.dumps({"type": "payment.succeeded"}),
             content_type='application/json',
         )
-        mock_view.post.assert_called_once()
+        mock_view_cls._handle_webhook.assert_called_once()
 
 
 # ==============================

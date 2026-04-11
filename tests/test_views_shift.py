@@ -169,7 +169,8 @@ class TestStaffShiftBulkRequestAPI:
             content_type='application/json',
         )
         assert resp.status_code == 200
-        data = json.loads(resp.content)
+        body = json.loads(resp.content)
+        data = body['data']
         assert data['created'] == 3
         assert data['updated'] == 0
         assert ShiftRequest.objects.filter(staff=staff, period=shift_period).count() == 3
@@ -188,7 +189,8 @@ class TestStaffShiftBulkRequestAPI:
             ]}),
             content_type='application/json',
         )
-        data = json.loads(resp.content)
+        body = json.loads(resp.content)
+        data = body['data']
         assert data['updated'] == 1
         req = ShiftRequest.objects.get(staff=staff, period=shift_period, date=date(2025, 4, 15))
         assert req.end_hour == 18
@@ -218,7 +220,8 @@ class TestStaffShiftBulkRequestAPI:
             ]}),
             content_type='application/json',
         )
-        data = json.loads(resp.content)
+        body = json.loads(resp.content)
+        data = body['data']
         assert data['created'] == 0
         assert len(data['errors']) == 1
 
@@ -239,7 +242,8 @@ class TestStaffShiftBulkRequestAPI:
             content_type='application/json',
         )
         assert resp.status_code == 200
-        data = json.loads(resp.content)
+        body = json.loads(resp.content)
+        data = body['data']
         assert data['deleted'] == 1
         assert ShiftRequest.objects.filter(staff=staff, period=shift_period).count() == 1
 
@@ -278,7 +282,8 @@ class TestStaffShiftCopyWeekAPI:
             content_type='application/json',
         )
         assert resp.status_code == 200
-        data = json.loads(resp.content)
+        body = json.loads(resp.content)
+        data = body['data']
         assert data['created'] == 2
         # Verify target dates
         assert ShiftRequest.objects.filter(staff=staff, date=date(2025, 4, 21)).exists()

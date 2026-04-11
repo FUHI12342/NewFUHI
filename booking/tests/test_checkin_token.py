@@ -83,13 +83,12 @@ class VerifyQrTokenTests(TestCase):
         self.assertEqual(res_num, 'res-secret')
 
     @override_settings(CHECKIN_QR_SECRET='')
-    def test_qr_secret_fallback_to_secret_key(self):
-        """When CHECKIN_QR_SECRET is empty, falls back to SECRET_KEY."""
+    def test_qr_secret_empty_raises(self):
+        """When CHECKIN_QR_SECRET is empty, raises ImproperlyConfigured."""
+        from django.core.exceptions import ImproperlyConfigured
         end = timezone.now() + timedelta(hours=1)
-        token = make_qr_token('res-fallback', end)
-        valid, res_num, _ = verify_qr_token(token)
-        self.assertTrue(valid)
-        self.assertEqual(res_num, 'res-fallback')
+        with self.assertRaises(ImproperlyConfigured):
+            make_qr_token('res-fallback', end)
 
 
 class GenerateBackupCodeTests(TestCase):

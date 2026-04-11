@@ -65,8 +65,8 @@ def orders_with_consumption(store_a, products):
     p1, p2, _p3 = products
     now = timezone.now()
     order = Order.objects.create(store=store_a, status=Order.STATUS_OPEN)
-    # Force created_at to within the history window
-    Order.objects.filter(pk=order.pk).update(created_at=now - timedelta(days=5))
+    # Force created_at outside the 7-day recent window but within history window
+    Order.objects.filter(pk=order.pk).update(created_at=now - timedelta(days=15))
     # p1: high consumption (30 units in 30 days = 1/day)
     OrderItem.objects.create(
         order=order, product=p1, qty=30, unit_price=p1.price,

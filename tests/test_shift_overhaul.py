@@ -135,9 +135,8 @@ class TestSidebarRoleLinks:
         assert len(shift_links['staff']) == 2
         assert 'シフトカレンダー' in str(shift_links['staff'][0]['name'])
         assert '本日のシフト' in str(shift_links['staff'][1]['name'])
-        assert len(shift_links['manager']) == 4
-        assert '曜日別' in str(shift_links['manager'][2]['name'])
-        assert '日付指定' in str(shift_links['manager'][3]['name'])
+        assert len(shift_links['manager']) == 3
+        assert '必要人数設定' in str(shift_links['manager'][2]['name'])
 
 
 # ==============================
@@ -148,7 +147,8 @@ class TestClosedDateAPI:
     def test_get_empty(self, mgr_client):
         resp = mgr_client.get('/api/shift/closed-dates/?year=2026&month=4')
         assert resp.status_code == 200
-        assert resp.json() == []
+        body = json.loads(resp.content)
+        assert body['data'] == []
 
     def test_toggle_add(self, mgr_client, store):
         resp = mgr_client.post(
@@ -157,7 +157,8 @@ class TestClosedDateAPI:
             content_type='application/json',
         )
         assert resp.status_code == 201
-        data = resp.json()
+        body = json.loads(resp.content)
+        data = body['data']
         assert data['action'] == 'added'
         assert StoreClosedDate.objects.filter(store=store, date=date(2026, 4, 10)).exists()
 
@@ -169,7 +170,8 @@ class TestClosedDateAPI:
             content_type='application/json',
         )
         assert resp.status_code == 200
-        data = resp.json()
+        body = json.loads(resp.content)
+        data = body['data']
         assert data['action'] == 'removed'
         assert not StoreClosedDate.objects.filter(store=store, date=date(2026, 4, 10)).exists()
 
@@ -177,7 +179,8 @@ class TestClosedDateAPI:
         StoreClosedDate.objects.create(store=store, date=date(2026, 4, 5), reason='定休日')
         StoreClosedDate.objects.create(store=store, date=date(2026, 4, 12))
         resp = mgr_client.get('/api/shift/closed-dates/?year=2026&month=4')
-        data = resp.json()
+        body = json.loads(resp.content)
+        data = body['data']
         assert len(data) == 2
         assert data[0]['date'] == '2026-04-05'
         assert data[0]['reason'] == '定休日'
@@ -235,7 +238,8 @@ class TestStaffMyShift:
             content_type='application/json',
         )
         assert resp.status_code == 201
-        data = resp.json()
+        body = json.loads(resp.content)
+        data = body['data']
         assert data['preference'] == 'preferred'
         assert data['start_hour'] == 10
 
@@ -248,7 +252,8 @@ class TestStaffMyShift:
         )
         resp = staff_client.get(f'/api/shift/my-requests/?period_id={open_period.id}')
         assert resp.status_code == 200
-        data = resp.json()
+        body = json.loads(resp.content)
+        data = body['data']
         assert len(data) == 1
 
     def test_shift_request_delete(self, staff_client, open_period, staff_only_user):
@@ -549,7 +554,8 @@ class TestTemplateCRUDFromCalendar:
     def test_list_empty(self, mgr_client):
         resp = mgr_client.get('/api/shift/templates/')
         assert resp.status_code == 200
-        assert resp.json() == []
+        body = json.loads(resp.content)
+        assert body['data'] == []
 
     def test_create_template(self, mgr_client, store):
         resp = mgr_client.post(
@@ -563,7 +569,8 @@ class TestTemplateCRUDFromCalendar:
             content_type='application/json',
         )
         assert resp.status_code == 201
-        data = resp.json()
+        body = json.loads(resp.content)
+        data = body['data']
         assert data['name'] == '早番'
         assert ShiftTemplate.objects.filter(store=store, name='早番').exists()
 
@@ -573,7 +580,8 @@ class TestTemplateCRUDFromCalendar:
             start_time=time(14, 0), end_time=time(22, 0), color='#EF4444',
         )
         resp = mgr_client.get('/api/shift/templates/')
-        data = resp.json()
+        body = json.loads(resp.content)
+        data = body['data']
         assert len(data) == 1
         assert data[0]['name'] == '遅番'
         assert data[0]['start_time'] == '14:00'
@@ -608,7 +616,8 @@ class TestTemplateCRUDFromCalendar:
             is_active=False,
         )
         resp = mgr_client.get('/api/shift/templates/')
-        assert len(resp.json()) == 0
+        body = json.loads(resp.content)
+        assert len(body['data']) == 0
 
     def test_staff_cannot_modify_templates(self, staff_client, store):
         """一般スタッフはテンプレート作成不可（store=Noneではないが、テストとして確認）"""
@@ -700,7 +709,8 @@ class TestShiftRevoke:
             content_type='application/json',
         )
         assert resp.status_code == 200
-        data = resp.json()
+        body = json.loads(resp.content)
+        data = body['data']
         assert data['status'] == 'scheduled'
         assert data['cancelled'] >= 1
 

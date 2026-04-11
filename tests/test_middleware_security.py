@@ -140,12 +140,12 @@ class TestSecurityAuditMiddleware:
 
     @pytest.mark.django_db
     def test_get_client_ip_x_forwarded_for(self, rf, middleware):
-        """_get_client_ip reads rightmost (Nginx-appended) IP from X-Forwarded-For."""
+        """_get_client_ip reads leftmost (client) IP from X-Forwarded-For."""
         request = rf.get('/')
         request.META['HTTP_X_FORWARDED_FOR'] = '203.0.113.50, 70.41.3.18'
         request.META['REMOTE_ADDR'] = '127.0.0.1'
         ip = middleware._get_client_ip(request)
-        assert ip == '70.41.3.18'
+        assert ip == '203.0.113.50'
 
     @pytest.mark.django_db
     def test_get_client_ip_remote_addr_fallback(self, rf, middleware):

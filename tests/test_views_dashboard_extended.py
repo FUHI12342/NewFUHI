@@ -455,6 +455,6 @@ class TestExternalDataAPI:
         assert 'reviews' in data
 
     def test_google_reviews_with_place_id(self, admin_dash):
-        resp = admin_dash.get(self.URL + '?service=google_reviews&place_id=ChIJtest')
+        resp = admin_dash.get(self.URL + '?service=google_reviews&place_id=ChIJtest1234')
         assert resp.status_code == 200
-        assert resp.json()['place_id'] == 'ChIJtest'
+        assert resp.json()['place_id'] == 'ChIJtest1234'

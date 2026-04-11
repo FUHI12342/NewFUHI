@@ -38,33 +38,33 @@ class TestDeleteTemporarySchedules:
 
     @pytest.mark.django_db
     def test_deletes_expired_temporary(self, staff):
-        """Temporary schedules older than 10 minutes should be deleted."""
+        """Temporary schedules older than 20 minutes should be auto-cancelled."""
         now = timezone.now()
         Schedule.objects.create(
             staff=staff,
             start=now, end=now + timedelta(hours=1),
             is_temporary=True, is_cancelled=False,
-            temporary_booked_at=now - timedelta(minutes=15),
+            temporary_booked_at=now - timedelta(minutes=25),
         )
         delete_temporary_schedules()
-        assert Schedule.objects.count() == 0
+        assert Schedule.objects.filter(is_cancelled=True).count() == 1
 
     @pytest.mark.django_db
     def test_keeps_confirmed_schedules(self, staff):
-        """Confirmed (is_temporary=False) schedules should not be deleted."""
+        """Confirmed (is_temporary=False) schedules should not be cancelled."""
         now = timezone.now()
         Schedule.objects.create(
             staff=staff,
             start=now, end=now + timedelta(hours=1),
             is_temporary=False, is_cancelled=False,
-            temporary_booked_at=now - timedelta(minutes=15),
+            temporary_booked_at=now - timedelta(minutes=25),
         )
         delete_temporary_schedules()
-        assert Schedule.objects.count() == 1
+        assert Schedule.objects.filter(is_cancelled=False).count() == 1
 
     @pytest.mark.django_db
     def test_keeps_recent_temporary(self, staff):
-        """Temporary schedules within 10 minutes should be kept."""
+        """Temporary schedules within 20 minutes should be kept."""
         now = timezone.now()
         Schedule.objects.create(
             staff=staff,
@@ -73,32 +73,32 @@ class TestDeleteTemporarySchedules:
             temporary_booked_at=now - timedelta(minutes=5),
         )
         delete_temporary_schedules()
-        assert Schedule.objects.count() == 1
+        assert Schedule.objects.filter(is_cancelled=False).count() == 1
 
     @pytest.mark.django_db
     def test_keeps_cancelled_temporary(self, staff):
-        """Cancelled temporary schedules should not be deleted (is_cancelled=True excluded)."""
+        """Already-cancelled temporary schedules should not be re-cancelled."""
         now = timezone.now()
         Schedule.objects.create(
             staff=staff,
             start=now, end=now + timedelta(hours=1),
             is_temporary=True, is_cancelled=True,
-            temporary_booked_at=now - timedelta(minutes=15),
+            temporary_booked_at=now - timedelta(minutes=25),
         )
         delete_temporary_schedules()
         assert Schedule.objects.count() == 1
 
     @pytest.mark.django_db
     def test_deletes_only_expired_among_mixed(self, staff):
-        """Only expired temporary schedules are deleted in a mixed set."""
+        """Only expired temporary schedules are auto-cancelled in a mixed set."""
         now = timezone.now()
-        # expired temp
+        # expired temp (>20 min)
         Schedule.objects.create(
             staff=staff, start=now, end=now + timedelta(hours=1),
             is_temporary=True, is_cancelled=False,
-            temporary_booked_at=now - timedelta(minutes=20),
+            temporary_booked_at=now - timedelta(minutes=25),
         )
-        # recent temp
+        # recent temp (<20 min)
         Schedule.objects.create(
             staff=staff, start=now + timedelta(hours=2), end=now + timedelta(hours=3),
             is_temporary=True, is_cancelled=False,
@@ -111,7 +111,10 @@ class TestDeleteTemporarySchedules:
             temporary_booked_at=now - timedelta(minutes=30),
         )
         delete_temporary_schedules()
-        assert Schedule.objects.count() == 2
+        # All 3 still exist, but only the expired one is cancelled
+        assert Schedule.objects.count() == 3
+        assert Schedule.objects.filter(is_cancelled=False).count() == 2
+        assert Schedule.objects.filter(is_cancelled=True).count() == 1
 
 
 # ==============================

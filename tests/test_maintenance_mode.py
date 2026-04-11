@@ -16,10 +16,12 @@ from booking.models import SiteSettings
 @pytest.fixture
 def site_settings_maintenance(db):
     """SiteSettings with maintenance ON."""
+    from django.core.cache import cache
+    cache.delete('site_settings_singleton')
     s = SiteSettings.load()
     s.maintenance_mode = True
     s.maintenance_message = 'テスト中です'
-    s.save(update_fields=['maintenance_mode', 'maintenance_message'])
+    s.save()
     return s
 
 
@@ -43,9 +45,11 @@ class TestMaintenanceMiddleware:
 
     @pytest.mark.django_db
     def test_normal_access_when_off(self, db):
+        from django.core.cache import cache
+        cache.delete('site_settings_singleton')
         s = SiteSettings.load()
         s.maintenance_mode = False
-        s.save(update_fields=['maintenance_mode'])
+        s.save()
         client = Client()
         resp = client.get('/')
         assert resp.status_code != 503

@@ -34,7 +34,28 @@ def _set_test_env_defaults():
         'CANCEL_URL': 'http://localhost/cancel',
         'LINE_USER_ID_ENCRYPTION_KEY': 'dGVzdC1lbmNyeXB0aW9uLWtleS0zMi1ieXRlcw==',
         'LINE_USER_ID_HASH_PEPPER': 'test-hash-pepper-for-testing',
+        'CHECKIN_QR_SECRET': 'test-checkin-qr-secret-32-bytes-long-value',
         'DEBUG': 'True',
     }
     for key, value in defaults.items():
         os.environ.setdefault(key, value)
+
+
+# ===========================================================================
+# 全テスト共通フィクスチャ
+# ===========================================================================
+
+@pytest.fixture(autouse=True)
+def _ensure_test_secrets(settings):
+    """全テストでセキュリティ関連の設定を確実に注入する"""
+    settings.CHECKIN_QR_SECRET = 'test-checkin-qr-secret-32-bytes-long-value'
+    settings.TESTING = True
+    # DRFスロットルをテスト時に無効化（テスト間でカウンターが蓄積する問題を回避）
+    settings.REST_FRAMEWORK = {
+        **getattr(settings, 'REST_FRAMEWORK', {}),
+        'DEFAULT_THROTTLE_CLASSES': [],
+        'DEFAULT_THROTTLE_RATES': {},
+    }
+    # DRFスロットルキャッシュをクリア（ビュー固有のthrottle_classesにも対応）
+    from django.core.cache import cache
+    cache.clear()

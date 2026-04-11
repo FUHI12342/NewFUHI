@@ -15,6 +15,7 @@ from booking.views_restaurant_dashboard import RestaurantDashboardView
 from booking.views_shift_manager import ManagerShiftCalendarView, TodayShiftTimelineView, StaffingRequirementView
 from django.views.generic import RedirectView
 from django.http import HttpResponsePermanentRedirect
+from django.views.static import serve as static_serve
 from booking.views_attendance import AttendanceQRDisplayView, AttendanceBoardView, AttendancePINDisplayView
 from booking.views_pos import POSView, POSReceiptView, KitchenDisplayView
 from booking.views_analytics import VisitorAnalyticsDashboardView
@@ -41,6 +42,14 @@ import booking.admin
 
 # Non-i18n URLs (APIs, health check, legacy redirects, embed)
 urlpatterns = [
+    # robots.txt (served from static/)
+    path(
+        "robots.txt",
+        static_serve,
+        {"document_root": settings.STATICFILES_DIRS[0], "path": "robots.txt"},
+        name="robots_txt",
+    ),
+
     # Embed views (no i18n prefix, iframe-friendly)
     path("embed/", include("booking.embed_urls")),
 
