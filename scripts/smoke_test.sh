@@ -46,7 +46,7 @@ check_status() {
     [ "$follow" = "yes" ] && extra="$extra -L"
 
     local status
-    status=$(curl -s -o /dev/null -w "%{http_code}" --max-time 10 $extra "$url" 2>/dev/null || echo "000")
+    status=$(curl -s -o /dev/null -w "%{http_code}" --max-time 10 -H "User-Agent: SmokeTest/1.0 Mozilla/5.0" $extra "$url" 2>/dev/null || echo "000")
 
     if [ "$status" = "$expected" ]; then
         echo -e "  ${GREEN}PASS${NC}  $label  (${status})"
@@ -67,7 +67,7 @@ check_json() {
     local label="$4"
 
     local body
-    body=$(curl -s --max-time 10 "$url" 2>/dev/null || echo "{}")
+    body=$(curl -s --max-time 10 -H "User-Agent: SmokeTest/1.0 Mozilla/5.0" "$url" 2>/dev/null || echo "{}")
     local value
     value=$(echo "$body" | python3 -c "import sys,json; print(json.load(sys.stdin).get(sys.argv[1],''))" "$field" 2>/dev/null || echo "")
 
@@ -92,7 +92,7 @@ admin_login() {
 
     # CSRFトークン取得
     local csrf
-    csrf=$(curl -s -c "$COOKIE_JAR" --max-time 10 "${BASE_URL}/admin/login/" 2>/dev/null | \
+    csrf=$(curl -s -c "$COOKIE_JAR" --max-time 10 -H "User-Agent: SmokeTest/1.0 Mozilla/5.0" "${BASE_URL}/admin/login/" 2>/dev/null | \
         grep -o 'csrfmiddlewaretoken" value="[^"]*"' | \
         head -1 | sed 's/csrfmiddlewaretoken" value="//;s/"$//')
 
@@ -108,6 +108,7 @@ admin_login() {
         -b "$COOKIE_JAR" -c "$COOKIE_JAR" \
         -d "csrfmiddlewaretoken=${csrf}&username=${user}&password=${pass}&next=/admin/" \
         -H "Referer: ${BASE_URL}/admin/login/" \
+        -H "User-Agent: SmokeTest/1.0 Mozilla/5.0" \
         -L --max-time 10 \
         "${BASE_URL}/admin/login/" 2>/dev/null || echo "000")
 
