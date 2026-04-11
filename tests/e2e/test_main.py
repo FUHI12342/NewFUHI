@@ -204,9 +204,9 @@ class E2ERunner:
         print("\n=== Phase 1: Login + Sidebar Tests ===")
         roles = ["cast", "staff", "manager", "owner"]
         checks = {
-            "cast": {"want": ["タイムカード", "シフト", "IoT"], "deny": ["デバッグ", "給与"]},
-            "staff": {"want": ["タイムカード", "シフト", "IoT"], "deny": ["デバッグ", "給与"]},
-            "manager": {"want": ["予約", "レジ", "シフト", "メニュー"], "deny": []},
+            "cast": {"want": ["シフト", "IoT制御登録", "SNS自動投稿"], "deny": ["デバッグ", "給与"]},
+            "staff": {"want": ["シフト", "IoT制御登録", "SNS自動投稿"], "deny": ["デバッグ", "給与"]},
+            "manager": {"want": ["予約管理", "シフト", "IoT制御登録", "SNS自動投稿"], "deny": []},
             "owner": {"want": ["シフト", "セキュリティ", "システム"], "deny": []},
         }
         for i, role in enumerate(roles):
