@@ -34,6 +34,7 @@ class AIProtectionHeadersMiddleware:
 # ---------------------------------------------------------------------------
 
 _SCRAPER_UA_PATTERNS = [
+    # スクレイピングツール
     r'python-requests',
     r'python-urllib',
     r'curl/',
@@ -50,6 +51,26 @@ _SCRAPER_UA_PATTERNS = [
     r'Java/',
     r'libwww-perl',
     r'PHP/',
+    # AI学習クローラー
+    r'GPTBot',
+    r'ChatGPT-User',
+    r'ClaudeBot',
+    r'Claude-Web',
+    r'CCBot',
+    r'Google-Extended',
+    r'FacebookBot',
+    r'cohere-ai',
+    r'PerplexityBot',
+    r'Bytespider',
+    r'Applebot-Extended',
+    r'Amazonbot',
+    r'anthropic-ai',
+    # SEOクローラー（学習目的で使われることが多い）
+    r'SemrushBot',
+    r'AhrefsBot',
+    r'MJ12bot',
+    r'PetalBot',
+    r'DotBot',
 ]
 _COMPILED_SCRAPER_UA = [re.compile(p, re.IGNORECASE) for p in _SCRAPER_UA_PATTERNS]
 
