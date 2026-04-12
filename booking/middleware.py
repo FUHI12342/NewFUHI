@@ -26,6 +26,9 @@ class AIProtectionHeadersMiddleware:
     def __call__(self, request):
         response = self.get_response(request)
         response['X-Robots-Tag'] = 'noai, noimageai'
+        # W3C TDM Reservation Protocol (EU DSM Directive Article 4 opt-out)
+        response['TDM-Reservation'] = '1'
+        response['TDM-Policy'] = 'https://timebaibai.com/privacy/'
         return response
 
 

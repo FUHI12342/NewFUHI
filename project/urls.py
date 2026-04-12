@@ -49,6 +49,20 @@ urlpatterns = [
         {"document_root": settings.STATICFILES_DIRS[0], "path": "robots.txt"},
         name="robots_txt",
     ),
+    # ai.txt — AI training opt-out declaration
+    path(
+        "ai.txt",
+        static_serve,
+        {"document_root": settings.STATICFILES_DIRS[0], "path": "ai.txt"},
+        name="ai_txt",
+    ),
+    # TDMRep (W3C TDM Reservation Protocol)
+    path(
+        ".well-known/tdmrep.json",
+        static_serve,
+        {"document_root": settings.STATICFILES_DIRS[0], "path": ".well-known/tdmrep.json"},
+        name="tdmrep_json",
+    ),
 
     # Embed views (no i18n prefix, iframe-friendly)
     path("embed/", include("booking.embed_urls")),

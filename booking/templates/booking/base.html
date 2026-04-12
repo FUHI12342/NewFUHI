@@ -8,6 +8,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="description" content="{% trans '占いサロンチャンスのオンライン予約サイト。新宿・池袋の占い師に簡単予約。' %}">
 <meta name="keywords" content="占い,サロン,予約,新宿,池袋,オンライン予約,占いサロンチャンス">
+<!-- AI学習・スクレイピング禁止 -->
+<meta name="robots" content="noai, noimageai">
 {% load static %}
 {% if store_theme and store_theme.favicon %}
 <link rel="icon" href="{{ store_theme.favicon.url }}">
@@ -235,7 +237,8 @@
         </div>
         {% endif %}
         <div class="{% if site_settings.twitter_url or site_settings.instagram_url or site_settings.threads_url or site_settings.tiktok_url %}mt-4{% else %}border-t border-white/20 mt-6 pt-4{% endif %} text-center text-xs opacity-60">
-            &copy; {% trans "占いサロンチャンス" %} All Rights Reserved.
+            <p>&copy; {% trans "占いサロンチャンス" %} All Rights Reserved.</p>
+            <p class="mt-1">{% trans "本サイトのコンテンツ（テキスト・画像・デザイン等）を、AI・機械学習モデルの学習データとして無断で使用することを禁止します。" %}</p>
         </div>
     </div>
 </footer>
