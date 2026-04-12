@@ -479,12 +479,25 @@ class EmailVerifyView(View):
         if not email_booking or not temporary_booking:
             return redirect('booking:booking_top')
 
+        # OTP試行回数制限（ブルートフォース防止）
+        MAX_OTP_ATTEMPTS = 5
+        otp_attempts = email_booking.get('otp_attempts', 0)
+        if otp_attempts >= MAX_OTP_ATTEMPTS:
+            del request.session['email_booking']
+            if 'temporary_booking' in request.session:
+                del request.session['temporary_booking']
+            messages.error(request, '認証コードの試行回数が上限に達しました。最初からやり直してください。')
+            return redirect('booking:email_booking')
+
         otp_input = request.POST.get('otp', '').strip()
         otp_hash_input = hashlib.sha256(otp_input.encode('utf-8')).hexdigest()
 
         # ハッシュ照合
         if otp_hash_input != email_booking['otp_hash']:
-            messages.error(request, '認証コードが正しくありません。')
+            email_booking['otp_attempts'] = otp_attempts + 1
+            request.session['email_booking'] = email_booking
+            remaining = MAX_OTP_ATTEMPTS - otp_attempts - 1
+            messages.error(request, f'認証コードが正しくありません。（残り{remaining}回）')
             return render(request, 'booking/email_verify.html', {'email': email_booking['customer_email']})
 
         # 有効期限チェック
@@ -1087,7 +1100,8 @@ def coiney_webhook(request, orderId):
             logger.warning('coiney_webhook: トークン検証失敗 orderId=%s', orderId)
             return JsonResponse({"error": "Invalid token"}, status=403)
     else:
-        logger.warning('coiney_webhook: COINEY_WEBHOOK_TOKEN 未設定。トークン検証をスキップします。')
+        logger.error('coiney_webhook: COINEY_WEBHOOK_TOKEN 未設定。セキュリティ上拒否します。')
+        return JsonResponse({"error": "Webhook token not configured"}, status=503)
 
     # リクエストヘッダーのログ出力（機密情報を除外）
     safe_meta = {k: v for k, v in request.META.items()

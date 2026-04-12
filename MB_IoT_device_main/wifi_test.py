@@ -1,8 +1,13 @@
 # wifi_test.py 改良版
 import network, time, socket
 
-SSID = "aterm-16b7fa-g"
-PASSWORD = "20e22d9813303"
+try:
+    from secrets import SSID, PASSWORD
+except ImportError:
+    raise RuntimeError(
+        "secrets.py が見つかりません。"
+        "secrets.py.example を参考に MB_IoT_device_main/secrets.py を作成してください。"
+    )
 
 wlan = network.WLAN(network.STA_IF)
 wlan.active(True)

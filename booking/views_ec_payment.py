@@ -174,7 +174,10 @@ class ECOrderConfirmationView(View):
 
 def process_ec_payment(request, orderId):
     """Coiney webhook から呼ばれる EC注文の決済完了処理"""
-    body = json.loads(request.body)
+    try:
+        body = json.loads(request.body)
+    except (json.JSONDecodeError, ValueError):
+        return JsonResponse({"error": "Invalid JSON"}, status=400)
     if body.get('type') != 'payment.succeeded':
         return JsonResponse({"status": "ignored"})
 
