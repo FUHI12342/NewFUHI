@@ -1,9 +1,10 @@
+{% load i18n %}
 <!DOCTYPE html>
-<html lang="ja">
+<html lang="{{ LANGUAGE_CODE|default:'ja' }}">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>メンテナンス中</title>
+    <title>{% trans "メンテナンス中" %}</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
@@ -44,10 +45,10 @@
 <body>
     <div class="container">
         <div class="icon">&#128296;</div>
-        <h1>メンテナンス中</h1>
+        <h1>{% trans "メンテナンス中" %}</h1>
         <p>
-            現在システムメンテナンスを行っております。<br>
-            しばらくお待ちください。
+            {% trans "現在システムメンテナンスを行っております。" %}<br>
+            {% trans "しばらくお待ちください。" %}
         </p>
         {% if message %}
         <div class="custom-message">{{ message }}</div>

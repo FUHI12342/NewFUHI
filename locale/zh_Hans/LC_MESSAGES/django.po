@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-03-18 21:44+0900\n"
-"PO-Revision-Date: 2026-03-18 12:00+0000\n"
+"POT-Creation-Date: 2026-04-12 19:27+0900\n"
+"PO-Revision-Date: 2026-04-12 12:00+0000\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "Language: zh_Hans\n"
@@ -273,9 +273,7 @@ msgid "管理サイドバー機能ON/OFF"
 msgstr "管理侧边栏功能开关"
 
 #: booking/admin.py:1463
-msgid ""
-"管理画面サイドバーに表示する機能を選択します。業態に合わせて使わない機能はOFF"
-"にして非表示にできます。"
+msgid "管理画面サイドバーに表示する機能を選択します。業態に合わせて使わない機能はOFFにして非表示にできます。"
 msgstr "选择在管理后台侧边栏中显示的功能。可根据业态将不使用的功能关闭并隐藏。"
 
 #: booking/admin.py:1509
@@ -634,8 +632,8 @@ msgstr "商品分类"
 #: booking/templates/booking/shop_cart.html:17
 #: booking/templates/booking/shop_checkout.html:20
 #: booking/templates/booking/shop_confirm.html:20
-#: booking/templates/booking/shop_payment.html:20 booking/views_inventory.py:76
-#: templates/admin/booking/ec_dashboard.html:72
+#: booking/templates/booking/shop_payment.html:20
+#: booking/views_inventory.py:76 templates/admin/booking/ec_dashboard.html:72
 #: templates/admin/booking/inventory_dashboard.html:183
 msgid "商品"
 msgstr "商品"
@@ -645,7 +643,8 @@ msgid "商品翻訳"
 msgstr "商品翻译"
 
 #: booking/forms.py:24 booking/models.py:883 booking/models.py:1074
-#: booking/models.py:2397 booking/templates/booking/table_order_history.html:14
+#: booking/models.py:2397
+#: booking/templates/booking/table_order_history.html:14
 msgid "注文"
 msgstr "订单"
 
@@ -839,8 +838,7 @@ msgid "Google Maps埋め込みコード"
 msgstr "Google Maps嵌入代码"
 
 #: booking/models.py:74
-msgid ""
-"Google Mapsの「共有→地図を埋め込む」からiframeコードを貼り付けてください"
+msgid "Google Mapsの「共有→地図を埋め込む」からiframeコードを貼り付けてください"
 msgstr "请从Google Maps的「分享→嵌入地图」中粘贴iframe代码"
 
 #: booking/models.py:76 booking/templates/booking/store_access.html:9
@@ -2367,9 +2365,7 @@ msgid "スタッフの呼称"
 msgstr "员工称呼"
 
 #: booking/models.py:1755
-msgid ""
-"管理画面・フロントで「占い師」「スタッフ」の代わりに表示する名称（例: キャス"
-"ト、セラピスト）"
+msgid "管理画面・フロントで「占い師」「スタッフ」の代わりに表示する名称（例: キャスト、セラピスト）"
 msgstr "在管理后台和前台替代「占卜师」「员工」显示的名称（例：演员、理疗师）"
 
 #: booking/models.py:1756
@@ -2377,12 +2373,8 @@ msgid "スタッフ呼称（多言語）"
 msgstr "员工称呼（多语言）"
 
 #: booking/models.py:1757
-msgid ""
-"言語コードをキーとした翻訳辞書。例: {\"en\": \"Cast\", \"ko\": \"캐스트\", "
-"\"zh-hant\": \"演員\"}。未設定の言語はデフォルト呼称を使用。"
-msgstr ""
-"以语言代码为键的翻译字典。例：{\"en\": \"Cast\", \"ko\": \"캐스트\", \"zh-"
-"hant\": \"演員\"}。未设置的语言使用默认称呼。"
+msgid "言語コードをキーとした翻訳辞書。例: {\"en\": \"Cast\", \"ko\": \"캐스트\", \"zh-hant\": \"演員\"}。未設定の言語はデフォルト呼称を使用。"
+msgstr "以语言代码为键的翻译字典。例：{\"en\": \"Cast\", \"ko\": \"캐스트\", \"zh-hant\": \"演員\"}。未设置的语言使用默认称呼。"
 
 #: booking/models.py:1760
 msgid "料金ラベル"
@@ -3217,7 +3209,8 @@ msgstr "无效原因"
 msgid "打刻ログ"
 msgstr "打卡日志"
 
-#: booking/models.py:2399 booking/templates/booking/table_order_history.html:55
+#: booking/models.py:2399
+#: booking/templates/booking/table_order_history.html:55
 msgid "合計金額"
 msgstr "总金额"
 
@@ -3481,8 +3474,7 @@ msgid "占いサロンチャンス　オンライン予約ページ"
 msgstr "占卜沙龙Chance 在线预约页面"
 
 #: booking/templates/booking/base.html:9
-msgid ""
-"占いサロンチャンスのオンライン予約サイト。新宿・池袋の占い師に簡単予約。"
+msgid "占いサロンチャンスのオンライン予約サイト。新宿・池袋の占い師に簡単予約。"
 msgstr "占卜沙龙Chance的在线预约网站。轻松预约新宿、池袋的占卜师。"
 
 #: booking/templates/booking/base.html:56
@@ -3602,11 +3594,8 @@ msgid "料金"
 msgstr "费用"
 
 #: booking/templates/booking/booking.html:44
-msgid ""
-"予約ボタンを押すとLINE認証画面に移動します。認証後、決済リンクをLINEでお送り"
-"します。"
-msgstr ""
-"点击预约按钮后将跳转至LINE认证页面。认证完成后，我们将通过LINE发送支付链接。"
+msgid "予約ボタンを押すとLINE認証画面に移動します。認証後、決済リンクをLINEでお送りします。"
+msgstr "点击预约按钮后将跳转至LINE认证页面。认证完成后，我们将通过LINE发送支付链接。"
 
 #: booking/templates/booking/booking.html:52
 msgid "LINEで予約手続きに進む"
@@ -3640,11 +3629,8 @@ msgstr "按%(staff_label)s选择"
 
 #: booking/templates/booking/booking_top.html:133
 #, python-format
-msgid ""
-"全店舗の%(staff_label)s一覧から、お気に入りの%(staff_label)sを見つけて予約で"
-"きます。"
-msgstr ""
-"从所有店铺的%(staff_label)s列表中，找到喜欢的%(staff_label)s并进行预约。"
+msgid "全店舗の%(staff_label)s一覧から、お気に入りの%(staff_label)sを見つけて予約できます。"
+msgstr "从所有店铺的%(staff_label)s列表中，找到喜欢的%(staff_label)s并进行预约。"
 
 #: booking/templates/booking/booking_top.html:136
 #, python-format
@@ -3932,9 +3918,7 @@ msgid "ご注意"
 msgstr "注意事项"
 
 #: booking/templates/booking/email_payment_sent.html:29
-msgid ""
-"15分以内にお支払いがない場合、仮予約は自動キャンセルされます。メールをご確認"
-"の上、お早めにお支払いください。"
+msgid "15分以内にお支払いがない場合、仮予約は自動キャンセルされます。メールをご確認の上、お早めにお支払いください。"
 msgstr "如果15分钟内未付款，临时预约将自动取消。请确认邮件后尽快付款。"
 
 #: booking/templates/booking/email_payment_sent.html:41
@@ -3967,9 +3951,7 @@ msgid "認証して予約を確定"
 msgstr "验证并确认预约"
 
 #: booking/templates/booking/email_verify.html:55
-msgid ""
-"認証コードの有効期限は10分です。届かない場合は迷惑メールフォルダもご確認くだ"
-"さい。"
+msgid "認証コードの有効期限は10分です。届かない場合は迷惑メールフォルダもご確認ください。"
 msgstr "验证码有效期为10分钟。如未收到，请检查垃圾邮件文件夹。"
 
 #: booking/templates/booking/help.html:4 booking/templates/booking/help.html:8
@@ -3985,23 +3967,16 @@ msgid "予約はどのように行いますか？"
 msgstr "如何进行预约？"
 
 #: booking/templates/booking/help.html:24
-msgid ""
-"トップページの「ご予約」から店舗を選び、ご希望の占い師のカレンダーから空き時"
-"間を選択してください。LINE認証後に予約が確定します。"
-msgstr ""
-"请从首页的「预约」选择店铺，然后从您心仪的占卜师日历中选择空闲时间。通过LINE"
-"认证后预约即可确认。"
+msgid "トップページの「ご予約」から店舗を選び、ご希望の占い師のカレンダーから空き時間を選択してください。LINE認証後に予約が確定します。"
+msgstr "请从首页的「预约」选择店铺，然后从您心仪的占卜师日历中选择空闲时间。通过LINE认证后预约即可确认。"
 
 #: booking/templates/booking/help.html:30
 msgid "予約のキャンセルはできますか？"
 msgstr "可以取消预约吗？"
 
 #: booking/templates/booking/help.html:34
-msgid ""
-"はい。予約確定後にLINEで届くメッセージ内のリンクからキャンセルが可能です。"
-"キャンセル料はかかりません。"
-msgstr ""
-"可以。您可以通过预约确认后LINE收到的消息中的链接进行取消。无需支付取消费用。"
+msgid "はい。予約確定後にLINEで届くメッセージ内のリンクからキャンセルが可能です。キャンセル料はかかりません。"
+msgstr "可以。您可以通过预约确认后LINE收到的消息中的链接进行取消。无需支付取消费用。"
 
 #: booking/templates/booking/help.html:40
 msgid "予約の変更はできますか？"
@@ -4028,9 +4003,7 @@ msgid "支払い方法は？"
 msgstr "支付方式是什么？"
 
 #: booking/templates/booking/help.html:72
-msgid ""
-"オンライン決済（クレジットカード）をご利用いただけます。予約時にLINE経由で決"
-"済リンクをお送りします。"
+msgid "オンライン決済（クレジットカード）をご利用いただけます。予約時にLINE経由で決済リンクをお送りします。"
 msgstr "可使用在线支付（信用卡）。预约时我们将通过LINE发送支付链接。"
 
 #: booking/templates/booking/help.html:78
@@ -4038,9 +4011,7 @@ msgid "鑑定料金はいくらですか？"
 msgstr "鉴定费用是多少？"
 
 #: booking/templates/booking/help.html:82
-msgid ""
-"占い師により異なります。各占い師のプロフィールページに料金（1時間あたり）が記"
-"載されています。"
+msgid "占い師により異なります。各占い師のプロフィールページに料金（1時間あたり）が記載されています。"
 msgstr "因占卜师而异。各占卜师的个人页面上标有费用（每小时）。"
 
 #: booking/templates/booking/help.html:91
@@ -4052,9 +4023,7 @@ msgid "LINEアカウントは必要ですか？"
 msgstr "需要LINE账号吗？"
 
 #: booking/templates/booking/help.html:100
-msgid ""
-"はい。ご予約にはLINEログインが必要です。予約通知やタイマー機能もLINEを通じて"
-"お届けします。"
+msgid "はい。ご予約にはLINEログインが必要です。予約通知やタイマー機能もLINEを通じてお届けします。"
 msgstr "是的。预约需要LINE登录。预约通知和计时器功能也将通过LINE发送。"
 
 #: booking/templates/booking/help.html:106
@@ -4074,9 +4043,7 @@ msgid "どの店舗がありますか？"
 msgstr "有哪些店铺？"
 
 #: booking/templates/booking/help.html:128
-msgid ""
-"現在、新宿・池袋に店舗を展開しています。「店舗情報」メニューから詳細をご確認"
-"ください。"
+msgid "現在、新宿・池袋に店舗を展開しています。「店舗情報」メニューから詳細をご確認ください。"
 msgstr "目前在新宿和池袋设有店铺。请从「店铺信息」菜单查看详情。"
 
 #: booking/templates/booking/help.html:134
@@ -4084,9 +4051,7 @@ msgid "営業時間は？"
 msgstr "营业时间是？"
 
 #: booking/templates/booking/help.html:138
-msgid ""
-"各店舗の営業時間は店舗情報ページに記載されています。基本的に9:00〜17:00が鑑定"
-"可能時間です。"
+msgid "各店舗の営業時間は店舗情報ページに記載されています。基本的に9:00〜17:00が鑑定可能時間です。"
 msgstr "各店铺的营业时间请参见店铺信息页面。基本鉴定时间为9:00～17:00。"
 
 #: booking/templates/booking/help.html:147
@@ -4098,9 +4063,7 @@ msgid "マイページにアクセスするには？"
 msgstr "如何访问我的页面？"
 
 #: booking/templates/booking/help.html:156
-msgid ""
-"管理者から発行されたアカウントでログインし、ナビゲーションの「スタッフペー"
-"ジ」からアクセスしてください。"
+msgid "管理者から発行されたアカウントでログインし、ナビゲーションの「スタッフページ」からアクセスしてください。"
 msgstr "请使用管理员发放的账号登录，然后从导航栏的「员工页面」进行访问。"
 
 #: booking/templates/booking/help.html:162
@@ -4108,33 +4071,23 @@ msgid "シフト（休暇）の設定方法は？"
 msgstr "如何设置排班（休假）？"
 
 #: booking/templates/booking/help.html:166
-msgid ""
-"マイページ → カレンダー → 日付の「詳細」から、時間単位で休暇を設定できます。"
-"「全日休暇にする」で一日全体をブロックすることも可能です。"
-msgstr ""
-"从我的页面 → 日历 → 日期的「详情」，可按小时设置休假。也可通过「设为全天休"
-"假」来屏蔽整天。"
+msgid "マイページ → カレンダー → 日付の「詳細」から、時間単位で休暇を設定できます。「全日休暇にする」で一日全体をブロックすることも可能です。"
+msgstr "从我的页面 → 日历 → 日期的「详情」，可按小时设置休假。也可通过「设为全天休假」来屏蔽整天。"
 
 #: booking/templates/booking/help.html:172
 msgid "予約の確認方法は？"
 msgstr "如何确认预约？"
 
 #: booking/templates/booking/help.html:176
-msgid ""
-"マイページのカレンダーで「○」が空き、「×」が予約済みです。詳細をクリックする"
-"と予約者情報を確認できます。"
-msgstr ""
-"在我的页面的日历中，「○」表示空位，「×」表示已预约。点击详情可查看预约者信"
-"息。"
+msgid "マイページのカレンダーで「○」が空き、「×」が予約済みです。詳細をクリックすると予約者情報を確認できます。"
+msgstr "在我的页面的日历中，「○」表示空位，「×」表示已预约。点击详情可查看预约者信息。"
 
 #: booking/templates/booking/help.html:185
 msgid "お問い合わせ"
 msgstr "联系我们"
 
 #: booking/templates/booking/help.html:189
-msgid ""
-"上記で解決しない場合は、各店舗までお電話いただくか、LINEの公式アカウントより"
-"お問い合わせください。"
+msgid "上記で解決しない場合は、各店舗までお電話いただくか、LINEの公式アカウントよりお問い合わせください。"
 msgstr "如果以上内容未能解决您的问题，请致电各店铺或通过LINE官方账号联系我们。"
 
 #: booking/templates/booking/iot_sensor_dashboard.html:192
@@ -4154,21 +4107,15 @@ msgid "MQ-9 Gas"
 msgstr "MQ-9 气体"
 
 #: booking/templates/booking/iot_sensor_dashboard.html:233
-msgid ""
-"一酸化炭素(CO)・可燃性ガスの検知。値が高いほどガス濃度が高く、閾値超過でア"
-"ラート通知。"
-msgstr ""
-"一氧化碳(CO)及可燃气体检测。数值越高表示气体浓度越高，超过阈值时发送警报通"
-"知。"
+msgid "一酸化炭素(CO)・可燃性ガスの検知。値が高いほどガス濃度が高く、閾値超過でアラート通知。"
+msgstr "一氧化碳(CO)及可燃气体检测。数值越高表示气体浓度越高，超过阈值时发送警报通知。"
 
 #: booking/templates/booking/iot_sensor_dashboard.html:249
 msgid "Light"
 msgstr "光照"
 
 #: booking/templates/booking/iot_sensor_dashboard.html:250
-msgid ""
-"照度センサー。室内の明るさをリアルタイム計測。営業時間外の異常な明るさ変化を"
-"検知可能。"
+msgid "照度センサー。室内の明るさをリアルタイム計測。営業時間外の異常な明るさ変化を検知可能。"
 msgstr "照度传感器。实时测量室内亮度。可检测营业时间外的异常亮度变化。"
 
 #: booking/templates/booking/iot_sensor_dashboard.html:266
@@ -4189,8 +4136,7 @@ msgid "静止中"
 msgstr "静止中"
 
 #: booking/templates/booking/iot_sensor_dashboard.html:290
-msgid ""
-"人感（赤外線動体検知）センサー。人の出入りや在室状況をイベント数で表示。"
+msgid "人感（赤外線動体検知）センサー。人の出入りや在室状況をイベント数で表示。"
 msgstr "人体感应（红外运动检测）传感器。以事件数显示人员出入及在室情况。"
 
 #: booking/templates/booking/iot_sensor_dashboard.html:307
@@ -4203,10 +4149,8 @@ msgid "人感センサー反応中"
 msgstr "人体感应传感器响应中"
 
 #: booking/templates/booking/iot_sensor_dashboard.html:310
-msgid ""
-"デバイスが登録されていません。管理画面からIoTデバイスを追加してください。"
-msgstr ""
-"尚未注册设备。请从管理后台添加IoT设备。"
+msgid "デバイスが登録されていません。管理画面からIoTデバイスを追加してください。"
+msgstr "尚未注册设备。请从管理后台添加IoT设备。"
 
 #: booking/templates/booking/line_login.html:4
 #: booking/templates/booking/line_login.html:20
@@ -4360,12 +4304,9 @@ msgstr "1. 关于个人信息的收集"
 
 #: booking/templates/booking/privacy_policy.html:18
 msgid ""
-"当サロンでは、予約やお問い合わせの際に、お名前、メールアドレス、LINE ID等の個"
-"人情報を収集することがあります。収集にあたっては、利用目的を明示し、適切な範"
-"囲で行います。"
-msgstr ""
-"本沙龙在预约和咨询时可能会收集姓名、电子邮箱、LINE ID等个人信息。在收集时，我"
-"们会明确使用目的，并在适当范围内进行。"
+"当サロンでは、予約やお問い合わせの際に、お名前、メールアドレス、LINE "
+"ID等の個人情報を収集することがあります。収集にあたっては、利用目的を明示し、適切な範囲で行います。"
+msgstr "本沙龙在预约和咨询时可能会收集姓名、电子邮箱、LINE ID等个人信息。在收集时，我们会明确使用目的，并在适当范围内进行。"
 
 #: booking/templates/booking/privacy_policy.html:22
 msgid "2. 個人情報の利用目的"
@@ -4392,24 +4333,16 @@ msgid "3. 個人情報の第三者提供"
 msgstr "3. 向第三方提供个人信息"
 
 #: booking/templates/booking/privacy_policy.html:33
-msgid ""
-"当サロンでは、法令に基づく場合を除き、事前にご本人の同意を得ることなく個人情"
-"報を第三者に提供することはありません。"
-msgstr ""
-"除法律规定的情况外，本沙龙不会在未事先征得本人同意的情况下将个人信息提供给第"
-"三方。"
+msgid "当サロンでは、法令に基づく場合を除き、事前にご本人の同意を得ることなく個人情報を第三者に提供することはありません。"
+msgstr "除法律规定的情况外，本沙龙不会在未事先征得本人同意的情况下将个人信息提供给第三方。"
 
 #: booking/templates/booking/privacy_policy.html:37
 msgid "4. 個人情報の管理"
 msgstr "4. 个人信息的管理"
 
 #: booking/templates/booking/privacy_policy.html:38
-msgid ""
-"当サロンでは、個人情報の正確性及び安全性を確保するため、セキュリティ対策を講"
-"じ、個人情報の漏洩、改ざん、不正アクセスなどの防止に努めます。"
-msgstr ""
-"本沙龙为确保个人信息的准确性和安全性，将采取安全措施，努力防止个人信息的泄"
-"露、篡改和非法访问。"
+msgid "当サロンでは、個人情報の正確性及び安全性を確保するため、セキュリティ対策を講じ、個人情報の漏洩、改ざん、不正アクセスなどの防止に努めます。"
+msgstr "本沙龙为确保个人信息的准确性和安全性，将采取安全措施，努力防止个人信息的泄露、篡改和非法访问。"
 
 #: booking/templates/booking/privacy_policy.html:42
 msgid "5. Cookieの使用について"
@@ -4417,12 +4350,8 @@ msgstr "5. 关于Cookie的使用"
 
 #: booking/templates/booking/privacy_policy.html:43
 msgid ""
-"当サイトでは、サービスの利便性向上のためCookieを使用する場合があります。"
-"Cookieにより個人を特定する情報は収集しません。ブラウザの設定でCookieの受け入"
-"れを拒否することも可能です。"
-msgstr ""
-"本网站可能会使用Cookie以提升服务便利性。Cookie不会收集可识别个人身份的信息。"
-"您也可以在浏览器设置中拒绝接受Cookie。"
+"当サイトでは、サービスの利便性向上のためCookieを使用する場合があります。Cookieにより個人を特定する情報は収集しません。ブラウザの設定でCookieの受け入れを拒否することも可能です。"
+msgstr "本网站可能会使用Cookie以提升服务便利性。Cookie不会收集可识别个人身份的信息。您也可以在浏览器设置中拒绝接受Cookie。"
 
 #: booking/templates/booking/privacy_policy.html:47
 msgid "6. プライバシーポリシーの変更"
@@ -4430,10 +4359,8 @@ msgstr "6. 隐私政策的变更"
 
 #: booking/templates/booking/privacy_policy.html:48
 msgid ""
-"当サロンは、必要に応じて本ポリシーを変更することがあります。変更後のプライバ"
-"シーポリシーは、本ページにて公表した時点から効力を生じるものとします。"
-msgstr ""
-"本沙龙可能会根据需要变更本政策。变更后的隐私政策自在本页面公布之时起生效。"
+"当サロンは、必要に応じて本ポリシーを変更することがあります。変更後のプライバシーポリシーは、本ページにて公表した時点から効力を生じるものとします。"
+msgstr "本沙龙可能会根据需要变更本政策。变更后的隐私政策自在本页面公布之时起生效。"
 
 #: booking/templates/booking/privacy_policy.html:52
 msgid "7. お問い合わせ窓口"
@@ -5163,9 +5090,7 @@ msgstr "提供占卜鉴定服务"
 
 #: booking/templates/booking/tokushoho.html:42
 #, python-format
-msgid ""
-"各%(label)sのプロフィールページに記載の料金をご確認ください。表示価格は税込み"
-"です。"
+msgid "各%(label)sのプロフィールページに記載の料金をご確認ください。表示価格は税込みです。"
 msgstr "请确认各%(label)s个人页面上记载的费用。显示价格均为含税价格。"
 
 #: booking/templates/booking/tokushoho.html:45
@@ -5197,20 +5122,15 @@ msgid "キャンセルポリシー"
 msgstr "取消政策"
 
 #: booking/templates/booking/tokushoho.html:59
-msgid ""
-"予約確定後のキャンセルについては、マイページまたはお電話にて承ります。仮予約"
-"から15分以内にお支払いがない場合は自動キャンセルとなります。"
-msgstr ""
-"预约确认后的取消，请通过我的页面或电话办理。临时预约后15分钟内未付款将自动取"
-"消。"
+msgid "予約確定後のキャンセルについては、マイページまたはお電話にて承ります。仮予約から15分以内にお支払いがない場合は自動キャンセルとなります。"
+msgstr "预约确认后的取消，请通过我的页面或电话办理。临时预约后15分钟内未付款将自动取消。"
 
 #: booking/templates/booking/tokushoho.html:63
 msgid "返金について"
 msgstr "关于退款"
 
 #: booking/templates/booking/tokushoho.html:64
-msgid ""
-"キャンセル時の返金については、個別にご対応いたします。お問い合わせください。"
+msgid "キャンセル時の返金については、個別にご対応いたします。お問い合わせください。"
 msgstr "取消时的退款事宜将逐案处理。请咨询。"
 
 #: booking/views_attendance.py:46
@@ -5818,9 +5738,7 @@ msgid "クリックで休業日に設定"
 msgstr "点击设为休业日"
 
 #: templates/admin/booking/shift_calendar.html:826
-msgid ""
-"日付をクリックして休業日をトグルします。休業日はシフト自動配置で除外されま"
-"す。"
+msgid "日付をクリックして休業日をトグルします。休業日はシフト自動配置で除外されます。"
 msgstr "点击日期切换休业日状态。休业日将在自动排班中被排除。"
 
 #: templates/admin/booking/shift_calendar.html:843
@@ -5840,8 +5758,7 @@ msgid "提出者を表示"
 msgstr "显示提交者"
 
 #: templates/admin/booking/shift_calendar.html:893
-msgid ""
-"希望データを元にシフトを自動作成しますか？（既存のシフトは上書きされます）"
+msgid "希望データを元にシフトを自動作成しますか？（既存のシフトは上書きされます）"
 msgstr "是否根据意愿数据自动创建排班？（现有排班将被覆盖）"
 
 #: templates/admin/booking/shift_calendar.html:894
@@ -5893,9 +5810,7 @@ msgid "シフト撤回確認"
 msgstr "排班撤回确认"
 
 #: templates/admin/booking/shift_calendar.html:1184
-msgid ""
-"公開済みシフトを撤回します。スケジュールがキャンセルされ、スタッフに通知され"
-"ます。"
+msgid "公開済みシフトを撤回します。スケジュールがキャンセルされ、スタッフに通知されます。"
 msgstr "将撤回已公开的排班。日程将被取消，并通知员工。"
 
 #: templates/admin/booking/shift_calendar.html:1187
@@ -5915,8 +5830,7 @@ msgid "シフト変更理由"
 msgstr "排班变更原因"
 
 #: templates/admin/booking/shift_calendar.html:1214
-msgid ""
-"公開済みシフトを変更します。変更ログが記録され、対象スタッフに通知されます。"
+msgid "公開済みシフトを変更します。変更ログが記録され、対象スタッフに通知されます。"
 msgstr "将变更已公开的排班。变更日志将被记录，并通知相关员工。"
 
 #: templates/admin/booking/shift_calendar.html:1218
@@ -5932,12 +5846,8 @@ msgid "再募集確認"
 msgstr "重新征集确认"
 
 #: templates/admin/booking/shift_calendar.html:1245
-msgid ""
-"現在のシフトを保持したまま、再度スタッフからの希望を受け付けます。追加の希望"
-"が集まった後、再度自動配置を実行できます。"
-msgstr ""
-"在保留当前排班的同时，重新接受员工的意愿提交。收集追加意愿后，可再次执行自动"
-"配置。"
+msgid "現在のシフトを保持したまま、再度スタッフからの希望を受け付けます。追加の希望が集まった後、再度自動配置を実行できます。"
+msgstr "在保留当前排班的同时，重新接受员工的意愿提交。收集追加意愿后，可再次执行自动配置。"
 
 #: templates/admin/booking/shift_calendar.html:1260
 msgid "再募集を開始"
@@ -5948,9 +5858,7 @@ msgid "スケジュール取消確認"
 msgstr "日程取消确认"
 
 #: templates/admin/booking/shift_calendar.html:1268
-msgid ""
-"配置済みのシフトをすべて削除し、募集中の状態に戻します。スタッフの希望データ"
-"は保持されます。"
+msgid "配置済みのシフトをすべて削除し、募集中の状態に戻します。スタッフの希望データは保持されます。"
 msgstr "删除所有已配置的排班，恢复为征集中状态。员工的意愿数据将被保留。"
 
 #: templates/admin/booking/shift_calendar.html:1283
@@ -6074,6 +5982,3296 @@ msgstr "星期×时间热力图"
 msgid "データ読込中..."
 msgstr "数据加载中..."
 
+#: booking/admin_site.py:45
+msgid "IoT制御登録"
+msgstr "IoT设备控制"
+
+#: booking/fields.py:24
+msgid "Encrypted text"
+msgstr "加密文本"
+
+#: booking/models/cms.py:264
+msgid "自動（ブラウザ設定に従う）"
+msgstr "自动（跟随浏览器设置）"
+
+#: booking/models/cms.py:285
+msgid "表示言語固定"
+msgstr "固定显示语言"
+
+#: booking/models/cms.py:286
+msgid "設定すると全ユーザーの表示言語をこの言語に固定します。空欄＝ブラウザ設定に従う"
+msgstr "设置后将所有用户的显示语言固定为此语言。留空＝跟随浏览器设置"
+
+#: booking/models/core.py:77
+msgid "タイムゾーン"
+msgstr "时区"
+
+#: booking/models/core.py:78
+msgid "店舗のタイムゾーン (例: Asia/Tokyo)"
+msgstr "店铺时区（例：Asia/Tokyo）"
+
+#: booking/models/schedule.py:62
+msgid "バックアップコード"
+msgstr "备用码"
+
+#: booking/models/schedule.py:64
+msgid "口頭確認用6桁コード"
+msgstr "口头确认用6位数代码"
+
+#: booking/models/schedule.py:67
+msgid "チェックイン担当"
+msgstr "签到负责人"
+
+#: booking/models/shifts.py:17
+msgid "最低シフト時間(時間)"
+msgstr "最低班次时长（小时）"
+
+#: booking/models/shifts.py:19
+msgid "自動調整時に割り当てる最低連続勤務時間"
+msgstr "自动调整时分配的最低连续工作时长"
+
+#: booking/models/shifts.py:248 booking/models/shifts.py:290
+msgid "取消"
+msgstr "取消"
+
+#: booking/models/shifts.py:257
+msgid "配置済み人数"
+msgstr "已排班人数"
+
+#: booking/models/shifts.py:265 booking/models/shifts.py:266
+msgid "シフト不足枠"
+msgstr "人员不足时段"
+
+#: booking/models/shifts.py:282
+msgid "交代"
+msgstr "换班"
+
+#: booking/models/shifts.py:283
+msgid "カバー"
+msgstr "替补"
+
+#: booking/models/shifts.py:284
+msgid "欠勤"
+msgstr "缺勤"
+
+#: booking/models/shifts.py:287
+msgid "申請中"
+msgstr "申请中"
+
+#: booking/models/shifts.py:288
+#: templates/admin/booking/shift_calendar.html:999
+msgid "承認"
+msgstr "批准"
+
+#: booking/models/shifts.py:289
+#: templates/admin/booking/shift_calendar.html:1006
+msgid "却下"
+msgstr "拒绝"
+
+#: booking/models/shifts.py:293
+msgid "申請種別"
+msgstr "申请类型"
+
+#: booking/models/shifts.py:296
+msgid "申請者"
+msgstr "申请人"
+
+#: booking/models/shifts.py:300
+msgid "交代先スタッフ"
+msgstr "替换员工"
+
+#: booking/models/shifts.py:306
+msgid "承認者"
+msgstr "审批人"
+
+#: booking/models/shifts.py:308
+msgid "承認日時"
+msgstr "审批日期时间"
+
+#: booking/models/shifts.py:314 booking/models/shifts.py:315
+msgid "シフト交代・欠勤申請"
+msgstr "换班·缺勤申请"
+
+#: booking/templates/booking/checkin_scan.html:28
+msgid "QRスキャン"
+msgstr "QR扫描"
+
+#: booking/templates/booking/checkin_scan.html:31
+msgid "口頭コード入力"
+msgstr "输入口头代码"
+
+#: booking/templates/booking/checkin_scan.html:48
+msgid "お客様から口頭で伝えられた6桁コードを入力してください。"
+msgstr "请输入客户口头告知的6位数代码。"
+
+#: booking/templates/booking/checkin_scan.html:50
+msgid "6桁コード"
+msgstr "6位数代码"
+
+#: booking/templates/booking/checkin_scan.html:170
+msgid "カメラを利用できません。口頭コード入力タブをご利用ください。"
+msgstr "无法使用相机。请使用口头代码输入标签页。"
+
+#: booking/templates/booking/customer_menu.html:51
+msgid "売切れ"
+msgstr "售罄"
+
+#: booking/templates/booking/customer_menu.html:58
+msgid "メニューはまだ登録されていません。"
+msgstr "菜单尚未注册。"
+
+#: booking/templates/booking/inbound_qr.html:5
+#: booking/templates/booking/inbound_qr.html:17
+msgid "入庫スキャン"
+msgstr "入库扫描"
+
+#: booking/templates/booking/inbound_qr.html:26
+msgid "商品のバーコードまたはQRコードをスキャンして入庫登録を行います。"
+msgstr "扫描商品条形码或QR码进行入库登记。"
+
+#: booking/templates/booking/inbound_qr.html:42
+msgid "SKU / バーコード"
+msgstr "SKU / 条形码"
+
+#: booking/templates/booking/inbound_qr.html:43
+msgid "SKU番号"
+msgstr "SKU编号"
+
+#: booking/templates/booking/inbound_qr.html:53
+msgid "仕入先など"
+msgstr "供应商等"
+
+#: booking/templates/booking/inbound_qr.html:58
+msgid "入庫登録"
+msgstr "入库登记"
+
+#: booking/templates/booking/inbound_qr.html:67
+msgid "検出された商品"
+msgstr "检测到的商品"
+
+#: booking/templates/booking/iot_mq9_graph.html:119
+msgid "センサーモニター"
+msgstr "传感器监控"
+
+#: booking/templates/booking/iot_mq9_graph.html:121
+msgid "読み込み中…"
+msgstr "加载中…"
+
+#: booking/templates/booking/iot_mq9_graph.html:125
+msgid "1.5日"
+msgstr "1.5天"
+
+#: booking/templates/booking/iot_mq9_graph.html:152
+#: booking/templates/booking/iot_mq9_graph.html:169
+#: booking/templates/booking/iot_mq9_graph.html:186
+#: booking/templates/booking/iot_mq9_graph.html:203
+msgid "データを取得中…"
+msgstr "正在获取数据…"
+
+#: booking/templates/booking/iot_mq9_graph.html:225
+msgid "正常"
+msgstr "正常"
+
+#: booking/templates/booking/iot_mq9_graph.html:226
+msgid "やや高め"
+msgstr "略高"
+
+#: booking/templates/booking/iot_mq9_graph.html:230
+msgid "空気はきれいです"
+msgstr "空气质量良好"
+
+#: booking/templates/booking/iot_mq9_graph.html:231
+msgid "換気を推奨します"
+msgstr "建议通风"
+
+#: booking/templates/booking/iot_mq9_graph.html:232
+msgid "CO濃度が上昇中 — 換気扇を確認"
+msgstr "CO浓度上升中 — 请检查通风扇"
+
+#: booking/templates/booking/iot_mq9_graph.html:233
+msgid "すぐに換気してください！"
+msgstr "请立即通风！"
+
+#: booking/templates/booking/iot_mq9_graph.html:234
+msgid "即座に退避・換気が必要！"
+msgstr "需要立即撤离并通风！"
+
+#: booking/templates/booking/iot_mq9_graph.html:236
+msgid "OFF閾値 (200)"
+msgstr "OFF阈值（200）"
+
+#: booking/templates/booking/iot_mq9_graph.html:237
+msgid "ON閾値 (400)"
+msgstr "ON阈值（400）"
+
+#: booking/templates/booking/iot_mq9_graph.html:238
+msgid "警報レベル (800)"
+msgstr "警报级别（800）"
+
+#: booking/templates/booking/iot_mq9_graph.html:240
+msgid "暗い"
+msgstr "暗"
+
+#: booking/templates/booking/iot_mq9_graph.html:241
+msgid "通常"
+msgstr "正常"
+
+#: booking/templates/booking/iot_mq9_graph.html:242
+msgid "非常に明るい"
+msgstr "非常明亮"
+
+#: booking/templates/booking/iot_mq9_graph.html:243
+msgid "照明がOFFの可能性"
+msgstr "照明可能已关闭"
+
+#: booking/templates/booking/iot_mq9_graph.html:244
+msgid "適切な明るさです"
+msgstr "亮度适当"
+
+#: booking/templates/booking/iot_mq9_graph.html:245
+msgid "直射日光？"
+msgstr "阳光直射？"
+
+#: booking/templates/booking/iot_mq9_graph.html:247
+msgid "静か"
+msgstr "安静"
+
+#: booking/templates/booking/iot_mq9_graph.html:249
+msgid "騒がしい"
+msgstr "嘈杂"
+
+#: booking/templates/booking/iot_mq9_graph.html:250
+msgid "人がいない可能性"
+msgstr "可能无人"
+
+#: booking/templates/booking/iot_mq9_graph.html:251
+msgid "普通の環境音です"
+msgstr "正常环境音"
+
+#: booking/templates/booking/iot_mq9_graph.html:252
+msgid "異常な音量"
+msgstr "异常噪音"
+
+#: booking/templates/booking/iot_mq9_graph.html:256
+msgid "検知中"
+msgstr "检测中"
+
+#: booking/templates/booking/iot_mq9_graph.html:257
+msgid "人の動きを検知中"
+msgstr "检测到人员移动"
+
+#: booking/templates/booking/iot_mq9_graph.html:258
+msgid "モーションセンサーが反応しています"
+msgstr "运动传感器已激活"
+
+#: booking/templates/booking/iot_mq9_graph.html:259
+msgid "静止"
+msgstr "静止"
+
+#: booking/templates/booking/iot_mq9_graph.html:260
+msgid "動きなし"
+msgstr "无移动"
+
+#: booking/templates/booking/iot_mq9_graph.html:261
+msgid "静止状態 — 動きは検知されていません"
+msgstr "静止状态 — 未检测到移动"
+
+#: booking/templates/booking/iot_mq9_graph.html:262
+msgid " 件"
+msgstr "件"
+
+#: booking/templates/booking/iot_mq9_graph.html:266
+msgid "デバイスなし"
+msgstr "无设备"
+
+#: booking/templates/booking/iot_mq9_graph.html:267
+msgid "取得失敗"
+msgstr "获取失败"
+
+#: booking/templates/booking/reservation_qr.html:24
+msgid "QRが読み取れない場合の口頭確認コード"
+msgstr "QR无法读取时的口头确认代码"
+
+#: booking/templates/booking/staff_shift_calendar.html:24
+msgid "未提出"
+msgstr "未提交"
+
+#: booking/templates/booking/staff_shift_calendar.html:39
+msgid "追加募集中のシフト"
+msgstr "正在追加招募的班次"
+
+#: booking/templates/booking/staff_shift_calendar.html:41
+msgid "以下の時間帯でスタッフが不足しています。応募できます。"
+msgstr "以下时段人员不足。您可以申请。"
+
+#: booking/templates/booking/staff_shift_calendar.html:48
+msgid "不足人数"
+msgstr "缺少人数"
+
+#: booking/templates/booking/staff_shift_calendar.html:49
+msgid "応募"
+msgstr "申请"
+
+#: booking/templates/booking/staff_shift_calendar.html:63
+msgid "応募する"
+msgstr "申请"
+
+#: booking/templates/booking/staff_shift_submit.html:22
+msgid "最低%(hours)s時間以上のシフトを入力してください。"
+msgstr "请输入至少%(hours)s小时的班次。"
+
+#: booking/templates/booking/staff_shift_submit.html:120
+msgid "休業日のためシフトを入れられません"
+msgstr "因休息日无法排班"
+
+#: templates/admin/booking/restaurant_dashboard.html:318
+msgid "期間"
+msgstr "期间"
+
+#: templates/admin/booking/restaurant_dashboard.html:320
+#: templates/admin/booking/restaurant_dashboard.html:513
+#: templates/admin/booking/restaurant_dashboard.html:528
+#: templates/admin/booking/restaurant_dashboard.html:675
+#: templates/admin/booking/restaurant_dashboard.html:740
+#: templates/admin/booking/restaurant_dashboard.html:768
+#: templates/admin/booking/restaurant_dashboard.html:833
+msgid "日別"
+msgstr "按日"
+
+#: templates/admin/booking/restaurant_dashboard.html:321
+#: templates/admin/booking/restaurant_dashboard.html:514
+#: templates/admin/booking/restaurant_dashboard.html:529
+#: templates/admin/booking/restaurant_dashboard.html:676
+#: templates/admin/booking/restaurant_dashboard.html:741
+#: templates/admin/booking/restaurant_dashboard.html:769
+#: templates/admin/booking/restaurant_dashboard.html:834
+msgid "週別"
+msgstr "按周"
+
+#: templates/admin/booking/restaurant_dashboard.html:322
+#: templates/admin/booking/restaurant_dashboard.html:515
+#: templates/admin/booking/restaurant_dashboard.html:530
+#: templates/admin/booking/restaurant_dashboard.html:677
+#: templates/admin/booking/restaurant_dashboard.html:742
+#: templates/admin/booking/restaurant_dashboard.html:770
+#: templates/admin/booking/restaurant_dashboard.html:835
+msgid "月別"
+msgstr "按月"
+
+#: templates/admin/booking/restaurant_dashboard.html:323
+#: templates/admin/booking/restaurant_dashboard.html:516
+#: templates/admin/booking/restaurant_dashboard.html:531
+#: templates/admin/booking/restaurant_dashboard.html:678
+#: templates/admin/booking/restaurant_dashboard.html:743
+#: templates/admin/booking/restaurant_dashboard.html:771
+#: templates/admin/booking/restaurant_dashboard.html:836
+msgid "年別"
+msgstr "按年"
+
+#: templates/admin/booking/restaurant_dashboard.html:330
+msgid "概要"
+msgstr "概要"
+
+#: templates/admin/booking/restaurant_dashboard.html:331
+msgid "総売上"
+msgstr "总销售额"
+
+#: templates/admin/booking/restaurant_dashboard.html:335
+msgid "ECショップ売上"
+msgstr "EC店铺销售额"
+
+#: templates/admin/booking/restaurant_dashboard.html:336
+msgid "店内メニュー売上"
+msgstr "店内菜单销售额"
+
+#: templates/admin/booking/restaurant_dashboard.html:339
+msgid "運営"
+msgstr "运营"
+
+#: templates/admin/booking/restaurant_dashboard.html:346
+#: templates/admin/booking/restaurant_dashboard.html:353
+msgid "予約KPI"
+msgstr "预约KPI"
+
+#: templates/admin/booking/restaurant_dashboard.html:347
+msgid "日別予約グラフ"
+msgstr "每日预约图表"
+
+#: templates/admin/booking/restaurant_dashboard.html:348
+msgid "インサイト"
+msgstr "洞察"
+
+#: templates/admin/booking/restaurant_dashboard.html:349
+#: templates/admin/booking/restaurant_dashboard.html:392
+msgid "KPIスコアカード"
+msgstr "KPI计分卡"
+
+#: templates/admin/booking/restaurant_dashboard.html:356
+msgid "今後の予約数"
+msgstr "未来预约数"
+
+#: templates/admin/booking/restaurant_dashboard.html:360
+msgid "キャンセル率"
+msgstr "取消率"
+
+#: templates/admin/booking/restaurant_dashboard.html:364
+msgid "過去90日の予約合計"
+msgstr "过去90天预约总数"
+
+#: templates/admin/booking/restaurant_dashboard.html:372
+msgid "日別予約数（過去90日）"
+msgstr "每日预约数（过去90天）"
+
+#: templates/admin/booking/restaurant_dashboard.html:381
+msgid "すべて既読"
+msgstr "全部标为已读"
+
+#: templates/admin/booking/restaurant_dashboard.html:382
+#: templates/admin/booking/restaurant_dashboard.html:1123
+msgid "分析実行"
+msgstr "执行分析"
+
+#: templates/admin/booking/restaurant_dashboard.html:403
+#: templates/admin/booking/restaurant_dashboard.html:414
+#: templates/admin/booking/restaurant_dashboard.html:662
+#: templates/admin/booking/restaurant_dashboard.html:755
+msgid "売上推移"
+msgstr "销售趋势"
+
+#: templates/admin/booking/restaurant_dashboard.html:404
+#: templates/admin/booking/restaurant_dashboard.html:421
+#: templates/admin/booking/restaurant_dashboard.html:663
+#: templates/admin/booking/restaurant_dashboard.html:756
+msgid "人気商品 TOP10"
+msgstr "热门商品TOP10"
+
+#: templates/admin/booking/restaurant_dashboard.html:405
+#: templates/admin/booking/restaurant_dashboard.html:664
+#: templates/admin/booking/restaurant_dashboard.html:757
+msgid "メニュー分析"
+msgstr "菜单分析"
+
+#: templates/admin/booking/restaurant_dashboard.html:406
+#: templates/admin/booking/restaurant_dashboard.html:665
+#: templates/admin/booking/restaurant_dashboard.html:758
+msgid "ABC分析"
+msgstr "ABC分析"
+
+#: templates/admin/booking/restaurant_dashboard.html:407
+#: templates/admin/booking/restaurant_dashboard.html:491
+#: templates/admin/booking/restaurant_dashboard.html:666
+#: templates/admin/booking/restaurant_dashboard.html:759
+msgid "売上予測"
+msgstr "销售预测"
+
+#: templates/admin/booking/restaurant_dashboard.html:408
+#: templates/admin/booking/restaurant_dashboard.html:667
+#: templates/admin/booking/restaurant_dashboard.html:760
+msgid "時間帯別売上"
+msgstr "按时段销售额"
+
+#: templates/admin/booking/restaurant_dashboard.html:409
+#: templates/admin/booking/restaurant_dashboard.html:668
+#: templates/admin/booking/restaurant_dashboard.html:761
+msgid "客単価推移"
+msgstr "客单价趋势"
+
+#: templates/admin/booking/restaurant_dashboard.html:410
+#: templates/admin/booking/restaurant_dashboard.html:526
+msgid "チャネル別売上"
+msgstr "按渠道销售额"
+
+#: templates/admin/booking/restaurant_dashboard.html:428
+msgid "メニューエンジニアリング マトリクス"
+msgstr "菜单工程矩阵"
+
+#: templates/admin/booking/restaurant_dashboard.html:444
+#: templates/admin/booking/restaurant_dashboard.html:1144
+msgid "販売数"
+msgstr "销售数量"
+
+#: templates/admin/booking/restaurant_dashboard.html:445
+#: templates/admin/booking/restaurant_dashboard.html:1145
+msgid "利益率"
+msgstr "利润率"
+
+#: templates/admin/booking/restaurant_dashboard.html:447
+#: templates/admin/booking/restaurant_dashboard.html:1147
+msgid "分類"
+msgstr "分类"
+
+#: templates/admin/booking/restaurant_dashboard.html:461
+msgid "ABC分析（パレート）"
+msgstr "ABC分析（帕累托）"
+
+#: templates/admin/booking/restaurant_dashboard.html:463
+msgid "上位80%%"
+msgstr "前80%%"
+
+#: templates/admin/booking/restaurant_dashboard.html:475
+#: templates/admin/booking/restaurant_dashboard.html:1148
+msgid "構成比"
+msgstr "构成比"
+
+#: templates/admin/booking/restaurant_dashboard.html:476
+#: templates/admin/booking/restaurant_dashboard.html:1149
+msgid "累積"
+msgstr "累计"
+
+#: templates/admin/booking/restaurant_dashboard.html:477
+#: templates/admin/booking/restaurant_dashboard.html:1150
+msgid "ランク"
+msgstr "排名"
+
+#: templates/admin/booking/restaurant_dashboard.html:501
+msgid "時間帯別売上ヒートマップ"
+msgstr "按时段销售额热力图"
+
+#: templates/admin/booking/restaurant_dashboard.html:502
+msgid "曜日 × 時間帯（過去90日）"
+msgstr "星期 × 时段（过去90天）"
+
+#: templates/admin/booking/restaurant_dashboard.html:511
+msgid "客単価（AOV）推移"
+msgstr "客单价（AOV）趋势"
+
+#: templates/admin/booking/restaurant_dashboard.html:542
+msgid "コホート分析"
+msgstr "队列分析"
+
+#: templates/admin/booking/restaurant_dashboard.html:543
+msgid "RFM分析"
+msgstr "RFM分析"
+
+#: templates/admin/booking/restaurant_dashboard.html:544
+msgid "バスケット分析"
+msgstr "购物篮分析"
+
+#: templates/admin/booking/restaurant_dashboard.html:545
+msgid "NPS・満足度"
+msgstr "NPS与满意度"
+
+#: templates/admin/booking/restaurant_dashboard.html:550
+msgid "月別コホート リテンション"
+msgstr "月度队列留存"
+
+#: templates/admin/booking/restaurant_dashboard.html:551
+msgid "初回来店月ごとの継続率"
+msgstr "按首次到店月份的留存率"
+
+#: templates/admin/booking/restaurant_dashboard.html:561
+msgid "RFMセグメンテーション"
+msgstr "RFM细分"
+
+#: templates/admin/booking/restaurant_dashboard.html:577
+msgid "バスケット分析（併売ルール）"
+msgstr "购物篮分析（交叉销售规则）"
+
+#: templates/admin/booking/restaurant_dashboard.html:589
+msgid "NPSスコア"
+msgstr "NPS得分"
+
+#: templates/admin/booking/restaurant_dashboard.html:594
+msgid "推奨者"
+msgstr "推荐者"
+
+#: templates/admin/booking/restaurant_dashboard.html:595
+msgid "中立者"
+msgstr "中立者"
+
+#: templates/admin/booking/restaurant_dashboard.html:596
+msgid "批判者"
+msgstr "批评者"
+
+#: templates/admin/booking/restaurant_dashboard.html:598
+msgid "回答数"
+msgstr "回答数"
+
+#: templates/admin/booking/restaurant_dashboard.html:602
+msgid "カテゴリ別評価"
+msgstr "按类别评价"
+
+#: templates/admin/booking/restaurant_dashboard.html:607
+msgid "NPS推移"
+msgstr "NPS趋势"
+
+#: templates/admin/booking/restaurant_dashboard.html:611
+msgid "最新フィードバック"
+msgstr "最新反馈"
+
+#: templates/admin/booking/restaurant_dashboard.html:623
+msgid "売上ランキング"
+msgstr "销售排行"
+
+#: templates/admin/booking/restaurant_dashboard.html:627
+msgid "キャスト別 予約数・売上比較"
+msgstr "按Cast预约数与销售额比较"
+
+#: templates/admin/booking/restaurant_dashboard.html:633
+msgid "キャスト別 売上ランキング"
+msgstr "按Cast销售排行"
+
+#: templates/admin/booking/restaurant_dashboard.html:637
+msgid "順位"
+msgstr "排名"
+
+#: templates/admin/booking/restaurant_dashboard.html:640
+#: templates/admin/booking/restaurant_dashboard.html:1083
+msgid "売上 (円)"
+msgstr "销售额（日元）"
+
+#: templates/admin/booking/restaurant_dashboard.html:654
+msgid "スタッフ別 予約数・売上比較"
+msgstr "按员工预约数与销售额比较"
+
+#: templates/admin/booking/restaurant_dashboard.html:673
+msgid "ECショップ 売上推移"
+msgstr "EC店铺销售趋势"
+
+#: templates/admin/booking/restaurant_dashboard.html:686
+msgid "ECショップ 人気商品 TOP10"
+msgstr "EC店铺热门商品TOP10"
+
+#: templates/admin/booking/restaurant_dashboard.html:693
+msgid "EC メニューエンジニアリング"
+msgstr "EC菜单工程"
+
+#: templates/admin/booking/restaurant_dashboard.html:709
+msgid "EC ABC分析（パレート）"
+msgstr "EC ABC分析（帕累托）"
+
+#: templates/admin/booking/restaurant_dashboard.html:719
+msgid "EC 売上予測"
+msgstr "EC销售预测"
+
+#: templates/admin/booking/restaurant_dashboard.html:729
+msgid "EC 時間帯別売上"
+msgstr "EC按时段销售额"
+
+#: templates/admin/booking/restaurant_dashboard.html:738
+msgid "EC 客単価推移"
+msgstr "EC客单价趋势"
+
+#: templates/admin/booking/restaurant_dashboard.html:766
+msgid "店内メニュー 売上推移"
+msgstr "店内菜单销售趋势"
+
+#: templates/admin/booking/restaurant_dashboard.html:779
+msgid "店内メニュー 人気商品 TOP10"
+msgstr "店内菜单热门商品TOP10"
+
+#: templates/admin/booking/restaurant_dashboard.html:786
+msgid "店内 メニューエンジニアリング"
+msgstr "店内菜单工程"
+
+#: templates/admin/booking/restaurant_dashboard.html:802
+msgid "店内 ABC分析（パレート）"
+msgstr "店内ABC分析（帕累托）"
+
+#: templates/admin/booking/restaurant_dashboard.html:812
+msgid "店内 売上予測"
+msgstr "店内销售预测"
+
+#: templates/admin/booking/restaurant_dashboard.html:822
+msgid "店内 時間帯別売上"
+msgstr "店内按时段销售额"
+
+#: templates/admin/booking/restaurant_dashboard.html:831
+msgid "店内 客単価推移"
+msgstr "店内客单价趋势"
+
+#: templates/admin/booking/restaurant_dashboard.html:849
+msgid "今月のシフト状況"
+msgstr "本月排班状况"
+
+#: templates/admin/booking/restaurant_dashboard.html:851
+msgid "シフトカレンダーを開く"
+msgstr "打开排班日历"
+
+#: templates/admin/booking/restaurant_dashboard.html:856
+#: templates/admin/booking/restaurant_dashboard.html:874
+msgid "確定シフト数"
+msgstr "已确定班次数"
+
+#: templates/admin/booking/restaurant_dashboard.html:860
+#: templates/admin/booking/restaurant_dashboard.html:875
+msgid "同期済み"
+msgstr "已同步"
+
+#: templates/admin/booking/restaurant_dashboard.html:869
+msgid "スタッフ別シフト数"
+msgstr "按员工班次数"
+
+#: templates/admin/booking/restaurant_dashboard.html:890
+msgid "本日の出退勤状況"
+msgstr "今日出退勤状况"
+
+#: templates/admin/booking/restaurant_dashboard.html:906
+#: templates/admin/booking/restaurant_dashboard.html:1125
+msgid "退勤済み"
+msgstr "已下班"
+
+#: templates/admin/booking/restaurant_dashboard.html:947
+msgid "コンバージョン率"
+msgstr "转化率"
+
+#: templates/admin/booking/restaurant_dashboard.html:963
+msgid "モデル精度"
+msgstr "模型精度"
+
+#: templates/admin/booking/restaurant_dashboard.html:967
+msgid "今日の推薦スタッフ数"
+msgstr "今日推荐员工数"
+
+#: templates/admin/booking/restaurant_dashboard.html:976
+msgid "進行中の注文"
+msgstr "进行中的订单"
+
+#: templates/admin/booking/restaurant_dashboard.html:988
+msgid "未処理"
+msgstr "未处理"
+
+#: templates/admin/booking/restaurant_dashboard.html:996
+msgid "配膳済み"
+msgstr "已上餐"
+
+#: templates/admin/booking/restaurant_dashboard.html:1004
+msgid "在庫アラート"
+msgstr "库存警报"
+
+#: templates/admin/booking/restaurant_dashboard.html:1015
+msgid "サマリー"
+msgstr "摘要"
+
+#: templates/admin/booking/restaurant_dashboard.html:1016
+msgid "日別推移"
+msgstr "每日趋势"
+
+#: templates/admin/booking/restaurant_dashboard.html:1017
+msgid "スタッフ別"
+msgstr "按员工"
+
+#: templates/admin/booking/restaurant_dashboard.html:1018
+msgid "時間帯別"
+msgstr "按时段"
+
+#: templates/admin/booking/restaurant_dashboard.html:1025
+msgid "総予約数"
+msgstr "预约总数"
+
+#: templates/admin/booking/restaurant_dashboard.html:1029
+msgid "チェックイン済"
+msgstr "已签到"
+
+#: templates/admin/booking/restaurant_dashboard.html:1033
+#: templates/admin/booking/restaurant_dashboard.html:1104
+msgid "ノーショー"
+msgstr "未到场"
+
+#: templates/admin/booking/restaurant_dashboard.html:1037
+msgid "チェックイン率"
+msgstr "签到率"
+
+#: templates/admin/booking/restaurant_dashboard.html:1046
+msgid "日別チェックイン推移"
+msgstr "每日签到趋势"
+
+#: templates/admin/booking/restaurant_dashboard.html:1056
+msgid "スタッフ別チェックイン率"
+msgstr "按员工签到率"
+
+#: templates/admin/booking/restaurant_dashboard.html:1066
+msgid "時間帯別チェックイン分布"
+msgstr "按时段签到分布"
+
+#: templates/admin/booking/restaurant_dashboard.html:1082
+msgid "キャンセル数"
+msgstr "取消数"
+
+#: templates/admin/booking/restaurant_dashboard.html:1084
+msgid "売上: "
+msgstr "销售额："
+
+#: templates/admin/booking/restaurant_dashboard.html:1085
+msgid " 円"
+msgstr " 日元"
+
+#: templates/admin/booking/restaurant_dashboard.html:1087
+msgid "ECショップ売上 (円)"
+msgstr "EC店铺销售额（日元）"
+
+#: templates/admin/booking/restaurant_dashboard.html:1088
+msgid "店内メニュー売上 (円)"
+msgstr "店内菜单销售额（日元）"
+
+#: templates/admin/booking/restaurant_dashboard.html:1089
+msgid "客単価 (円)"
+msgstr "客单价（日元）"
+
+#: templates/admin/booking/restaurant_dashboard.html:1090
+msgid "客単価: "
+msgstr "客单价："
+
+#: templates/admin/booking/restaurant_dashboard.html:1091
+msgid "累積構成比 (%%)"
+msgstr "累计构成比（%%）"
+
+#: templates/admin/booking/restaurant_dashboard.html:1092
+msgid "累積: "
+msgstr "累计："
+
+#: templates/admin/booking/restaurant_dashboard.html:1093
+msgid "販売数量 (人気度)"
+msgstr "销售数量（人气度）"
+
+#: templates/admin/booking/restaurant_dashboard.html:1094
+msgid "販売数量"
+msgstr "销售数量"
+
+#: templates/admin/booking/restaurant_dashboard.html:1095
+msgid "利益率 (%%)"
+msgstr "利润率（%%）"
+
+#: templates/admin/booking/restaurant_dashboard.html:1096
+msgid "実績"
+msgstr "实际"
+
+#: templates/admin/booking/restaurant_dashboard.html:1097
+msgid "予測"
+msgstr "预测"
+
+#: templates/admin/booking/restaurant_dashboard.html:1098
+msgid "上限"
+msgstr "上限"
+
+#: templates/admin/booking/restaurant_dashboard.html:1099
+msgid "下限"
+msgstr "下限"
+
+#: templates/admin/booking/restaurant_dashboard.html:1102
+msgid "平均評価"
+msgstr "平均评价"
+
+#: templates/admin/booking/restaurant_dashboard.html:1105
+msgid "チェックイン率 (%%)"
+msgstr "签到率（%%）"
+
+#: templates/admin/booking/restaurant_dashboard.html:1106
+msgid "チェックイン数"
+msgstr "签到数"
+
+#: templates/admin/booking/restaurant_dashboard.html:1109
+msgid "データなし"
+msgstr "无数据"
+
+#: templates/admin/booking/restaurant_dashboard.html:1110
+msgid "取得エラー"
+msgstr "获取错误"
+
+#: templates/admin/booking/restaurant_dashboard.html:1111
+msgid "データ取得エラー"
+msgstr "数据获取错误"
+
+#: templates/admin/booking/restaurant_dashboard.html:1112
+msgid "シフトデータなし"
+msgstr "无排班数据"
+
+#: templates/admin/booking/restaurant_dashboard.html:1113
+msgid "キャストデータなし"
+msgstr "无Cast数据"
+
+#: templates/admin/booking/restaurant_dashboard.html:1114
+msgid "本日の勤怠データなし"
+msgstr "今日无考勤数据"
+
+#: templates/admin/booking/restaurant_dashboard.html:1115
+msgid "在庫アラートなし"
+msgstr "无库存警报"
+
+#: templates/admin/booking/restaurant_dashboard.html:1116
+msgid "残"
+msgstr "剩余"
+
+#: templates/admin/booking/restaurant_dashboard.html:1117
+msgid "フィードバックがありません"
+msgstr "暂无反馈"
+
+#: templates/admin/booking/restaurant_dashboard.html:1119
+msgid "読み込みエラー"
+msgstr "加载错误"
+
+#: templates/admin/booking/restaurant_dashboard.html:1120
+msgid "インサイトはありません。「分析実行」ボタンで最新の分析を行えます。"
+msgstr "暂无洞察。点击“执行分析”按钮可获取最新分析。"
+
+#: templates/admin/booking/restaurant_dashboard.html:1121
+msgid "既読にする"
+msgstr "标为已读"
+
+#: templates/admin/booking/restaurant_dashboard.html:1122
+msgid "分析中..."
+msgstr "分析中..."
+
+#: templates/admin/booking/restaurant_dashboard.html:1129
+msgid "移動平均+曜日係数"
+msgstr "移动平均+星期系数"
+
+#: templates/admin/booking/restaurant_dashboard.html:1131
+msgid "ペアワイズ分析"
+msgstr "成对分析"
+
+#: templates/admin/booking/restaurant_dashboard.html:1132
+msgid "対象トランザクション: "
+msgstr "目标交易："
+
+#: templates/admin/booking/restaurant_dashboard.html:1134
+msgid "デモ"
+msgstr "演示"
+
+#: templates/admin/booking/restaurant_dashboard.html:1135
+msgid "対象トランザクション: 100件（デモ）"
+msgstr "目标交易：100件（演示）"
+
+#: templates/admin/booking/restaurant_dashboard.html:1137
+msgid "前提商品"
+msgstr "前提商品"
+
+#: templates/admin/booking/restaurant_dashboard.html:1138
+msgid "結論商品"
+msgstr "结论商品"
+
+#: templates/admin/booking/restaurant_dashboard.html:1140
+msgid "コホート"
+msgstr "队列"
+
+#: templates/admin/booking/restaurant_dashboard.html:1141
+msgid "人数"
+msgstr "人数"
+
+#: templates/admin/booking/restaurant_dashboard.html:1152
+msgid "販売: "
+msgstr "销售："
+
+#: templates/admin/booking/restaurant_dashboard.html:1153
+msgid "利益率: "
+msgstr "利润率："
+
+#: templates/admin/booking/restaurant_dashboard.html:1154
+msgid "注文数: "
+msgstr "订单数："
+
+#: templates/admin/booking/restaurant_dashboard.html:1165
+msgid "良好"
+msgstr "良好"
+
+#: templates/admin/booking/restaurant_dashboard.html:1167
+msgid "要改善"
+msgstr "需改善"
+
+#: templates/admin/booking/restaurant_dashboard.html:1168
+msgid "基準: "
+msgstr "标准："
+
+#: templates/admin/booking/restaurant_dashboard.html:1170
+msgid "AI分析"
+msgstr "AI分析"
+
+#: templates/admin/booking/restaurant_dashboard.html:1171
+msgid "推奨アクション"
+msgstr "推荐操作"
+
+#: templates/admin/booking/restaurant_dashboard.html:1173
+msgid "料理"
+msgstr "菜品"
+
+#: templates/admin/booking/restaurant_dashboard.html:1174
+msgid "サービス"
+msgstr "服务"
+
+#: templates/admin/booking/restaurant_dashboard.html:1175
+msgid "雰囲気"
+msgstr "氛围"
+
+#: templates/admin/booking/restaurant_dashboard.html:1176
+msgid "料理:"
+msgstr "菜品："
+
+#: templates/admin/booking/restaurant_dashboard.html:1177
+msgid "サービス:"
+msgstr "服务："
+
+#: templates/admin/booking/restaurant_dashboard.html:1178
+msgid "雰囲気:"
+msgstr "氛围："
+
+#: templates/admin/booking/restaurant_dashboard.html:1187
+msgid "時"
+msgstr "时"
+
+#: templates/admin/booking/restaurant_dashboard.html:1193
+msgid "タブナビゲーション"
+msgstr "标签页导航"
+
+#: templates/admin/booking/restaurant_dashboard.html:1194
+msgid "ここでダッシュボードの各セクションを切り替えます。概要・売上・顧客・スタッフ・シフト・勤怠・運営の7つのタブがあります。"
+msgstr "在此切换仪表盘的各个板块。共有7个标签页：概要、销售、顾客、员工、排班、考勤、运营。"
+
+#: templates/admin/booking/restaurant_dashboard.html:1195
+msgid "概要タブ"
+msgstr "概要标签页"
+
+#: templates/admin/booking/restaurant_dashboard.html:1196
+msgid "予約KPI、日別予約グラフ、ビジネスインサイト、KPIスコアカードを確認できます。"
+msgstr "可查看预约KPI、每日预约图表、商业洞察和KPI计分卡。"
+
+#: templates/admin/booking/restaurant_dashboard.html:1197
+msgid "期間選択"
+msgstr "期间选择"
+
+#: templates/admin/booking/restaurant_dashboard.html:1198
+msgid "日別・週別・月別でデータの集計期間を切り替えられます。"
+msgstr "可按日、按周、按月切换数据汇总期间。"
+
+#: templates/admin/booking/restaurant_dashboard.html:1199
+msgid "売上タブ"
+msgstr "销售标签页"
+
+#: templates/admin/booking/restaurant_dashboard.html:1200
+msgid "売上推移、人気商品、メニュー分析、ABC分析、売上予測、時間帯別売上、客単価推移を確認できます。"
+msgstr "可查看销售趋势、热门商品、菜单分析、ABC分析、销售预测、按时段销售额和客单价趋势。"
+
+#: templates/admin/booking/restaurant_dashboard.html:1201
+msgid "顧客分析タブ"
+msgstr "顾客分析标签页"
+
+#: templates/admin/booking/restaurant_dashboard.html:1202
+msgid "コホート分析、RFMセグメンテーション、バスケット分析、NPS・顧客満足度を確認できます。"
+msgstr "可查看队列分析、RFM细分、购物篮分析和NPS/顾客满意度。"
+
+#: templates/admin/booking/restaurant_dashboard.html:1203
+msgid "運営タブ"
+msgstr "运营标签页"
+
+#: templates/admin/booking/restaurant_dashboard.html:1204
+msgid "在庫アラートなど、日常の運営に必要な情報を確認できます。"
+msgstr "可查看库存警报等日常运营所需信息。"
+
+#: templates/admin/booking/restaurant_dashboard.html:1205
+msgid "ヘルプボタン"
+msgstr "帮助按钮"
+
+#: templates/admin/booking/restaurant_dashboard.html:1206
+msgid "このボタンをクリックすると、いつでもこのヘルプを再表示できます。"
+msgstr "点击此按钮可随时重新显示此帮助。"
+
+#: templates/admin/booking/restaurant_dashboard.html:1208
+msgid "店内"
+msgstr "店内"
+
+#: templates/admin/booking/shift_calendar.html:942
+msgid "不足枠"
+msgstr "人员不足时段"
+
+#: templates/admin/booking/shift_calendar.html:944
+msgid "以下の時間帯で定員に達していません。再募集またはスタッフの追加をご検討ください。"
+msgstr "以下时段未达到满编。请考虑重新招募或增加员工。"
+
+#: templates/admin/booking/shift_calendar.html:977
+msgid "交代・欠勤申請"
+msgstr "换班·缺勤申请"
+
+#: templates/admin/booking/shift_calendar.html:998
+msgid "承認しますか？"
+msgstr "确认批准？"
+
+#: templates/admin/booking/shift_calendar.html:1005
+msgid "却下しますか？"
+msgstr "确认拒绝？"
+
+msgid "チェックイン率 (%)"
+msgstr "签到率（%）"
+
+msgid "上位80%"
+msgstr "前80%"
+
+msgid "利益率 (%)"
+msgstr "利润率（%）"
+
+msgid "累積構成比 (%)"
+msgstr "累计构成比（%）"
+
+#: booking/templates/booking/staff_shift_calendar.html:22
+msgid "提出済:"
+msgstr "已提交："
+
+#: booking/admin/backup.py:15
+msgid "スケジュール設定"
+msgstr "日程设置"
+
+#: booking/admin/backup.py:17
+msgid "バックアップの実行間隔を設定します。「毎分」はテスト用、本番は「毎時」か「毎日」推奨"
+msgstr "设置备份执行间隔。「每分钟」仅供测试使用，生产环境建议使用「每小时」或「每天」"
+
+#: booking/admin/backup.py:19
+msgid "S3設定"
+msgstr "S3设置"
+
+#: booking/admin/backup.py:22
+msgid "ローカル保持"
+msgstr "本地保留"
+
+#: booking/admin/backup.py:25
+msgid "オプション"
+msgstr "选项"
+
+#: booking/admin/backup.py:48
+msgid "手動バックアップを実行"
+msgstr "执行手动备份"
+
+#: booking/admin/backup.py:112
+msgid "サイズ"
+msgstr "大小"
+
+#: booking/admin/cms.py:120
+msgid ""
+"並び順はセクションキーのリスト: notice, company, sns, media, external_links（空の場合はデフォルト順）"
+msgstr "排列顺序为区块键列表：notice, company, sns, media, external_links（为空时使用默认顺序）"
+
+#: booking/admin/cms.py:133
+msgid "エラー報告やセキュリティイベント発生時のメール・SHANON通知設定"
+msgstr "错误报告及安全事件发生时的邮件・SHANON通知设置"
+
+#: booking/admin/cms.py:135 booking/models/cms.py:352
+msgid "デモモード"
+msgstr "演示模式"
+
+#: booking/admin/cms.py:137
+msgid "ONにするとデモデータもダッシュボードに表示。OFFで実データのみ"
+msgstr "开启后，仪表盘也会显示演示数据。关闭则仅显示真实数据"
+
+#: booking/admin/cms.py:139
+msgid "LINE連携"
+msgstr "LINE集成"
+
+#: booking/admin/cms.py:144
+msgid "LINE Bot機能のON/OFF。管理画面から即座に切り替え可能"
+msgstr "LINE Bot功能的开/关。可从管理界面即时切换"
+
+#: booking/admin/cms.py:146 booking/models/cms.py:401
+msgid "メンテナンスモード"
+msgstr "维护模式"
+
+#: booking/admin/cms.py:148
+msgid "ONにするとログイン済みスタッフ以外にメンテナンス画面を表示します"
+msgstr "开启后，除已登录员工外将显示维护页面"
+
+#: booking/admin/cms.py:150
+msgid "予約設定"
+msgstr "预约设置"
+
+#: booking/admin/cms.py:152
+msgid "無料予約モード: ONにすると全予約が決済スキップ・即確定になります。イベントや体験予約などに。"
+msgstr "免费预约模式：开启后，所有预约将跳过支付并立即确认。适用于活动、体验预约等。"
+
+#: booking/admin/cms.py:154 booking/admin/core.py:444
+msgid "外部埋め込み"
+msgstr "外部嵌入"
+
+#: booking/admin/cms.py:156
+msgid "WordPress等の外部サイトからiframeで予約カレンダー・シフト表示を埋め込む機能"
+msgstr "通过iframe从WordPress等外部网站嵌入预约日历和排班显示的功能"
+
+#: booking/admin/cms.py:457
+msgid "埋め込みコード"
+msgstr "嵌入代码"
+
+#: booking/admin/cms.py:918
+msgid "再現情報"
+msgstr "复现信息"
+
+#: booking/admin/cms.py:922
+msgid "対応"
+msgstr "对应"
+
+#: booking/admin/cms.py:925
+msgid "メタ情報"
+msgstr "元数据"
+
+#: booking/admin/core.py:60
+msgid "選択した予約を「返金済み」にする"
+msgstr "将选中的预约标记为「已退款」"
+
+#: booking/admin/core.py:106
+msgid "返金待ちの予約が選択されていません。"
+msgstr "未选择等待退款的预约。"
+
+#: booking/admin/core.py:325
+msgid "予約カレンダー設定"
+msgstr "预约日历设置"
+
+#: booking/admin/core.py:329
+msgid "シフト設定"
+msgstr "排班设置"
+
+#: booking/admin/core.py:364 booking/models/theme.py:74
+msgid "テーマプリセット"
+msgstr "主题预设"
+
+#: booking/admin/core.py:365
+msgid "カラー設定"
+msgstr "颜色设置"
+
+#: booking/admin/core.py:371
+#: booking/templates/admin/booking/theme_customizer/editor.html:158
+msgid "フォント"
+msgstr "字体"
+
+#: booking/admin/core.py:372
+msgid "ブランディング"
+msgstr "品牌形象"
+
+#: booking/admin/core.py:373
+msgid "上級者向け"
+msgstr "高级选项"
+
+#: booking/admin/core.py:452
+msgid "セットアップウィザード"
+msgstr "设置向导"
+
+#: booking/admin/core.py:457
+#: booking/templates/admin/booking/theme_customizer/editor.html:117
+msgid "テーマカスタマイザー"
+msgstr "主题自定义工具"
+
+#: booking/admin/core.py:462
+msgid "レイアウトエディタ"
+msgstr "布局编辑器"
+
+#: booking/admin/core.py:467
+msgid "ページビルダー"
+msgstr "页面构建器"
+
+#: booking/admin/core.py:474
+msgid "選択した店舗の埋め込みAPIキーを生成"
+msgstr "为选中的门店生成嵌入API密钥"
+
+#: booking/admin/line.py:19
+msgid "統計"
+msgstr "统计"
+
+#: booking/admin/social_posting.py:26
+msgid "トークン情報"
+msgstr "令牌信息"
+
+#: booking/admin/social_posting.py:40
+msgid "トークン状態"
+msgstr "令牌状态"
+
+#: booking/admin/social_posting.py:56
+msgid "テンプレート"
+msgstr "模板"
+
+#: booking/admin/social_posting.py:59
+msgid "変数: {store_name}, {date}, {staff_list}, {business_hours}, {month}"
+msgstr "变量：{store_name}, {date}, {staff_list}, {business_hours}, {month}"
+
+#: booking/admin/social_posting.py:103
+msgid "失敗した投稿をリトライ"
+msgstr "重试失败的发布"
+
+#: booking/admin/social_posting.py:124 booking/admin/social_posting.py:197
+#: booking/models/social_posting.py:216 social_browser/admin.py:49
+msgid "内容"
+msgstr "内容"
+
+#: booking/admin/social_posting.py:127
+msgid "Staffから自動生成"
+msgstr "从员工信息自动生成"
+
+#: booking/admin/social_posting.py:184
+msgid "品質"
+msgstr "质量"
+
+#: booking/admin/social_posting.py:192 booking/models/social_posting.py:43
+#: booking/models/social_posting.py:95 booking/models/social_posting.py:138
+#: social_browser/models.py:28
+msgid "プラットフォーム"
+msgstr "平台"
+
+#: booking/admin_site.py:60
+msgid "SNS自動投稿"
+msgstr "SNS自动发布"
+
+#: booking/admin_site.py:114 booking/admin_site.py:162
+#: booking/views_shift_manager.py:433
+#: templates/admin/booking/shift_calendar.html:1098
+msgid "必要人数設定"
+msgstr "所需人数设置"
+
+#: booking/admin_site.py:146
+#: booking/templates/admin/booking/social_drafts/list.html:8
+#: booking/templates/admin/booking/social_drafts/list.html:71
+msgid "SNS下書き管理"
+msgstr "SNS草稿管理"
+
+#: booking/admin_site.py:149 booking/forms.py:48 booking/models/cms.py:913
+#: booking/models/cms.py:914
+msgid "エラー報告"
+msgstr "错误报告"
+
+#: booking/models/backup.py:9
+msgid "無効"
+msgstr "无效"
+
+#: booking/models/backup.py:10
+msgid "毎分"
+msgstr "每分钟"
+
+#: booking/models/backup.py:11
+msgid "毎時"
+msgstr "每小时"
+
+#: booking/models/backup.py:12
+msgid "毎日"
+msgstr "每天"
+
+#: booking/models/backup.py:16
+msgid "バックアップ間隔"
+msgstr "备份间隔"
+
+#: booking/models/backup.py:19
+msgid "S3アップロード"
+msgstr "S3上传"
+
+#: booking/models/backup.py:21
+msgid "S3バケット名"
+msgstr "S3存储桶名称"
+
+#: booking/models/backup.py:25
+msgid "ローカル保持数"
+msgstr "本地保留数量"
+
+#: booking/models/backup.py:26
+msgid "ローカルに保持するバックアップファイルの最大数"
+msgstr "本地保留的最大备份文件数量"
+
+#: booking/models/backup.py:29
+msgid "S3保持日数"
+msgstr "S3保留天数"
+
+#: booking/models/backup.py:30
+msgid "S3上のバックアップを保持する日数"
+msgstr "S3上备份的保留天数"
+
+#: booking/models/backup.py:33
+msgid "デモデータを除外"
+msgstr "排除演示数据"
+
+#: booking/models/backup.py:34
+msgid "ONにするとis_demo=Trueのレコードをバックアップから除外"
+msgstr "开启后，将从备份中排除is_demo=True的记录"
+
+#: booking/models/backup.py:37
+msgid "LINE通知"
+msgstr "LINE通知"
+
+#: booking/models/backup.py:38
+msgid "バックアップ完了/失敗時にLINE Notifyで通知"
+msgstr "备份完成/失败时通过LINE Notify发送通知"
+
+#: booking/models/backup.py:44 booking/models/backup.py:45
+msgid "バックアップ設定"
+msgstr "备份设置"
+
+#: booking/models/backup.py:63
+msgid "実行中"
+msgstr "执行中"
+
+#: booking/models/backup.py:64 social_browser/models.py:64
+msgid "成功"
+msgstr "成功"
+
+#: booking/models/backup.py:65 booking/models/line_customer.py:69
+#: booking/models/social_posting.py:25
+msgid "失敗"
+msgstr "失败"
+
+#: booking/models/backup.py:68
+msgid "スケジュール"
+msgstr "定时"
+
+#: booking/models/backup.py:69
+msgid "手動"
+msgstr "手动"
+
+#: booking/models/backup.py:72
+msgid "ファイル名"
+msgstr "文件名"
+
+#: booking/models/backup.py:73
+msgid "ファイルサイズ(bytes)"
+msgstr "文件大小(bytes)"
+
+#: booking/models/backup.py:79
+msgid "トリガー"
+msgstr "触发器"
+
+#: booking/models/backup.py:82
+msgid "S3アップロード済み"
+msgstr "已上传至S3"
+
+#: booking/models/backup.py:83
+msgid "S3キー"
+msgstr "S3密钥"
+
+#: booking/models/backup.py:84 booking/models/social_posting.py:162
+#: social_browser/models.py:65
+msgid "エラーメッセージ"
+msgstr "错误消息"
+
+#: booking/models/backup.py:85
+msgid "所要時間(秒)"
+msgstr "耗时(秒)"
+
+#: booking/models/backup.py:86
+msgid "開始日時"
+msgstr "开始时间"
+
+#: booking/models/backup.py:91 booking/models/backup.py:92
+msgid "バックアップ履歴"
+msgstr "备份历史"
+
+#: booking/models/cms.py:188 booking/models/cms.py:231
+#: booking/models/cms.py:793 booking/models/cms.py:854
+#: booking/models/hr.py:222 booking/models/hr.py:404
+#: booking/models/orders.py:77 booking/models/orders.py:241
+#: booking/models/schedule.py:137 booking/models/shifts.py:52
+#: booking/models/shifts.py:114
+msgid "デモデータ"
+msgstr "演示数据"
+
+#: booking/models/cms.py:309
+msgid "例: https://x.com/youraccount"
+msgstr "例：https://x.com/youraccount"
+
+#: booking/models/cms.py:312
+msgid "Threads URL"
+msgstr "Threads URL"
+
+#: booking/models/cms.py:313
+msgid "例: https://www.threads.com/@youraccount"
+msgstr "例：https://www.threads.com/@youraccount"
+
+#: booking/models/cms.py:314
+msgid "TikTok URL"
+msgstr "TikTok URL"
+
+#: booking/models/cms.py:315
+msgid "例: https://www.tiktok.com/@youraccount"
+msgstr "例：https://www.tiktok.com/@youraccount"
+
+#: booking/models/cms.py:329
+msgid "サイドバー並び順"
+msgstr "侧边栏排列顺序"
+
+#: booking/models/cms.py:330
+msgid "セクションの表示順序。例: [\"notice\",\"sns\",\"media\",\"external_links\",\"company\"]"
+msgstr "区块显示顺序。示例：[\"notice\",\"sns\",\"media\",\"external_links\",\"company\"]"
+
+#: booking/models/cms.py:353
+msgid "ONにするとデモデータもダッシュボードに表示します。OFFで実データのみ表示"
+msgstr "开启后，仪表盘也会显示演示数据。关闭则仅显示真实数据"
+
+#: booking/models/cms.py:356
+msgid "LINEチャットボット"
+msgstr "LINE聊天机器人"
+
+#: booking/models/cms.py:357
+msgid "LINEからのチャットボット予約を有効化"
+msgstr "启用从LINE发起的聊天机器人预约"
+
+#: booking/models/cms.py:358
+msgid "LINEリマインダー"
+msgstr "LINE提醒"
+
+#: booking/models/cms.py:359
+msgid "予約前日・当日のLINEリマインダー送信を有効化"
+msgstr "启用预约前一天及当天的LINE提醒发送"
+
+#: booking/models/cms.py:360
+msgid "LINEセグメント配信"
+msgstr "LINE分组推送"
+
+#: booking/models/cms.py:361
+msgid "顧客セグメント別のLINE配信機能を有効化"
+msgstr "启用按客户分组的LINE推送功能"
+
+#: booking/models/cms.py:386
+msgid "タイムカードを表示"
+msgstr "显示打卡记录"
+
+#: booking/models/cms.py:387
+msgid "管理サイドバーに「タイムカード打刻」を表示するかどうか"
+msgstr "是否在管理侧边栏中显示「打卡记录」"
+
+#: booking/models/cms.py:388
+msgid "ページ設定を表示"
+msgstr "显示页面设置"
+
+#: booking/models/cms.py:389
+msgid "管理サイドバーに「メインページ設定」を表示するかどうか"
+msgstr "是否在管理侧边栏中显示「主页面设置」"
+
+#: booking/models/cms.py:390
+msgid "システムを表示"
+msgstr "显示系统"
+
+#: booking/models/cms.py:391
+msgid "管理サイドバーに「システム」を表示するかどうか"
+msgstr "是否在管理侧边栏中显示「系统」"
+
+#: booking/models/cms.py:392
+msgid "SNS投稿を表示"
+msgstr "显示SNS发布"
+
+#: booking/models/cms.py:393
+msgid "管理サイドバーに「SNS自動投稿」を表示するかどうか"
+msgstr "是否在管理侧边栏中显示「SNS自动发布」"
+
+#: booking/models/cms.py:394
+msgid "セキュリティを表示"
+msgstr "显示安全"
+
+#: booking/models/cms.py:395
+msgid "管理サイドバーに「セキュリティ」を表示するかどうか"
+msgstr "是否在管理侧边栏中显示「安全」"
+
+#: booking/models/cms.py:396
+msgid "ユーザー管理を表示"
+msgstr "显示用户管理"
+
+#: booking/models/cms.py:397
+msgid "管理サイドバーに「ユーザーアカウント管理」を表示するかどうか"
+msgstr "是否在管理侧边栏中显示「用户账号管理」"
+
+#: booking/models/cms.py:402
+msgid "ONにするとログイン済みスタッフ以外にメンテナンス画面を表示"
+msgstr "开启后，除已登录员工外将显示维护页面"
+
+#: booking/models/cms.py:405
+msgid "メンテナンスメッセージ"
+msgstr "维护消息"
+
+#: booking/models/cms.py:406
+msgid "カスタムメッセージ（空の場合はデフォルト表示）"
+msgstr "自定义消息（为空时显示默认内容）"
+
+#: booking/models/cms.py:411
+msgid "外部埋め込みを有効化"
+msgstr "启用外部嵌入"
+
+#: booking/models/cms.py:412
+msgid "ONにするとWordPress等からのiframe埋め込みが利用可能になります"
+msgstr "开启后，可从WordPress等使用iframe嵌入"
+
+#: booking/models/cms.py:417
+msgid "無料予約モード"
+msgstr "免费预约模式"
+
+#: booking/models/cms.py:418
+msgid "ONにすると全予約が決済スキップ・即確定になります"
+msgstr "开启后，所有预约将跳过支付并立即确认"
+
+#: booking/models/cms.py:429
+msgid "通知先メールアドレス"
+msgstr "通知邮箱地址"
+
+#: booking/models/cms.py:430
+msgid "カンマ区切りで複数アドレス指定可"
+msgstr "可用逗号分隔指定多个地址"
+
+#: booking/models/cms.py:432
+msgid "メール通知を有効化"
+msgstr "启用邮件通知"
+
+#: booking/models/cms.py:434
+msgid "通知レート制限"
+msgstr "通知频率限制"
+
+#: booking/models/cms.py:435
+msgid "1時間あたりの最大通知送信数"
+msgstr "每小时最大通知发送数"
+
+#: booking/models/cms.py:437
+msgid "SHANON通知を有効化"
+msgstr "启用SHANON通知"
+
+#: booking/models/cms.py:439
+msgid "SHANON API URL"
+msgstr "SHANON API URL"
+
+#: booking/models/cms.py:687
+msgid "メンテナンス開始"
+msgstr "维护开始"
+
+#: booking/models/cms.py:688
+msgid "メンテナンス終了"
+msgstr "维护结束"
+
+#: booking/models/cms.py:689
+msgid "サーバーエラー"
+msgstr "服务器错误"
+
+#: booking/models/cms.py:876
+msgid "未対応"
+msgstr "未处理"
+
+#: booking/models/cms.py:877
+msgid "対応中"
+msgstr "处理中"
+
+#: booking/models/cms.py:879
+msgid "クローズ"
+msgstr "已关闭"
+
+#: booking/models/cms.py:883
+msgid "報告者"
+msgstr "报告者"
+
+#: booking/models/cms.py:887
+msgid "エラー概要"
+msgstr "错误概要"
+
+#: booking/models/cms.py:888
+msgid "詳細説明"
+msgstr "详细说明"
+
+#: booking/models/cms.py:895
+msgid "再現手順"
+msgstr "复现步骤"
+
+#: booking/models/cms.py:897 social_browser/models.py:68
+msgid "スクリーンショット"
+msgstr "截图"
+
+#: booking/models/cms.py:899
+msgid "発生ページURL"
+msgstr "错误发生页面URL"
+
+#: booking/models/cms.py:900
+msgid "ブラウザ情報"
+msgstr "浏览器信息"
+
+#: booking/models/cms.py:902
+msgid "担当者"
+msgstr "负责人"
+
+#: booking/models/cms.py:907
+msgid "解決メモ"
+msgstr "解决备注"
+
+#: booking/models/core.py:60
+msgid "月曜日"
+msgstr "星期一"
+
+#: booking/models/core.py:61
+msgid "火曜日"
+msgstr "星期二"
+
+#: booking/models/core.py:62
+msgid "水曜日"
+msgstr "星期三"
+
+#: booking/models/core.py:63
+msgid "木曜日"
+msgstr "星期四"
+
+#: booking/models/core.py:64
+msgid "金曜日"
+msgstr "星期五"
+
+#: booking/models/core.py:65
+msgid "土曜日"
+msgstr "星期六"
+
+#: booking/models/core.py:66
+msgid "日曜日"
+msgstr "星期日"
+
+#: booking/models/core.py:70
+msgid "定休日なしの場合は空欄"
+msgstr "无定休日时请留空"
+
+#: booking/models/core.py:100
+msgid "埋め込みAPIキー"
+msgstr "嵌入API密钥"
+
+#: booking/models/core.py:101
+msgid "WordPress等の外部サイトにiframe埋め込みする際のAPIキー"
+msgstr "在WordPress等外部网站进行iframe嵌入时的API密钥"
+
+#: booking/models/core.py:104
+msgid "埋め込み許可ドメイン"
+msgstr "允许嵌入的域名"
+
+#: booking/models/core.py:105
+msgid "iframe埋め込みを許可するドメイン（1行1ドメイン）。空の場合は全ドメイン許可"
+msgstr "允许iframe嵌入的域名（每行一个域名）。为空时允许所有域名"
+
+#: booking/models/custom_page.py:7
+#: booking/templates/admin/booking/page_builder/create.html:157
+msgid "ランディングページ"
+msgstr "落地页"
+
+#: booking/models/custom_page.py:8
+#: booking/templates/admin/booking/page_builder/create.html:158
+msgid "キャンペーンページ"
+msgstr "活动页"
+
+#: booking/models/custom_page.py:9
+#: booking/templates/admin/booking/page_builder/create.html:159
+msgid "フリーページ"
+msgstr "自由页面"
+
+#: booking/models/custom_page.py:13
+msgid "標準"
+msgstr "标准"
+
+#: booking/models/custom_page.py:14
+msgid "フルワイド"
+msgstr "全宽"
+
+#: booking/models/custom_page.py:18
+msgid "サロン"
+msgstr "沙龙"
+
+#: booking/models/custom_page.py:19
+msgid "占いサロン"
+msgstr "占卜沙龙"
+
+#: booking/models/custom_page.py:20
+msgid "ネイルサロン"
+msgstr "美甲沙龙"
+
+#: booking/models/custom_page.py:21
+msgid "ヘアサロン"
+msgstr "美发沙龙"
+
+#: booking/models/custom_page.py:22
+msgid "汎用"
+msgstr "通用"
+
+#: booking/models/custom_page.py:32
+#: booking/templates/admin/booking/page_builder/create.html:146
+msgid "ページタイトル"
+msgstr "页面标题"
+
+#: booking/models/custom_page.py:34
+#: booking/templates/admin/booking/page_builder/create.html:150
+msgid "URLスラッグ"
+msgstr "URL别名"
+
+#: booking/models/custom_page.py:35
+msgid "公開URLに使用されます（例: spring-campaign）"
+msgstr "用于公开URL（例：spring-campaign）"
+
+#: booking/models/custom_page.py:38 booking/models/page_layout.py:79
+#: booking/templates/admin/booking/page_builder/create.html:155
+msgid "ページ種別"
+msgstr "页面类型"
+
+#: booking/models/custom_page.py:42
+#: booking/templates/admin/booking/page_builder/create.html:163
+msgid "レイアウト"
+msgstr "布局"
+
+#: booking/models/custom_page.py:44
+msgid "フルワイドはサイドバーなしのランディングページ向け"
+msgstr "全宽适用于无侧边栏的落地页"
+
+#: booking/models/custom_page.py:49 booking/models/custom_page.py:120
+msgid "GrapesJSデータ"
+msgstr "GrapesJS数据"
+
+#: booking/models/custom_page.py:50
+msgid "エディタの状態（コンポーネントツリー・スタイル等）"
+msgstr "编辑器状态（组件树、样式等）"
+
+#: booking/models/custom_page.py:53 booking/models/custom_page.py:121
+#: booking/models/custom_page.py:150
+msgid "HTML"
+msgstr "HTML"
+
+#: booking/models/custom_page.py:54
+msgid "レンダリング済みHTML"
+msgstr "已渲染HTML"
+
+#: booking/models/custom_page.py:57 booking/models/custom_page.py:122
+#: booking/models/custom_page.py:151
+msgid "CSS"
+msgstr "CSS"
+
+#: booking/models/custom_page.py:63
+#: booking/templates/admin/booking/page_builder/editor.html:233
+msgid "メタタイトル"
+msgstr "元标题"
+
+#: booking/models/custom_page.py:64
+msgid "検索結果に表示されるタイトル（未設定時はページタイトルを使用）"
+msgstr "显示在搜索结果中的标题（未设置时使用页面标题）"
+
+#: booking/models/custom_page.py:67
+#: booking/templates/admin/booking/page_builder/editor.html:238
+msgid "メタディスクリプション"
+msgstr "元描述"
+
+#: booking/models/custom_page.py:68
+msgid "検索結果に表示される説明文（160文字以内推奨）"
+msgstr "显示在搜索结果中的描述（建议160字以内）"
+
+#: booking/models/custom_page.py:71
+#: booking/templates/admin/booking/page_builder/editor.html:243
+msgid "OGP画像URL"
+msgstr "OGP图片URL"
+
+#: booking/models/custom_page.py:72
+msgid "SNSシェア時に表示される画像のURL"
+msgstr "在SNS分享时显示的图片URL"
+
+#: booking/models/custom_page.py:83 booking/models/custom_page.py:84
+msgid "カスタムページ"
+msgstr "自定义页面"
+
+#: booking/models/custom_page.py:125
+msgid "システムテンプレート"
+msgstr "系统模板"
+
+#: booking/models/custom_page.py:126
+msgid "システム提供テンプレートはユーザーが削除できません"
+msgstr "系统提供的模板用户无法删除"
+
+#: booking/models/custom_page.py:133 booking/models/custom_page.py:134
+msgid "ページテンプレート"
+msgstr "页面模板"
+
+#: booking/models/custom_page.py:146
+#: booking/templates/admin/booking/page_builder/editor.html:258
+msgid "ブロック名"
+msgstr "区块名称"
+
+#: booking/models/custom_page.py:156 booking/models/custom_page.py:157
+msgid "保存済みブロック"
+msgstr "已保存区块"
+
+#: booking/models/iot.py:162 booking/models/iot.py:163
+msgid "自動制御"
+msgstr "自动控制"
+
+#: booking/models/line_customer.py:9
+msgid "新規"
+msgstr "新客户"
+
+#: booking/models/line_customer.py:10
+msgid "リピーター"
+msgstr "回头客"
+
+#: booking/models/line_customer.py:11
+msgid "VIP"
+msgstr "VIP"
+
+#: booking/models/line_customer.py:12
+msgid "休眠"
+msgstr "休眠"
+
+#: booking/models/line_customer.py:20
+msgid "友だち"
+msgstr "好友"
+
+#: booking/models/line_customer.py:21
+msgid "初回訪問"
+msgstr "首次到访"
+
+#: booking/models/line_customer.py:22
+msgid "最終訪問"
+msgstr "最后到访"
+
+#: booking/models/line_customer.py:23
+msgid "来店回数"
+msgstr "到店次数"
+
+#: booking/models/line_customer.py:24
+msgid "累計金額"
+msgstr "累计金额"
+
+#: booking/models/line_customer.py:25
+msgid "タグ"
+msgstr "标签"
+
+#: booking/models/line_customer.py:27
+msgid "セグメント"
+msgstr "分组"
+
+#: booking/models/line_customer.py:33
+msgid "ブロック日時"
+msgstr "屏蔽日期时间"
+
+#: booking/models/line_customer.py:37 booking/models/line_customer.py:38
+msgid "LINE顧客"
+msgstr "LINE客户"
+
+#: booking/models/line_customer.py:62
+msgid "リマインダー"
+msgstr "提醒"
+
+#: booking/models/line_customer.py:63
+msgid "セグメント配信"
+msgstr "分组推送"
+
+#: booking/models/line_customer.py:64
+msgid "チャットボット"
+msgstr "聊天机器人"
+
+#: booking/models/line_customer.py:68
+msgid "送信済み"
+msgstr "已发送"
+
+#: booking/models/line_customer.py:77
+msgid "内容プレビュー"
+msgstr "内容预览"
+
+#: booking/models/line_customer.py:78
+msgid "送信日時"
+msgstr "发送日期时间"
+
+#: booking/models/line_customer.py:80
+msgid "エラー詳細"
+msgstr "错误详情"
+
+#: booking/models/line_customer.py:84 booking/models/line_customer.py:85
+msgid "LINE送信ログ"
+msgstr "LINE发送日志"
+
+#: booking/models/page_layout.py:11
+msgid "トップページ"
+msgstr "首页"
+
+#: booking/models/page_layout.py:13
+msgid "スタッフ詳細"
+msgstr "员工详情"
+
+#: booking/models/page_layout.py:35
+msgid "セクションタイプ"
+msgstr "区块类型"
+
+#: booking/models/page_layout.py:40
+msgid "アイコン"
+msgstr "图标"
+
+#: booking/models/page_layout.py:41
+msgid "FontAwesome アイコンクラス名"
+msgstr "FontAwesome图标类名"
+
+#: booking/models/page_layout.py:44
+msgid "設定スキーマ"
+msgstr "设置架构"
+
+#: booking/models/page_layout.py:45
+msgid "設定UIを自動生成するためのJSON Schema"
+msgstr "用于自动生成设置UI的JSON Schema"
+
+#: booking/models/page_layout.py:48
+msgid "デフォルト設定"
+msgstr "默认设置"
+
+#: booking/models/page_layout.py:52
+msgid "例: booking/sections/hero_banner.html"
+msgstr "示例：booking/sections/hero_banner.html"
+
+#: booking/models/page_layout.py:57 booking/models/page_layout.py:58
+msgid "セクションスキーマ"
+msgstr "区块架构"
+
+#: booking/models/page_layout.py:82
+msgid "セクション構成"
+msgstr "区块结构"
+
+#: booking/models/page_layout.py:83
+msgid "セクションの並び順・表示/非表示・設定をJSON配列で保持"
+msgstr "以JSON数组保存区块排列顺序、显示/隐藏及设置"
+
+#: booking/models/page_layout.py:89 booking/models/page_layout.py:90
+msgid "ページレイアウト"
+msgstr "页面布局"
+
+#: booking/models/schedule.py:33
+msgid "予約店舗"
+msgstr "预约门店"
+
+#: booking/models/schedule.py:36 booking/models/shifts.py:108
+msgid "未設定の場合はスタッフの主店舗"
+msgstr "未设置时使用员工的主门店"
+
+#: booking/models/schedule.py:40
+msgid "ペンネーム"
+msgstr "笔名"
+
+#: booking/models/schedule.py:68
+msgid "埋め込みトークン"
+msgstr "嵌入令牌"
+
+#: booking/models/schedule.py:74
+#: booking/templates/booking/customer_cancel_form.html:21
+#: booking/templates/booking/email_booking_complete.html:24
+#: booking/templates/booking/line_not_friend.html:74
+msgid "キャンセル番号"
+msgstr "取消编号"
+
+#: booking/models/schedule.py:76
+msgid "顧客キャンセル用8桁コード"
+msgstr "客户取消用8位代码"
+
+#: booking/models/schedule.py:81
+msgid "返金ステータス"
+msgstr "退款状态"
+
+#: booking/models/schedule.py:83
+msgid "返金不要"
+msgstr "无需退款"
+
+#: booking/models/schedule.py:84
+msgid "返金待ち"
+msgstr "等待退款"
+
+#: booking/models/schedule.py:85
+msgid "返金済み"
+msgstr "已退款"
+
+#: booking/models/schedule.py:90
+msgid "返金完了日時"
+msgstr "退款完成时间"
+
+#: booking/models/schedule.py:93
+msgid "返金処理者"
+msgstr "退款处理人"
+
+#: booking/models/schedule.py:97
+msgid "返金備考"
+msgstr "退款备注"
+
+#: booking/models/schedule.py:115
+msgid "前日リマインダー送信済み"
+msgstr "前一天提醒已发送"
+
+#: booking/models/schedule.py:116
+msgid "当日リマインダー送信済み"
+msgstr "当天提醒已发送"
+
+#: booking/models/schedule.py:121
+msgid "確認待ち"
+msgstr "等待确认"
+
+#: booking/models/schedule.py:126
+msgid "確認ステータス"
+msgstr "确认状态"
+
+#: booking/models/schedule.py:129
+msgid "確認日時"
+msgstr "确认日期时间"
+
+#: booking/models/schedule.py:131
+msgid "確認者"
+msgstr "确认人"
+
+#: booking/models/schedule.py:135
+msgid "却下理由"
+msgstr "驳回原因"
+
+#: booking/models/shifts.py:16
+msgid "60分（デフォルト）"
+msgstr "60分钟（默认）"
+
+#: booking/models/shifts.py:19
+msgid "予約枠の単位"
+msgstr "预约时段单位"
+
+#: booking/models/shifts.py:21
+msgid "カレンダーの1コマの長さ"
+msgstr "日历每格的时长"
+
+#: booking/models/shifts.py:105
+msgid "出勤店舗"
+msgstr "出勤门店"
+
+#: booking/models/social_posting.py:16
+msgid "シフト公開時"
+msgstr "排班发布时"
+
+#: booking/models/social_posting.py:17
+msgid "本日のスタッフ"
+msgstr "今日员工"
+
+#: booking/models/social_posting.py:18
+msgid "週間スケジュール"
+msgstr "周排班"
+
+#: booking/models/social_posting.py:19
+msgid "手動投稿"
+msgstr "手动发布"
+
+#: booking/models/social_posting.py:23
+msgid "投稿待ち"
+msgstr "待发布"
+
+#: booking/models/social_posting.py:24 booking/models/social_posting.py:240
+msgid "投稿済み"
+msgstr "已发布"
+
+#: booking/models/social_posting.py:26
+msgid "スキップ（制限超過等）"
+msgstr "已跳过（超出限制等）"
+
+#: booking/models/social_posting.py:47
+msgid "アカウント名"
+msgstr "账号名称"
+
+#: booking/models/social_posting.py:48
+msgid "@username"
+msgstr "@username"
+
+#: booking/models/social_posting.py:53
+msgid "アクセストークン"
+msgstr "访问令牌"
+
+#: booking/models/social_posting.py:58
+msgid "リフレッシュトークン"
+msgstr "刷新令牌"
+
+#: booking/models/social_posting.py:63
+msgid "トークン有効期限"
+msgstr "令牌有效期限"
+
+#: booking/models/social_posting.py:75 booking/models/social_posting.py:76
+msgid "SNSアカウント"
+msgstr "SNS账号"
+
+#: booking/models/social_posting.py:100 booking/models/social_posting.py:143
+msgid "トリガー種別"
+msgstr "触发器类型"
+
+#: booking/models/social_posting.py:103
+msgid "テンプレート本文"
+msgstr "模板正文"
+
+#: booking/models/social_posting.py:105
+msgid "利用可能な変数: {store_name}, {date}, {staff_list}, {business_hours}, {month}"
+msgstr "可用变量：{store_name}, {date}, {staff_list}, {business_hours}, {month}"
+
+#: booking/models/social_posting.py:119 booking/models/social_posting.py:120
+msgid "投稿テンプレート"
+msgstr "发布模板"
+
+#: booking/models/social_posting.py:146 booking/models/social_posting.py:252
+#: social_browser/models.py:63
+msgid "投稿内容"
+msgstr "发布内容"
+
+#: booking/models/social_posting.py:157
+msgid "外部投稿ID"
+msgstr "外部发布ID"
+
+#: booking/models/social_posting.py:158
+msgid "冪等性チェック用"
+msgstr "幂等性校验用"
+
+#: booking/models/social_posting.py:166
+msgid "リトライ回数"
+msgstr "重试次数"
+
+#: booking/models/social_posting.py:172 booking/models/social_posting.py:288
+msgid "投稿日時"
+msgstr "发布日期时间"
+
+#: booking/models/social_posting.py:178 booking/models/social_posting.py:179
+msgid "投稿履歴"
+msgstr "发布历史"
+
+#: booking/models/social_posting.py:190
+msgid "キャストプロフィール"
+msgstr "演职人员资料"
+
+#: booking/models/social_posting.py:192
+msgid "サービス情報"
+msgstr "服务信息"
+
+#: booking/models/social_posting.py:193
+msgid "キャンペーン"
+msgstr "活动"
+
+#: booking/models/social_posting.py:213
+msgid "cast_profile の場合のみ指定"
+msgstr "仅在cast_profile的情况下指定"
+
+#: booking/models/social_posting.py:216
+msgid "AI生成の参照情報"
+msgstr "AI生成参考信息"
+
+#: booking/models/social_posting.py:223 booking/models/social_posting.py:224
+msgid "SNSナレッジ"
+msgstr "SNS知识库"
+
+#: booking/models/social_posting.py:236
+msgid "AI生成済み"
+msgstr "AI已生成"
+
+#: booking/models/social_posting.py:237
+msgid "レビュー中"
+msgstr "审核中"
+
+#: booking/models/social_posting.py:238
+msgid "承認済み"
+msgstr "已批准"
+
+#: booking/models/social_posting.py:241
+msgid "予約投稿"
+msgstr "定时发布"
+
+#: booking/models/social_posting.py:252
+msgid "編集可能"
+msgstr "可编辑"
+
+#: booking/models/social_posting.py:254
+msgid "AI生成原文"
+msgstr "AI生成原文"
+
+#: booking/models/social_posting.py:255
+msgid "編集前の原文（監査用）"
+msgstr "编辑前的原文（用于审计）"
+
+#: booking/models/social_posting.py:258
+msgid "投稿先プラットフォーム"
+msgstr "目标平台"
+
+#: booking/models/social_posting.py:259
+msgid "例: [\"x\", \"instagram\", \"gbp\"]"
+msgstr "示例：[\"x\", \"instagram\", \"gbp\"]"
+
+#: booking/models/social_posting.py:266
+#: booking/templates/admin/booking/social_drafts/generate.html:45
+msgid "対象日"
+msgstr "目标日期"
+
+#: booking/models/social_posting.py:267
+msgid "出勤情報の対象日"
+msgstr "出勤信息的目标日期"
+
+#: booking/models/social_posting.py:270
+msgid "予約投稿日時"
+msgstr "定时发布日期时间"
+
+#: booking/models/social_posting.py:273
+msgid "品質スコア"
+msgstr "质量评分"
+
+#: booking/models/social_posting.py:274
+msgid "LLM Judge スコア (0.0-1.0)"
+msgstr "LLM Judge评分 (0.0-1.0)"
+
+#: booking/models/social_posting.py:277
+#: booking/templates/admin/booking/social_drafts/list.html:215
+msgid "品質フィードバック"
+msgstr "质量反馈"
+
+#: booking/models/social_posting.py:285
+msgid "作成者"
+msgstr "创建者"
+
+#: booking/models/social_posting.py:296 booking/models/social_posting.py:297
+msgid "SNS下書き"
+msgstr "SNS草稿"
+
+#: booking/models/theme.py:7
+msgid "デフォルト"
+msgstr "默认"
+
+#: booking/models/theme.py:8
+msgid "エレガント"
+msgstr "优雅"
+
+#: booking/models/theme.py:9
+msgid "モダン"
+msgstr "现代"
+
+#: booking/models/theme.py:10
+msgid "ナチュラル"
+msgstr "自然"
+
+#: booking/models/theme.py:11
+msgid "ラグジュアリー"
+msgstr "奢华"
+
+#: booking/models/theme.py:12
+msgid "ポップ"
+msgstr "流行"
+
+#: booking/models/theme.py:13
+msgid "和風"
+msgstr "日式"
+
+#: booking/models/theme.py:31
+msgid "プライマリカラー"
+msgstr "主色调"
+
+#: booking/models/theme.py:32
+msgid "ナビゲーション・ヘッダー背景色"
+msgstr "导航/头部背景色"
+
+#: booking/models/theme.py:35
+msgid "セカンダリカラー"
+msgstr "次色调"
+
+#: booking/models/theme.py:36
+msgid "サイドバー・カード背景色"
+msgstr "侧边栏/卡片背景色"
+
+#: booking/models/theme.py:39
+msgid "アクセントカラー"
+msgstr "强调色"
+
+#: booking/models/theme.py:40
+msgid "ボタン・リンクのハイライト色"
+msgstr "按钮/链接高亮色"
+
+#: booking/models/theme.py:43
+msgid "テキストカラー"
+msgstr "文字颜色"
+
+#: booking/models/theme.py:44
+msgid "本文テキスト色"
+msgstr "正文文字颜色"
+
+#: booking/models/theme.py:47
+msgid "ヘッダー背景色"
+msgstr "头部背景色"
+
+#: booking/models/theme.py:50
+msgid "フッター背景色"
+msgstr "底部背景色"
+
+#: booking/models/theme.py:55
+msgid "見出しフォント"
+msgstr "标题字体"
+
+#: booking/models/theme.py:59
+msgid "本文フォント"
+msgstr "正文字体"
+
+#: booking/models/theme.py:65
+msgid "ロゴ"
+msgstr "Logo"
+
+#: booking/models/theme.py:66
+msgid "ヘッダーに表示するロゴ画像"
+msgstr "显示在头部的Logo图片"
+
+#: booking/models/theme.py:69
+msgid "ファビコン"
+msgstr "网站图标"
+
+#: booking/models/theme.py:81
+msgid "追加CSSを記述できます（上級者向け）"
+msgstr "可编写附加CSS（高级选项）"
+
+#: booking/models/theme.py:89 booking/models/theme.py:90
+msgid "店舗テーマ"
+msgstr "门店主题"
+
+#: booking/templates/admin/booking/page_builder/create.html:91
+msgid "テンプレート選択"
+msgstr "模板选择"
+
+#: booking/templates/admin/booking/page_builder/create.html:94
+msgid "ページ情報入力"
+msgstr "输入页面信息"
+
+#: booking/templates/admin/booking/page_builder/create.html:99
+msgid "テンプレートを選んでください。白紙から作成することもできます。"
+msgstr "请选择模板。也可以从空白开始创建。"
+
+#: booking/templates/admin/booking/page_builder/create.html:107
+#: booking/templates/admin/booking/page_builder/create.html:112
+msgid "白紙から作成"
+msgstr "从空白创建"
+
+#: booking/templates/admin/booking/page_builder/create.html:111
+msgid "白紙"
+msgstr "空白"
+
+#: booking/templates/admin/booking/page_builder/create.html:113
+msgid "GrapesJSエディタで自由にデザインできます"
+msgstr "可使用GrapesJS编辑器自由设计"
+
+#: booking/templates/admin/booking/page_builder/create.html:124
+msgid "プレビューなし"
+msgstr "无预览"
+
+#: booking/templates/admin/booking/page_builder/create.html:135
+msgid "次へ：ページ情報を入力"
+msgstr "下一步：输入页面信息"
+
+#: booking/templates/admin/booking/page_builder/create.html:147
+msgid "例: 春のキャンペーン"
+msgstr "例：春季活动"
+
+#: booking/templates/admin/booking/page_builder/create.html:151
+msgid "例: spring-campaign"
+msgstr "例：spring-campaign"
+
+#: booking/templates/admin/booking/page_builder/create.html:152
+msgid "半角英数字とハイフンのみ"
+msgstr "仅限半角字母数字和连字符"
+
+#: booking/templates/admin/booking/page_builder/create.html:165
+msgid "標準（サイドバー付き）"
+msgstr "标准（带侧边栏）"
+
+#: booking/templates/admin/booking/page_builder/create.html:166
+msgid "フルワイド（ランディングページ向け）"
+msgstr "全宽（适用于落地页）"
+
+#: booking/templates/admin/booking/page_builder/create.html:171
+msgid "作成してエディタを開く"
+msgstr "创建并打开编辑器"
+
+#: booking/templates/admin/booking/page_builder/editor.html:161
+msgid "元に戻す"
+msgstr "撤销"
+
+#: booking/templates/admin/booking/page_builder/editor.html:162
+msgid "やり直し"
+msgstr "重做"
+
+#: booking/templates/admin/booking/page_builder/editor.html:174
+#: booking/templates/admin/booking/page_builder/editor.html:203
+msgid "コードエディタ"
+msgstr "代码编辑器"
+
+#: booking/templates/admin/booking/page_builder/editor.html:176
+#: booking/templates/admin/booking/page_builder/editor.html:226
+msgid "SEO設定"
+msgstr "SEO设置"
+
+#: booking/templates/admin/booking/page_builder/editor.html:178
+msgid "ブロック保存"
+msgstr "保存区块"
+
+#: booking/templates/admin/booking/page_builder/editor.html:184
+msgid "プレビュー"
+msgstr "预览"
+
+#: booking/templates/admin/booking/page_builder/editor.html:187
+msgid "非公開"
+msgstr "未发布"
+
+#: booking/templates/admin/booking/page_builder/editor.html:218
+msgid "適用"
+msgstr "应用"
+
+#: booking/templates/admin/booking/page_builder/editor.html:230
+msgid "説明文がここに表示されます"
+msgstr "说明文将显示在此处"
+
+#: booking/templates/admin/booking/page_builder/editor.html:256
+msgid "選択中のコンポーネントをブロックとして保存"
+msgstr "将选中的组件保存为区块"
+
+#: booking/templates/admin/booking/page_builder/editor.html:259
+msgid "例: ヘッダーセクション"
+msgstr "例：头部区块"
+
+#: booking/templates/admin/booking/page_builder/editor.html:263
+msgid "保存済み"
+msgstr "已保存"
+
+#: booking/templates/admin/booking/page_builder/list.html:23
+msgid "新規ページ作成"
+msgstr "创建新页面"
+
+#: booking/templates/admin/booking/page_builder/list.html:33
+msgid "スラッグ"
+msgstr "别名"
+
+#: booking/templates/admin/booking/page_builder/list.html:36
+msgid "更新日"
+msgstr "更新日期"
+
+#: booking/templates/admin/booking/page_builder/list.html:48
+msgid "公開中"
+msgstr "已发布"
+
+#: booking/templates/admin/booking/page_builder/list.html:64
+msgid "カスタムページはまだありません。"
+msgstr "暂无自定义页面。"
+
+#: booking/templates/admin/booking/site_wizard/index.html:85
+msgid "3ステップでサロンサイトをカスタマイズできます"
+msgstr "通过3个步骤自定义您的沙龙网站"
+
+#: booking/templates/admin/booking/site_wizard/index.html:109
+msgid "設定済み"
+msgstr "已设置"
+
+#: booking/templates/admin/booking/site_wizard/index.html:111
+msgid "変更する"
+msgstr "修改"
+
+#: booking/templates/admin/booking/site_wizard/index.html:113
+msgid "設定を始める →"
+msgstr "开始设置 →"
+
+#: booking/templates/admin/booking/site_wizard/index.html:122
+msgid "ステップ完了"
+msgstr "步骤完成"
+
+#: booking/templates/admin/booking/site_wizard/index.html:124
+msgid "すべてのセットアップが完了しています！"
+msgstr "所有设置已完成！"
+
+#: booking/templates/admin/booking/site_wizard/index.html:126
+msgid "残りのステップを完了して、サロンサイトを仕上げましょう。"
+msgstr "完成剩余步骤，完善您的沙龙网站。"
+
+#: booking/templates/admin/booking/social_drafts/generate.html:8
+#: booking/templates/admin/booking/social_drafts/generate.html:28
+#: booking/templates/admin/booking/social_drafts/list.html:78
+msgid "AI下書き生成"
+msgstr "AI草稿生成"
+
+#: booking/templates/admin/booking/social_drafts/generate.html:48
+msgid "空の場合は本日が対象になります"
+msgstr "为空时以今天为目标日期"
+
+#: booking/templates/admin/booking/social_drafts/generate.html:52
+msgid "投稿先"
+msgstr "发布目标"
+
+#: booking/templates/admin/booking/social_drafts/generate.html:68
+msgid "生成する"
+msgstr "生成"
+
+#: booking/templates/admin/booking/social_drafts/list.html:73
+msgid "AI生成・編集・投稿・予約投稿"
+msgstr "AI生成・编辑・发布・定时发布"
+
+#: booking/templates/admin/booking/social_drafts/list.html:82
+msgid "管理画面に戻る"
+msgstr "返回管理界面"
+
+#: booking/templates/admin/booking/social_drafts/list.html:90
+msgid "全ステータス"
+msgstr "全部状态"
+
+#: booking/templates/admin/booking/social_drafts/list.html:101
+msgid "絞り込み"
+msgstr "筛选"
+
+#: booking/templates/admin/booking/social_drafts/list.html:177
+msgid "投稿先:"
+msgstr "发布目标："
+
+#: booking/templates/admin/booking/social_drafts/list.html:223
+msgid "予約:"
+msgstr "预约："
+
+#: booking/templates/admin/booking/social_drafts/list.html:226
+msgid "投稿:"
+msgstr "发布："
+
+#: booking/templates/admin/booking/social_drafts/list.html:242
+msgid "API投稿"
+msgstr "API发布"
+
+#: booking/templates/admin/booking/social_drafts/list.html:249
+msgid "ブラウザ経由で自動投稿（X/Instagram/GBP対応）"
+msgstr "通过浏览器自动发布（支持X/Instagram/GBP）"
+
+#: booking/templates/admin/booking/social_drafts/list.html:250
+msgid "ブラウザ投稿"
+msgstr "浏览器发布"
+
+#: booking/templates/admin/booking/social_drafts/list.html:256
+msgid "再生成"
+msgstr "重新生成"
+
+#: booking/templates/admin/booking/social_drafts/list.html:282
+msgid "下書きがありません"
+msgstr "没有草稿"
+
+#: booking/templates/admin/booking/social_drafts/list.html:284
+msgid "AI下書きを生成する"
+msgstr "生成AI草稿"
+
+#: booking/templates/admin/booking/store/change_form.html:8
+msgid "サイトカスタマイズ"
+msgstr "网站自定义"
+
+#: booking/templates/admin/booking/theme_customizer/editor.html:121
+msgid "プリセット"
+msgstr "预设"
+
+#: booking/templates/admin/booking/theme_customizer/editor.html:129
+msgid "カラー"
+msgstr "颜色"
+
+#: booking/templates/admin/booking/theme_customizer/editor.html:131
+msgid "プライマリ"
+msgstr "主要"
+
+#: booking/templates/admin/booking/theme_customizer/editor.html:135
+msgid "セカンダリ"
+msgstr "次要"
+
+#: booking/templates/admin/booking/theme_customizer/editor.html:139
+msgid "アクセント"
+msgstr "强调"
+
+#: booking/templates/admin/booking/theme_customizer/editor.html:143
+msgid "テキスト"
+msgstr "文字"
+
+#: booking/templates/admin/booking/theme_customizer/editor.html:147
+msgid "ヘッダー背景"
+msgstr "头部背景"
+
+#: booking/templates/admin/booking/theme_customizer/editor.html:151
+msgid "フッター背景"
+msgstr "底部背景"
+
+#: booking/templates/admin/booking/theme_customizer/editor.html:160
+msgid "見出し"
+msgstr "标题"
+
+#: booking/templates/booking/base.html:95
+#: booking/templates/booking/base.html:110
+msgid "キャスト情報"
+msgstr "演职人员信息"
+
+#: booking/templates/booking/base.html:241
+msgid "本サイトのコンテンツ（テキスト・画像・デザイン等）を、AI・機械学習モデルの学習データとして無断で使用することを禁止します。"
+msgstr "禁止未经授权将本网站内容（文字、图片、设计等）用作AI・机器学习模型的训练数据。"
+
+#: booking/templates/booking/calendar.html:51
+msgid "他店舗出勤"
+msgstr "跨门店出勤"
+
+#: booking/templates/booking/channel_choice.html:39
+#: booking/templates/booking/embed/channel_choice.html:30
+#: booking/templates/booking/embed/prebooking.html:42
+msgid "※ 20分以内にお支払いがない場合、仮予約は自動キャンセルされます。"
+msgstr "※ 20分钟内未付款的话，临时预约将自动取消。"
+
+#: booking/templates/booking/checkin_scan.html:75
+msgid "カメラの許可方法を見る"
+msgstr "查看摄像头权限设置方法"
+
+#: booking/templates/booking/checkin_scan.html:81
+#: booking/templates/booking/checkin_scan.html:277
+#: booking/templates/booking/checkin_scan.html:300
+msgid "スキャン開始"
+msgstr "开始扫描"
+
+#: booking/templates/booking/checkin_scan.html:85
+msgid "スキャン停止"
+msgstr "停止扫描"
+
+#: booking/templates/booking/checkin_scan.html:93
+msgid "※ 口頭コードは当日の予約のみ有効です。予約開始30分前〜終了までチェックイン可能です。"
+msgstr "※ 口头代码仅对当日预约有效。可在预约开始前30分钟至结束前签到。"
+
+#: booking/templates/booking/checkin_scan.html:111
+msgid "カメラの許可方法"
+msgstr "摄像头权限设置方法"
+
+#: booking/templates/booking/checkin_scan.html:117
+msgid "スマートフォン"
+msgstr "智能手机"
+
+#: booking/templates/booking/checkin_scan.html:118
+msgid "URLバーの左側の鍵アイコン（またはサイト情報アイコン）をタップ"
+msgstr "点击URL栏左侧的锁形图标（或网站信息图标）"
+
+#: booking/templates/booking/checkin_scan.html:119
+msgid "「権限」をタップ"
+msgstr "点击「权限」"
+
+#: booking/templates/booking/checkin_scan.html:120
+#: booking/templates/booking/checkin_scan.html:129
+msgid "「カメラ」を「許可」に変更"
+msgstr "将「摄像头」更改为「允许」"
+
+#: booking/templates/booking/checkin_scan.html:121
+#: booking/templates/booking/checkin_scan.html:130
+#: booking/templates/booking/checkin_scan.html:148
+#: booking/templates/booking/checkin_scan.html:156
+#: booking/templates/booking/checkin_scan.html:162
+msgid "ページを再読み込み"
+msgstr "重新加载页面"
+
+#: booking/templates/booking/checkin_scan.html:127
+msgid "URLバーの左側の鍵アイコンをクリック"
+msgstr "点击URL栏左侧的锁形图标"
+
+#: booking/templates/booking/checkin_scan.html:128
+msgid "「サイトの設定」をクリック"
+msgstr "点击「网站设置」"
+
+#: booking/templates/booking/checkin_scan.html:136
+msgid "iPhoneの「設定」アプリを開く"
+msgstr "打开iPhone的「设置」应用"
+
+#: booking/templates/booking/checkin_scan.html:137
+msgid "「Safari」→「Webサイトの設定」→「カメラ」"
+msgstr "「Safari」→「网站设置」→「摄像头」"
+
+#: booking/templates/booking/checkin_scan.html:138
+msgid "「許可」または「確認」に設定"
+msgstr "设置为「允许」或「询问」"
+
+#: booking/templates/booking/checkin_scan.html:139
+msgid "Safariに戻ってページを再読み込み"
+msgstr "返回Safari并重新加载页面"
+
+#: booking/templates/booking/checkin_scan.html:145
+msgid "メニューバーの「Safari」→「設定」を開く"
+msgstr "从菜单栏打开「Safari」→「设置」"
+
+#: booking/templates/booking/checkin_scan.html:146
+msgid "「Webサイト」タブ→「カメラ」を選択"
+msgstr "选择「网站」标签页→「摄像头」"
+
+#: booking/templates/booking/checkin_scan.html:147
+msgid "このサイトを「許可」に設定"
+msgstr "将此网站设置为「允许」"
+
+#: booking/templates/booking/checkin_scan.html:153
+msgid "ブラウザ設定"
+msgstr "浏览器设置"
+
+#: booking/templates/booking/checkin_scan.html:154
+msgid "ブラウザの設定画面を開く"
+msgstr "打开浏览器设置页面"
+
+#: booking/templates/booking/checkin_scan.html:155
+msgid "「プライバシー」または「サイトの設定」からカメラの許可を変更"
+msgstr "从「隐私」或「网站设置」更改摄像头权限"
+
+#: booking/templates/booking/checkin_scan.html:258
+msgid "起動中..."
+msgstr "启动中..."
+
+#: booking/templates/booking/checkin_scan.html:281
+msgid "カメラへのアクセスが許可されていません。"
+msgstr "未授权访问摄像头。"
+
+#: booking/templates/booking/checkin_scan.html:284
+msgid "カメラが見つかりません。カメラ付きデバイスでお試しください。"
+msgstr "未找到摄像头。请使用带摄像头的设备重试。"
+
+#: booking/templates/booking/checkin_scan.html:286
+msgid "カメラが他のアプリで使用中です。他のアプリを閉じてからお試しください。"
+msgstr "摄像头正被其他应用使用中。请关闭其他应用后重试。"
+
+#: booking/templates/booking/checkin_scan.html:288
+msgid "カメラの起動に失敗しました。口頭コード入力タブをご利用ください。"
+msgstr "摄像头启动失败。请使用口头代码输入标签页。"
+
+#: booking/templates/booking/checkin_scan.html:379
+msgid "カメラへのアクセスがブロックされています。"
+msgstr "摄像头访问已被阻止。"
+
+#: booking/templates/booking/customer_cancel_confirm.html:4
+msgid "キャンセル確認"
+msgstr "取消确认"
+
+#: booking/templates/booking/customer_cancel_confirm.html:15
+msgid "この予約をキャンセルしますか？"
+msgstr "确定要取消此预约吗？"
+
+#: booking/templates/booking/customer_cancel_confirm.html:41
+msgid "返金は店舗スタッフが手動で対応いたします。キャンセル後、返金処理が完了次第ご連絡いたします。"
+msgstr "退款由门店员工手动处理。取消后，退款处理完成后将与您联系。"
+
+#: booking/templates/booking/customer_cancel_confirm.html:50
+msgid "キャンセルする"
+msgstr "取消"
+
+#: booking/templates/booking/customer_cancel_done.html:4
+#: booking/templates/booking/customer_cancel_done.html:15
+msgid "キャンセル完了"
+msgstr "取消完成"
+
+#: booking/templates/booking/customer_cancel_done.html:16
+msgid "ご予約のキャンセルが完了しました。"
+msgstr "您的预约已取消完成。"
+
+#: booking/templates/booking/customer_cancel_done.html:20
+msgid "返金について：店舗スタッフが返金処理を行います。処理完了後にご連絡いたします。"
+msgstr "关于退款：门店员工将进行退款处理。处理完成后将与您联系。"
+
+#: booking/templates/booking/customer_cancel_form.html:4
+#: booking/templates/booking/customer_cancel_form.html:9
+msgid "予約キャンセル"
+msgstr "预约取消"
+
+#: booking/templates/booking/customer_cancel_form.html:10
+msgid "キャンセル番号を入力してください"
+msgstr "请输入取消编号"
+
+#: booking/templates/booking/customer_cancel_form.html:30
+msgid "確認する"
+msgstr "确认"
+
+#: booking/templates/booking/email_booking_complete.html:4
+#: booking/templates/booking/embed/booking_complete.html:4
+#: booking/templates/booking/line_not_friend.html:4
+#: booking/templates/booking/line_not_friend.html:19
+msgid "予約完了"
+msgstr "预约完成"
+
+#: booking/templates/booking/email_booking_complete.html:16
+#: booking/templates/booking/embed/booking_complete.html:15
+msgid "ご予約が完了しました"
+msgstr "您的预约已完成"
+
+#: booking/templates/booking/email_booking_complete.html:30
+#: booking/templates/booking/embed/booking_complete.html:33
+msgid "確認メールをお送りしました。ご予約ありがとうございます。"
+msgstr "已发送确认邮件。感谢您的预约。"
+
+#: booking/templates/booking/email_form.html:23
+msgid "予約者名とメールアドレスを入力してください"
+msgstr "请输入预约人姓名和邮箱地址"
+
+#: booking/templates/booking/email_form.html:44
+#: booking/templates/booking/embed/email_form.html:27
+#: booking/views_booking.py:410
+msgid "予約者名（ペンネーム可）"
+msgstr "预约人姓名（可用笔名）"
+
+#: booking/templates/booking/email_payment_sent.html:29
+#: booking/templates/booking/embed/email_payment_sent.html:27
+msgid "20分以内にお支払いがない場合、仮予約は自動キャンセルされます。メールをご確認の上、お早めにお支払いください。"
+msgstr "20分钟内未付款的话，临时预约将自动取消。请查看邮件并尽快付款。"
+
+#: booking/templates/booking/embed/booking_calendar.html:9
+msgid "占い師を選んで予約できます"
+msgstr "可以选择占卜师进行预约"
+
+#: booking/templates/booking/embed/booking_calendar.html:42
+msgid "現在予約可能な占い師はいません"
+msgstr "目前没有可预约的占卜师"
+
+#: booking/templates/booking/embed/channel_choice.html:47
+msgid "LINEアカウントで予約（別タブで開きます）"
+msgstr "使用LINE账号预约（将在新标签页打开）"
+
+#: booking/templates/booking/embed/email_form.html:9
+msgid "予約者名とメールアドレスを入力"
+msgstr "输入预约人姓名和邮箱地址"
+
+#: booking/templates/booking/embed/email_payment_sent.html:4
+msgid "決済URL送信完了"
+msgstr "支付URL发送完成"
+
+#: booking/templates/booking/embed/email_verify.html:9
+msgid "認証コードを入力"
+msgstr "输入验证码"
+
+#: booking/templates/booking/embed/expired.html:4 social_browser/models.py:14
+msgid "期限切れ"
+msgstr "已过期"
+
+#: booking/templates/booking/embed/prebooking.html:17
+#: booking/templates/booking/embed/prebooking.html:55
+msgid "カレンダーに戻る"
+msgstr "返回日历"
+
+#: booking/templates/booking/embed/prebooking.html:49
+msgid "予約手続きに進む"
+msgstr "进入预约流程"
+
+#: booking/templates/booking/embed/shift_view.html:10
+msgid "のシフト"
+msgstr "的排班"
+
+#: booking/templates/booking/embed/shift_view.html:43
+msgid "本日のシフトは登録されていません"
+msgstr "今日未登记排班"
+
+#: booking/templates/booking/embed/shift_view.html:45
+msgid "公開中のシフト期間がありません"
+msgstr "没有正在公开的排班期间"
+
+#: booking/templates/booking/embed/staff_calendar.html:54
+msgid "予約済"
+msgstr "已预约"
+
+#: booking/templates/booking/embed/staff_calendar.html:108
+#: booking/templates/booking/store_access.html:32
+msgid "一覧に戻る"
+msgstr "返回列表"
+
+#: booking/templates/booking/iot_mq9_graph.html:241
+msgctxt "light"
+msgid "通常"
+msgstr "普通"
+
+#: booking/templates/booking/iot_mq9_graph.html:248
+msgctxt "sound"
+msgid "通常"
+msgstr "普通"
+
+#: booking/templates/booking/iot_sensor_dashboard.html:311
+msgid "デバイス一覧の取得に失敗しました。"
+msgstr "获取设备列表失败。"
+
+#: booking/templates/booking/iot_sensor_dashboard.html:312
+msgid "再試行"
+msgstr "重试"
+
+#: booking/templates/booking/line_not_friend.html:46
+msgid "以下のボタンから決済を行ってください。"
+msgstr "请通过下方按钮进行支付。"
+
+#: booking/templates/booking/line_not_friend.html:49
+msgid "決済する"
+msgstr "去支付"
+
+#: booking/templates/booking/line_not_friend.html:51
+msgid "20分以内にお支払いがない場合、仮予約は自動キャンセルされます。"
+msgstr "20分钟内未付款的话，临时预约将自动取消。"
+
+#: booking/templates/booking/line_not_friend.html:52
+msgid "※ キャンセル時の返金は店舗スタッフが対応いたします。処理にお時間をいただく場合がございます。"
+msgstr "※ 取消时的退款由门店员工处理。处理可能需要一些时间。"
+
+#: booking/templates/booking/line_not_friend.html:63
+msgid "口頭確認コード:"
+msgstr "口头确认码："
+
+#: booking/templates/booking/line_not_friend.html:64
+msgid "（QRが読み取れない場合、スタッフにこの6桁コードをお伝えください）"
+msgstr "（如无法扫描二维码，请将此6位代码告知员工）"
+
+#: booking/templates/booking/line_not_friend.html:76
+msgid "キャンセル時に必要です。控えておいてください。"
+msgstr "取消时需要使用，请妥善保管。"
+
+#: booking/templates/booking/line_not_friend.html:84
+msgid "LINE友達追加で次回から予約情報をLINEで受け取れます"
+msgstr "添加LINE好友后，下次起可通过LINE接收预约信息"
+
+#: booking/templates/booking/line_not_friend.html:90
+msgid "友達追加する"
+msgstr "添加好友"
+
+#: booking/templates/booking/line_success.html:65
+msgid "トップページに戻る"
+msgstr "返回首页"
+
+#: booking/templates/booking/reservation_qr.html:15
+msgid "この予約はキャンセル済みです"
+msgstr "此预约已取消"
+
+#: booking/templates/booking/reservation_qr.html:16
+msgid "この予約は既にキャンセルされています。QRコードは無効です。"
+msgstr "此预约已被取消。二维码已失效。"
+
+#: booking/templates/booking/reservation_qr.html:66
+msgid "キャンセル済み"
+msgstr "已取消"
+
+#: booking/templates/booking/shop.html:58
+msgid "サンプル"
+msgstr "示例"
+
+#: booking/templates/booking/sidebar/_sns.html:73
+msgid "を見る"
+msgstr "查看"
+
+#: booking/templates/booking/staff_list.html:5
+msgid "一覧"
+msgstr "列表"
+
+#: booking/templates/booking/tokushoho.html:59
+msgid "予約確定後のキャンセルについては、マイページまたはお電話にて承ります。仮予約から20分以内にお支払いがない場合は自動キャンセルとなります。"
+msgstr "预约确认后如需取消，请通过个人页面或电话联系我们。临时预约20分钟内未付款将自动取消。"
+
+#: booking/templates/maintenance.html:7 booking/templates/maintenance.html:48
+msgid "メンテナンス中"
+msgstr "维护中"
+
+#: booking/templates/maintenance.html:50
+msgid "現在システムメンテナンスを行っております。"
+msgstr "系统正在进行维护。"
+
+#: booking/templates/maintenance.html:51
+msgid "しばらくお待ちください。"
+msgstr "请稍候。"
+
+#: social_browser/models.py:15
+msgid "セットアップ必要"
+msgstr "需要设置"
+
+#: social_browser/models.py:31
+msgid "プロファイルディレクトリ"
+msgstr "配置文件目录"
+
+#: social_browser/models.py:32
+msgid "MEDIA_ROOT/browser_profiles/<store>/<platform>/"
+msgstr "MEDIA_ROOT/browser_profiles/<store>/<platform>/"
+
+#: social_browser/models.py:44 social_browser/models.py:45
+msgid "ブラウザセッション"
+msgstr "浏览器会话"
+
+#: social_browser/models.py:56
+msgid "セッション"
+msgstr "会话"
+
+#: social_browser/models.py:61
+msgid "元下書き"
+msgstr "原始草稿"
+
+#: social_browser/models.py:75 social_browser/models.py:76
+msgid "ブラウザ投稿ログ"
+msgstr "浏览器发布日志"
+
+#: templates/admin/booking/_attendance_board_zones.html:15
+#: templates/admin/booking/_attendance_board_zones.html:48
+msgid "シフト超過"
+msgstr "排班超额"
+
+#: templates/admin/booking/ai_recommendation.html:105
+msgid "今週の推薦サマリー"
+msgstr "本周推荐摘要"
+
+#: templates/admin/booking/ai_recommendation.html:152
+msgid "曜日×時間帯 平均推薦人数"
+msgstr "星期×时段 平均推荐人数"
+
+#: templates/admin/booking/restaurant_dashboard.html:375
+#: templates/admin/booking/restaurant_dashboard.html:1152
+msgid "キッチン"
+msgstr "厨房"
+
+#: templates/admin/booking/restaurant_dashboard.html:379
+#: templates/admin/booking/restaurant_dashboard.html:1106
+msgid "来客分析"
+msgstr "来客分析"
+
+#: templates/admin/booking/restaurant_dashboard.html:443
+msgid "チェックイン状況（過去30日）"
+msgstr "签到情况（过去30天）"
+
+#: templates/admin/booking/restaurant_dashboard.html:467
+msgid "日別予約数（過去30日）"
+msgstr "每日预约数（过去30天）"
+
+#: templates/admin/booking/restaurant_dashboard.html:518
+msgid "売上推移（過去30日）"
+msgstr "销售额趋势（过去30天）"
+
+#: templates/admin/booking/restaurant_dashboard.html:554
+msgid "商品を人気度×利益率の4象限に分類。★スター（高人気・高利益）を維持、犬（低人気・低利益）は見直しを検討"
+msgstr "将商品按人气×利润率分为4个象限。维持★明星（高人气・高利润），考虑调整瘦狗（低人气・低利润）"
+
+#: templates/admin/booking/restaurant_dashboard.html:591
+msgid "売上貢献度で商品をA（上位80%%）/B（80-95%%）/C（残り）にランク付け。A商品の在庫切れを防ぎ、C商品の見直しを"
+msgstr "按销售贡献度将商品分为A（前80%%）/B（80-95%%）/C（其余）。防止A类商品缺货，审视C类商品"
+
+#: templates/admin/booking/restaurant_dashboard.html:624
+msgid "過去の売上トレンドから今後14日間の売上を予測。週末・祝日の需要増に備えた在庫・シフト計画に活用"
+msgstr "根据过去的销售趋势预测未来14天的销售额。用于应对周末・节假日需求增长的库存・排班规划"
+
+#: templates/admin/booking/restaurant_dashboard.html:641
+msgid "曜日×時間帯の売上ヒートマップ。ピーク時間帯のスタッフ配置最適化に活用"
+msgstr "星期×时段的销售额热力图。用于优化高峰时段的员工配置"
+
+#: templates/admin/booking/restaurant_dashboard.html:663
+msgid "1注文あたりの平均金額の推移。セットメニューやアップセル施策の効果測定に"
+msgstr "每单平均金额的趋势。用于衡量套餐菜单和追加销售策略的效果"
+
+#: templates/admin/booking/restaurant_dashboard.html:773
+msgid "キャスト別 予約数・売上比較（過去30日）"
+msgstr "按演职人员的预约数・销售额对比（过去30天）"
+
+#: templates/admin/booking/restaurant_dashboard.html:812
+msgid "スタッフ別 予約数・売上比較（過去30日）"
+msgstr "按员工的预约数・销售额对比（过去30天）"
+
+#: templates/admin/booking/restaurant_dashboard.html:839
+msgid "ECショップ 売上推移（過去30日）"
+msgstr "EC商城 销售额趋势（过去30天）"
+
+#: templates/admin/booking/restaurant_dashboard.html:933
+msgid "店内メニュー 売上推移（過去30日）"
+msgstr "店内菜单 销售额趋势（过去30天）"
+
+#: templates/admin/booking/restaurant_dashboard.html:1219
+msgid "日別チェックイン推移（過去30日）"
+msgstr "每日签到趋势（过去30天）"
+
+#: templates/admin/booking/restaurant_dashboard.html:1297
+msgid "欠品"
+msgstr "缺货"
+
+#: templates/admin/booking/restaurant_dashboard.html:1298
+msgid "残少"
+msgstr "库存少"
+
+#: templates/admin/booking/shift_calendar.html:960
+msgid ""
+"希望データを元にシフトを自動作成しますか？\\n\\n⚠️ 注意: "
+"現在のシフト（手動調整含む）は全て削除され、希望データから再作成されます。この操作は元に戻せません。"
+msgstr "是否根据意愿数据自动创建排班？\\n\\n⚠️ 注意：当前所有排班（包括手动调整）将被删除，并从意愿数据重新创建。此操作无法撤销。"
+
+#: templates/admin/booking/shift_calendar.html:1093
+msgid "シフト代理記入"
+msgstr "代理排班填写"
+
+#: templates/admin/booking/shift_calendar.html:1138
+#: templates/admin/booking/staffing_requirement.html:89
+msgid "曜日別デフォルト"
+msgstr "按星期默认"
+
+#: templates/admin/booking/shift_calendar.html:1143
+#: templates/admin/booking/staffing_requirement.html:92
+#: templates/admin/booking/staffing_requirement.html:139
+msgid "日付指定オーバーライド"
+msgstr "日期指定覆盖"
+
+#: templates/admin/booking/shift_calendar.html:1182
+#: templates/admin/booking/staffing_requirement.html:130
+msgid "保存中..."
+msgstr "保存中..."
+
+#: templates/admin/booking/shift_calendar.html:1209
+msgid "例: イベント"
+msgstr "例：活动"
+
+#: templates/admin/booking/shift_calendar.html:1242
+#: templates/admin/booking/staffing_requirement.html:202
+msgid "この月のオーバーライドはありません"
+msgstr "本月没有覆盖设置"
+
+#: templates/admin/booking/shift_calendar.html:1336
+msgid "件の希望を申請しました"
+msgstr "条意愿已提交"
+
+#: templates/admin/booking/shift_calendar.html:1339
+msgid "件成功、"
+msgstr "条成功，"
+
+#: templates/admin/booking/shift_calendar.html:1339
+msgid "件失敗"
+msgstr "条失败"
+
+#: templates/admin/booking/shift_calendar.html:1393
+msgid "複数の日付をクリックして選択できます"
+msgstr "可点击多个日期进行选择"
+
+#: templates/admin/booking/shift_calendar.html:1398
+msgid "選択中の日付"
+msgstr "已选择的日期"
+
+#: templates/admin/booking/shift_calendar.html:1400
+msgid "カレンダーから日付を選択してください"
+msgstr "请从日历中选择日期"
+
+#: templates/admin/booking/shift_calendar.html:1445
+msgid "まとめて申請"
+msgstr "批量申请"
+
+#: templates/admin/booking/shift_calendar.html:1446
+msgid "送信中..."
+msgstr "发送中..."
+
+#: templates/admin/booking/shift_calendar.html:1457
+msgid "提出済みの希望"
+msgstr "已提交的意愿"
+
+#: templates/admin/booking/shift_calendar.html:1482
+msgid "代理記入は「募集中」ステータスの期間でのみ利用可能です。期間カードから募集中の期間を選択してください。"
+msgstr "代理填写仅在「招募中」状态的期间可用。请从期间卡中选择招募中的期间。"
+
+#: templates/admin/booking/shift_calendar.html:1770
+#: templates/admin/booking/staffing_requirement.html:273
+msgid "保存しました"
+msgstr "保存成功"
+
+#: templates/admin/booking/shift_calendar.html:1771
+#: templates/admin/booking/shift_calendar.html:1795
+#: templates/admin/booking/shift_calendar.html:1806
+#: templates/admin/booking/staffing_requirement.html:278
+#: templates/admin/booking/staffing_requirement.html:338
+#: templates/admin/booking/staffing_requirement.html:359
+msgid "通信エラー"
+msgstr "通信错误"
+
+#: templates/admin/booking/shift_calendar.html:1784
+msgid "日付と種別は必須"
+msgstr "日期和类型为必填项"
+
+#: templates/admin/booking/shift_calendar.html:1790
+#: templates/admin/booking/staffing_requirement.html:327
+msgid "追加しました"
+msgstr "添加成功"
+
+#: templates/admin/booking/shift_calendar.html:1799
+#: templates/admin/booking/staffing_requirement.html:344
+msgid "削除しますか？"
+msgstr "确定要删除吗？"
+
+#: templates/admin/booking/shift_calendar.html:1804
+#: templates/admin/booking/staffing_requirement.html:353
+msgid "削除しました"
+msgstr "删除成功"
+
+#: templates/admin/booking/staffing_requirement.html:99
+msgid "曜日ごとのデフォルト必要人数"
+msgstr "各星期默认所需人数"
+
+#: templates/admin/booking/staffing_requirement.html:101
+msgid "各曜日の種別ごとに必要なスタッフ人数を設定します。日付指定オーバーライドが無い日はこの設定が使われます。"
+msgstr "设置每个星期各类型所需的员工人数。没有日期指定覆盖的日子将使用此设置。"
+
+#: templates/admin/booking/staffing_requirement.html:141
+msgid "特定日の必要人数を上書きします（イベント日・棚卸し日など）。設定がある日は曜日別デフォルトより優先されます。"
+msgstr "覆盖特定日期的所需人数（活动日、盘点日等）。有设置的日期将优先于星期默认值。"
+
+#: templates/admin/booking/staffing_requirement.html:163
+msgid "例: イベント開催"
+msgstr "例：举办活动"
+
+#: templates/admin/booking/staffing_requirement.html:275
+msgid "保存に失敗しました"
+msgstr "保存失败"
+
+#: templates/admin/booking/staffing_requirement.html:315
+msgid "日付と種別は必須です"
+msgstr "日期和类型为必填项"
+
+#: templates/admin/booking/staffing_requirement.html:335
+msgid "追加に失敗しました"
+msgstr "添加失败"
+
+#: templates/admin/booking/staffing_requirement.html:356
+msgid "削除に失敗しました"
+msgstr "删除失败"
+
+msgid "カスタムCSS"
+msgstr "自定义CSS"
+
 #~ msgid "EC公開をONにする"
 #~ msgstr "开启EC公开"
 
@@ -6103,12 +9301,6 @@ msgstr "数据加载中..."
 
 #~ msgid "登録する"
 #~ msgstr "注册"
-
-#~ msgid "キッチン"
-#~ msgstr "厨房"
-
-#~ msgid "来客分析"
-#~ msgstr "来客分析"
 
 #~ msgid "センサーダッシュボード"
 #~ msgstr "传感器仪表板"

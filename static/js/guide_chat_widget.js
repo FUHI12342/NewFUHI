@@ -1,6 +1,9 @@
 /**
  * guide_chat_widget.js
  * メインページ 予約ガイド AI チャットウィジェット (右下フローティング)
+ *
+ * i18n: テンプレート側で window.GUIDE_CHAT_I18N にローカライズ文字列を設定する。
+ * 未設定の場合は日本語デフォルトにフォールバック。
  */
 (function() {
     'use strict';
@@ -8,6 +11,18 @@
     var CHAT_API = '/api/chat/guide/';
     var conversationHistory = [];
     var isOpen = false;
+
+    // i18n strings (set from Django template via window.GUIDE_CHAT_I18N)
+    var i18n = window.GUIDE_CHAT_I18N || {};
+    var T = {
+        title:    i18n.title    || '予約ガイド',
+        welcome:  i18n.welcome  || 'こんにちは！予約方法やサービスについてご質問があればお気軽にどうぞ。',
+        placeholder: i18n.placeholder || 'ご質問をどうぞ...',
+        send:     i18n.send     || '送信',
+        thinking: i18n.thinking || '考え中...',
+        error:    i18n.error    || 'エラーが発生しました。',
+        networkError: i18n.networkError || '通信エラーが発生しました。',
+    };
 
     function getCookie(name) {
         var value = '; ' + document.cookie;
@@ -22,7 +37,7 @@
         btn.id = 'guide-chat-btn';
         btn.innerHTML = '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>';
         btn.style.cssText = 'position:fixed;bottom:24px;right:24px;z-index:9999;width:56px;height:56px;border-radius:50%;background:#8c876c;color:#fff;border:none;cursor:pointer;box-shadow:0 4px 12px rgba(0,0,0,0.2);display:flex;align-items:center;justify-content:center;transition:transform 0.2s;';
-        btn.title = '予約ガイド';
+        btn.title = T.title;
         btn.addEventListener('mouseenter', function() { btn.style.transform = 'scale(1.1)'; });
         btn.addEventListener('mouseleave', function() { btn.style.transform = 'scale(1)'; });
         btn.addEventListener('click', toggleChat);
@@ -34,13 +49,13 @@
         win.style.cssText = 'position:fixed;bottom:90px;right:24px;z-index:9999;width:360px;height:480px;background:#fff;border-radius:16px;box-shadow:0 8px 32px rgba(0,0,0,0.2);display:none;flex-direction:column;overflow:hidden;';
         win.innerHTML =
             '<div style="background:#8c876c;color:#fff;padding:14px 16px;font-weight:600;font-size:14px;display:flex;align-items:center;justify-content:space-between;">' +
-                '<span>予約ガイド</span>' +
+                '<span>' + T.title + '</span>' +
                 '<button id="guide-chat-close" style="background:none;border:none;color:#fff;cursor:pointer;font-size:18px;line-height:1;">&times;</button>' +
             '</div>' +
             '<div id="guide-chat-messages" style="flex:1;overflow-y:auto;padding:12px;font-size:13px;"></div>' +
             '<div style="padding:10px 12px;border-top:1px solid #e5e7eb;display:flex;gap:8px;">' +
-                '<input id="guide-chat-input" type="text" placeholder="ご質問をどうぞ..." style="flex:1;padding:8px 12px;border:1px solid #d1d5db;border-radius:8px;font-size:13px;outline:none;" />' +
-                '<button id="guide-chat-send" style="background:#8c876c;color:#fff;border:none;border-radius:8px;padding:8px 14px;cursor:pointer;font-size:13px;font-weight:500;">送信</button>' +
+                '<input id="guide-chat-input" type="text" placeholder="' + T.placeholder + '" style="flex:1;padding:8px 12px;border:1px solid #d1d5db;border-radius:8px;font-size:13px;outline:none;" />' +
+                '<button id="guide-chat-send" style="background:#8c876c;color:#fff;border:none;border-radius:8px;padding:8px 14px;cursor:pointer;font-size:13px;font-weight:500;">' + T.send + '</button>' +
             '</div>';
         document.body.appendChild(win);
 
@@ -51,7 +66,7 @@
         });
 
         // Welcome message
-        addMessage('assistant', 'こんにちは！予約方法やサービスについてご質問があればお気軽にどうぞ。');
+        addMessage('assistant', T.welcome);
     }
 
     function toggleChat() {
@@ -98,7 +113,7 @@
         var loadDiv = document.createElement('div');
         loadDiv.id = loadingId;
         loadDiv.style.cssText = 'margin-bottom:10px;display:flex;justify-content:flex-start;';
-        loadDiv.innerHTML = '<div style="padding:8px 12px;border-radius:12px;background:#f1f0ec;color:#999;font-size:12px;">考え中...</div>';
+        loadDiv.innerHTML = '<div style="padding:8px 12px;border-radius:12px;background:#f1f0ec;color:#999;font-size:12px;">' + T.thinking + '</div>';
         container.appendChild(loadDiv);
         container.scrollTop = container.scrollHeight;
 
@@ -114,14 +129,14 @@
         .then(function(data) {
             var el = document.getElementById(loadingId);
             if (el) el.remove();
-            var reply = data.reply || data.error || 'エラーが発生しました。';
+            var reply = data.reply || data.error || T.error;
             addMessage('assistant', reply);
             conversationHistory.push({ role: 'assistant', content: reply });
         })
         .catch(function() {
             var el = document.getElementById(loadingId);
             if (el) el.remove();
-            addMessage('assistant', '通信エラーが発生しました。');
+            addMessage('assistant', T.networkError);
         });
     }
 

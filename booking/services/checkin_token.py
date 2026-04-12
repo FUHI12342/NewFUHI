@@ -3,7 +3,7 @@ import hashlib
 import hmac
 import io
 import secrets
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone as dt_timezone
 
 import qrcode
 from django.conf import settings
@@ -59,7 +59,7 @@ def verify_qr_token(token: str) -> tuple[bool, str, str]:
 
     # Check expiration
     try:
-        expires_dt = datetime.fromtimestamp(int(expires_unix), tz=timezone.utc)
+        expires_dt = datetime.fromtimestamp(int(expires_unix), tz=dt_timezone.utc)
     except (ValueError, OSError):
         return (False, '', 'QRコードの有効期限が不正です')
 
