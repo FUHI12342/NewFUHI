@@ -123,9 +123,17 @@ def refresh_x_token(social_account):
         social_account.token_expires_at = (
             timezone.now() + timezone.timedelta(seconds=data.get('expires_in', 7200))
         )
-        social_account.save(
-            update_fields=['access_token', 'refresh_token', 'token_expires_at', 'updated_at'],
-        )
+        try:
+            social_account.save(
+                update_fields=['access_token', 'refresh_token', 'token_expires_at', 'updated_at'],
+            )
+        except Exception as db_exc:
+            logger.critical(
+                "Token refresh received from X but DB save failed for account %s. "
+                "Account requires manual re-authorization. DB error: %s",
+                social_account.id, db_exc,
+            )
+            raise XApiError(f"Token DB save failed: {db_exc}") from db_exc
         logger.info("Token refreshed for account %s", social_account.id)
 
     finally:
@@ -210,7 +218,7 @@ def post_tweet(social_account, content):
     # その他のエラー (403等)
     error_body = response.text[:500]
     logger.error("X API error %s: %s", response.status_code, error_body)
-    raise XApiError(f"X API error {response.status_code}: {error_body}")
+    raise XApiError(f"X API error {response.status_code}")
 
 
 def validate_x_credentials(social_account):

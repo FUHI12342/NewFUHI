@@ -15,12 +15,21 @@ logger = logging.getLogger(__name__)
 
 
 class StaffRequiredMixin(LoginRequiredMixin):
-    """管理スタッフ権限チェック"""
+    """管理スタッフ権限チェック（店長・オーナー・開発者・superuser のみ）"""
 
     def dispatch(self, request, *args, **kwargs):
         if not request.user.is_authenticated:
             return self.handle_no_permission()
-        if not (request.user.is_superuser or hasattr(request.user, 'staff')):
+        is_admin = request.user.is_superuser or request.user.is_staff
+        is_manager = (
+            hasattr(request.user, 'staff')
+            and (
+                request.user.staff.is_store_manager
+                or request.user.staff.is_owner
+                or getattr(request.user.staff, 'is_developer', False)
+            )
+        )
+        if not (is_admin or is_manager):
             return self.handle_no_permission()
         return super().dispatch(request, *args, **kwargs)
 

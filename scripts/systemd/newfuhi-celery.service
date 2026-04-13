@@ -9,7 +9,7 @@ WorkingDirectory=/home/ubuntu/NewFUHI
 EnvironmentFile=/home/ubuntu/NewFUHI/.env
 Environment=DJANGO_ENVIRONMENT=production
 Environment=DJANGO_SETTINGS_MODULE=project.settings
-ExecStart=/home/ubuntu/NewFUHI/.venv/bin/celery -A celery_config worker --loglevel=info
+ExecStart=/home/ubuntu/NewFUHI/.venv/bin/celery -A celery_config worker -Q celery,x_api --loglevel=info
 Restart=always
 RestartSec=10
 

@@ -78,7 +78,13 @@ class XCallbackView(View):
         error = request.GET.get('error')
 
         if error:
-            messages.error(request, f'X連携エラー: {error}')
+            known_errors = {
+                'access_denied': 'X連携が拒否されました',
+                'invalid_request': 'X連携リクエストが不正です',
+                'server_error': 'X側でエラーが発生しました',
+            }
+            safe_msg = known_errors.get(error, 'X連携エラーが発生しました')
+            messages.error(request, safe_msg)
             logger.warning("X OAuth error: %s", error)
             return redirect('/admin/')
 

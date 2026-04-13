@@ -273,11 +273,20 @@ window.addEventListener('message', function(e) {
 <!-- Inline event handlers converted to addEventListener -->
 <script nonce="{{ request.csp_nonce }}">
 document.addEventListener('DOMContentLoaded', function() {
+    // Strip i18n prefix from next field so LocaleMiddleware uses cookie
+    function submitLangForm(select) {
+        var nextInput = select.form.querySelector('input[name="next"]');
+        if (nextInput) {
+            nextInput.value = nextInput.value.replace(/^\/[a-z]{2}(?:-[a-z]+)?\//, '/');
+        }
+        select.form.submit();
+    }
+
     // Desktop language switcher
     var desktopLangSelect = document.getElementById('desktop-lang-select');
     if (desktopLangSelect) {
         desktopLangSelect.addEventListener('change', function() {
-            this.form.submit();
+            submitLangForm(this);
         });
     }
 
@@ -285,7 +294,7 @@ document.addEventListener('DOMContentLoaded', function() {
     var mobileLangSelect = document.getElementById('mobile-lang-select');
     if (mobileLangSelect) {
         mobileLangSelect.addEventListener('change', function() {
-            this.form.submit();
+            submitLangForm(this);
         });
     }
 
