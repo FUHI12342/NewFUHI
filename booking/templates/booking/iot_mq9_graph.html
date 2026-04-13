@@ -214,7 +214,7 @@
 </div>
 
 {% get_current_language as LANGUAGE_CODE %}
-<script>
+<script nonce="{{ request.csp_nonce }}">
 (function() {
   'use strict';
 

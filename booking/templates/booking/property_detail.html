@@ -154,7 +154,7 @@
                         <td class="px-4 py-3 text-gray-700">{{ alert.message }}</td>
                         <td class="px-4 py-3 text-gray-500 whitespace-nowrap">{{ alert.created_at }}</td>
                         <td class="px-4 py-3 text-center">
-                            <button onclick="resolveAlert({{ alert.id }})"
+                            <button data-alert-id="{{ alert.id }}"
                                     class="resolve-btn inline-flex items-center gap-1 text-xs font-medium bg-green-50 text-green-700 hover:bg-green-100 px-3 py-1.5 rounded transition">
                                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
@@ -181,7 +181,7 @@
 
 <!-- ===== Resolved Alerts (Collapsible) ===== -->
 <div class="mb-6">
-    <button onclick="toggleResolved()" class="flex items-center gap-2 text-lg font-bold text-salon-dark mb-3 hover:text-salon-brown transition">
+    <button id="toggle-resolved-btn" class="flex items-center gap-2 text-lg font-bold text-salon-dark mb-3 hover:text-salon-brown transition">
         <svg id="resolved-chevron" class="w-5 h-5 transform -rotate-90 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
         </svg>
@@ -259,7 +259,7 @@
      data-vacant="{% trans "不在" %}"
      data-stale-warning="{% trans "データの取得に失敗しています。接続を確認してください。" %}"
 ></div>
-<script>
+<script nonce="{{ request.csp_nonce }}">
 (function () {
     const I18N = document.getElementById('i18n-data').dataset;
     const PROPERTY_ID = {{ property.id }};
@@ -267,15 +267,25 @@
     const API_URL = '/api/properties/' + PROPERTY_ID + '/status/';
 
     // ---------- Collapsible resolved section ----------
-    window.toggleResolved = function () {
+    function toggleResolved() {
         const section = document.getElementById('resolved-section');
         const chevron = document.getElementById('resolved-chevron');
         section.classList.toggle('hidden');
         chevron.classList.toggle('-rotate-90');
-    };
+    }
+
+    document.getElementById('toggle-resolved-btn').addEventListener('click', toggleResolved);
+
+    // ---------- Resolve alert (event delegation) ----------
+    document.getElementById('active-alerts-table').addEventListener('click', function (e) {
+        const btn = e.target.closest('.resolve-btn');
+        if (!btn) return;
+        const alertId = btn.getAttribute('data-alert-id');
+        if (alertId) resolveAlert(parseInt(alertId, 10));
+    });
 
     // ---------- Resolve alert ----------
-    window.resolveAlert = function (alertId) {
+    function resolveAlert(alertId) {
         const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]')?.value
             || getCookie('csrftoken');
         fetch('/api/alerts/' + alertId + '/resolve/', {
@@ -290,7 +300,7 @@
                 refreshStatus();
             }
         });
-    };
+    }
 
     function getCookie(name) {
         const value = '; ' + document.cookie;
@@ -391,7 +401,7 @@
                         '<td class="px-4 py-3 text-gray-700">' + escapeHtml(a.message) + '</td>' +
                         '<td class="px-4 py-3 text-gray-500 whitespace-nowrap">' + escapeHtml(a.created_at) + '</td>' +
                         '<td class="px-4 py-3 text-center">' +
-                        '<button onclick="resolveAlert(' + a.id + ')" class="resolve-btn inline-flex items-center gap-1 text-xs font-medium bg-green-50 text-green-700 hover:bg-green-100 px-3 py-1.5 rounded transition">' +
+                        '<button data-alert-id="' + a.id + '" class="resolve-btn inline-flex items-center gap-1 text-xs font-medium bg-green-50 text-green-700 hover:bg-green-100 px-3 py-1.5 rounded transition">' +
                         '<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>' +
                         ' ' + I18N.resolve + '</button>' +
                         '</td></tr>';

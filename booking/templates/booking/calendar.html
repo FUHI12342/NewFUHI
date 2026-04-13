@@ -231,7 +231,7 @@
 tr:not(.hour-shaded):hover { background-color: rgba(249, 250, 251, 0.5); }
 .hour-border td { border-top: 2px solid #d1d5db !important; }
 </style>
-<script>
+<script nonce="{{ request.csp_nonce }}">
 // Fix prebooking links to include proper hour/minute from slot_label
 var prebookingBase = "{% url 'booking:prebooking' staff.pk 1111 11 11 11 %}".split('/prebooking/')[0] + '/prebooking/';
 document.querySelectorAll('a[data-hour]').forEach(function(a) {

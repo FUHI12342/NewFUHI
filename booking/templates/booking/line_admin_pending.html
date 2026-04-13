@@ -52,11 +52,11 @@
             <td>{{ s.store.name|default:"—" }}</td>
             <td>{{ s.price }}円</td>
             <td>
-                <button class="btn btn-confirm" onclick="confirmReservation({{ s.id }})">確定</button>
-                <button class="btn btn-reject" onclick="showRejectForm({{ s.id }})">却下</button>
+                <button class="btn btn-confirm" data-schedule-id="{{ s.id }}" data-action="confirm">確定</button>
+                <button class="btn btn-reject" data-schedule-id="{{ s.id }}" data-action="show-reject">却下</button>
                 <div class="reject-reason" id="reject-form-{{ s.id }}" style="display:none;">
                     <input type="text" id="reject-reason-{{ s.id }}" placeholder="却下理由（任意）">
-                    <button class="btn btn-reject" onclick="rejectReservation({{ s.id }})">却下実行</button>
+                    <button class="btn btn-reject" data-schedule-id="{{ s.id }}" data-action="reject">却下実行</button>
                 </div>
             </td>
         </tr>
@@ -69,7 +69,17 @@
 
 <div class="result-toast" id="toast"></div>
 
-<script>
+<script nonce="{{ request.csp_nonce }}">
+document.querySelector('.pending-table').addEventListener('click', function(e) {
+    var btn = e.target.closest('button[data-schedule-id]');
+    if (!btn) return;
+    var id = parseInt(btn.getAttribute('data-schedule-id'), 10);
+    var action = btn.getAttribute('data-action');
+    if (action === 'confirm') confirmReservation(id);
+    else if (action === 'show-reject') showRejectForm(id);
+    else if (action === 'reject') rejectReservation(id);
+});
+
 function confirmReservation(id) {
     if (!confirm('この予約を確定しますか？')) return;
     apiCall(id, 'confirm', {});

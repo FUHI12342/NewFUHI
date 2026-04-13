@@ -26,7 +26,7 @@
 
 <div class="store-filter">
     <label>店舗フィルター:
-        <select id="storeFilter" onchange="filterByStore()">
+        <select id="storeFilter">
             <option value="">全店舗</option>
             {% for store in stores %}
             <option value="{{ store.id }}" {% if selected_store_id == store.id %}selected{% endif %}>{{ store.name }}</option>
@@ -37,7 +37,7 @@
 
 <div class="segment-grid">
     {% for key, info in segment_counts.items %}
-    <div class="segment-card" data-segment="{{ key }}" onclick="selectSegment('{{ key }}')">
+    <div class="segment-card" data-segment="{{ key }}">
         <div class="count">{{ info.count }}</div>
         <div class="label">{{ info.label }}</div>
     </div>
@@ -48,14 +48,24 @@
     <h3>メッセージ作成 (<span id="selectedSegmentLabel"></span>)</h3>
     <textarea id="messageText" placeholder="配信メッセージを入力してください..."></textarea>
     <div>
-        <button onclick="sendMessage()" id="sendBtn">送信</button>
+        <button id="sendBtn">送信</button>
         <span id="charCount" style="margin-left:12px;color:#666;">0/500文字</span>
     </div>
     <div class="result-msg" id="resultMsg"></div>
 </div>
 
-<script>
+<script nonce="{{ request.csp_nonce }}">
 let selectedSegment = '';
+
+document.getElementById('storeFilter').addEventListener('change', filterByStore);
+
+document.querySelectorAll('.segment-card').forEach(function(card) {
+    card.addEventListener('click', function() {
+        selectSegment(this.getAttribute('data-segment'));
+    });
+});
+
+document.getElementById('sendBtn').addEventListener('click', sendMessage);
 
 function filterByStore() {
     const storeId = document.getElementById('storeFilter').value;

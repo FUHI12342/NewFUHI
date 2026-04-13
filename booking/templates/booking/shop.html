@@ -76,12 +76,12 @@
             </div>
             {% if not product.is_sold_out %}
             <div class="flex items-center justify-center gap-2 mt-3">
-                <button onclick="changeQty(this, -1)" class="w-7 h-7 bg-gray-200 rounded text-sm hover:bg-gray-300 transition">-</button>
+                <button data-qty-delta="-1" class="w-7 h-7 bg-gray-200 rounded text-sm hover:bg-gray-300 transition">-</button>
                 <input type="number" min="1" max="99" value="1" data-product-id="{{ product.id }}"
                        class="w-12 text-center border rounded text-sm qty-input">
-                <button onclick="changeQty(this, 1)" class="w-7 h-7 bg-gray-200 rounded text-sm hover:bg-gray-300 transition">+</button>
+                <button data-qty-delta="1" class="w-7 h-7 bg-gray-200 rounded text-sm hover:bg-gray-300 transition">+</button>
             </div>
-            <button onclick="addToCart({{ product.id }})" data-product-id="{{ product.id }}"
+            <button data-add-to-cart="{{ product.id }}" data-product-id="{{ product.id }}"
                     class="w-full mt-2 bg-salon-brown text-white text-sm py-2 rounded-lg hover:opacity-80 transition">
                 {% trans "カートに追加" %}
             </button>
@@ -107,7 +107,7 @@
      data-cart-added="{% trans 'カートに追加しました' %}"
      data-error-occurred="{% trans 'エラーが発生しました' %}"
      data-network-error="{% trans 'ネットワークエラー: ' %}"></div>
-<script>
+<script nonce="{{ request.csp_nonce }}">
 var i18n = document.getElementById('js-translations').dataset;
 
 function getCookie(name) {
@@ -162,5 +162,18 @@ function showToast(msg) {
     setTimeout(function() { el.style.opacity = '0'; }, 2500);
     setTimeout(function() { el.remove(); }, 3000);
 }
+
+// Event delegation for qty buttons and add-to-cart buttons
+document.addEventListener('click', function(e) {
+    var qtyBtn = e.target.closest('[data-qty-delta]');
+    if (qtyBtn) {
+        changeQty(qtyBtn, parseInt(qtyBtn.dataset.qtyDelta));
+        return;
+    }
+    var addBtn = e.target.closest('[data-add-to-cart]');
+    if (addBtn) {
+        addToCart(addBtn.dataset.addToCart);
+    }
+});
 </script>
 {% endblock %}

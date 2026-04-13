@@ -8,13 +8,13 @@
 
     <!-- Tab buttons -->
     <div class="flex gap-2 mb-4" id="rankingTabs">
-        <button type="button" class="ranking-tab px-4 py-2 rounded-full text-sm font-medium bg-salon-brown text-white" data-tab="tab-staff" onclick="switchRankingTab('tab-staff')">
+        <button type="button" class="ranking-tab px-4 py-2 rounded-full text-sm font-medium bg-salon-brown text-white" data-tab="tab-staff">
             {% blocktrans with staff_label=staff_label %}人気{{ staff_label }}{% endblocktrans %}
         </button>
-        <button type="button" class="ranking-tab px-4 py-2 rounded-full text-sm font-medium bg-gray-200 text-gray-600" data-tab="tab-store" onclick="switchRankingTab('tab-store')">
+        <button type="button" class="ranking-tab px-4 py-2 rounded-full text-sm font-medium bg-gray-200 text-gray-600" data-tab="tab-store">
             {% trans "人気店舗" %}
         </button>
-        <button type="button" class="ranking-tab px-4 py-2 rounded-full text-sm font-medium bg-gray-200 text-gray-600" data-tab="tab-recommend" onclick="switchRankingTab('tab-recommend')">
+        <button type="button" class="ranking-tab px-4 py-2 rounded-full text-sm font-medium bg-gray-200 text-gray-600" data-tab="tab-recommend">
             {% trans "おすすめ" %}
         </button>
     </div>
@@ -124,7 +124,14 @@
     </div>
 </div>
 
-<script>
+<script nonce="{{ request.csp_nonce }}">
+document.getElementById('rankingTabs').addEventListener('click', function(e) {
+    var btn = e.target.closest('.ranking-tab');
+    if (!btn) return;
+    var tabId = btn.getAttribute('data-tab');
+    if (tabId) switchRankingTab(tabId);
+});
+
 function switchRankingTab(tabId) {
     var panels = document.querySelectorAll('.ranking-panel');
     for (var i = 0; i < panels.length; i++) {

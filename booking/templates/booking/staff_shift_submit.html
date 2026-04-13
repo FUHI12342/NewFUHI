@@ -46,8 +46,7 @@
             {% for t in templates %}
             <button type="button" class="tmpl-chip px-3 py-1.5 rounded-full text-xs font-medium border-2 transition cursor-pointer"
                     data-tmpl-id="{{ t.id }}"
-                    style="border-color: {{ t.color }}; color: {{ t.color }}; background: white;"
-                    onclick="selectTemplate({{ t.id }})">
+                    style="border-color: {{ t.color }}; color: {{ t.color }}; background: white;">
                 {{ t.name }}
                 <span class="text-gray-400 ml-1">{{ t.start_time|time:"H:i" }}-{{ t.end_time|time:"H:i" }}</span>
             </button>
@@ -55,19 +54,18 @@
             <span class="text-xs text-gray-400">{% trans "テンプレート未設定" %}</span>
             {% endfor %}
             <button type="button" class="tmpl-chip px-3 py-1.5 rounded-full text-xs font-medium border-2 transition cursor-pointer border-red-400 text-red-400 bg-white"
-                    data-tmpl-id="unavailable"
-                    onclick="selectTemplate('unavailable')">
+                    data-tmpl-id="unavailable">
                 {% trans "休み" %}
             </button>
         </div>
         <div class="flex flex-wrap items-center gap-2">
-            <button type="button" onclick="copyPreviousWeek()" class="text-xs px-3 py-1.5 bg-gray-100 hover:bg-gray-200 rounded-lg transition">
+            <button type="button" id="btn-copy-prev-week" class="text-xs px-3 py-1.5 bg-gray-100 hover:bg-gray-200 rounded-lg transition">
                 {% trans "前週コピー" %}
             </button>
-            <button type="button" onclick="clearSelected()" class="text-xs px-3 py-1.5 bg-gray-100 hover:bg-gray-200 rounded-lg transition">
+            <button type="button" id="btn-clear-selected" class="text-xs px-3 py-1.5 bg-gray-100 hover:bg-gray-200 rounded-lg transition">
                 {% trans "選択解除" %}
             </button>
-            <button type="button" onclick="saveBulk()" class="text-xs px-3 py-1.5 bg-salon-brown text-white hover:bg-salon-dark rounded-lg transition font-medium">
+            <button type="button" id="btn-save-bulk" class="text-xs px-3 py-1.5 bg-salon-brown text-white hover:bg-salon-dark rounded-lg transition font-medium">
                 {% trans "一括保存" %}
             </button>
             <span id="selected-count" class="text-xs text-gray-500 ml-2">{% trans "0日選択中" %}</span>
@@ -129,7 +127,7 @@
      data-copy-failed="{% trans "コピーに失敗しました" %}"
 ></div>
 
-<script>
+<script nonce="{{ request.csp_nonce }}">
 const I18N = document.getElementById('js-i18n').dataset;
 const CSRF_TOKEN = '{{ csrf_token }}';
 const PERIOD_ID = {{ period.pk }};
@@ -422,6 +420,19 @@ async function copyPreviousWeek() {
         showToast(I18N.networkError + ' ' + e.message, true);
     }
 }
+
+// Template chip click delegation
+document.querySelectorAll('.tmpl-chip').forEach(function(chip) {
+    chip.addEventListener('click', function() {
+        var tmplId = chip.dataset.tmplId;
+        selectTemplate(tmplId === 'unavailable' ? 'unavailable' : parseInt(tmplId));
+    });
+});
+
+// Action buttons
+document.getElementById('btn-copy-prev-week').addEventListener('click', function() { copyPreviousWeek(); });
+document.getElementById('btn-clear-selected').addEventListener('click', function() { clearSelected(); });
+document.getElementById('btn-save-bulk').addEventListener('click', function() { saveBulk(); });
 
 // 初期描画
 renderCalendar();

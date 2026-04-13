@@ -70,7 +70,7 @@
 
 {% block extra_js %}
 {% if orders %}
-<script>
+<script nonce="{{ request.csp_nonce }}">
 // Auto-refresh every 10 seconds to get latest order status
 setTimeout(() => location.reload(), 10000);
 </script>

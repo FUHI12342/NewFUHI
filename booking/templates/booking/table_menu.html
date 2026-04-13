@@ -12,7 +12,7 @@
         <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
         </svg>
-        <button id="sku-clear" class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 hidden" onclick="clearSearch()">
+        <button id="sku-clear" class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 hidden" data-clear-search>
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
             </svg>
@@ -63,7 +63,7 @@
                 {% if product.is_sold_out %}
                 <span class="text-xs text-red-500 font-bold">{% trans "売り切れ" %}</span>
                 {% else %}
-                <button onclick="addToCart('{{ product.id }}')"
+                <button data-add-to-cart="{{ product.id }}"
                         class="bg-salon-brown text-white text-xs px-3 py-1.5 rounded-full hover:opacity-80 transition add-btn"
                         data-product-id="{{ product.id }}">
                     {% trans "追加" %}
@@ -94,7 +94,7 @@
 {% endblock %}
 
 {% block extra_js %}
-<script>
+<script nonce="{{ request.csp_nonce }}">
 var MSG_ERROR = '{% trans "エラーが発生しました" %}';
 var MSG_NETWORK_ERROR = '{% trans "通信エラーが発生しました" %}';
 
@@ -178,5 +178,18 @@ function addToCart(productId) {
         btn.textContent = '{% trans "追加" %}';
     });
 }
+
+// Event delegation for clear-search and add-to-cart buttons
+document.addEventListener('click', function(e) {
+    var clearSearchBtn = e.target.closest('[data-clear-search]');
+    if (clearSearchBtn) {
+        clearSearch();
+        return;
+    }
+    var addBtn = e.target.closest('[data-add-to-cart]');
+    if (addBtn) {
+        addToCart(addBtn.dataset.addToCart);
+    }
+});
 </script>
 {% endblock %}

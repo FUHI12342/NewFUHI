@@ -28,16 +28,16 @@
                 <td class="px-4 py-3 text-sm text-center">&yen;{{ item.price }}</td>
                 <td class="px-4 py-3 text-center">
                     <div class="flex items-center justify-center gap-1">
-                        <button onclick="updateQty('{{ item.product_id }}', {{ item.qty }} - 1)"
+                        <button data-update-qty="{{ item.product_id }}" data-new-qty="{{ item.qty|add:'-1' }}"
                                 class="w-7 h-7 bg-gray-200 rounded text-sm hover:bg-gray-300 transition">-</button>
                         <span class="w-8 text-center text-sm" id="qty-{{ item.product_id }}">{{ item.qty }}</span>
-                        <button onclick="updateQty('{{ item.product_id }}', {{ item.qty }} + 1)"
+                        <button data-update-qty="{{ item.product_id }}" data-new-qty="{{ item.qty|add:'1' }}"
                                 class="w-7 h-7 bg-gray-200 rounded text-sm hover:bg-gray-300 transition">+</button>
                     </div>
                 </td>
                 <td class="px-4 py-3 text-sm text-right font-bold">&yen;{{ item.subtotal }}</td>
                 <td class="px-4 py-3 text-center">
-                    <button onclick="removeItem('{{ item.product_id }}')" class="text-red-400 hover:text-red-600 transition text-lg">&times;</button>
+                    <button data-remove-item="{{ item.product_id }}" class="text-red-400 hover:text-red-600 transition text-lg">&times;</button>
                 </td>
             </tr>
             {% endfor %}
@@ -86,7 +86,7 @@
 {% block extra_js %}
 <div id="js-translations" class="hidden"
      data-error="{% trans 'エラー' %}"></div>
-<script>
+<script nonce="{{ request.csp_nonce }}">
 var i18n = document.getElementById('js-translations').dataset;
 
 function getCookie(name) {
@@ -128,5 +128,18 @@ function removeItem(productId) {
         else { alert(data.message || i18n.error); }
     });
 }
+
+// Event delegation for update-qty and remove-item buttons
+document.addEventListener('click', function(e) {
+    var updateBtn = e.target.closest('[data-update-qty]');
+    if (updateBtn) {
+        updateQty(updateBtn.dataset.updateQty, parseInt(updateBtn.dataset.newQty));
+        return;
+    }
+    var removeBtn = e.target.closest('[data-remove-item]');
+    if (removeBtn) {
+        removeItem(removeBtn.dataset.removeItem);
+    }
+});
 </script>
 {% endblock %}

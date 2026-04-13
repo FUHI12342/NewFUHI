@@ -58,8 +58,8 @@
                             <span class="text-red-600 font-bold">{{ v.shortage }}{% trans "名" %}</span>
                         </td>
                         <td class="px-4 py-2 text-center">
-                            <button onclick="applyVacancy({{ v.id }})"
-                                    class="bg-amber-500 text-white text-xs px-3 py-1 rounded hover:bg-amber-600 transition">
+                            <button class="btn-apply-vacancy bg-amber-500 text-white text-xs px-3 py-1 rounded hover:bg-amber-600 transition"
+                                    data-vacancy-id="{{ v.id }}">
                                 {% trans "応募する" %}
                             </button>
                         </td>
@@ -108,7 +108,7 @@
     {% endif %}
 </div>
 
-<script>
+<script nonce="{{ request.csp_nonce }}">
 function applyVacancy(vacancyId) {
     if (!confirm('この不足枠に応募しますか？')) return;
     fetch('/api/shift/vacancies/' + vacancyId + '/apply/', {
@@ -129,5 +129,14 @@ function applyVacancy(vacancyId) {
     })
     .catch(() => alert('エラーが発生しました。'));
 }
+
+// Event delegation for vacancy apply buttons
+document.addEventListener('DOMContentLoaded', function() {
+    document.querySelectorAll('.btn-apply-vacancy').forEach(function(btn) {
+        btn.addEventListener('click', function() {
+            applyVacancy(parseInt(btn.dataset.vacancyId));
+        });
+    });
+});
 </script>
 {% endblock %}

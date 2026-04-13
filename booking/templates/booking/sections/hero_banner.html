@@ -46,7 +46,7 @@
     </div>
 </div>
 {% if hero_banners|length > 1 %}
-<script>
+<script nonce="{{ request.csp_nonce }}">
 (function() {
     var track = document.getElementById('heroTrack');
     if (!track) return;

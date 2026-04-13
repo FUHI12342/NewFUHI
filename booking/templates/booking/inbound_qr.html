@@ -36,7 +36,7 @@
     <!-- Manual Input -->
     <div class="bg-white rounded-xl shadow-md p-4 border border-gray-200 mb-6">
         <h3 class="text-sm font-bold mb-3">{% trans "手動入力" %}</h3>
-        <form id="inbound-form" onsubmit="return doInbound(event)">
+        <form id="inbound-form">
             <div class="space-y-3">
                 <div>
                     <label class="block text-xs text-gray-500 mb-1">{% trans "SKU / バーコード" %}</label>
@@ -74,7 +74,7 @@
 
 {% block extra_js %}
 <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
-<script>
+<script nonce="{{ request.csp_nonce }}">
 var csrfToken = '{{ csrf_token }}';
 var storeId = '{{ store.id|default:"" }}';
 var inboundApiUrl = '{% url "booking_api:inbound_apply_api" %}';
@@ -125,6 +125,10 @@ function doInbound(e) {
     .catch(function() { showResult(false, '通信エラー'); });
     return false;
 }
+
+document.getElementById('inbound-form').addEventListener('submit', function(e) {
+    doInbound(e);
+});
 
 /* QR Scanner */
 if (typeof Html5QrcodeScanner !== 'undefined') {

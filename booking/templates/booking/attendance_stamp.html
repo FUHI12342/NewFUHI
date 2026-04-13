@@ -89,10 +89,10 @@
   </div>
 
   <div class="stamp-buttons">
-    <button class="stamp-btn btn-clock-in" onclick="doStamp('clock_in')">{% trans "出勤" %}</button>
-    <button class="stamp-btn btn-clock-out" onclick="doStamp('clock_out')">{% trans "退勤" %}</button>
-    <button class="stamp-btn btn-break-start" onclick="doStamp('break_start')">{% trans "休憩開始" %}</button>
-    <button class="stamp-btn btn-break-end" onclick="doStamp('break_end')">{% trans "休憩終了" %}</button>
+    <button class="stamp-btn btn-clock-in">{% trans "出勤" %}</button>
+    <button class="stamp-btn btn-clock-out">{% trans "退勤" %}</button>
+    <button class="stamp-btn btn-break-start">{% trans "休憩開始" %}</button>
+    <button class="stamp-btn btn-break-end">{% trans "休憩終了" %}</button>
   </div>
 
   <div id="result-msg" class="result-msg"></div>
@@ -110,7 +110,7 @@
      data-network-error="{% trans "通信エラーが発生しました" %}"
 ></div>
 
-<script>
+<script nonce="{{ request.csp_nonce }}">
 var I18N = document.getElementById('i18n-data').dataset;
 var STAMP_LABELS = {clock_in:I18N.clockIn,clock_out:I18N.clockOut,break_start:I18N.breakStart,break_end:I18N.breakEnd};
 var STORE_ID = '{{ store.id }}';
@@ -170,6 +170,11 @@ function doStamp(stampType) {
     showMsg('error', I18N.networkError);
   });
 }
+
+document.querySelector('.btn-clock-in').addEventListener('click', function() { doStamp('clock_in'); });
+document.querySelector('.btn-clock-out').addEventListener('click', function() { doStamp('clock_out'); });
+document.querySelector('.btn-break-start').addEventListener('click', function() { doStamp('break_start'); });
+document.querySelector('.btn-break-end').addEventListener('click', function() { doStamp('break_end'); });
 </script>
 </body>
 </html>

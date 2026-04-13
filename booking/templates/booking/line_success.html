@@ -69,7 +69,7 @@
     </div>
 </div>
 
-<script>
+<script nonce="{{ request.csp_nonce }}">
 (function() {
     var isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
     var mobileInfo = document.getElementById('line-info-mobile');

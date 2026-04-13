@@ -117,7 +117,7 @@
 tr:not(.hour-shaded):hover { background-color: rgba(249, 250, 251, 0.5); }
 .hour-border td { border-top: 2px solid #d1d5db !important; }
 </style>
-<script>
+<script nonce="{{ request.csp_nonce }}">
 // Fix prebooking links with proper hour/minute
 var base = '/embed/prebooking/{{ store.pk }}/{{ staff.pk }}/';
 var apiKey = '{{ api_key }}';

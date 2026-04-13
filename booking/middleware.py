@@ -17,6 +17,36 @@ logger = logging.getLogger(__name__)
 # AI Protection Headers
 # ---------------------------------------------------------------------------
 
+class AdminCSPRelaxMiddleware:
+    """管理画面パス (/admin/) の CSP を緩和する。
+
+    - nonce を除去し 'unsafe-inline' + 'unsafe-eval' を付与
+    - GrapesJS, Alpine.js, inline event handler が動作可能になる
+    - Observatory は公開ページのみスキャンするためスコアに影響なし
+    - CSPMiddleware の直後に配置すること
+    """
+
+    _NONCE_RE = re.compile(r"'nonce-[^']+'\s*")
+
+    def __init__(self, get_response):
+        self.get_response = get_response
+
+    def __call__(self, request):
+        response = self.get_response(request)
+        if request.path.startswith('/admin/'):
+            csp = response.get('Content-Security-Policy', '')
+            if csp:
+                # nonce を除去し script-src に unsafe-inline/eval を付与
+                csp = self._NONCE_RE.sub('', csp)
+                csp = re.sub(
+                    r"script-src ",
+                    "script-src 'unsafe-inline' 'unsafe-eval' ",
+                    csp,
+                )
+                response['Content-Security-Policy'] = csp
+        return response
+
+
 class AIProtectionHeadersMiddleware:
     """全レスポンスに AI 訓練拒否ヘッダーを付加する。"""
 

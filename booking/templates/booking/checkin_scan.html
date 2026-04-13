@@ -52,10 +52,10 @@
 
     <!-- Tabs -->
     <div class="flex mb-4 border-b border-gray-200">
-        <button class="tab-btn active flex-1 py-3 text-center text-sm" onclick="switchTab('qr')">
+        <button id="tab-btn-qr" class="tab-btn active flex-1 py-3 text-center text-sm">
             {% trans "QRスキャン" %}
         </button>
-        <button class="tab-btn flex-1 py-3 text-center text-sm" onclick="switchTab('code')">
+        <button id="tab-btn-code" class="tab-btn flex-1 py-3 text-center text-sm">
             {% trans "口頭コード入力" %}
         </button>
     </div>
@@ -71,16 +71,16 @@
         <div id="reader" class="mb-4 rounded-lg overflow-hidden border border-gray-300"></div>
         <div id="camera-error" style="display:none;" class="bg-yellow-50 border border-yellow-300 rounded-lg p-4 mb-4 text-center">
             <p id="camera-error-message" class="text-yellow-700 text-sm font-medium"></p>
-            <button onclick="showCameraGuide()" class="mt-2 text-sm text-salon-brown underline font-bold">
+            <button id="btn-camera-guide" class="mt-2 text-sm text-salon-brown underline font-bold">
                 {% trans "カメラの許可方法を見る" %}
             </button>
         </div>
         <div class="flex justify-center gap-3 mb-4">
-            <button id="btn-start-scan" onclick="startScanner()"
+            <button id="btn-start-scan"
                     class="bg-salon-brown text-white px-6 py-3 rounded-lg text-sm font-bold hover:opacity-80 transition">
                 {% trans "スキャン開始" %}
             </button>
-            <button id="btn-stop-scan" onclick="stopScanner()" style="display:none;"
+            <button id="btn-stop-scan" style="display:none;"
                     class="bg-gray-400 text-white px-6 py-3 rounded-lg text-sm font-bold hover:opacity-80 transition">
                 {% trans "スキャン停止" %}
             </button>
@@ -96,7 +96,7 @@
             <input type="text" id="backup-code-input" maxlength="6" inputmode="numeric" pattern="[0-9]*"
                    placeholder="123456"
                    class="w-full border border-gray-300 rounded px-4 py-3 text-2xl font-mono text-center tracking-widest mb-4">
-            <button onclick="doBackupCheckin()"
+            <button id="btn-backup-checkin"
                     class="w-full bg-salon-brown text-white px-4 py-3 rounded text-sm font-bold hover:opacity-80 transition">
                 {% trans "チェックイン" %}
             </button>
@@ -105,11 +105,11 @@
 </div>
 
 <!-- Camera Permission Guide Modal -->
-<div id="camera-guide-modal" class="modal-overlay" onclick="closeCameraGuide(event)">
-    <div class="modal-box" onclick="event.stopPropagation()">
+<div id="camera-guide-modal" class="modal-overlay">
+    <div class="modal-box" id="camera-guide-modal-box">
         <div class="flex justify-between items-center mb-4">
             <h3 class="text-lg font-bold text-salon-dark">{% trans "カメラの許可方法" %}</h3>
-            <button onclick="closeCameraGuide()" class="text-gray-400 hover:text-gray-600 text-2xl leading-none">&times;</button>
+            <button id="btn-close-camera-guide" class="text-gray-400 hover:text-gray-600 text-2xl leading-none">&times;</button>
         </div>
 
         <!-- Chrome on mobile -->
@@ -157,7 +157,7 @@
         </div>
 
         <div class="mt-4 pt-4 border-t border-gray-200">
-            <button onclick="location.reload()"
+            <button id="btn-reload-page"
                     class="w-full bg-salon-brown text-white px-4 py-3 rounded-lg text-sm font-bold hover:opacity-80 transition">
                 {% trans "ページを再読み込み" %}
             </button>
@@ -168,7 +168,7 @@
 
 {% block extra_js %}
 <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
-<script>
+<script nonce="{{ request.csp_nonce }}">
 var csrfToken = '{{ csrf_token }}';
 var checkinUrl = '{% url "booking_api:checkin_api" %}';
 var isProcessing = false;
@@ -205,8 +205,7 @@ function showCameraGuide() {
     document.getElementById('camera-guide-modal').classList.add('active');
 }
 
-function closeCameraGuide(event) {
-    if (event && event.target !== event.currentTarget) return;
+function closeCameraGuide() {
     document.getElementById('camera-guide-modal').classList.remove('active');
 }
 
@@ -367,6 +366,36 @@ function doBackupCheckin() {
 }
 
 document.addEventListener('DOMContentLoaded', function() {
+    // Tab buttons
+    document.getElementById('tab-btn-qr').addEventListener('click', function() { switchTab('qr'); });
+    document.getElementById('tab-btn-code').addEventListener('click', function() { switchTab('code'); });
+
+    // Scanner buttons
+    document.getElementById('btn-start-scan').addEventListener('click', function() { startScanner(); });
+    document.getElementById('btn-stop-scan').addEventListener('click', function() { stopScanner(); });
+
+    // Camera guide button
+    document.getElementById('btn-camera-guide').addEventListener('click', function() { showCameraGuide(); });
+
+    // Backup checkin button
+    document.getElementById('btn-backup-checkin').addEventListener('click', function() { doBackupCheckin(); });
+
+    // Modal overlay - close when clicking outside the modal box
+    document.getElementById('camera-guide-modal').addEventListener('click', function(event) {
+        if (event.target === event.currentTarget) closeCameraGuide();
+    });
+
+    // Modal box - stop propagation to prevent closing when clicking inside
+    document.getElementById('camera-guide-modal-box').addEventListener('click', function(event) {
+        event.stopPropagation();
+    });
+
+    // Close camera guide button
+    document.getElementById('btn-close-camera-guide').addEventListener('click', function() { closeCameraGuide(); });
+
+    // Reload page button
+    document.getElementById('btn-reload-page').addEventListener('click', function() { location.reload(); });
+
     // Enter key on backup code input
     document.getElementById('backup-code-input').addEventListener('keydown', function(e) {
         if (e.key === 'Enter') doBackupCheckin();

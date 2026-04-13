@@ -93,7 +93,7 @@
     {% endif %}
 
     {% if has_instagram and has_twitter %}
-    <script>
+    <script nonce="{{ request.csp_nonce }}">
     (function(){
       var tabs = document.querySelectorAll('#sns-tabs .sns-tab');
       var panels = document.querySelectorAll('.sns-panel');

@@ -137,7 +137,7 @@
 {% block extra_js %}
 <div id="js-translations" class="hidden"
      data-processing="{% trans '処理中...' %}"></div>
-<script>
+<script nonce="{{ request.csp_nonce }}">
 var i18n = document.getElementById('js-translations').dataset;
 
 // カード番号の自動フォーマット（4桁区切り）

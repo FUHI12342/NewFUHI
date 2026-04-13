@@ -210,16 +210,16 @@
 
   <!-- Sensor Tabs -->
   <div class="sensor-tab-bar">
-    <button class="sensor-tab active" data-sensor="mq9" onclick="switchSensor('mq9')">
+    <button class="sensor-tab active" data-sensor="mq9">
       <span class="tab-icon" style="color:#f97316;">&#9679;</span> MQ-9 Gas
     </button>
-    <button class="sensor-tab" data-sensor="light" onclick="switchSensor('light')">
+    <button class="sensor-tab" data-sensor="light">
       <span class="tab-icon" style="color:#facc15;">&#9679;</span> Light
     </button>
-    <button class="sensor-tab" data-sensor="sound" onclick="switchSensor('sound')">
+    <button class="sensor-tab" data-sensor="sound">
       <span class="tab-icon" style="color:#34d399;">&#9679;</span> Sound
     </button>
-    <button class="sensor-tab" data-sensor="pir" onclick="switchSensor('pir')">
+    <button class="sensor-tab" data-sensor="pir">
       <span class="tab-icon" style="color:#60a5fa;">&#9679;</span> PIR Motion
     </button>
   </div>
@@ -310,14 +310,14 @@
      data-no-device="{% trans 'デバイスが登録されていません。管理画面からIoTデバイスを追加してください。' %}"
      data-load-error="{% trans 'デバイス一覧の取得に失敗しました。' %}"
      data-retry="{% trans '再試行' %}"></div>
-<script>
+<script nonce="{{ request.csp_nonce }}">
 (function() {
   'use strict';
 
   var iotI18n = document.getElementById('iot-i18n').dataset;
 
   // ── Sensor tab switching ────────────────────────────────
-  window.switchSensor = function(sensorName) {
+  function switchSensor(sensorName) {
     document.querySelectorAll('.sensor-panel').forEach(function(el) {
       el.classList.remove('active');
     });
@@ -326,7 +326,13 @@
     });
     document.getElementById('panel-' + sensorName).classList.add('active');
     document.querySelector('[data-sensor="' + sensorName + '"]').classList.add('active');
-  };
+  }
+
+  document.querySelectorAll('.sensor-tab[data-sensor]').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      switchSensor(btn.getAttribute('data-sensor'));
+    });
+  });
 
   // ── State ──────────────────────────────────────────────
   let currentRange  = '36h';
@@ -686,11 +692,11 @@
         retryBtn.textContent = iotI18n.retry;
         retryBtn.className = 'range-btn';
         retryBtn.style.marginLeft = '8px';
-        retryBtn.onclick = function() {
+        retryBtn.addEventListener('click', function() {
           deviceLoadRetries = 0;
           retryBtn.remove();
           loadDevices();
-        };
+        });
         deviceSelect.parentNode.insertBefore(retryBtn, deviceSelect.nextSibling);
       }
     });
