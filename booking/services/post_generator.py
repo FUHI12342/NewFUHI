@@ -65,20 +65,31 @@ def truncate_to_fit(content, max_weighted=MAX_WEIGHTED_LENGTH, suffix='...'):
     return ''.join(result) + suffix
 
 
+def flatten_for_x(content):
+    """X投稿用に改行をスペースに置換（スパム判定回避）
+
+    連続改行や改行+空白も1スペースに正規化する。
+    """
+    return re.sub(r'\s*\n\s*', ' ', content).strip()
+
+
 def append_booking_url(content, store):
     """投稿テキスト末尾に予約URLを追加（X向け）
+
+    改行をスペースに置換してからURLを付与する。
 
     Args:
         content: 投稿テキスト
         store: Store インスタンス
 
     Returns:
-        URL付き投稿テキスト
+        URL付き投稿テキスト（1段落+URL）
     """
+    content = flatten_for_x(content)
     booking_url = f"https://timebaibai.com/store/{store.id}/staffs/"
     if 'timebaibai.com' in content:
         return content
-    return f"{content}\n{booking_url}"
+    return f"{content} {booking_url}"
 
 
 def render_template(body_template, context):
