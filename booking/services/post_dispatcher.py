@@ -4,7 +4,7 @@ import logging
 
 from django.utils import timezone
 
-from booking.services.post_generator import build_content
+from booking.services.post_generator import append_booking_url, build_content
 from booking.services.x_posting_service import (
     PostResult,
     XApiError,
@@ -80,6 +80,9 @@ def dispatch_post(store_id, trigger_type, context_data):
     if not content:
         logger.warning("Empty content generated for store %s", store.name)
         return
+
+    # 3.5 予約URLを自動付加
+    content = append_booking_url(content, store)
 
     # 4. PostHistory作成 (pending)
     history = PostHistory.objects.create(

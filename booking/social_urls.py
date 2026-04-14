@@ -1,16 +1,23 @@
 """SNS OAuth 認証 + 下書き管理 URL設定"""
 from django.urls import path
 
-from booking.views_social_oauth import XConnectView, XCallbackView
+from booking.views_social_oauth import (
+    XConnectView, XCallbackView,
+    TikTokConnectView, TikTokCallbackView,
+)
 from booking.views_social_drafts import (
     DraftListView, DraftEditView, DraftPostView,
     DraftScheduleView, DraftGenerateView, DraftRegenerateView,
 )
 
 urlpatterns = [
-    # OAuth
+    # OAuth — X
     path('connect/x/', XConnectView.as_view(), name='social_connect_x'),
     path('callback/x/', XCallbackView.as_view(), name='social_callback_x'),
+
+    # OAuth — TikTok
+    path('connect/tiktok/', TikTokConnectView.as_view(), name='social_connect_tiktok'),
+    path('callback/tiktok/', TikTokCallbackView.as_view(), name='social_callback_tiktok'),
 
     # 下書き管理
     path('drafts/', DraftListView.as_view(), name='social_draft_list'),

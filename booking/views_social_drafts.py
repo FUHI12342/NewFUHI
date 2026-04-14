@@ -135,7 +135,9 @@ class DraftPostView(StaffRequiredMixin, View):
             return False, f'{platform}はAPI投稿に非対応（ブラウザ投稿を使用）'
 
         from booking.services.post_dispatcher import dispatch_post
-        context_json = {'content': draft.content, 'draft_id': draft.pk}
+        from booking.services.post_generator import append_booking_url
+        content = append_booking_url(draft.content, draft.store)
+        context_json = {'content': content, 'draft_id': draft.pk}
         dispatch_post(draft.store_id, 'manual', context_json)
         return True, '投稿完了'
 

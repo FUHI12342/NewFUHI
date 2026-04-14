@@ -115,6 +115,11 @@ X_REDIRECT_URI = os.getenv("X_REDIRECT_URI", "https://timebaibai.com/admin/socia
 # Gemini AI Chat
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "")
 
+# TikTok API
+TIKTOK_CLIENT_KEY = os.getenv("TIKTOK_CLIENT_KEY", "")
+TIKTOK_CLIENT_SECRET = os.getenv("TIKTOK_CLIENT_SECRET", "")
+TIKTOK_REDIRECT_URI = os.getenv("TIKTOK_REDIRECT_URI", "https://timebaibai.com/admin/social/callback/tiktok/")
+
 # Email settings
 DEFAULT_FROM_EMAIL = os.getenv("DEFAULT_FROM_EMAIL", "no-reply@timebaibai.com")
 EMAIL_HOST = os.getenv("EMAIL_HOST", "")
@@ -168,6 +173,8 @@ _WARN_SECRETS = [
     "GEMINI_API_KEY",
     "X_CLIENT_ID",
     "X_CLIENT_SECRET",
+    "TIKTOK_CLIENT_KEY",
+    "TIKTOK_CLIENT_SECRET",
 ]
 _warn_missing = [k for k in _WARN_SECRETS if not os.getenv(k)]
 if _warn_missing:

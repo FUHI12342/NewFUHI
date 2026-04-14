@@ -10,6 +10,7 @@ PLATFORM_CHOICES = [
     ('x', 'X (Twitter)'),
     ('instagram', 'Instagram'),
     ('gbp', 'Google Business Profile'),
+    ('tiktok', 'TikTok'),
 ]
 
 TRIGGER_CHOICES = [

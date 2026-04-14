@@ -313,6 +313,12 @@ class StaffList(generic.ListView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['store'] = self.store
+        # OGメタタグ用: サムネイル付きスタッフの最初の画像URL
+        staff_list = context.get('staff_list') or self.object_list
+        for staff in staff_list:
+            if staff.thumbnail:
+                context['first_staff_thumb'] = staff.thumbnail.url
+                break
         return context
 
     def get_queryset(self):

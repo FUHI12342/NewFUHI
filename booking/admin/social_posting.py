@@ -153,12 +153,32 @@ class KnowledgeEntryAdmin(admin.ModelAdmin):
 
 
 class DraftPostAdmin(admin.ModelAdmin):
-    list_display = ('store', 'status_badge', 'quality_display', 'platform_display', 'target_date', 'content_preview', 'created_at')
+    list_display = ('store', 'status_badge', 'quality_display', 'platform_display',
+                    'has_image', 'target_date', 'content_preview', 'created_at')
     list_filter = ('status', 'store')
     search_fields = ('content', 'store__name')
-    readonly_fields = ('ai_generated_content', 'quality_score', 'quality_feedback', 'posted_at', 'created_at', 'updated_at')
+    readonly_fields = ('ai_generated_content', 'quality_score', 'quality_feedback',
+                       'image_preview', 'posted_at', 'created_at', 'updated_at')
     ordering = ('-created_at',)
     list_per_page = 10
+    actions = ['generate_draft_action', 'post_now_action']
+
+    fieldsets = (
+        (None, {
+            'fields': ('store', 'status', 'platforms', 'target_date', 'scheduled_at'),
+        }),
+        (_('投稿内容'), {
+            'fields': ('content', 'image', 'image_preview'),
+        }),
+        (_('AI生成情報'), {
+            'fields': ('ai_generated_content', 'quality_score', 'quality_feedback'),
+            'classes': ('collapse',),
+        }),
+        (_('メタ情報'), {
+            'fields': ('created_by', 'posted_at', 'created_at', 'updated_at'),
+            'classes': ('collapse',),
+        }),
+    )
 
     def status_badge(self, obj):
         colors = {
@@ -191,11 +211,48 @@ class DraftPostAdmin(admin.ModelAdmin):
         return ', '.join(str(p) for p in platforms) if platforms else '-'
     platform_display.short_description = _('プラットフォーム')
 
+    def has_image(self, obj):
+        if obj.image:
+            return format_html('<span style="color:green;">&#10003;</span>')
+        return format_html('<span style="color:gray;">-</span>')
+    has_image.short_description = _('画像')
+    has_image.admin_order_field = 'image'
+
+    def image_preview(self, obj):
+        if obj.image:
+            return format_html(
+                '<img src="{}" style="max-height:200px; border-radius:8px;" />',
+                obj.image.url,
+            )
+        return _('画像なし')
+    image_preview.short_description = _('画像プレビュー')
+
     def content_preview(self, obj):
         content = obj.content or ''
         return content[:60] + '...' if len(content) > 60 else content
     content_preview.short_description = _('内容')
     content_preview.admin_order_field = 'content'
+
+    @admin.action(description=_('AI下書きを生成'))
+    def generate_draft_action(self, request, queryset):
+        from booking.services.sns_draft_service import generate_daily_draft
+        generated = 0
+        for draft in queryset:
+            result = generate_daily_draft(draft.store, target_date=draft.target_date)
+            if result:
+                generated += 1
+        self.message_user(request, _('%(count)d件の下書きを生成しました。') % {'count': generated})
+
+    @admin.action(description=_('即時投稿'))
+    def post_now_action(self, request, queryset):
+        from booking.services.post_dispatcher import dispatch_post
+        posted = 0
+        for draft in queryset.filter(status__in=['generated', 'approved']):
+            for platform in (draft.platforms or ['x']):
+                result = dispatch_post(draft, platform)
+                if result:
+                    posted += 1
+        self.message_user(request, _('%(count)d件を投稿しました。') % {'count': posted})
 
 
 custom_site.register(SocialAccount, SocialAccountAdmin)

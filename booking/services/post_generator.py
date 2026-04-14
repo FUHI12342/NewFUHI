@@ -65,6 +65,22 @@ def truncate_to_fit(content, max_weighted=MAX_WEIGHTED_LENGTH, suffix='...'):
     return ''.join(result) + suffix
 
 
+def append_booking_url(content, store):
+    """投稿テキスト末尾に予約URLを追加（X向け）
+
+    Args:
+        content: 投稿テキスト
+        store: Store インスタンス
+
+    Returns:
+        URL付き投稿テキスト
+    """
+    booking_url = f"https://timebaibai.com/store/{store.id}/staffs/"
+    if 'timebaibai.com' in content:
+        return content
+    return f"{content}\n{booking_url}"
+
+
 def render_template(body_template, context):
     """安全な変数展開。未定義変数はそのまま残す。
 

@@ -130,7 +130,15 @@
 
 ## 14. SNS投稿
 
-- [ ] Instagram / Threads / TikTok 投稿API統合（現在はX APIのみ）
+- [x] X API v2 テキスト投稿 (OAuth 2.0 PKCE)
+- [x] AI下書き生成 (Gemini Flash)
+- [x] 予約URL自動付与
+- [x] TikTok OAuth + Content Posting API
+- [x] DraftPost への画像自動添付
+- [x] staff_list ページ OGメタタグ (X カードプレビュー)
+- [x] 管理画面サイドバー統合 (6項目→3項目)
+- [ ] X API メディアアップロード (OAuth 1.0a)
+- [ ] Instagram Graph API（現在はブラウザ自動化のみ）
 - [ ] 投稿のA/Bテスト機能
 - [ ] 投稿パフォーマンス分析（エンゲージメント率追跡）
 

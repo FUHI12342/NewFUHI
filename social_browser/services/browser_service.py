@@ -42,7 +42,10 @@ def create_browser_context(playwright_instance, profile_dir, headless=True):
     Returns:
         (browser, context)
     """
-    browser = playwright_instance.chromium.launch(headless=headless)
+    browser = playwright_instance.chromium.launch(
+        headless=headless,
+        args=['--disable-gpu', '--no-sandbox', '--disable-dev-shm-usage'],
+    )
     context = browser.new_context(
         user_agent=(
             'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) '

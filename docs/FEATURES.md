@@ -427,13 +427,14 @@
 
 ## 13. SNS自動投稿 (Social Media Posting)
 
-**概要**: X (Twitter) への自動/予約投稿。AI生成テキスト、LLM品質評価、ナレッジベース連携。
+**概要**: X / Instagram / TikTok への自動/予約投稿。AI生成テキスト（Gemini Flash）、LLM品質評価、ナレッジベース連携、画像自動添付。
 
 ### 13.1 OAuth認証・下書き管理
 
 | 機能 | URL | 説明 |
 |------|-----|------|
-| X連携 | `/admin/social/connect/x/` | X OAuth2認証フロー |
+| X連携 | `/admin/social/connect/x/` | X OAuth2 PKCE認証フロー |
+| TikTok連携 | `/admin/social/connect/tiktok/` | TikTok OAuth2認証フロー |
 | 下書き一覧 | `/admin/social/drafts/` | AI生成下書きの管理 |
 | 下書き編集 | `/admin/social/drafts/<id>/edit/` | 下書き内容の編集 |
 | 即時投稿 | `/admin/social/drafts/<id>/post/` | 下書きを即時投稿 |
@@ -451,9 +452,29 @@
 | 予約投稿チェック | 5分ごと | 予約時刻到達の投稿を実行 |
 | トークンリフレッシュ | 毎日03:30 | 期限切れ間近のOAuthトークン更新 |
 
+### 13.3 画像自動添付
+
+- 出勤キャストの thumbnail → store.thumbnail → store.photo_2 の優先順で自動選択
+- DraftPost 作成時に画像をコピー保存（元画像への参照を持たない）
+- 日付ベースの deterministic 選択（同日なら同じスタッフ画像）
+
+### 13.4 OGメタタグ・カードプレビュー
+
+- staff_list ページに og:title, og:description, og:image, twitter:card を設定
+- X投稿のURL からカードプレビューが自動表示
+
+### 13.5 対応プラットフォーム
+
+| プラットフォーム | API | ステータス |
+|----------------|-----|----------|
+| X (Twitter) | OAuth 2.0 PKCE + v2 API | 本番稼働中 |
+| Instagram | Playwright ブラウザ自動化 | 実装済み（手動ログイン必要） |
+| TikTok | Content Posting API | OAuth実装済み（Developer承認待ち） |
+| Google Business Profile | テンプレート対応 | プロンプト対応のみ |
+
 **主要モデル**: `SocialAccount`, `PostTemplate`, `PostHistory`, `KnowledgeEntry`, `DraftPost`
 
-**ステータス**: 本番稼働中
+**ステータス**: 本番稼働中（X）、一部プラットフォーム開発中
 
 ---
 

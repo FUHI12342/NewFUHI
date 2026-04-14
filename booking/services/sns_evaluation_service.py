@@ -12,7 +12,7 @@ BANNED_WORDS = ['死', '殺', '自殺', '暴力', 'エロ', 'セックス', 'ギ
 
 # プラットフォーム別文字数制限
 PLATFORM_CHAR_LIMITS = {
-    'x': {'max_weighted': 280, 'label': 'X'},
+    'x': {'max_weighted': 230, 'label': 'X'},
     'instagram': {'max_chars': 2200, 'label': 'Instagram'},
     'gbp': {'max_chars': 1500, 'label': 'Google Business Profile'},
 }

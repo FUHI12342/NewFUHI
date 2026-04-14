@@ -57,7 +57,7 @@ GROUPS = [
     {'slug': 'page_settings', 'name': _('メインページ設定'), 'models': ['sitesettings', 'notice']},
     {'slug': 'page_settings_sub', 'name': _('ページ設定(サブ)'), 'models': ['company', 'media', 'homepagecustomblock', 'herobanner', 'bannerad', 'externallink'], 'hidden': True},
     {'slug': 'system', 'name': _('システム'), 'models': ['systemconfig', 'admintheme', 'dashboardlayout', 'adminmenuconfig', 'adminsidebarsettings']},
-    {'slug': 'sns_posting', 'name': _('SNS自動投稿'), 'models': ['socialaccount', 'posttemplate', 'posthistory', 'knowledgeentry', 'draftpost']},
+    {'slug': 'sns_posting', 'name': _('SNS自動投稿'), 'models': ['socialaccount', 'posttemplate', 'posthistory', 'knowledgeentry', 'draftpost'], 'hidden_models': ['posthistory', 'knowledgeentry', 'posttemplate']},
     {'slug': 'security', 'name': _('セキュリティ'), 'models': ['securityaudit', 'securitylog', 'costreport', 'errorreport'], 'hidden_models': ['errorreport']},
     {'slug': 'user_account', 'name': _('ユーザーアカウント管理'), 'models': ['user', 'group']},
 ]
@@ -144,6 +144,8 @@ SIDEBAR_CUSTOM_LINKS = {
     ],
     'sns_posting': [
         {'name': _('SNS下書き管理'), 'admin_url': '/admin/social/drafts/', 'icon': 'fas fa-edit'},
+        {'name': _('AI下書き生成'), 'admin_url': '/admin/social/drafts/generate/', 'icon': 'fas fa-robot'},
+        {'name': _('投稿履歴'), 'admin_url': '/admin/booking/posthistory/', 'icon': 'fas fa-history'},
     ],
     'security': [
         {'name': _('エラー報告'), 'admin_url': '/admin/booking/errorreport/add/', 'icon': 'fas fa-bug'},

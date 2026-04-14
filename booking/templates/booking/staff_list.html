@@ -4,6 +4,28 @@
 
 {% block title %}{{ store.name }} - {{ staff_label }}{% trans "一覧" %} | {{ block.super }}{% endblock %}
 
+{% block extra_head %}
+<!-- Open Graph -->
+<meta property="og:title" content="{{ store.name }} - {{ staff_label }}{% trans '一覧' %}">
+<meta property="og:description" content="{{ store.name }}{% trans 'の在籍キャスト一覧。ご予約はこちらから。' %}">
+<meta property="og:type" content="website">
+<meta property="og:url" content="{{ request.build_absolute_uri }}">
+{% if store.thumbnail %}
+<meta property="og:image" content="{{ request.scheme }}://{{ request.get_host }}{{ store.thumbnail.url }}">
+{% elif first_staff_thumb %}
+<meta property="og:image" content="{{ request.scheme }}://{{ request.get_host }}{{ first_staff_thumb }}">
+{% endif %}
+<!-- Twitter Card -->
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="{{ store.name }} - {{ staff_label }}{% trans '一覧' %}">
+<meta name="twitter:description" content="{{ store.name }}{% trans 'の在籍キャスト一覧。ご予約はこちらから。' %}">
+{% if store.thumbnail %}
+<meta name="twitter:image" content="{{ request.scheme }}://{{ request.get_host }}{{ store.thumbnail.url }}">
+{% elif first_staff_thumb %}
+<meta name="twitter:image" content="{{ request.scheme }}://{{ request.get_host }}{{ first_staff_thumb }}">
+{% endif %}
+{% endblock %}
+
 {% block content %}
 
 <!-- Breadcrumb -->

@@ -7,6 +7,7 @@ BROWSER_PLATFORM_CHOICES = [
     ('x', 'X (Twitter)'),
     ('instagram', 'Instagram'),
     ('gbp', 'Google Business Profile'),
+    ('tiktok', 'TikTok'),
 ]
 
 SESSION_STATUS_CHOICES = [

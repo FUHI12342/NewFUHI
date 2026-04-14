@@ -1,7 +1,8 @@
-"""X (Twitter) OAuth 2.0 PKCE 認証フロー"""
+"""SNS OAuth 2.0 認証フロー — X (Twitter) + TikTok"""
 import hashlib
 import logging
 import secrets
+import urllib.parse
 
 import requests
 from django.conf import settings
@@ -15,11 +16,17 @@ from django.views import View
 
 logger = logging.getLogger(__name__)
 
+# ── X (Twitter) ──
 X_AUTHORIZE_URL = 'https://x.com/i/oauth2/authorize'
 X_TOKEN_URL = 'https://api.x.com/2/oauth2/token'
 X_USERS_ME_URL = 'https://api.x.com/2/users/me'
+X_SCOPES = 'tweet.read tweet.write users.read offline.access'
 
-SCOPES = 'tweet.read tweet.write users.read offline.access'
+# ── TikTok ──
+TIKTOK_AUTHORIZE_URL = 'https://www.tiktok.com/v2/auth/authorize/'
+TIKTOK_SCOPES = 'user.info.basic,video.publish'
+
+SCOPES = X_SCOPES  # backward compat
 REQUEST_TIMEOUT = 30
 
 
@@ -186,3 +193,99 @@ class XCallbackView(View):
         )
         action = 'created' if created else 'updated'
         logger.info("SocialAccount %s for store %s: @%s", action, store_id, username)
+
+
+# ══════════════════════════════════════════
+# TikTok OAuth 2.0
+# ══════════════════════════════════════════
+
+@method_decorator(staff_member_required, name='dispatch')
+class TikTokConnectView(View):
+    """TikTok OAuth認証画面へリダイレクト"""
+
+    def get(self, request):
+        store_id = request.GET.get('store_id')
+        if not store_id:
+            return HttpResponseBadRequest('store_id is required')
+
+        client_key = getattr(settings, 'TIKTOK_CLIENT_KEY', '')
+        redirect_uri = getattr(settings, 'TIKTOK_REDIRECT_URI', '')
+        if not client_key or not redirect_uri:
+            messages.error(request, 'TikTok API設定が不足しています')
+            return redirect('/admin/')
+
+        state = secrets.token_urlsafe(32)
+        request.session['tiktok_oauth_state'] = state
+        request.session['tiktok_oauth_store_id'] = store_id
+
+        params = urllib.parse.urlencode({
+            'client_key': client_key,
+            'response_type': 'code',
+            'scope': TIKTOK_SCOPES,
+            'redirect_uri': redirect_uri,
+            'state': state,
+        })
+        return redirect(f'{TIKTOK_AUTHORIZE_URL}?{params}')
+
+
+@method_decorator(staff_member_required, name='dispatch')
+class TikTokCallbackView(View):
+    """TikTok OAuth コールバック処理"""
+
+    def get(self, request):
+        code = request.GET.get('code')
+        state = request.GET.get('state')
+        error = request.GET.get('error')
+
+        if error:
+            messages.error(request, f'TikTok連携エラー: {error}')
+            logger.warning("TikTok OAuth error: %s", error)
+            return redirect('/admin/')
+
+        expected_state = request.session.pop('tiktok_oauth_state', None)
+        if not state or state != expected_state:
+            messages.error(request, 'TikTok連携エラー: state不一致')
+            return redirect('/admin/')
+
+        store_id = request.session.pop('tiktok_oauth_store_id', None)
+        if not code or not store_id:
+            messages.error(request, 'TikTok連携エラー: セッション情報不足')
+            return redirect('/admin/')
+
+        from booking.services.tiktok_posting_service import (
+            exchange_code_for_token, get_user_info,
+        )
+
+        redirect_uri = getattr(settings, 'TIKTOK_REDIRECT_URI', '')
+        token_data = exchange_code_for_token(code, redirect_uri)
+        if not token_data:
+            messages.error(request, 'TikTok連携エラー: トークン取得失敗')
+            return redirect('/admin/')
+
+        user_info = get_user_info(token_data['access_token'])
+        display_name = (user_info or {}).get('display_name', 'TikTok User')
+
+        self._save_social_account(store_id, display_name, token_data)
+        messages.success(request, f'TikTok連携完了: {display_name}')
+        return redirect('/admin/booking/socialaccount/')
+
+    def _save_social_account(self, store_id, display_name, token_data):
+        """SocialAccount を作成または更新"""
+        from booking.models import SocialAccount
+
+        expires_in = token_data.get('expires_in', 86400)
+        token_expires_at = timezone.now() + timezone.timedelta(seconds=expires_in)
+
+        account, created = SocialAccount.objects.update_or_create(
+            store_id=store_id,
+            platform='tiktok',
+            defaults={
+                'account_name': display_name,
+                'access_token': token_data['access_token'],
+                'refresh_token': token_data.get('refresh_token', ''),
+                'token_expires_at': token_expires_at,
+                'is_active': True,
+            },
+        )
+        action = 'created' if created else 'updated'
+        logger.info("TikTok SocialAccount %s for store %s: %s", action, store_id, display_name)

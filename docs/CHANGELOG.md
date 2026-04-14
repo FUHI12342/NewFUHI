@@ -1,6 +1,21 @@
 # CHANGELOG
 
-最終更新: 2026-04-09
+最終更新: 2026-04-14
+
+---
+
+## 2026-04-14: SNS自動投稿 Phase3 — 画像自動添付 + 管理画面UI改善
+
+### feat
+- DraftPost に画像自動添付機能: 出勤キャスト thumbnail → store thumbnail の優先順で自動選択
+- staff_list ページに OG メタタグ追加 (og:title, og:image, twitter:card) — X カードプレビュー対応
+- 管理画面サイドバー統合: SNS自動投稿グループを6項目→3項目に整理
+- DraftPost Admin に画像プレビュー表示・「AI下書き生成」「即時投稿」アクション追加
+- サイドバーに「AI下書き生成」「投稿履歴」カスタムリンク追加
+
+### refactor
+- sns_image_selector.py を新規モジュールとして分離（画像選択ロジック）
+- PostTemplate, KnowledgeEntry, PostHistory を hidden_models でサイドバーから非表示化
 
 ---
 
