@@ -57,7 +57,7 @@ GROUPS = [
     {'slug': 'page_settings', 'name': _('メインページ設定'), 'models': ['sitesettings', 'notice']},
     {'slug': 'page_settings_sub', 'name': _('ページ設定(サブ)'), 'models': ['company', 'media', 'homepagecustomblock', 'herobanner', 'bannerad', 'externallink'], 'hidden': True},
     {'slug': 'system', 'name': _('システム'), 'models': ['systemconfig', 'admintheme', 'dashboardlayout', 'adminmenuconfig', 'adminsidebarsettings']},
-    {'slug': 'sns_posting', 'name': _('SNS自動投稿'), 'models': ['socialaccount', 'posttemplate', 'posthistory', 'knowledgeentry', 'draftpost'], 'hidden_models': ['posthistory', 'knowledgeentry', 'posttemplate']},
+    {'slug': 'sns_posting', 'name': _('SNS自動投稿'), 'models': ['socialaccount', 'posttemplate', 'posthistory', 'knowledgeentry', 'draftpost'], 'hidden_models': ['posthistory', 'knowledgeentry', 'posttemplate', 'draftpost']},
     {'slug': 'security', 'name': _('セキュリティ'), 'models': ['securityaudit', 'securitylog', 'costreport', 'errorreport'], 'hidden_models': ['errorreport']},
     {'slug': 'user_account', 'name': _('ユーザーアカウント管理'), 'models': ['user', 'group']},
 ]
