@@ -1,113 +1,73 @@
+{% extends "admin/base_site.html" %}
 {% load i18n %}
 {% load static %}
-<!DOCTYPE html>
-<html lang="ja">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>{% trans "SNS下書き管理" %}</title>
+
+{% block title %}{% trans "SNS下書き管理" %}{% endblock %}
+
+{% block extrastyle %}
+{{ block.super }}
 <link rel="stylesheet" href="{% static 'css/tailwind.css' %}">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 <style>
+.social-wrap { max-width: 1100px; margin: 0 auto; padding: 16px; }
 @media (max-width: 767px) {
-  /* Container: full-width, less padding */
-  .max-w-6xl { max-width: 100%; }
-  .max-w-6xl.mx-auto.p-4 { padding: 8px; }
-
-  /* Header: stack title and buttons vertically */
-  .max-w-6xl > .flex.items-center.justify-between.mb-6 {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 12px;
-  }
-  .max-w-6xl > .flex.items-center.justify-between.mb-6 .flex.gap-2 {
-    width: 100%;
-    flex-direction: column;
-  }
-  .max-w-6xl > .flex.items-center.justify-between.mb-6 .flex.gap-2 a {
-    width: 100%;
-    text-align: center;
-    box-sizing: border-box;
-  }
-
-  /* Filter form: stack vertically */
-  form.flex.gap-3.mb-4.flex-wrap {
-    flex-direction: column;
-  }
-  form.flex.gap-3.mb-4.flex-wrap select,
-  form.flex.gap-3.mb-4.flex-wrap button {
-    width: 100%;
-    box-sizing: border-box;
-  }
-
-  /* Draft cards: stack content and actions vertically */
-  .bg-white.rounded-xl .flex.items-start.justify-between.gap-4 {
-    flex-direction: column;
-  }
-  .bg-white.rounded-xl .flex.flex-col.gap-2.flex-shrink-0 {
-    flex-direction: row;
-    flex-wrap: wrap;
-    width: 100%;
-    margin-top: 8px;
-  }
-  .bg-white.rounded-xl .flex.flex-col.gap-2.flex-shrink-0 button,
-  .bg-white.rounded-xl .flex.flex-col.gap-2.flex-shrink-0 form {
-    flex: 1;
-    min-width: 0;
-  }
-  .bg-white.rounded-xl .flex.flex-col.gap-2.flex-shrink-0 form button {
-    width: 100%;
-  }
+  .social-wrap { padding: 8px; }
+  .social-header { flex-direction: column; align-items: flex-start !important; gap: 12px; }
+  .social-header .btn-group { width: 100%; flex-direction: column; }
+  .social-header .btn-group a { width: 100%; text-align: center; }
+  .filter-form { flex-direction: column; }
+  .filter-form select, .filter-form button { width: 100%; }
+  .draft-card-inner { flex-direction: column; }
+  .draft-actions { flex-direction: row; flex-wrap: wrap; width: 100%; margin-top: 8px; }
+  .draft-actions button, .draft-actions form { flex: 1; min-width: 0; }
+  .draft-actions form button { width: 100%; }
 }
 </style>
-</head>
-<body class="bg-gray-50 min-h-screen">
-<div class="max-w-6xl mx-auto p-4">
+{% endblock %}
+
+{% block content %}
+<div class="social-wrap">
 
   <!-- ヘッダー -->
-  <div class="flex items-center justify-between mb-6">
+  <div class="social-header" style="display:flex; align-items:center; justify-content:space-between; margin-bottom:24px;">
     <div>
-      <h1 class="text-2xl font-bold text-gray-800">
-        <i class="fas fa-edit text-indigo-500 mr-2"></i>{% trans "SNS下書き管理" %}
+      <h1 style="font-size:1.5rem; font-weight:bold; color:#1f2937;">
+        <i class="fas fa-edit" style="color:#6366f1; margin-right:8px;"></i>{% trans "SNS下書き管理" %}
       </h1>
-      <p class="text-sm text-gray-500 mt-1">{% trans "AI生成・編集・投稿・予約投稿" %}</p>
+      <p style="font-size:0.875rem; color:#6b7280; margin-top:4px;">{% trans "AI生成・編集・投稿・予約投稿" %}</p>
     </div>
-    <div class="flex gap-2">
+    <div class="btn-group" style="display:flex; gap:8px;">
       <a href="{% url 'social_draft_generate' %}"
-         class="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition text-sm">
-        <i class="fas fa-magic mr-1"></i>{% trans "AI下書き生成" %}
-      </a>
-      <a href="/admin/"
-         class="bg-gray-200 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-300 transition text-sm">
-        <i class="fas fa-arrow-left mr-1"></i>{% trans "管理画面に戻る" %}
+         style="background:#4f46e5; color:white; padding:8px 16px; border-radius:8px; text-decoration:none; font-size:0.875rem;">
+        <i class="fas fa-magic" style="margin-right:4px;"></i>{% trans "AI下書き生成" %}
       </a>
     </div>
   </div>
 
   <!-- フィルター -->
-  <form method="get" class="flex gap-3 mb-4 flex-wrap">
-    <select name="status" class="border rounded px-3 py-1.5 text-sm">
+  <form method="get" class="filter-form" style="display:flex; gap:12px; margin-bottom:16px; flex-wrap:wrap;">
+    <select name="status" style="border:1px solid #d1d5db; border-radius:6px; padding:6px 12px; font-size:0.875rem;">
       <option value="">{% trans "全ステータス" %}</option>
       {% for value, label in status_choices %}
       <option value="{{ value }}" {% if current_status == value %}selected{% endif %}>{{ label }}</option>
       {% endfor %}
     </select>
-    <select name="store" class="border rounded px-3 py-1.5 text-sm">
+    <select name="store" style="border:1px solid #d1d5db; border-radius:6px; padding:6px 12px; font-size:0.875rem;">
       <option value="">{% trans "全店舗" %}</option>
       {% for s in stores %}
       <option value="{{ s.pk }}" {% if current_store == s.pk|stringformat:"d" %}selected{% endif %}>{{ s.name }}</option>
       {% endfor %}
     </select>
-    <button type="submit" class="bg-gray-700 text-white px-4 py-1.5 rounded text-sm hover:bg-gray-800">{% trans "絞り込み" %}</button>
+    <button type="submit" style="background:#374151; color:white; padding:6px 16px; border-radius:6px; font-size:0.875rem; border:none; cursor:pointer;">{% trans "絞り込み" %}</button>
   </form>
 
   <!-- メッセージ -->
   {% if messages %}
   {% for message in messages %}
-  <div class="mb-3 px-4 py-2 rounded text-sm
-    {% if message.tags == 'error' %}bg-red-100 text-red-700 border border-red-300
-    {% elif message.tags == 'success' %}bg-green-100 text-green-700 border border-green-300
-    {% else %}bg-blue-100 text-blue-700 border border-blue-300{% endif %}">
+  <div style="margin-bottom:12px; padding:8px 16px; border-radius:6px; font-size:0.875rem;
+    {% if message.tags == 'error' %}background:#fee2e2; color:#b91c1c; border:1px solid #fca5a5;
+    {% elif message.tags == 'success' %}background:#dcfce7; color:#15803d; border:1px solid #86efac;
+    {% else %}background:#dbeafe; color:#1d4ed8; border:1px solid #93c5fd;{% endif %}">
     {{ message }}
   </div>
   {% endfor %}
@@ -115,95 +75,93 @@
 
   <!-- 下書きカード -->
   {% if drafts %}
-  <div class="space-y-4">
+  <div style="display:flex; flex-direction:column; gap:16px;">
     {% for draft in drafts %}
-    <div class="bg-white rounded-xl shadow-sm border p-5">
-      <div class="flex items-start justify-between gap-4">
-        <div class="flex-1 min-w-0">
+    <div style="background:white; border-radius:12px; box-shadow:0 1px 3px rgba(0,0,0,0.1); border:1px solid #e5e7eb; padding:20px;">
+      <div class="draft-card-inner" style="display:flex; align-items:flex-start; justify-content:space-between; gap:16px;">
+        <div style="flex:1; min-width:0;">
           <!-- ステータス + 店舗 -->
-          <div class="flex items-center gap-2 mb-2 flex-wrap">
-            <span class="inline-block px-2 py-0.5 rounded-full text-xs font-medium
-              {% if draft.status == 'generated' %}bg-blue-100 text-blue-700
-              {% elif draft.status == 'approved' %}bg-green-100 text-green-700
-              {% elif draft.status == 'scheduled' %}bg-orange-100 text-orange-700
-              {% elif draft.status == 'posted' %}bg-gray-200 text-gray-600
-              {% elif draft.status == 'rejected' %}bg-red-100 text-red-700
-              {% else %}bg-yellow-100 text-yellow-700{% endif %}">
+          <div style="display:flex; align-items:center; gap:8px; margin-bottom:8px; flex-wrap:wrap;">
+            <span style="display:inline-block; padding:2px 8px; border-radius:9999px; font-size:0.75rem; font-weight:500;
+              {% if draft.status == 'generated' %}background:#dbeafe; color:#1d4ed8;
+              {% elif draft.status == 'approved' %}background:#dcfce7; color:#15803d;
+              {% elif draft.status == 'scheduled' %}background:#ffedd5; color:#c2410c;
+              {% elif draft.status == 'posted' %}background:#e5e7eb; color:#4b5563;
+              {% elif draft.status == 'rejected' %}background:#fee2e2; color:#b91c1c;
+              {% else %}background:#fef9c3; color:#a16207;{% endif %}">
               {{ draft.get_status_display }}
             </span>
-            <span class="text-xs text-gray-500">{{ draft.store.name }}</span>
+            <span style="font-size:0.75rem; color:#6b7280;">{{ draft.store.name }}</span>
             {% if draft.target_date %}
-            <span class="text-xs text-gray-400">{{ draft.target_date|date:"Y/m/d" }}</span>
+            <span style="font-size:0.75rem; color:#9ca3af;">{{ draft.target_date|date:"Y/m/d" }}</span>
             {% endif %}
             {% if draft.quality_score is not None %}
-            <span class="text-xs px-2 py-0.5 rounded
-              {% if draft.quality_score >= 0.7 %}bg-green-50 text-green-600
-              {% elif draft.quality_score >= 0.4 %}bg-yellow-50 text-yellow-600
-              {% else %}bg-red-50 text-red-600{% endif %}">
+            <span style="font-size:0.75rem; padding:2px 8px; border-radius:4px;
+              {% if draft.quality_score >= 0.7 %}background:#f0fdf4; color:#16a34a;
+              {% elif draft.quality_score >= 0.4 %}background:#fefce8; color:#ca8a04;
+              {% else %}background:#fef2f2; color:#dc2626;{% endif %}">
               <i class="fas fa-star"></i> {{ draft.quality_score }}
             </span>
             {% endif %}
           </div>
 
           <!-- プラットフォーム -->
-          <div class="flex gap-1 mb-2">
+          <div style="display:flex; gap:4px; margin-bottom:8px;">
             {% for p in draft.platforms %}
-            <span class="text-xs bg-gray-100 px-1.5 py-0.5 rounded">
+            <span style="font-size:0.75rem; background:#f3f4f6; padding:2px 6px; border-radius:4px;">
               {% if p == 'x' %}<i class="fab fa-x-twitter"></i>
-              {% elif p == 'instagram' %}<i class="fab fa-instagram text-pink-500"></i>
-              {% elif p == 'gbp' %}<i class="fab fa-google text-blue-500"></i>
+              {% elif p == 'instagram' %}<i class="fab fa-instagram" style="color:#e1306c;"></i>
+              {% elif p == 'gbp' %}<i class="fab fa-google" style="color:#4285f4;"></i>
               {% endif %} {{ p }}
             </span>
             {% endfor %}
           </div>
 
+          <!-- 画像プレビュー -->
+          {% if draft.image %}
+          <div style="margin-bottom:8px;">
+            <img src="{{ draft.image.url }}" alt="" style="max-height:120px; border-radius:8px; border:1px solid #e5e7eb;">
+          </div>
+          {% endif %}
+
           <!-- 投稿内容（表示モード） -->
           <div id="view-{{ draft.pk }}" class="draft-view">
-            <div class="text-sm text-gray-800 whitespace-pre-wrap leading-relaxed mb-2">{{ draft.content }}</div>
+            <div style="font-size:0.875rem; color:#1f2937; white-space:pre-wrap; line-height:1.6; margin-bottom:8px;">{{ draft.content }}</div>
           </div>
 
           <!-- 投稿内容（編集モード） -->
-          <div id="edit-{{ draft.pk }}" class="draft-edit hidden">
+          <div id="edit-{{ draft.pk }}" class="draft-edit" style="display:none;">
             <form method="post" action="{% url 'social_draft_edit' draft.pk %}">
               {% csrf_token %}
               <textarea name="content" rows="6"
-                class="w-full border rounded-lg p-2 text-sm mb-2 focus:ring-2 focus:ring-indigo-300 focus:border-indigo-400"
+                style="width:100%; border:1px solid #d1d5db; border-radius:8px; padding:8px; font-size:0.875rem; margin-bottom:8px;"
                 oninput="updateCharCount(this, {{ draft.pk }})"
               >{{ draft.content }}</textarea>
-              <div id="charcount-{{ draft.pk }}" class="text-xs text-gray-400 mb-2"></div>
+              <div id="charcount-{{ draft.pk }}" style="font-size:0.75rem; color:#9ca3af; margin-bottom:8px;"></div>
 
               <!-- プラットフォーム選択 -->
-              <div class="flex gap-3 mb-2 items-center flex-wrap">
-                <span class="text-xs text-gray-500 font-medium">{% trans "投稿先:" %}</span>
-                <label class="flex items-center gap-1 text-xs cursor-pointer">
-                  <input type="checkbox" name="platforms" value="x"
-                    {% if 'x' in draft.platforms %}checked{% endif %}
-                    class="rounded border-gray-300">
-                  <i class="fab fa-x-twitter"></i> X
-                  <span class="text-gray-400">(280)</span>
+              <div style="display:flex; gap:12px; margin-bottom:8px; align-items:center; flex-wrap:wrap;">
+                <span style="font-size:0.75rem; color:#6b7280; font-weight:500;">{% trans "投稿先:" %}</span>
+                <label style="display:flex; align-items:center; gap:4px; font-size:0.75rem; cursor:pointer;">
+                  <input type="checkbox" name="platforms" value="x" {% if 'x' in draft.platforms %}checked{% endif %}>
+                  <i class="fab fa-x-twitter"></i> X <span style="color:#9ca3af;">(280)</span>
                 </label>
-                <label class="flex items-center gap-1 text-xs cursor-pointer">
-                  <input type="checkbox" name="platforms" value="instagram"
-                    {% if 'instagram' in draft.platforms %}checked{% endif %}
-                    class="rounded border-gray-300">
-                  <i class="fab fa-instagram text-pink-500"></i> Instagram
-                  <span class="text-gray-400">(2200)</span>
+                <label style="display:flex; align-items:center; gap:4px; font-size:0.75rem; cursor:pointer;">
+                  <input type="checkbox" name="platforms" value="instagram" {% if 'instagram' in draft.platforms %}checked{% endif %}>
+                  <i class="fab fa-instagram" style="color:#e1306c;"></i> Instagram <span style="color:#9ca3af;">(2200)</span>
                 </label>
-                <label class="flex items-center gap-1 text-xs cursor-pointer">
-                  <input type="checkbox" name="platforms" value="gbp"
-                    {% if 'gbp' in draft.platforms %}checked{% endif %}
-                    class="rounded border-gray-300">
-                  <i class="fab fa-google text-blue-500"></i> GBP
-                  <span class="text-gray-400">(1500)</span>
+                <label style="display:flex; align-items:center; gap:4px; font-size:0.75rem; cursor:pointer;">
+                  <input type="checkbox" name="platforms" value="gbp" {% if 'gbp' in draft.platforms %}checked{% endif %}>
+                  <i class="fab fa-google" style="color:#4285f4;"></i> GBP <span style="color:#9ca3af;">(1500)</span>
                 </label>
               </div>
 
-              <div class="flex gap-2">
-                <button type="submit" class="bg-indigo-600 text-white px-3 py-1.5 rounded text-xs hover:bg-indigo-700">
-                  <i class="fas fa-save mr-1"></i>{% trans "保存" %}
+              <div style="display:flex; gap:8px;">
+                <button type="submit" style="background:#4f46e5; color:white; padding:6px 12px; border-radius:6px; font-size:0.75rem; border:none; cursor:pointer;">
+                  <i class="fas fa-save" style="margin-right:4px;"></i>{% trans "保存" %}
                 </button>
                 <button type="button" onclick="toggleEdit({{ draft.pk }})"
-                  class="bg-gray-200 text-gray-600 px-3 py-1.5 rounded text-xs hover:bg-gray-300">
+                  style="background:#e5e7eb; color:#4b5563; padding:6px 12px; border-radius:6px; font-size:0.75rem; border:none; cursor:pointer;">
                   {% trans "キャンセル" %}
                 </button>
               </div>
@@ -211,49 +169,45 @@
           </div>
 
           {% if draft.quality_feedback %}
-          <details class="text-xs text-gray-500 mt-1">
-            <summary class="cursor-pointer hover:text-gray-700">{% trans "品質フィードバック" %}</summary>
-            <p class="mt-1 whitespace-pre-wrap">{{ draft.quality_feedback }}</p>
+          <details style="font-size:0.75rem; color:#6b7280; margin-top:4px;">
+            <summary style="cursor:pointer;">{% trans "品質フィードバック" %}</summary>
+            <p style="margin-top:4px; white-space:pre-wrap;">{{ draft.quality_feedback }}</p>
           </details>
           {% endif %}
 
-          <div class="text-xs text-gray-400 mt-2">
+          <div style="font-size:0.75rem; color:#9ca3af; margin-top:8px;">
             {{ draft.created_at|date:"Y/m/d H:i" }}
-            {% if draft.scheduled_at %}
-            | {% trans "予約:" %} {{ draft.scheduled_at|date:"Y/m/d H:i" }}
-            {% endif %}
-            {% if draft.posted_at %}
-            | {% trans "投稿:" %} {{ draft.posted_at|date:"Y/m/d H:i" }}
-            {% endif %}
+            {% if draft.scheduled_at %} | {% trans "予約:" %} {{ draft.scheduled_at|date:"Y/m/d H:i" }}{% endif %}
+            {% if draft.posted_at %} | {% trans "投稿:" %} {{ draft.posted_at|date:"Y/m/d H:i" }}{% endif %}
           </div>
         </div>
 
         <!-- アクション -->
-        <div class="flex flex-col gap-2 flex-shrink-0">
+        <div class="draft-actions" style="display:flex; flex-direction:column; gap:8px; flex-shrink:0;">
           {% if draft.status != 'posted' and draft.status != 'rejected' %}
           <button type="button" onclick="toggleEdit({{ draft.pk }})"
-            class="w-full bg-indigo-100 text-indigo-700 px-3 py-1.5 rounded text-xs hover:bg-indigo-200">
-            <i class="fas fa-pen mr-1"></i>{% trans "編集" %}
+            style="width:100%; background:#e0e7ff; color:#4338ca; padding:6px 12px; border-radius:6px; font-size:0.75rem; border:none; cursor:pointer;">
+            <i class="fas fa-pen" style="margin-right:4px;"></i>{% trans "編集" %}
           </button>
           <form method="post" action="{% url 'social_draft_post' draft.pk %}">
             {% csrf_token %}
             <input type="hidden" name="post_method" value="api">
-            <button type="submit" class="w-full bg-green-600 text-white px-3 py-1.5 rounded text-xs hover:bg-green-700">
-              <i class="fas fa-paper-plane mr-1"></i>{% trans "API投稿" %}
+            <button type="submit" style="width:100%; background:#16a34a; color:white; padding:6px 12px; border-radius:6px; font-size:0.75rem; border:none; cursor:pointer;">
+              <i class="fas fa-paper-plane" style="margin-right:4px;"></i>{% trans "API投稿" %}
             </button>
           </form>
           <form method="post" action="{% url 'social_draft_post' draft.pk %}">
             {% csrf_token %}
             <input type="hidden" name="post_method" value="browser">
-            <button type="submit" class="w-full bg-purple-600 text-white px-3 py-1.5 rounded text-xs hover:bg-purple-700"
+            <button type="submit" style="width:100%; background:#7c3aed; color:white; padding:6px 12px; border-radius:6px; font-size:0.75rem; border:none; cursor:pointer;"
               title="{% trans 'ブラウザ経由で自動投稿（X/Instagram/GBP対応）' %}">
-              <i class="fas fa-globe mr-1"></i>{% trans "ブラウザ投稿" %}
+              <i class="fas fa-globe" style="margin-right:4px;"></i>{% trans "ブラウザ投稿" %}
             </button>
           </form>
           <form method="post" action="{% url 'social_draft_regenerate' draft.pk %}">
             {% csrf_token %}
-            <button type="submit" class="w-full bg-yellow-500 text-white px-3 py-1.5 rounded text-xs hover:bg-yellow-600">
-              <i class="fas fa-redo mr-1"></i>{% trans "再生成" %}
+            <button type="submit" style="width:100%; background:#eab308; color:white; padding:6px 12px; border-radius:6px; font-size:0.75rem; border:none; cursor:pointer;">
+              <i class="fas fa-redo" style="margin-right:4px;"></i>{% trans "再生成" %}
             </button>
           </form>
           {% endif %}
@@ -265,22 +219,22 @@
 
   <!-- ページネーション -->
   {% if is_paginated %}
-  <div class="flex justify-center mt-6 gap-2">
+  <div style="display:flex; justify-content:center; margin-top:24px; gap:8px;">
     {% if page_obj.has_previous %}
-    <a href="?page={{ page_obj.previous_page_number }}" class="px-3 py-1 bg-gray-200 rounded hover:bg-gray-300 text-sm">&laquo; {% trans "前へ" %}</a>
+    <a href="?page={{ page_obj.previous_page_number }}" style="padding:4px 12px; background:#e5e7eb; border-radius:6px; font-size:0.875rem; text-decoration:none; color:#374151;">&laquo; {% trans "前へ" %}</a>
     {% endif %}
-    <span class="px-3 py-1 text-sm text-gray-600">{{ page_obj.number }} / {{ page_obj.paginator.num_pages }}</span>
+    <span style="padding:4px 12px; font-size:0.875rem; color:#6b7280;">{{ page_obj.number }} / {{ page_obj.paginator.num_pages }}</span>
     {% if page_obj.has_next %}
-    <a href="?page={{ page_obj.next_page_number }}" class="px-3 py-1 bg-gray-200 rounded hover:bg-gray-300 text-sm">{% trans "次へ" %} &raquo;</a>
+    <a href="?page={{ page_obj.next_page_number }}" style="padding:4px 12px; background:#e5e7eb; border-radius:6px; font-size:0.875rem; text-decoration:none; color:#374151;">{% trans "次へ" %} &raquo;</a>
     {% endif %}
   </div>
   {% endif %}
 
   {% else %}
-  <div class="text-center py-16 text-gray-400">
-    <i class="fas fa-inbox text-4xl mb-3"></i>
+  <div style="text-align:center; padding:64px 0; color:#9ca3af;">
+    <i class="fas fa-inbox" style="font-size:2rem; margin-bottom:12px; display:block;"></i>
     <p>{% trans "下書きがありません" %}</p>
-    <a href="{% url 'social_draft_generate' %}" class="text-indigo-600 hover:text-indigo-700 text-sm mt-2 inline-block">
+    <a href="{% url 'social_draft_generate' %}" style="color:#4f46e5; font-size:0.875rem; margin-top:8px; display:inline-block;">
       {% trans "AI下書きを生成する" %}
     </a>
   </div>
@@ -289,66 +243,49 @@
 </div>
 
 <script>
-// CJK文字判定（X加重文字数計算用）
 function isCJK(ch) {
   const cp = ch.codePointAt(0);
-  return (cp >= 0x1100 && cp <= 0x11FF) ||
-         (cp >= 0x2E80 && cp <= 0x9FFF) ||
-         (cp >= 0xAC00 && cp <= 0xD7AF) ||
-         (cp >= 0xF900 && cp <= 0xFAFF) ||
-         (cp >= 0xFE30 && cp <= 0xFE4F) ||
-         (cp >= 0xFF00 && cp <= 0xFFEF) ||
-         (cp >= 0x20000 && cp <= 0x2FA1F) ||
-         (cp >= 0x30000 && cp <= 0x323AF);
+  return (cp >= 0x1100 && cp <= 0x11FF) || (cp >= 0x2E80 && cp <= 0x9FFF) ||
+         (cp >= 0xAC00 && cp <= 0xD7AF) || (cp >= 0xF900 && cp <= 0xFAFF) ||
+         (cp >= 0xFE30 && cp <= 0xFE4F) || (cp >= 0xFF00 && cp <= 0xFFEF) ||
+         (cp >= 0x20000 && cp <= 0x2FA1F) || (cp >= 0x30000 && cp <= 0x323AF);
 }
 function weightedLength(text) {
   let w = 0;
-  for (const ch of text) {
-    if (ch.codePointAt(0) > 0xFFFF) w += 2;        // サロゲートペア（絵文字等）
-    else if (isCJK(ch)) w += 2;                      // CJK
-    else w += 1;                                      // ASCII/Latin
-  }
+  for (const ch of text) { w += (ch.codePointAt(0) > 0xFFFF || isCJK(ch)) ? 2 : 1; }
   return w;
 }
-
 function updateCharCount(textarea, draftId) {
   const text = textarea.value;
   const wLen = weightedLength(text);
   const cLen = text.length;
-
-  // チェックされたプラットフォームを取得
   const form = textarea.closest('form');
   const checks = form.querySelectorAll('input[name="platforms"]:checked');
   const parts = [];
   checks.forEach(cb => {
     if (cb.value === 'x') {
-      const cls = wLen > 280 ? 'text-red-500 font-bold' : 'text-green-600';
-      parts.push(`<span class="${cls}">X: ${wLen}/280</span>`);
+      const cls = wLen > 280 ? 'color:red;font-weight:bold' : 'color:green';
+      parts.push('<span style="' + cls + '">X: ' + wLen + '/280</span>');
     } else if (cb.value === 'instagram') {
-      const cls = cLen > 2200 ? 'text-red-500 font-bold' : 'text-green-600';
-      parts.push(`<span class="${cls}">IG: ${cLen}/2200</span>`);
+      const cls = cLen > 2200 ? 'color:red;font-weight:bold' : 'color:green';
+      parts.push('<span style="' + cls + '">IG: ' + cLen + '/2200</span>');
     } else if (cb.value === 'gbp') {
-      const cls = cLen > 1500 ? 'text-red-500 font-bold' : 'text-green-600';
-      parts.push(`<span class="${cls}">GBP: ${cLen}/1500</span>`);
+      const cls = cLen > 1500 ? 'color:red;font-weight:bold' : 'color:green';
+      parts.push('<span style="' + cls + '">GBP: ' + cLen + '/1500</span>');
     }
   });
-  if (parts.length === 0) {
-    parts.push(`文字数: ${cLen} / 加重: ${wLen}`);
-  }
+  if (parts.length === 0) parts.push('文字数: ' + cLen + ' / 加重: ' + wLen);
   document.getElementById('charcount-' + draftId).innerHTML = parts.join(' | ');
 }
-
 function toggleEdit(draftId) {
-  const viewEl = document.getElementById('view-' + draftId);
-  const editEl = document.getElementById('edit-' + draftId);
-  viewEl.classList.toggle('hidden');
-  editEl.classList.toggle('hidden');
-  // 編集モードに切り替え時に文字数カウンターを更新
-  if (!editEl.classList.contains('hidden')) {
-    const textarea = editEl.querySelector('textarea');
-    if (textarea) updateCharCount(textarea, draftId);
+  const v = document.getElementById('view-' + draftId);
+  const e = document.getElementById('edit-' + draftId);
+  v.style.display = v.style.display === 'none' ? '' : 'none';
+  e.style.display = e.style.display === 'none' ? '' : 'none';
+  if (e.style.display !== 'none') {
+    const ta = e.querySelector('textarea');
+    if (ta) updateCharCount(ta, draftId);
   }
 }
 </script>
-</body>
-</html>
+{% endblock %}

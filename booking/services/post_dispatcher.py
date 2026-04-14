@@ -143,6 +143,52 @@ def _execute_post(account, content, history, store_id):
         history.save(update_fields=['status', 'error_message', 'retry_count'])
 
 
+def dispatch_draft_post(draft, platform='x'):
+    """DraftPost を直接 API 投稿し PostHistory を記録する。
+
+    dispatch_post() と異なり PostTemplate は不要。
+    Returns:
+        (success: bool, message: str)
+    """
+    from booking.models import PostHistory, SocialAccount
+
+    from booking.services.post_generator import append_booking_url
+
+    try:
+        account = SocialAccount.objects.get(
+            store=draft.store, platform=platform, is_active=True,
+        )
+    except SocialAccount.DoesNotExist:
+        return False, f'{platform}のアクティブなアカウントがありません'
+
+    content = append_booking_url(draft.content, draft.store)
+
+    # レート制限チェック
+    allowed, reason = can_post(draft.store_id)
+    if not allowed:
+        PostHistory.objects.create(
+            store=draft.store, platform=platform,
+            trigger_type='manual', content=content,
+            status='skipped', error_message=f'Rate limit: {reason}',
+        )
+        return False, f'レート制限: {reason}'
+
+    # PostHistory 作成
+    history = PostHistory.objects.create(
+        store=draft.store, platform=platform,
+        trigger_type='manual', content=content,
+        status='pending',
+    )
+
+    # 投稿実行
+    _execute_post(account, content, history, draft.store_id)
+    history.refresh_from_db()
+
+    if history.status == 'posted':
+        return True, f'投稿完了 (ID: {history.external_post_id})'
+    return False, history.error_message or '投稿に失敗しました'
+
+
 def retry_failed_post(post_history_id):
     """失敗した投稿をリトライ"""
     from booking.models import PostHistory, SocialAccount

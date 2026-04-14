@@ -130,16 +130,12 @@ class DraftPostView(StaffRequiredMixin, View):
         return redirect('social_draft_list')
 
     def _post_via_api(self, draft, platform):
-        """API経由で投稿（X のみ対応）"""
+        """API経由で投稿（X のみ対応）+ PostHistory 自動記録"""
         if platform != 'x':
             return False, f'{platform}はAPI投稿に非対応（ブラウザ投稿を使用）'
 
-        from booking.services.post_dispatcher import dispatch_post
-        from booking.services.post_generator import append_booking_url
-        content = append_booking_url(draft.content, draft.store)
-        context_json = {'content': content, 'draft_id': draft.pk}
-        dispatch_post(draft.store_id, 'manual', context_json)
-        return True, '投稿完了'
+        from booking.services.post_dispatcher import dispatch_draft_post
+        return dispatch_draft_post(draft, platform)
 
     def _post_via_browser(self, draft, platform):
         """ブラウザ経由で投稿（全プラットフォーム対応）"""
