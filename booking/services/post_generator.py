@@ -76,19 +76,25 @@ def flatten_for_x(content):
 def append_booking_url(content, store):
     """投稿テキスト末尾に予約URLを追加（X向け）
 
-    改行をスペースに置換してからURLを付与する。
+    改行をスペースに置換 → 加重文字数280以内にtruncate → URL付与。
 
     Args:
         content: 投稿テキスト
         store: Store インスタンス
 
     Returns:
-        URL付き投稿テキスト（1段落+URL）
+        URL付き投稿テキスト（1段落+URL、280加重文字以内）
     """
     content = flatten_for_x(content)
     booking_url = f"https://timebaibai.com/store/{store.id}/staffs/"
     if 'timebaibai.com' in content:
-        return content
+        return truncate_to_fit(content)
+
+    # URL分の加重文字数を確保してからtruncate
+    # X APIではURLは23文字（t.co短縮）+ スペース1 = 24加重文字
+    url_weight = 24
+    max_body = MAX_WEIGHTED_LENGTH - url_weight
+    content = truncate_to_fit(content, max_weighted=max_body, suffix='…')
     return f"{content} {booking_url}"
 
 
