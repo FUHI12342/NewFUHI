@@ -319,6 +319,13 @@ class SecurityAuditMiddleware:
             count = cache.get(cache_key, 0)
             if count >= self._RATE_THRESHOLD:
                 logger.warning("Rate limit exceeded: ip=%s count=%d", ip, count)
+                self._log_event(
+                    event_type='suspicious_request',
+                    severity='warning',
+                    request=request,
+                    ip=ip,
+                    detail=f'レート制限超過: {count}回/{self._RATE_WINDOW}秒',
+                )
                 return HttpResponseForbidden('Rate limit exceeded')
 
             if count == 0:

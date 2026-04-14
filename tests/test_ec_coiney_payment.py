@@ -6,6 +6,7 @@ import json
 from unittest.mock import patch, MagicMock
 
 import pytest
+import requests
 from django.test import Client
 from django.urls import reverse
 
@@ -93,7 +94,7 @@ class TestCoineyECPayment:
             'links': {'paymentUrl': 'https://payge.co/pay/test123'}
         }
 
-        with patch('booking.views_ec_payment.requests.post', return_value=mock_response) as mock_post:
+        with patch('booking.services.payment_service.requests.post', return_value=mock_response) as mock_post:
             url = reverse('booking:shop_payment', kwargs={'order_id': ec_order.id})
             resp = api_client.get(url)
 
@@ -121,7 +122,7 @@ class TestCoineyECPayment:
         session['ec_pending_order_id'] = ec_order.id
         session.save()
 
-        with patch('booking.views_ec_payment.requests.post', side_effect=Exception('API error')):
+        with patch('booking.services.payment_service.requests.post', side_effect=requests.RequestException('API error')):
             url = reverse('booking:shop_payment', kwargs={'order_id': ec_order.id})
             resp = api_client.get(url)
 

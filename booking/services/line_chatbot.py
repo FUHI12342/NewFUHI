@@ -49,6 +49,9 @@ def _get_state(customer):
     if state != 'idle' and ts:
         try:
             last_time = datetime.fromisoformat(ts)
+            # タイムゾーンなし（naive）の場合はローカルタイムゾーンとしてaware化
+            if last_time.tzinfo is None:
+                last_time = timezone.make_aware(last_time)
             elapsed = (timezone.now() - last_time).total_seconds()
             if elapsed > STATE_TIMEOUT_MINUTES * 60:
                 _set_state(customer, 'idle')

@@ -147,56 +147,57 @@ class TestDraftEditView:
 
 @pytest.mark.django_db
 class TestDraftPostView:
-    @patch('booking.views_social_drafts.DraftPostView._post_via_api')
-    def test_api_post_success(self, mock_api, draft_admin_client, sample_draft):
-        mock_api.return_value = (True, '投稿完了')
+    @patch('booking.views_social_drafts.DraftPostView._dispatch')
+    def test_api_post_success(self, mock_dispatch, draft_admin_client, sample_draft):
+        mock_dispatch.return_value = (True, '投稿完了')
         response = draft_admin_client.post(
             f'/admin/social/drafts/{sample_draft.pk}/post/',
-            {'post_method': 'api'},
+            {'platforms': ['x']},
         )
         assert response.status_code == 302
         sample_draft.refresh_from_db()
         assert sample_draft.status == 'posted'
         assert sample_draft.posted_at is not None
 
-    @patch('booking.views_social_drafts.DraftPostView._post_via_api')
-    def test_api_post_failure(self, mock_api, draft_admin_client, sample_draft):
-        mock_api.return_value = (False, 'エラー発生')
+    @patch('booking.views_social_drafts.DraftPostView._dispatch')
+    def test_api_post_failure(self, mock_dispatch, draft_admin_client, sample_draft):
+        mock_dispatch.return_value = (False, 'エラー発生')
         response = draft_admin_client.post(
             f'/admin/social/drafts/{sample_draft.pk}/post/',
-            {'post_method': 'api'},
+            {'platforms': ['x']},
         )
         assert response.status_code == 302
         sample_draft.refresh_from_db()
         assert sample_draft.status == 'generated'  # 失敗時は変わらない
 
-    @patch('booking.views_social_drafts.DraftPostView._post_via_browser')
-    def test_browser_post_success(self, mock_browser, draft_admin_client, sample_draft):
-        mock_browser.return_value = (True, 'ブラウザ投稿完了')
+    @patch('booking.views_social_drafts.DraftPostView._dispatch')
+    def test_browser_post_success(self, mock_dispatch, draft_admin_client, sample_draft):
+        mock_dispatch.return_value = (True, 'ブラウザ投稿完了')
         response = draft_admin_client.post(
             f'/admin/social/drafts/{sample_draft.pk}/post/',
-            {'post_method': 'browser'},
+            {'platforms': ['x']},
         )
         assert response.status_code == 302
         sample_draft.refresh_from_db()
         assert sample_draft.status == 'posted'
 
-    @patch('booking.views_social_drafts.DraftPostView._post_via_api')
-    def test_post_uses_draft_platforms_when_none_sent(self, mock_api, draft_admin_client, sample_draft):
-        mock_api.return_value = (True, 'OK')
+    @patch('booking.views_social_drafts.DraftPostView._dispatch')
+    def test_post_uses_draft_platforms_when_none_sent(self, mock_dispatch, draft_admin_client, sample_draft):
+        mock_dispatch.return_value = (True, 'OK')
+        # プラットフォームを送らない場合、ドラフトの platforms が使用される
         response = draft_admin_client.post(
             f'/admin/social/drafts/{sample_draft.pk}/post/',
-            {'post_method': 'api'},
+            {},
         )
         assert response.status_code == 302
-        mock_api.assert_called_once()
+        mock_dispatch.assert_called_once()
 
-    @patch('booking.views_social_drafts.DraftPostView._post_via_api')
-    def test_post_exception_handled(self, mock_api, draft_admin_client, sample_draft):
-        mock_api.side_effect = Exception('Network error')
+    @patch('booking.views_social_drafts.DraftPostView._dispatch')
+    def test_post_exception_handled(self, mock_dispatch, draft_admin_client, sample_draft):
+        mock_dispatch.side_effect = Exception('Network error')
         response = draft_admin_client.post(
             f'/admin/social/drafts/{sample_draft.pk}/post/',
-            {'post_method': 'api'},
+            {'platforms': ['x']},
         )
         assert response.status_code == 302
         sample_draft.refresh_from_db()

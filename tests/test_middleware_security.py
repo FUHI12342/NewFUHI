@@ -2,6 +2,7 @@
 import time
 import pytest
 from unittest.mock import MagicMock, patch
+from django.core.cache import cache
 from django.test import RequestFactory, override_settings
 from django.contrib.auth.models import User, AnonymousUser
 from django.http import HttpResponse
@@ -23,7 +24,7 @@ def middleware():
         return HttpResponse(status=200)
     mw = SecurityAuditMiddleware(get_response)
     # Clear rate counter between tests
-    mw._rate_counter.clear()
+    cache.clear()
     return mw
 
 
@@ -40,7 +41,7 @@ class TestSecurityAuditMiddleware:
             return HttpResponse(status=302)
 
         mw = SecurityAuditMiddleware(get_response)
-        mw._rate_counter.clear()
+        cache.clear()
 
         request = rf.post('/login/', {'username': 'testlogin', 'password': 'pass'})
         request.user = user
@@ -57,7 +58,7 @@ class TestSecurityAuditMiddleware:
             return HttpResponse(status=200)
 
         mw = SecurityAuditMiddleware(get_response)
-        mw._rate_counter.clear()
+        cache.clear()
 
         request = rf.post('/login/', {'username': 'bad', 'password': 'wrong'})
         request.user = AnonymousUser()
@@ -74,7 +75,7 @@ class TestSecurityAuditMiddleware:
             return HttpResponse(status=401)
 
         mw = SecurityAuditMiddleware(get_response)
-        mw._rate_counter.clear()
+        cache.clear()
 
         request = rf.get('/api/sensors/')
         request.user = AnonymousUser()
@@ -91,7 +92,7 @@ class TestSecurityAuditMiddleware:
             return HttpResponse(status=403)
 
         mw = SecurityAuditMiddleware(get_response)
-        mw._rate_counter.clear()
+        cache.clear()
 
         request = rf.get('/api/admin/')
         request.user = AnonymousUser()
@@ -108,7 +109,7 @@ class TestSecurityAuditMiddleware:
             return HttpResponse(status=403)
 
         mw = SecurityAuditMiddleware(get_response)
-        mw._rate_counter.clear()
+        cache.clear()
 
         request = rf.get('/admin/booking/')
         request.user = AnonymousUser()
@@ -126,7 +127,7 @@ class TestSecurityAuditMiddleware:
             return HttpResponse(status=200)
 
         mw = SecurityAuditMiddleware(get_response)
-        mw._rate_counter.clear()
+        cache.clear()
 
         ip = '10.0.0.99'
         for i in range(102):
@@ -164,7 +165,7 @@ class TestSecurityAuditMiddleware:
             return HttpResponse(status=200)
 
         mw = SecurityAuditMiddleware(get_response)
-        mw._rate_counter.clear()
+        cache.clear()
 
         initial_count = SecurityLog.objects.count()
         request = rf.get('/booking/')
@@ -180,7 +181,7 @@ class TestSecurityAuditMiddleware:
             return HttpResponse(status=400)
 
         mw = SecurityAuditMiddleware(get_response)
-        mw._rate_counter.clear()
+        cache.clear()
 
         request = rf.post('/login/')
         request.user = AnonymousUser()

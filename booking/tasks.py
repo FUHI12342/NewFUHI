@@ -90,7 +90,7 @@ def check_property_alerts():
     # N+1 対策: prefetch_related で一括取得
     props = Property.objects.filter(is_active=True).prefetch_related(
         models.Prefetch(
-            'propertydevice_set',
+            'property_devices',
             queryset=PropertyDevice.objects.select_related('device'),
         )
     )
@@ -99,7 +99,7 @@ def check_property_alerts():
     all_pds = []
     for prop in props:
         all_pds.extend(
-            (prop, pd) for pd in prop.propertydevice_set.all() if pd.device.is_active
+            (prop, pd) for pd in prop.property_devices.all() if pd.device.is_active
         )
 
     if not all_pds:

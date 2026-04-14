@@ -140,7 +140,7 @@ class TestIoTConfigAPI(TestCase):
     def test_iot_config_get(self):
         """GET config endpoint returns device configuration with valid API key."""
         response = self.client.get(
-            f"/api/iot/config/?device={DEVICE_EXTERNAL_ID}",
+            f"/api/iot/config/?device={DEVICE_EXTERNAL_ID}&provision=1",
             HTTP_X_API_KEY=RAW_API_KEY,
         )
         self.assertEqual(response.status_code, 200)

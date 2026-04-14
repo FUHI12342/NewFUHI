@@ -76,7 +76,9 @@ class TestECOrderAPI:
 
     def test_filter_by_date(self, admin_client, ec_order):
         from django.utils import timezone
-        today = timezone.now().strftime('%Y-%m-%d')
+        # ローカルタイムゾーン（Asia/Tokyo）で今日の日付を取得
+        # created_at__date はローカルタイムゾーンに変換して比較するため
+        today = timezone.localtime(timezone.now()).strftime('%Y-%m-%d')
         resp = admin_client.get(f'/api/ec/orders/?date_from={today}&date_to={today}')
         data = json.loads(resp.content)
         assert len(data['orders']) >= 1
