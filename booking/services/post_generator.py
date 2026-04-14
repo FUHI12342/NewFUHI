@@ -90,9 +90,8 @@ def append_booking_url(content, store):
     if 'timebaibai.com' in content:
         return truncate_to_fit(content)
 
-    # URL分の加重文字数を確保してからtruncate
-    # X APIではURLは23文字（t.co短縮）+ スペース1 = 24加重文字
-    url_weight = 24
+    # URL + スペースの実加重文字数を算出してbody上限を決定
+    url_weight = weighted_length(f" {booking_url}")
     max_body = MAX_WEIGHTED_LENGTH - url_weight
     content = truncate_to_fit(content, max_weighted=max_body, suffix='…')
     return f"{content} {booking_url}"
