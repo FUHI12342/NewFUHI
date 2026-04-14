@@ -165,7 +165,7 @@
 ### 未実装
 - [ ] モバイルアプリ対応（PWA or ネイティブ）
 - [ ] ダッシュボードのリアルタイム更新（WebSocket）
-- [ ] ARIA属性追加（カスタムビュー全テンプレート）
+- [x] ARIA属性追加（editor, page_layout, theme_customizer, site_wizard, generate: dialog/toolbar/switch/progressbar/group等14箇所）
 
 ---
 
