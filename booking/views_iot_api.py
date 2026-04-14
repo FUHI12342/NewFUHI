@@ -295,6 +295,7 @@ class IoTEventAPIView(APIView):
 class IoTConfigAPIView(APIView):
     authentication_classes = []
     permission_classes = []
+    throttle_classes = [IoTDeviceThrottle]
 
     def get(self, request, *args, **kwargs):
         external_id = request.GET.get('device')
@@ -313,17 +314,22 @@ class IoTConfigAPIView(APIView):
         mq9_threshold = device.mq9_threshold if device.mq9_threshold is not None else DEFAULT_MQ9_THRESHOLD
 
         if mq9_threshold <= 0:
-            logger.warning(f"IoT device {device.external_id} has invalid threshold {mq9_threshold}, using default")
+            logger.warning("IoT device %s has invalid threshold %s, using default", device.external_id, mq9_threshold)
             mq9_threshold = DEFAULT_MQ9_THRESHOLD
-
-        wifi_password = device.get_wifi_password() or ''
 
         response_data = {
             'device': device.external_id,
-            'wifi': {'ssid': device.wifi_ssid, 'password': wifi_password},
             'mq9_threshold': int(mq9_threshold),
             'alert_enabled': device.alert_enabled,
         }
+
+        # WiFi認証情報はプロビジョニングリクエスト時のみ返却
+        if request.GET.get('provision') == '1':
+            wifi_password = device.get_wifi_password() or ''
+            response_data['wifi'] = {
+                'ssid': device.wifi_ssid,
+                'password': wifi_password,
+            }
 
         if device.pending_ir_command:
             try:

@@ -62,7 +62,7 @@ def _call_gemini_for_draft(prompt, max_tokens=4096, temperature=0.8,
 
     url = (
         'https://generativelanguage.googleapis.com/v1beta/models/'
-        f'gemini-2.5-flash:generateContent?key={api_key}'
+        'gemini-2.5-flash:generateContent'
     )
 
     body = {
@@ -79,7 +79,10 @@ def _call_gemini_for_draft(prompt, max_tokens=4096, temperature=0.8,
 
     req = urllib.request.Request(
         url, data=payload,
-        headers={'Content-Type': 'application/json'},
+        headers={
+            'Content-Type': 'application/json',
+            'x-goog-api-key': api_key,
+        },
         method='POST',
     )
 
