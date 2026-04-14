@@ -36,11 +36,30 @@
       </h1>
       <p style="font-size:0.875rem; color:#6b7280; margin-top:4px;">{% trans "AI生成・編集・投稿・予約投稿" %}</p>
     </div>
-    <div class="btn-group" style="display:flex; gap:8px;">
+    <div class="btn-group" style="display:flex; gap:8px; flex-wrap:wrap;">
       <a href="{% url 'social_draft_generate' %}"
          style="background:#4f46e5; color:white; padding:8px 16px; border-radius:8px; text-decoration:none; font-size:0.875rem;">
         <i class="fas fa-magic" style="margin-right:4px;"></i>{% trans "AI下書き生成" %}
       </a>
+      <details style="position:relative;">
+        <summary style="background:#f3f4f6; color:#374151; padding:8px 16px; border-radius:8px; font-size:0.875rem; cursor:pointer; list-style:none; display:flex; align-items:center; gap:4px;">
+          <i class="fas fa-cog"></i> {% trans "詳細設定" %}
+        </summary>
+        <div style="position:absolute; right:0; top:100%; margin-top:4px; background:white; border:1px solid #e5e7eb; border-radius:8px; box-shadow:0 4px 12px rgba(0,0,0,0.1); padding:8px 0; min-width:200px; z-index:50;">
+          <a href="/admin/booking/socialaccount/" style="display:block; padding:8px 16px; font-size:0.875rem; color:#374151; text-decoration:none;">
+            <i class="fas fa-link" style="width:20px; color:#6b7280;"></i> {% trans "SNSアカウント" %}
+          </a>
+          <a href="/admin/booking/posttemplate/" style="display:block; padding:8px 16px; font-size:0.875rem; color:#374151; text-decoration:none;">
+            <i class="fas fa-file-alt" style="width:20px; color:#6b7280;"></i> {% trans "投稿テンプレート" %}
+          </a>
+          <a href="/admin/booking/knowledgeentry/" style="display:block; padding:8px 16px; font-size:0.875rem; color:#374151; text-decoration:none;">
+            <i class="fas fa-book" style="width:20px; color:#6b7280;"></i> {% trans "SNSナレッジ" %}
+          </a>
+          <a href="/admin/booking/draftpost/" style="display:block; padding:8px 16px; font-size:0.875rem; color:#374151; text-decoration:none;">
+            <i class="fas fa-database" style="width:20px; color:#6b7280;"></i> {% trans "下書きデータ" %}
+          </a>
+        </div>
+      </details>
     </div>
   </div>
 
