@@ -99,9 +99,10 @@ class Command(BaseCommand):
 
         # Python playwright
         try:
-            import playwright
+            from importlib.metadata import version as pkg_version
+            pw_ver = pkg_version('playwright')
             self.stdout.write(self.style.SUCCESS(
-                f'  playwright パッケージ: OK (v{playwright.__version__})'
+                f'  playwright パッケージ: OK (v{pw_ver})'
             ))
         except ImportError:
             self.stdout.write(self.style.ERROR(
