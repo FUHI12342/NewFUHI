@@ -28,6 +28,8 @@
     --ac-radius-full: 9999px;
     --ac-shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.1);
     --ac-shadow-md: 0 4px 12px rgba(0, 0, 0, 0.1);
+    --salon-brand: #8c876c;
+    --salon-brand-hover: #7a7660;
 }
 
 [data-bs-theme="dark"] {
@@ -568,6 +570,114 @@
     .draft-actions button,
     .draft-actions form { flex: 1; min-width: 0; }
     .draft-actions form button { width: 100%; }
+}
+
+/* ==============================
+   Data Table
+   ============================== */
+.ac-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+.ac-table thead tr {
+    background: var(--ac-bg-subtle);
+    border-bottom: 2px solid var(--ac-border);
+}
+.ac-table tbody tr {
+    border-bottom: 1px solid var(--ac-border);
+}
+.ac-table th {
+    padding: 8px 12px;
+    text-align: left;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--ac-text-secondary);
+}
+.ac-table th.text-center,
+.ac-table td.text-center { text-align: center; }
+.ac-table td {
+    padding: 8px 12px;
+    font-size: 13px;
+    color: var(--ac-text);
+}
+.ac-table td.font-bold { font-weight: 600; }
+.ac-table td.text-muted { color: var(--ac-text-muted); }
+
+/* ==============================
+   Status Text (inline)
+   ============================== */
+.ac-status--published { color: #059669; font-size: 13px; }
+.ac-status--draft { color: var(--ac-text-quiet); font-size: 13px; }
+
+/* ==============================
+   Action Links
+   ============================== */
+.ac-link-action {
+    color: var(--salon-brand);
+    text-decoration: underline;
+    font-size: 13px;
+}
+.ac-link-action:hover { color: var(--salon-brand-hover); }
+
+/* ==============================
+   Brand Button (Salon theme)
+   ============================== */
+.ac-btn--brand {
+    background: var(--salon-brand);
+    color: #fff;
+}
+.ac-btn--brand:hover { background: var(--salon-brand-hover); }
+
+/* ==============================
+   Store Customization Links
+   ============================== */
+.store-custom-links {
+    padding: 16px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+.store-custom-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 20px;
+    background: var(--salon-brand);
+    color: #fff;
+    border-radius: 8px;
+    text-decoration: none;
+    font-size: 13px;
+    font-weight: 600;
+    transition: background 0.15s;
+}
+.store-custom-link:hover { background: var(--salon-brand-hover); }
+
+/* ==============================
+   Modal Actions (flex row)
+   ============================== */
+.modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    margin-top: 20px;
+}
+
+/* ==============================
+   Error Message (inline, hidden by default)
+   ============================== */
+.ac-error-msg {
+    color: #dc2626;
+    font-size: 12px;
+    display: none;
+    margin-bottom: 12px;
+}
+
+/* ==============================
+   Empty Text (simple)
+   ============================== */
+.ac-empty-text {
+    color: var(--ac-text-muted);
+    padding: 24px;
 }
 
 /* ==============================

@@ -1,6 +1,6 @@
 # TODO -- 未実装タスク・残課題
 
-最終更新: 2026-04-15
+最終更新: 2026-04-16
 
 ---
 
@@ -158,12 +158,13 @@
 - [x] ブランドカラー統一（`#4f46e5`/`#6366f1` → `var(--brand-primary)`）
 - [x] 空の admin.css 削除
 - [x] admin_components.css 新規作成（ダークモード対応済みコンポーネント）
+- [x] インラインスタイル → CSSクラス抽出（page_builder 4テンプレート + store/change_form + site_wizard + theme_customizer: 37箇所→0箇所、動的値6箇所のみ残存）
+- [x] admin_components.css に共有テーブル・ボタン・ステータスクラス追加（`.ac-table`, `.ac-btn--brand`, `.ac-status--*` 等）
+- [x] store/change_form.html の onmouseover/onmouseout JSホバー → CSS :hover に移行
 
 ### 未実装
 - [ ] モバイルアプリ対応（PWA or ネイティブ）
 - [ ] ダッシュボードのリアルタイム更新（WebSocket）
-- [ ] 管理画面のダークモード復活（現在はライトモード固定 — CSS変数準備済み）
-- [ ] 残りテンプレートのインラインスタイル抽出（page_builder等 約42箇所残存）
 - [ ] ARIA属性追加（カスタムビュー全テンプレート）
 
 ---

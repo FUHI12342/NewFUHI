@@ -1,12 +1,14 @@
 {% extends "admin/base_site.html" %}
 {% load i18n %}
+{% load static %}
 
 {% block title %}{{ title }}{% endblock %}
 
 {% block extrastyle %}
 {{ block.super }}
+<link rel="stylesheet" href="{% static 'css/admin_components.css' %}">
 <style>
-/* ── Mobile Responsive ── */
+.pb-actions { margin-bottom: 16px; }
 @media (max-width: 767px) {
     .page-list-table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
     .page-list-table-wrap table { min-width: 600px; }
@@ -17,43 +19,43 @@
 {% block content %}
 <h1>{{ title }}</h1>
 
-<div style="margin-bottom:16px;">
+<div class="pb-actions">
     <a href="{% url 'admin_page_builder_create' store.pk %}"
-       class="btn btn-primary" style="background:#8c876c;color:#fff;padding:8px 20px;border-radius:6px;text-decoration:none;font-size:14px;">
+       class="ac-btn ac-btn--brand">
         + {% trans "新規ページ作成" %}
     </a>
 </div>
 
 {% if pages %}
 <div class="page-list-table-wrap">
-<table style="width:100%;border-collapse:collapse;">
+<table class="ac-table">
     <thead>
-        <tr style="background:#f9fafb;border-bottom:2px solid #e5e7eb;">
-            <th style="padding:8px 12px;text-align:left;font-size:13px;">{% trans "タイトル" %}</th>
-            <th style="padding:8px 12px;text-align:left;font-size:13px;">{% trans "スラッグ" %}</th>
-            <th style="padding:8px 12px;text-align:left;font-size:13px;">{% trans "種別" %}</th>
-            <th style="padding:8px 12px;text-align:center;font-size:13px;">{% trans "公開" %}</th>
-            <th style="padding:8px 12px;text-align:left;font-size:13px;">{% trans "更新日" %}</th>
-            <th style="padding:8px 12px;text-align:center;font-size:13px;">{% trans "操作" %}</th>
+        <tr>
+            <th>{% trans "タイトル" %}</th>
+            <th>{% trans "スラッグ" %}</th>
+            <th>{% trans "種別" %}</th>
+            <th class="text-center">{% trans "公開" %}</th>
+            <th>{% trans "更新日" %}</th>
+            <th class="text-center">{% trans "操作" %}</th>
         </tr>
     </thead>
     <tbody>
         {% for page in pages %}
-        <tr style="border-bottom:1px solid #e5e7eb;">
-            <td style="padding:8px 12px;font-weight:600;">{{ page.title }}</td>
-            <td style="padding:8px 12px;font-size:13px;color:#6b7280;">/p/{{ store.pk }}/{{ page.slug }}/</td>
-            <td style="padding:8px 12px;font-size:13px;">{{ page.get_page_type_display }}</td>
-            <td style="padding:8px 12px;text-align:center;">
+        <tr>
+            <td class="font-bold">{{ page.title }}</td>
+            <td class="text-muted">/p/{{ store.pk }}/{{ page.slug }}/</td>
+            <td>{{ page.get_page_type_display }}</td>
+            <td class="text-center">
                 {% if page.is_published %}
-                <span style="color:#059669;font-size:13px;">{% trans "公開中" %}</span>
+                <span class="ac-status--published">{% trans "公開中" %}</span>
                 {% else %}
-                <span style="color:#9ca3af;font-size:13px;">{% trans "下書き" %}</span>
+                <span class="ac-status--draft">{% trans "下書き" %}</span>
                 {% endif %}
             </td>
-            <td style="padding:8px 12px;font-size:13px;">{{ page.updated_at|date:"Y/m/d H:i" }}</td>
-            <td style="padding:8px 12px;text-align:center;">
+            <td>{{ page.updated_at|date:"Y/m/d H:i" }}</td>
+            <td class="text-center">
                 <a href="{% url 'admin_page_builder_edit' store.pk page.pk %}"
-                   style="color:#8c876c;text-decoration:underline;font-size:13px;">{% trans "編集" %}</a>
+                   class="ac-link-action">{% trans "編集" %}</a>
             </td>
         </tr>
         {% endfor %}
@@ -61,6 +63,6 @@
 </table>
 </div>
 {% else %}
-<p style="color:#6b7280;padding:24px;">{% trans "カスタムページはまだありません。" %}</p>
+<p class="ac-empty-text">{% trans "カスタムページはまだありません。" %}</p>
 {% endif %}
 {% endblock %}

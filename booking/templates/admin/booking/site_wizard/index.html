@@ -60,6 +60,10 @@
 .wizard-summary p { color:#6b7280; margin-bottom:16px; }
 .wizard-summary .big-text { font-size:2rem; font-weight:800; color:#8c876c; }
 
+/* Page-specific helpers */
+.step-action--sm { font-size:0.8rem; padding:6px 14px; }
+.wizard-complete-msg { color:#22c55e; font-weight:600; }
+
 /* ── Mobile Responsive ── */
 @media (max-width: 767px) {
     .wizard-container { max-width: 100%; padding: 0 8px; }
@@ -108,7 +112,7 @@
             {% if step.completed %}
             <span class="step-check">✓ {% trans "設定済み" %}</span>
             &nbsp;
-            <a href="{% url step.url_name step.url_args.0 %}" class="step-action start" style="font-size:0.8rem;padding:6px 14px;">{% trans "変更する" %}</a>
+            <a href="{% url step.url_name step.url_args.0 %}" class="step-action start step-action--sm">{% trans "変更する" %}</a>
             {% else %}
             <a href="{% url step.url_name step.url_args.0 %}" class="step-action start">{% trans "設定を始める →" %}</a>
             {% endif %}
@@ -121,7 +125,7 @@
         <div class="big-text">{{ completed_count }} / {{ total_steps }}</div>
         <p>{% trans "ステップ完了" %}</p>
         {% if completed_count == total_steps %}
-        <p style="color:#22c55e;font-weight:600;">🎉 {% trans "すべてのセットアップが完了しています！" %}</p>
+        <p class="wizard-complete-msg">🎉 {% trans "すべてのセットアップが完了しています！" %}</p>
         {% else %}
         <p>{% trans "残りのステップを完了して、サロンサイトを仕上げましょう。" %}</p>
         {% endif %}

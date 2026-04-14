@@ -120,6 +120,12 @@
 /* ── Separator ── */
 .toolbar-sep { width:1px; height:24px; background:#e5e7eb; margin:0 4px; }
 
+/* ── Page-specific helpers ── */
+.page-info-slug { color:#9ca3af; margin-left:4px; font-size:11px; }
+.seo-modal--narrow { width:450px; }
+.modal-actions { display:flex; justify-content:flex-end; gap:8px; margin-top:20px; }
+.pb-error-msg { color:#dc2626; font-size:12px; display:none; margin-bottom:12px; }
+
 /* ── Mobile Responsive ── */
 @media (max-width: 767px) {
     .editor-wrapper { height: calc(100vh - 80px); }
@@ -152,7 +158,7 @@
     <div class="toolbar-left">
         <div class="page-info">
             <strong>{{ page.title }}</strong>
-            <span style="color:#9ca3af;margin-left:4px;font-size:11px;">/p/{{ store.pk }}/{{ page.slug }}/</span>
+            <span class="page-info-slug">/p/{{ store.pk }}/{{ page.slug }}/</span>
         </div>
     </div>
 
@@ -243,7 +249,7 @@
             <label>{% trans "OGP画像URL" %}</label>
             <input type="text" id="seoOgImage" value="{{ page.og_image_url|default:"" }}" placeholder="https://...">
         </div>
-        <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:20px;">
+        <div class="modal-actions">
             <button class="btn-editor" onclick="closeSeoModal()">{% trans "キャンセル" %}</button>
             <button class="btn-editor btn-save" onclick="saveSeo()">{% trans "保存" %}</button>
         </div>
@@ -252,7 +258,7 @@
 
 <!-- ===== SAVE BLOCK MODAL ===== -->
 <div class="seo-modal-overlay" id="saveBlockModal">
-    <div class="seo-modal" style="width:450px;">
+    <div class="seo-modal seo-modal--narrow">
         <h3>📦 {% trans "選択中のコンポーネントをブロックとして保存" %}</h3>
         <div class="seo-field">
             <label>{% trans "ブロック名" %}</label>
@@ -262,8 +268,8 @@
             <label>{% trans "カテゴリ" %}</label>
             <input type="text" id="blockCategory" value="{% trans '保存済み' %}" maxlength="50">
         </div>
-        <p id="saveBlockError" style="color:#dc2626;font-size:12px;display:none;margin-bottom:12px;"></p>
-        <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:20px;">
+        <p id="saveBlockError" class="pb-error-msg"></p>
+        <div class="modal-actions">
             <button class="btn-editor" onclick="closeSaveBlockModal()">{% trans "キャンセル" %}</button>
             <button class="btn-editor btn-save" onclick="saveAsBlock()">{% trans "保存" %}</button>
         </div>

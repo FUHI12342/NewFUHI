@@ -67,6 +67,15 @@
 .step-indicator .step-num.inactive { background:#e5e7eb; color:#9ca3af; }
 .step-indicator .step-line { width:40px; height:2px; background:#e5e7eb; }
 
+/* Page-specific helpers */
+.pb-intro { margin-bottom:16px; color:#374151; }
+.tpl-card-preview--blank { background:#fafafa; }
+.tpl-blank-content { text-align:center; color:#9ca3af; }
+.tpl-blank-icon { font-size:48px; margin-bottom:8px; }
+.tpl-blank-label { font-size:13px; }
+.tpl-no-preview { color:#9ca3af; font-size:13px; }
+.pb-form-actions { margin-top:24px; }
+
 /* ── Mobile Responsive ── */
 @media (max-width: 767px) {
     .tpl-grid { grid-template-columns: 1fr; gap: 12px; }
@@ -96,15 +105,15 @@
 
 <!-- STEP 1: Template Gallery -->
 <div id="step1">
-    <p style="margin-bottom:16px;color:#374151;">{% trans "テンプレートを選んでください。白紙から作成することもできます。" %}</p>
+    <p class="pb-intro">{% trans "テンプレートを選んでください。白紙から作成することもできます。" %}</p>
     <div class="tpl-grid">
         <!-- Blank card -->
         <div class="tpl-card selected" data-template-id="" data-layout="standard" onclick="selectTemplate(this)">
-            <div class="tpl-card-preview" style="background:#fafafa;">
+            <div class="tpl-card-preview tpl-card-preview--blank">
                 <div class="tpl-check">✓</div>
-                <div style="text-align:center;color:#9ca3af;">
-                    <div style="font-size:48px;margin-bottom:8px;">📝</div>
-                    <div style="font-size:13px;">{% trans "白紙から作成" %}</div>
+                <div class="tpl-blank-content">
+                    <div class="tpl-blank-icon">📝</div>
+                    <div class="tpl-blank-label">{% trans "白紙から作成" %}</div>
                 </div>
             </div>
             <div class="tpl-card-body">
@@ -121,7 +130,7 @@
                 {% if tpl.html_content %}
                 <iframe srcdoc="{{ tpl.html_content|escapejs }}" sandbox></iframe>
                 {% else %}
-                <div style="color:#9ca3af;font-size:13px;">{% trans "プレビューなし" %}</div>
+                <div class="tpl-no-preview">{% trans "プレビューなし" %}</div>
                 {% endif %}
             </div>
             <div class="tpl-card-body">
@@ -166,7 +175,7 @@
                 <option value="full_width">{% trans "フルワイド（ランディングページ向け）" %}</option>
             </select>
         </div>
-        <div style="margin-top:24px;">
+        <div class="pb-form-actions">
             <button type="button" class="btn-secondary" onclick="goToStep1()">{% trans "戻る" %}</button>
             <button type="submit" class="btn-primary">{% trans "作成してエディタを開く" %}</button>
         </div>
