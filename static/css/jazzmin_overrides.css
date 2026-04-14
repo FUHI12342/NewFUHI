@@ -62,7 +62,7 @@
 }
 /* 展開時に左ボーダー */
 #jazzy-sidebar .sidebar-menu > .nav-item.has-treeview.menu-open > .nav-link {
-    border-left: 3px solid #6366f1;
+    border-left: 3px solid var(--brand-primary, #465fff);
     padding-left: calc(0.75rem - 3px);
 }
 
@@ -624,6 +624,39 @@
     0%   { transform: translateX(0); }
     10%  { transform: translateX(0); }
     100% { transform: translateX(-100%); }
+}
+
+/* ---- アクセシビリティ: prefers-reduced-motion ---- */
+@media (prefers-reduced-motion: reduce) {
+    #result_list td.admin-marquee-ready .admin-marquee-inner {
+        animation: none !important;
+    }
+    *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+    }
+}
+
+/* ---- アクセシビリティ: フォーカスインジケーター (WCAG 2.4.7) ---- */
+:focus-visible {
+    outline: 2px solid var(--brand-primary, #465fff);
+    outline-offset: 2px;
+}
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+[tabindex]:focus-visible {
+    outline: 2px solid var(--brand-primary, #465fff);
+    outline-offset: 2px;
+    border-radius: 4px;
+}
+/* ダークモード時のフォーカス色 */
+[data-bs-theme="dark"] :focus-visible {
+    outline-color: #93c5fd;
 }
 
 /* ---- 管理画面共通: 右カラム保存ボタンをsticky化 ---- */

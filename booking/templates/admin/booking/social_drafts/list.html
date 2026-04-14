@@ -6,57 +6,41 @@
 
 {% block extrastyle %}
 {{ block.super }}
-<link rel="stylesheet" href="{% static 'css/tailwind.css' %}">
+<link rel="stylesheet" href="{% static 'css/admin_components.css' %}">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-<style>
-.social-wrap { max-width: 1100px; margin: 0 auto; padding: 16px; }
-@media (max-width: 767px) {
-  .social-wrap { padding: 8px; }
-  .social-header { flex-direction: column; align-items: flex-start !important; gap: 12px; }
-  .social-header .btn-group { width: 100%; flex-direction: column; }
-  .social-header .btn-group a { width: 100%; text-align: center; }
-  .filter-form { flex-direction: column; }
-  .filter-form select, .filter-form button { width: 100%; }
-  .draft-card-inner { flex-direction: column; }
-  .draft-actions { flex-direction: row; flex-wrap: wrap; width: 100%; margin-top: 8px; }
-  .draft-actions button, .draft-actions form { flex: 1; min-width: 0; }
-  .draft-actions form button { width: 100%; }
-}
-</style>
 {% endblock %}
 
 {% block content %}
 <div class="social-wrap">
 
   <!-- ヘッダー -->
-  <div class="social-header" style="display:flex; align-items:center; justify-content:space-between; margin-bottom:24px;">
+  <div class="social-header">
     <div>
-      <h1 style="font-size:1.5rem; font-weight:bold; color:#1f2937;">
-        <i class="fas fa-edit" style="color:#6366f1; margin-right:8px;"></i>{% trans "SNS下書き管理" %}
+      <h1 class="ac-page-title">
+        <i class="fas fa-edit ac-icon-accent"></i>{% trans "SNS下書き管理" %}
       </h1>
-      <p style="font-size:0.875rem; color:#6b7280; margin-top:4px;">{% trans "AI生成・編集・投稿・予約投稿" %}</p>
+      <p class="ac-page-subtitle">{% trans "AI生成・編集・投稿・予約投稿" %}</p>
     </div>
-    <div class="btn-group" style="display:flex; gap:8px; flex-wrap:wrap;">
-      <a href="{% url 'social_draft_generate' %}"
-         style="background:#4f46e5; color:white; padding:8px 16px; border-radius:8px; text-decoration:none; font-size:0.875rem;">
-        <i class="fas fa-magic" style="margin-right:4px;"></i>{% trans "AI下書き生成" %}
+    <div class="btn-group">
+      <a href="{% url 'social_draft_generate' %}" class="ac-btn ac-btn--primary">
+        <i class="fas fa-magic"></i>{% trans "AI下書き生成" %}
       </a>
-      <details style="position:relative;">
-        <summary style="background:#f3f4f6; color:#374151; padding:8px 16px; border-radius:8px; font-size:0.875rem; cursor:pointer; list-style:none; display:flex; align-items:center; gap:4px;">
+      <details class="ac-dropdown">
+        <summary class="ac-dropdown__trigger">
           <i class="fas fa-cog"></i> {% trans "詳細設定" %}
         </summary>
-        <div style="position:absolute; right:0; top:100%; margin-top:4px; background:white; border:1px solid #e5e7eb; border-radius:8px; box-shadow:0 4px 12px rgba(0,0,0,0.1); padding:8px 0; min-width:200px; z-index:50;">
-          <a href="{% url 'admin:booking_socialaccount_changelist' %}" style="display:block; padding:8px 16px; font-size:0.875rem; color:#374151; text-decoration:none;">
-            <i class="fas fa-link" style="width:20px; color:#6b7280;"></i> {% trans "SNSアカウント" %}
+        <div class="ac-dropdown__menu">
+          <a href="{% url 'admin:booking_socialaccount_changelist' %}" class="ac-dropdown__item">
+            <i class="fas fa-link ac-dropdown__icon"></i> {% trans "SNSアカウント" %}
           </a>
-          <a href="{% url 'admin:booking_posttemplate_changelist' %}" style="display:block; padding:8px 16px; font-size:0.875rem; color:#374151; text-decoration:none;">
-            <i class="fas fa-file-alt" style="width:20px; color:#6b7280;"></i> {% trans "投稿テンプレート" %}
+          <a href="{% url 'admin:booking_posttemplate_changelist' %}" class="ac-dropdown__item">
+            <i class="fas fa-file-alt ac-dropdown__icon"></i> {% trans "投稿テンプレート" %}
           </a>
-          <a href="{% url 'admin:booking_knowledgeentry_changelist' %}" style="display:block; padding:8px 16px; font-size:0.875rem; color:#374151; text-decoration:none;">
-            <i class="fas fa-book" style="width:20px; color:#6b7280;"></i> {% trans "SNSナレッジ" %}
+          <a href="{% url 'admin:booking_knowledgeentry_changelist' %}" class="ac-dropdown__item">
+            <i class="fas fa-book ac-dropdown__icon"></i> {% trans "SNSナレッジ" %}
           </a>
-          <a href="{% url 'admin:booking_draftpost_changelist' %}" style="display:block; padding:8px 16px; font-size:0.875rem; color:#374151; text-decoration:none;">
-            <i class="fas fa-database" style="width:20px; color:#6b7280;"></i> {% trans "下書きデータ" %}
+          <a href="{% url 'admin:booking_draftpost_changelist' %}" class="ac-dropdown__item">
+            <i class="fas fa-database ac-dropdown__icon"></i> {% trans "下書きデータ" %}
           </a>
         </div>
       </details>
@@ -64,29 +48,26 @@
   </div>
 
   <!-- フィルター -->
-  <form method="get" class="filter-form" style="display:flex; gap:12px; margin-bottom:16px; flex-wrap:wrap;">
-    <select name="status" style="border:1px solid #d1d5db; border-radius:6px; padding:6px 12px; font-size:0.875rem;">
+  <form method="get" class="ac-filter">
+    <select name="status" class="ac-select">
       <option value="">{% trans "全ステータス" %}</option>
       {% for value, label in status_choices %}
       <option value="{{ value }}" {% if current_status == value %}selected{% endif %}>{{ label }}</option>
       {% endfor %}
     </select>
-    <select name="store" style="border:1px solid #d1d5db; border-radius:6px; padding:6px 12px; font-size:0.875rem;">
+    <select name="store" class="ac-select">
       <option value="">{% trans "全店舗" %}</option>
       {% for s in stores %}
       <option value="{{ s.pk }}" {% if current_store == s.pk|stringformat:"d" %}selected{% endif %}>{{ s.name }}</option>
       {% endfor %}
     </select>
-    <button type="submit" style="background:#374151; color:white; padding:6px 16px; border-radius:6px; font-size:0.875rem; border:none; cursor:pointer;">{% trans "絞り込み" %}</button>
+    <button type="submit" class="ac-btn ac-btn--dark">{% trans "絞り込み" %}</button>
   </form>
 
   <!-- メッセージ -->
   {% if messages %}
   {% for message in messages %}
-  <div style="margin-bottom:12px; padding:8px 16px; border-radius:6px; font-size:0.875rem;
-    {% if message.tags == 'error' %}background:#fee2e2; color:#b91c1c; border:1px solid #fca5a5;
-    {% elif message.tags == 'success' %}background:#dcfce7; color:#15803d; border:1px solid #86efac;
-    {% else %}background:#dbeafe; color:#1d4ed8; border:1px solid #93c5fd;{% endif %}">
+  <div class="ac-alert {% if message.tags == 'error' %}ac-alert--error{% elif message.tags == 'success' %}ac-alert--success{% else %}ac-alert--info{% endif %}">
     {{ message }}
   </div>
   {% endfor %}
@@ -94,43 +75,34 @@
 
   <!-- 下書きカード -->
   {% if drafts %}
-  <div style="display:flex; flex-direction:column; gap:16px;">
+  <div class="ac-card-list">
     {% for draft in drafts %}
-    <div style="background:white; border-radius:12px; box-shadow:0 1px 3px rgba(0,0,0,0.1); border:1px solid #e5e7eb; padding:20px;">
-      <div class="draft-card-inner" style="display:flex; align-items:flex-start; justify-content:space-between; gap:16px;">
-        <div style="flex:1; min-width:0;">
+    <div class="ac-card">
+      <div class="draft-card-inner">
+        <div class="ac-card__body">
           <!-- ステータス + 店舗 -->
-          <div style="display:flex; align-items:center; gap:8px; margin-bottom:8px; flex-wrap:wrap;">
-            <span style="display:inline-block; padding:2px 8px; border-radius:9999px; font-size:0.75rem; font-weight:500;
-              {% if draft.status == 'generated' %}background:#dbeafe; color:#1d4ed8;
-              {% elif draft.status == 'approved' %}background:#dcfce7; color:#15803d;
-              {% elif draft.status == 'scheduled' %}background:#ffedd5; color:#c2410c;
-              {% elif draft.status == 'posted' %}background:#e5e7eb; color:#4b5563;
-              {% elif draft.status == 'rejected' %}background:#fee2e2; color:#b91c1c;
-              {% else %}background:#fef9c3; color:#a16207;{% endif %}">
+          <div class="ac-meta-row">
+            <span class="ac-badge {% if draft.status == 'generated' %}ac-badge--generated{% elif draft.status == 'approved' %}ac-badge--approved{% elif draft.status == 'scheduled' %}ac-badge--scheduled{% elif draft.status == 'posted' %}ac-badge--posted{% elif draft.status == 'rejected' %}ac-badge--rejected{% else %}ac-badge--draft{% endif %}">
               {{ draft.get_status_display }}
             </span>
-            <span style="font-size:0.75rem; color:#6b7280;">{{ draft.store.name }}</span>
+            <span class="ac-text-muted-sm">{{ draft.store.name }}</span>
             {% if draft.target_date %}
-            <span style="font-size:0.75rem; color:#9ca3af;">{{ draft.target_date|date:"Y/m/d" }}</span>
+            <span class="ac-text-quiet-sm">{{ draft.target_date|date:"Y/m/d" }}</span>
             {% endif %}
             {% if draft.quality_score is not None %}
-            <span style="font-size:0.75rem; padding:2px 8px; border-radius:4px;
-              {% if draft.quality_score >= 0.7 %}background:#f0fdf4; color:#16a34a;
-              {% elif draft.quality_score >= 0.4 %}background:#fefce8; color:#ca8a04;
-              {% else %}background:#fef2f2; color:#dc2626;{% endif %}">
+            <span class="ac-quality {% if draft.quality_score >= 0.7 %}ac-quality--high{% elif draft.quality_score >= 0.4 %}ac-quality--medium{% else %}ac-quality--low{% endif %}">
               <i class="fas fa-star"></i> {{ draft.quality_score }}
             </span>
             {% endif %}
           </div>
 
           <!-- プラットフォーム -->
-          <div style="display:flex; gap:4px; margin-bottom:8px;">
+          <div class="ac-platform-row">
             {% for p in draft.platforms %}
-            <span style="font-size:0.75rem; background:#f3f4f6; padding:2px 6px; border-radius:4px;">
+            <span class="ac-platform-tag">
               {% if p == 'x' %}<i class="fab fa-x-twitter"></i>
-              {% elif p == 'instagram' %}<i class="fab fa-instagram" style="color:#e1306c;"></i>
-              {% elif p == 'gbp' %}<i class="fab fa-google" style="color:#4285f4;"></i>
+              {% elif p == 'instagram' %}<i class="fab fa-instagram ac-icon-instagram"></i>
+              {% elif p == 'gbp' %}<i class="fab fa-google ac-icon-google"></i>
               {% endif %} {{ p }}
             </span>
             {% endfor %}
@@ -138,49 +110,47 @@
 
           <!-- 画像プレビュー -->
           {% if draft.image %}
-          <div style="margin-bottom:8px;">
-            <img src="{{ draft.image.url }}" alt="" style="max-height:120px; border-radius:8px; border:1px solid #e5e7eb;">
+          <div class="ac-img-wrap">
+            <img src="{{ draft.image.url }}" alt="" class="ac-img-preview">
           </div>
           {% endif %}
 
           <!-- 投稿内容（表示モード） -->
           <div id="view-{{ draft.pk }}" class="draft-view">
-            <div style="font-size:0.875rem; color:#1f2937; white-space:pre-wrap; line-height:1.6; margin-bottom:8px;">{{ draft.content }}</div>
+            <div class="ac-content-text">{{ draft.content }}</div>
           </div>
 
           <!-- 投稿内容（編集モード） -->
           <div id="edit-{{ draft.pk }}" class="draft-edit" style="display:none;">
             <form method="post" action="{% url 'social_draft_edit' draft.pk %}">
               {% csrf_token %}
-              <textarea name="content" rows="6"
-                style="width:100%; border:1px solid #d1d5db; border-radius:8px; padding:8px; font-size:0.875rem; margin-bottom:8px;"
+              <textarea name="content" rows="6" class="ac-textarea"
                 oninput="updateCharCount(this, {{ draft.pk }})"
               >{{ draft.content }}</textarea>
-              <div id="charcount-{{ draft.pk }}" style="font-size:0.75rem; color:#9ca3af; margin-bottom:8px;"></div>
+              <div id="charcount-{{ draft.pk }}" class="ac-charcount"></div>
 
               <!-- プラットフォーム選択 -->
-              <div style="display:flex; gap:12px; margin-bottom:8px; align-items:center; flex-wrap:wrap;">
-                <span style="font-size:0.75rem; color:#6b7280; font-weight:500;">{% trans "投稿先:" %}</span>
-                <label style="display:flex; align-items:center; gap:4px; font-size:0.75rem; cursor:pointer;">
+              <div class="ac-checkbox-row">
+                <span class="ac-checkbox-heading">{% trans "投稿先:" %}</span>
+                <label class="ac-checkbox">
                   <input type="checkbox" name="platforms" value="x" {% if 'x' in draft.platforms %}checked{% endif %}>
-                  <i class="fab fa-x-twitter"></i> X <span style="color:#9ca3af;">(280)</span>
+                  <i class="fab fa-x-twitter"></i> X <span class="ac-icon-limit">(280)</span>
                 </label>
-                <label style="display:flex; align-items:center; gap:4px; font-size:0.75rem; cursor:pointer;">
+                <label class="ac-checkbox">
                   <input type="checkbox" name="platforms" value="instagram" {% if 'instagram' in draft.platforms %}checked{% endif %}>
-                  <i class="fab fa-instagram" style="color:#e1306c;"></i> Instagram <span style="color:#9ca3af;">(2200)</span>
+                  <i class="fab fa-instagram ac-icon-instagram"></i> Instagram <span class="ac-icon-limit">(2200)</span>
                 </label>
-                <label style="display:flex; align-items:center; gap:4px; font-size:0.75rem; cursor:pointer;">
+                <label class="ac-checkbox">
                   <input type="checkbox" name="platforms" value="gbp" {% if 'gbp' in draft.platforms %}checked{% endif %}>
-                  <i class="fab fa-google" style="color:#4285f4;"></i> GBP <span style="color:#9ca3af;">(1500)</span>
+                  <i class="fab fa-google ac-icon-google"></i> GBP <span class="ac-icon-limit">(1500)</span>
                 </label>
               </div>
 
-              <div style="display:flex; gap:8px;">
-                <button type="submit" style="background:#4f46e5; color:white; padding:6px 12px; border-radius:6px; font-size:0.75rem; border:none; cursor:pointer;">
-                  <i class="fas fa-save" style="margin-right:4px;"></i>{% trans "保存" %}
+              <div class="ac-btn-row">
+                <button type="submit" class="ac-btn ac-btn--primary ac-btn--sm">
+                  <i class="fas fa-save"></i>{% trans "保存" %}
                 </button>
-                <button type="button" onclick="toggleEdit({{ draft.pk }})"
-                  style="background:#e5e7eb; color:#4b5563; padding:6px 12px; border-radius:6px; font-size:0.75rem; border:none; cursor:pointer;">
+                <button type="button" onclick="toggleEdit({{ draft.pk }})" class="ac-btn ac-btn--secondary ac-btn--sm">
                   {% trans "キャンセル" %}
                 </button>
               </div>
@@ -188,13 +158,13 @@
           </div>
 
           {% if draft.quality_feedback %}
-          <details style="font-size:0.75rem; color:#6b7280; margin-top:4px;">
-            <summary style="cursor:pointer;">{% trans "品質フィードバック" %}</summary>
-            <p style="margin-top:4px; white-space:pre-wrap;">{{ draft.quality_feedback }}</p>
+          <details class="ac-feedback">
+            <summary>{% trans "品質フィードバック" %}</summary>
+            <p class="ac-feedback__content">{{ draft.quality_feedback }}</p>
           </details>
           {% endif %}
 
-          <div style="font-size:0.75rem; color:#9ca3af; margin-top:8px;">
+          <div class="ac-timestamps">
             {{ draft.created_at|date:"Y/m/d H:i" }}
             {% if draft.scheduled_at %} | {% trans "予約:" %} {{ draft.scheduled_at|date:"Y/m/d H:i" }}{% endif %}
             {% if draft.posted_at %} | {% trans "投稿:" %} {{ draft.posted_at|date:"Y/m/d H:i" }}{% endif %}
@@ -202,29 +172,28 @@
         </div>
 
         <!-- アクション -->
-        <div class="draft-actions" style="display:flex; flex-direction:column; gap:8px; flex-shrink:0;">
+        <div class="draft-actions">
           {% if draft.status != 'posted' and draft.status != 'rejected' %}
-          <button type="button" onclick="toggleEdit({{ draft.pk }})"
-            style="width:100%; background:#e0e7ff; color:#4338ca; padding:6px 12px; border-radius:6px; font-size:0.75rem; border:none; cursor:pointer;">
-            <i class="fas fa-pen" style="margin-right:4px;"></i>{% trans "編集" %}
+          <button type="button" onclick="toggleEdit({{ draft.pk }})" class="ac-btn ac-btn--edit ac-btn--sm ac-btn--full">
+            <i class="fas fa-pen"></i>{% trans "編集" %}
           </button>
           <form method="post" action="{% url 'social_draft_post' draft.pk %}">
             {% csrf_token %}
-            <button type="submit" style="width:100%; background:#16a34a; color:white; padding:6px 12px; border-radius:6px; font-size:0.75rem; border:none; cursor:pointer;"
+            <button type="submit" class="ac-btn ac-btn--success ac-btn--sm ac-btn--full"
               title="{% trans 'X=API優先/Instagram・GBP=ブラウザ自動判定' %}">
-              <i class="fas fa-paper-plane" style="margin-right:4px;"></i>{% trans "投稿" %}
+              <i class="fas fa-paper-plane"></i>{% trans "投稿" %}
             </button>
           </form>
           <form method="post" action="{% url 'social_draft_regenerate' draft.pk %}">
             {% csrf_token %}
-            <button type="submit" style="width:100%; background:#eab308; color:white; padding:6px 12px; border-radius:6px; font-size:0.75rem; border:none; cursor:pointer;">
-              <i class="fas fa-redo" style="margin-right:4px;"></i>{% trans "再生成" %}
+            <button type="submit" class="ac-btn ac-btn--warning ac-btn--sm ac-btn--full">
+              <i class="fas fa-redo"></i>{% trans "再生成" %}
             </button>
           </form>
 
           <!-- セッション状態表示 -->
           {% if draft.platform_states %}
-          <div style="font-size:0.65rem; color:#6b7280; margin-top:4px; line-height:1.6;">
+          <div class="ac-platform-state">
             {% for ps in draft.platform_states %}
             <div>
               <i class="{{ ps.icon }}"></i>
@@ -242,22 +211,22 @@
 
   <!-- ページネーション -->
   {% if is_paginated %}
-  <div style="display:flex; justify-content:center; margin-top:24px; gap:8px;">
+  <div class="ac-pagination">
     {% if page_obj.has_previous %}
-    <a href="?page={{ page_obj.previous_page_number }}" style="padding:4px 12px; background:#e5e7eb; border-radius:6px; font-size:0.875rem; text-decoration:none; color:#374151;">&laquo; {% trans "前へ" %}</a>
+    <a href="?page={{ page_obj.previous_page_number }}" class="ac-pagination__link">&laquo; {% trans "前へ" %}</a>
     {% endif %}
-    <span style="padding:4px 12px; font-size:0.875rem; color:#6b7280;">{{ page_obj.number }} / {{ page_obj.paginator.num_pages }}</span>
+    <span class="ac-pagination__current">{{ page_obj.number }} / {{ page_obj.paginator.num_pages }}</span>
     {% if page_obj.has_next %}
-    <a href="?page={{ page_obj.next_page_number }}" style="padding:4px 12px; background:#e5e7eb; border-radius:6px; font-size:0.875rem; text-decoration:none; color:#374151;">{% trans "次へ" %} &raquo;</a>
+    <a href="?page={{ page_obj.next_page_number }}" class="ac-pagination__link">{% trans "次へ" %} &raquo;</a>
     {% endif %}
   </div>
   {% endif %}
 
   {% else %}
-  <div style="text-align:center; padding:64px 0; color:#9ca3af;">
-    <i class="fas fa-inbox" style="font-size:2rem; margin-bottom:12px; display:block;"></i>
+  <div class="ac-empty">
+    <i class="fas fa-inbox ac-empty__icon"></i>
     <p>{% trans "下書きがありません" %}</p>
-    <a href="{% url 'social_draft_generate' %}" style="color:#4f46e5; font-size:0.875rem; margin-top:8px; display:inline-block;">
+    <a href="{% url 'social_draft_generate' %}" class="ac-empty__link">
       {% trans "AI下書きを生成する" %}
     </a>
   </div>

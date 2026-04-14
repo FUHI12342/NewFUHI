@@ -8,7 +8,9 @@
    Global Reset & Typography
    ============================== */
 body {
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
+                 'Noto Sans JP', 'Hiragino Kaku Gothic ProN', '游ゴシック', YuGothic,
+                 'Helvetica Neue', Arial, sans-serif;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     background: var(--gray-50, #f9fafb);
@@ -176,7 +178,7 @@ a.button {
     background: var(--brand-primary, #465fff);
 }
 .admin-topbar__item--sales {
-    background: linear-gradient(135deg, #465fff, #6366f1);
+    background: linear-gradient(135deg, var(--brand-primary, #465fff), #6b73ff);
 }
 .admin-topbar__item--sensor {
     background: #12b76a;

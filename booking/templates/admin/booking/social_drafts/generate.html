@@ -6,31 +6,20 @@
 
 {% block extrastyle %}
 {{ block.super }}
-<link rel="stylesheet" href="{% static 'css/tailwind.css' %}">
+<link rel="stylesheet" href="{% static 'css/admin_components.css' %}">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-<style>
-.gen-wrap { max-width: 560px; margin: 32px auto; padding: 0 16px; }
-@media (max-width: 767px) {
-  .gen-wrap { margin-top: 16px; padding: 0 8px; }
-  .gen-wrap .gen-card { padding: 16px; }
-  .gen-actions { flex-direction: column; }
-  .gen-actions a, .gen-actions button { width: 100%; text-align: center; }
-}
-</style>
 {% endblock %}
 
 {% block content %}
 <div class="gen-wrap">
-  <div class="gen-card" style="background:white; border-radius:12px; box-shadow:0 1px 3px rgba(0,0,0,0.1); border:1px solid #e5e7eb; padding:24px;">
-    <h1 style="font-size:1.25rem; font-weight:bold; color:#1f2937; margin-bottom:16px;">
-      <i class="fas fa-magic" style="color:#6366f1; margin-right:8px;"></i>{% trans "AI下書き生成" %}
+  <div class="ac-card ac-card--padded">
+    <h1 class="ac-section-title">
+      <i class="fas fa-magic ac-icon-accent"></i>{% trans "AI下書き生成" %}
     </h1>
 
     {% if messages %}
     {% for message in messages %}
-    <div style="margin-bottom:12px; padding:8px 12px; border-radius:6px; font-size:0.875rem;
-      {% if message.tags == 'error' %}background:#fee2e2; color:#b91c1c;
-      {% else %}background:#dcfce7; color:#15803d;{% endif %}">
+    <div class="ac-alert {% if message.tags == 'error' %}ac-alert--error{% else %}ac-alert--success{% endif %}">
       {{ message }}
     </div>
     {% endfor %}
@@ -39,10 +28,10 @@
     <form method="post" action="{% url 'social_draft_generate' %}">
       {% csrf_token %}
 
-      <div style="display:flex; flex-direction:column; gap:16px;">
+      <div class="ac-form-stack">
         <div>
-          <label style="display:block; font-size:0.875rem; font-weight:500; color:#374151; margin-bottom:4px;">{% trans "店舗" %}</label>
-          <select name="store_id" required style="width:100%; border:1px solid #d1d5db; border-radius:8px; padding:8px 12px; font-size:0.875rem;">
+          <label class="ac-label">{% trans "店舗" %}</label>
+          <select name="store_id" required class="ac-select ac-select--full">
             {% for s in stores %}
             <option value="{{ s.pk }}">{{ s.name }}</option>
             {% endfor %}
@@ -50,34 +39,31 @@
         </div>
 
         <div>
-          <label style="display:block; font-size:0.875rem; font-weight:500; color:#374151; margin-bottom:4px;">{% trans "対象日" %}</label>
-          <input type="date" name="target_date"
-            style="width:100%; border:1px solid #d1d5db; border-radius:8px; padding:8px 12px; font-size:0.875rem;"
-            value="{{ today|date:'Y-m-d' }}">
-          <p style="font-size:0.75rem; color:#9ca3af; margin-top:4px;">{% trans "空の場合は本日が対象になります" %}</p>
+          <label class="ac-label">{% trans "対象日" %}</label>
+          <input type="date" name="target_date" class="ac-input" value="{{ today|date:'Y-m-d' }}">
+          <p class="ac-form-help">{% trans "空の場合は本日が対象になります" %}</p>
         </div>
 
         <div>
-          <label style="display:block; font-size:0.875rem; font-weight:500; color:#374151; margin-bottom:4px;">{% trans "投稿先" %}</label>
-          <div style="display:flex; gap:12px;">
-            <label style="display:flex; align-items:center; gap:4px; font-size:0.875rem; cursor:pointer;">
+          <label class="ac-label">{% trans "投稿先" %}</label>
+          <div class="ac-checkbox-row">
+            <label class="ac-checkbox--base">
               <input type="checkbox" name="platforms" value="x" checked> <i class="fab fa-x-twitter"></i> X
             </label>
-            <label style="display:flex; align-items:center; gap:4px; font-size:0.875rem; cursor:pointer;">
-              <input type="checkbox" name="platforms" value="instagram"> <i class="fab fa-instagram" style="color:#e1306c;"></i> Instagram
+            <label class="ac-checkbox--base">
+              <input type="checkbox" name="platforms" value="instagram"> <i class="fab fa-instagram ac-icon-instagram"></i> Instagram
             </label>
-            <label style="display:flex; align-items:center; gap:4px; font-size:0.875rem; cursor:pointer;">
-              <input type="checkbox" name="platforms" value="gbp"> <i class="fab fa-google" style="color:#4285f4;"></i> GBP
+            <label class="ac-checkbox--base">
+              <input type="checkbox" name="platforms" value="gbp"> <i class="fab fa-google ac-icon-google"></i> GBP
             </label>
           </div>
         </div>
 
-        <div class="gen-actions" style="display:flex; gap:8px; padding-top:8px;">
-          <button type="submit" style="background:#4f46e5; color:white; padding:8px 24px; border-radius:8px; font-size:0.875rem; border:none; cursor:pointer;">
-            <i class="fas fa-magic" style="margin-right:4px;"></i>{% trans "生成する" %}
+        <div class="gen-actions">
+          <button type="submit" class="ac-btn ac-btn--primary ac-btn--lg">
+            <i class="fas fa-magic"></i>{% trans "生成する" %}
           </button>
-          <a href="{% url 'social_draft_list' %}"
-            style="background:#e5e7eb; color:#374151; padding:8px 24px; border-radius:8px; font-size:0.875rem; text-decoration:none; display:inline-block;">
+          <a href="{% url 'social_draft_list' %}" class="ac-btn ac-btn--secondary ac-btn--lg">
             {% trans "キャンセル" %}
           </a>
         </div>
