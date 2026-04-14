@@ -154,16 +154,29 @@ class Schedule(models.Model):
         return f'{self.reservation_number} {start} ~ {end} {self.staff} Customer: {customer_name}'
 
     def save(self, **kwargs):
+        from django.db import IntegrityError
         if not self.cancel_token:
-            self.cancel_token = self._generate_cancel_token()
+            for _ in range(3):
+                self.cancel_token = self._generate_cancel_token()
+                try:
+                    super().save(**kwargs)
+                    return
+                except IntegrityError:
+                    # cancel_token 衝突 — リトライ
+                    self.cancel_token = None
+                    continue
+            raise RuntimeError('cancel_token の保存に失敗しました（衝突リトライ超過）')
         super().save(**kwargs)
 
     @staticmethod
     def _generate_cancel_token():
-        """8文字の英大文字+数字トークンを生成（衝突時はリトライ）。"""
+        """8文字の英大文字+数字トークンを生成（DB unique制約で衝突を防止）。"""
+        from django.db import IntegrityError
         alphabet = string.ascii_uppercase + string.digits
         for _ in range(10):
             token = ''.join(secrets.choice(alphabet) for _ in range(8))
+            # exists() チェックは楽観的ショートカット。
+            # 真の一意性は cancel_token フィールドの unique=True 制約で保証。
             if not Schedule.objects.filter(cancel_token=token).exists():
                 return token
         raise RuntimeError('cancel_token の一意生成に失敗しました')

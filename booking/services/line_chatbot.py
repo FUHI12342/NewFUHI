@@ -49,7 +49,7 @@ def _get_state(customer):
     if state != 'idle' and ts:
         try:
             last_time = datetime.fromisoformat(ts)
-            elapsed = (datetime.now() - last_time).total_seconds()
+            elapsed = (timezone.now() - last_time).total_seconds()
             if elapsed > STATE_TIMEOUT_MINUTES * 60:
                 _set_state(customer, 'idle')
                 return 'idle', {}
@@ -69,7 +69,7 @@ def _set_state(customer, state, data=None):
         **old_tags,
         CHATBOT_STATE_KEY: state,
         CHATBOT_DATA_KEY: data or {},
-        CHATBOT_TIMESTAMP_KEY: datetime.now().isoformat(),
+        CHATBOT_TIMESTAMP_KEY: timezone.now().isoformat(),
     }
     LineCustomer.objects.filter(pk=customer.pk).update(tags=new_tags)
     customer.tags = new_tags

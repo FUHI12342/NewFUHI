@@ -1,6 +1,6 @@
 # 実装済み機能一覧 (FEATURES.md)
 
-最終更新: 2026-04-09
+最終更新: 2026-04-14
 
 ---
 
@@ -465,11 +465,25 @@
 
 ### 13.5 ブラウザ投稿共通基盤
 
+- `browser_session()` コンテキストマネージャ — ブラウザリソースの確実な開放（try/finally）
 - `wait_and_click(page, selectors, timeout)` — 複数セレクタをフォールバック付きで待機・クリック
 - `wait_for_input(page, selectors, timeout)` — 入力フィールドの複数セレクタ待機
 - `create_browser_context_mobile()` — モバイルviewport（Instagram用）
 - 各ステップでデバッグスクリーンショットを自動保存
 - BAN検出: セッション自動無効化（'suspended' キーワード検出）
+- プロファイルディレクトリ権限 0o700、storage_state.json 権限 0o600
+- 条件付き `--no-sandbox`（root実行時のみ）
+- `VALID_PLATFORMS` frozenset によるプラットフォーム入力バリデーション
+
+### 13.8 EC2セッション管理
+
+- `setup_browser_session` 管理コマンド（X11転送GUI対応）
+  - `--check-env`: Playwright環境チェック（パッケージ/Chromium/DISPLAY）
+  - `--list`: 全セッション一覧表示
+  - `--check`: セッション状態確認（ブラウザ起動なし）
+  - `--store N --platform P`: 対話的ブラウザセッション設定
+- デプロイスクリプトに `playwright install chromium --with-deps` 自動実行
+- Celery worker に `browser_posting` キュー追加
 
 ### 13.6 投稿ルーティング
 

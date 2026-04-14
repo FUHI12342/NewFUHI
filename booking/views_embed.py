@@ -1,6 +1,7 @@
 """外部埋め込み（iframe）ビュー — WordPress等からのiframe読み込み用"""
 import datetime
 import hashlib
+import hmac
 import json
 import logging
 import secrets
@@ -42,9 +43,9 @@ class EmbedAuthMixin:
 
         store = get_object_or_404(Store, pk=store_id)
 
-        # API key チェック
+        # API key チェック（定数時間比較でタイミング攻撃を防止）
         api_key = request.GET.get('api_key', '')
-        if not store.embed_api_key or api_key != store.embed_api_key:
+        if not store.embed_api_key or not hmac.compare_digest(api_key, store.embed_api_key):
             return None, HttpResponseForbidden("Invalid or missing API key")
 
         return store, None
@@ -486,8 +487,8 @@ class EmbedEmailVerifyView(EmbedTokenMixin, View):
         otp_input = request.POST.get('otp', '').strip()
         otp_hash_input = hashlib.sha256(otp_input.encode('utf-8')).hexdigest()
 
-        # ハッシュ照合
-        if otp_hash_input != schedule.email_otp_hash:
+        # ハッシュ照合（定数時間比較でタイミング攻撃を防止）
+        if not hmac.compare_digest(otp_hash_input, schedule.email_otp_hash or ''):
             context = {
                 'embed_token': embed_token,
                 'email': schedule.customer_email,

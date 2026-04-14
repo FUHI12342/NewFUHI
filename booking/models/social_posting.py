@@ -178,6 +178,11 @@ class PostHistory(models.Model):
         ordering = ['-created_at']
         verbose_name = _('投稿履歴')
         verbose_name_plural = _('投稿履歴')
+        indexes = [
+            models.Index(fields=['store', 'platform'], name='posthistory_store_platform'),
+            models.Index(fields=['status'], name='posthistory_status'),
+            models.Index(fields=['-created_at'], name='posthistory_created'),
+        ]
 
     def __str__(self):
         return f"{self.store.name} - {self.get_trigger_type_display()} ({self.get_status_display()})"
@@ -296,6 +301,11 @@ class DraftPost(models.Model):
         ordering = ['-created_at']
         verbose_name = _('SNS下書き')
         verbose_name_plural = _('SNS下書き')
+        indexes = [
+            models.Index(fields=['store', 'status'], name='draftpost_store_status'),
+            models.Index(fields=['-created_at'], name='draftpost_created'),
+            models.Index(fields=['target_date'], name='draftpost_target_date'),
+        ]
 
     def __str__(self):
         content = self.content or ''
