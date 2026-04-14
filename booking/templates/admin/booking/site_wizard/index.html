@@ -90,7 +90,7 @@
     </div>
 
     <!-- Progress bar -->
-    <div class="progress-bar">
+    <div class="progress-bar" role="progressbar" aria-valuenow="{{ completed_count }}" aria-valuemin="0" aria-valuemax="{{ total_steps }}" aria-label="{% trans 'セットアップ進捗' %}">
         {% for step in steps %}
         <div class="progress-step {% if step.completed %}completed{% else %}pending{% endif %}">
             {% if step.completed %}✓{% else %}{{ step.number }}{% endif %}

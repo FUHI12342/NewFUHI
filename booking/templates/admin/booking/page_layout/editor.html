@@ -76,7 +76,7 @@
 {% block content %}
 <h1>{{ title }}</h1>
 
-<div id="statusMsg" class="status-msg"></div>
+<div id="statusMsg" class="status-msg" role="status" aria-live="polite"></div>
 
 <div class="layout-editor">
     <div class="sections-list" id="sectionsList">
@@ -115,7 +115,7 @@ function renderSections() {
         var enabled = s.enabled !== false;
 
         div.innerHTML =
-            '<span class="drag-handle">&#9776;</span>' +
+            '<span class="drag-handle" aria-hidden="true">&#9776;</span>' +
             '<div style="flex:1">' +
                 '<div class="section-label">' + label + '</div>' +
                 '<div class="section-labels">' +
@@ -123,7 +123,10 @@ function renderSections() {
                 '</div>' +
             '</div>' +
             '<div class="section-toggle ' + (enabled ? 'active' : '') + '" ' +
-                'onclick="toggleSection(' + i + ')" title="' + (enabled ? '表示中' : '非表示') + '"></div>';
+                'role="switch" aria-checked="' + enabled + '" aria-label="' + label + '" tabindex="0" ' +
+                'onclick="toggleSection(' + i + ')" ' +
+                'onkeydown="if(event.key===\'Enter\'||event.key===\' \'){event.preventDefault();toggleSection(' + i + ')}" ' +
+                'title="' + (enabled ? '表示中' : '非表示') + '"></div>';
 
         list.appendChild(div);
     });

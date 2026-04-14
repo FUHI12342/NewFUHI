@@ -40,13 +40,13 @@
 
         <div>
           <label class="ac-label">{% trans "対象日" %}</label>
-          <input type="date" name="target_date" class="ac-input" value="{{ today|date:'Y-m-d' }}">
-          <p class="ac-form-help">{% trans "空の場合は本日が対象になります" %}</p>
+          <input type="date" name="target_date" class="ac-input" value="{{ today|date:'Y-m-d' }}" aria-describedby="target-date-help">
+          <p class="ac-form-help" id="target-date-help">{% trans "空の場合は本日が対象になります" %}</p>
         </div>
 
         <div>
           <label class="ac-label">{% trans "投稿先" %}</label>
-          <div class="ac-checkbox-row">
+          <div class="ac-checkbox-row" role="group" aria-label="{% trans '投稿先' %}">
             <label class="ac-checkbox--base">
               <input type="checkbox" name="platforms" value="x" checked> <i class="fab fa-x-twitter"></i> X
             </label>

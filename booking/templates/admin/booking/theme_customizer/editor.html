@@ -182,14 +182,14 @@
         <!-- Save Bar -->
         <div class="save-bar">
             <button class="btn-reset" onclick="resetTheme()">{% trans "リセット" %}</button>
-            <span id="statusMsg"></span>
+            <span id="statusMsg" role="status" aria-live="polite"></span>
             <button class="btn-save" onclick="saveTheme()">{% trans "保存" %}</button>
         </div>
     </div>
 
     <!-- Right: Live Preview -->
     <div class="customizer-preview">
-        <iframe id="previewFrame" src="{% url 'admin_theme_preview' store.pk %}?preview=1"></iframe>
+        <iframe id="previewFrame" src="{% url 'admin_theme_preview' store.pk %}?preview=1" title="{% trans 'テーマプレビュー' %}"></iframe>
     </div>
 </div>
 

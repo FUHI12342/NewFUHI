@@ -154,7 +154,7 @@
 <div class="editor-wrapper">
 
 <!-- ===== TOOLBAR ===== -->
-<div class="editor-toolbar">
+<div class="editor-toolbar" role="toolbar" aria-label="{% trans 'エディタツールバー' %}">
     <div class="toolbar-left">
         <div class="page-info">
             <strong>{{ page.title }}</strong>
@@ -185,8 +185,8 @@
     </div>
 
     <div class="toolbar-right">
-        <span id="editorStatus"></span>
-        <span class="autosave-indicator" id="autosaveLabel"></span>
+        <span id="editorStatus" role="status" aria-live="polite"></span>
+        <span class="autosave-indicator" id="autosaveLabel" aria-live="polite"></span>
         <button class="btn-editor" onclick="previewInIframe()" title="{% trans 'プレビュー' %}">👁 {% trans "プレビュー" %}</button>
         <button class="btn-editor btn-save" onclick="savePage()">💾 {% trans "保存" %}</button>
         {% if page.is_published %}
@@ -203,20 +203,20 @@
 </div>
 
 <!-- ===== CODE EDITOR MODAL ===== -->
-<div class="code-modal-overlay" id="codeModal">
+<div class="code-modal-overlay" id="codeModal" role="dialog" aria-modal="true" aria-labelledby="codeModalTitle">
     <div class="code-modal">
         <div class="code-modal-header">
-            <h3>{% trans "コードエディタ" %}</h3>
+            <h3 id="codeModalTitle">{% trans "コードエディタ" %}</h3>
             <button class="btn-editor" onclick="closeCodeEditor()">✕</button>
         </div>
         <div class="code-modal-body">
             <div class="code-pane">
                 <div class="code-pane-label">HTML</div>
-                <textarea id="codeHtml" spellcheck="false"></textarea>
+                <textarea id="codeHtml" spellcheck="false" aria-label="HTML"></textarea>
             </div>
             <div class="code-pane">
                 <div class="code-pane-label">CSS</div>
-                <textarea id="codeCss" spellcheck="false"></textarea>
+                <textarea id="codeCss" spellcheck="false" aria-label="CSS"></textarea>
             </div>
         </div>
         <div class="code-modal-footer">
@@ -227,9 +227,9 @@
 </div>
 
 <!-- ===== SEO MODAL ===== -->
-<div class="seo-modal-overlay" id="seoModal">
+<div class="seo-modal-overlay" id="seoModal" role="dialog" aria-modal="true" aria-labelledby="seoModalTitle">
     <div class="seo-modal">
-        <h3>🔍 {% trans "SEO設定" %}</h3>
+        <h3 id="seoModalTitle">🔍 {% trans "SEO設定" %}</h3>
         <div class="seo-preview" id="seoPreview">
             <div class="title" id="seoPreviewTitle">{{ page.title }}</div>
             <div class="url">{{ request.scheme }}://{{ request.get_host }}/p/{{ store.pk }}/{{ page.slug }}/</div>
@@ -257,9 +257,9 @@
 </div>
 
 <!-- ===== SAVE BLOCK MODAL ===== -->
-<div class="seo-modal-overlay" id="saveBlockModal">
+<div class="seo-modal-overlay" id="saveBlockModal" role="dialog" aria-modal="true" aria-labelledby="saveBlockModalTitle">
     <div class="seo-modal seo-modal--narrow">
-        <h3>📦 {% trans "選択中のコンポーネントをブロックとして保存" %}</h3>
+        <h3 id="saveBlockModalTitle">📦 {% trans "選択中のコンポーネントをブロックとして保存" %}</h3>
         <div class="seo-field">
             <label>{% trans "ブロック名" %}</label>
             <input type="text" id="blockLabel" placeholder="{% trans '例: ヘッダーセクション' %}" maxlength="100">
