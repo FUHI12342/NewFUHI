@@ -80,3 +80,88 @@ def take_screenshot(page, profile_dir, name='post'):
     path = os.path.join(screenshots_dir, f'{name}_{int(time.time())}.png')
     page.screenshot(path=path)
     return path
+
+
+def wait_and_click(page, selectors, timeout=10000, step_name=''):
+    """複数セレクタをフォールバック付きで待機・クリック
+
+    Args:
+        page: Playwright Page
+        selectors: セレクタのリスト（先頭から順に試行）
+        timeout: 待機タイムアウト (ms)
+        step_name: デバッグ用ステップ名
+
+    Returns:
+        True if clicked successfully
+
+    Raises:
+        TimeoutError: 全セレクタがタイムアウトした場合
+    """
+    for selector in selectors:
+        try:
+            locator = page.locator(selector).first
+            locator.wait_for(state='visible', timeout=timeout)
+            locator.click()
+            logger.debug("Clicked '%s' via selector: %s", step_name, selector)
+            _random_delay(0.5, 1.5)
+            return True
+        except Exception:
+            logger.debug("Selector not found for '%s': %s", step_name, selector)
+            continue
+    raise TimeoutError(f"No matching selector found for step '{step_name}': {selectors}")
+
+
+def wait_for_input(page, selectors, timeout=10000, step_name=''):
+    """入力フィールドを複数セレクタから待機・取得
+
+    Args:
+        page: Playwright Page
+        selectors: セレクタのリスト
+        timeout: 待機タイムアウト (ms)
+        step_name: デバッグ用ステップ名
+
+    Returns:
+        見つかった Locator
+
+    Raises:
+        TimeoutError: 全セレクタがタイムアウトした場合
+    """
+    for selector in selectors:
+        try:
+            locator = page.locator(selector).first
+            locator.wait_for(state='visible', timeout=timeout)
+            logger.debug("Found input '%s' via selector: %s", step_name, selector)
+            return locator
+        except Exception:
+            logger.debug("Input selector not found for '%s': %s", step_name, selector)
+            continue
+    raise TimeoutError(f"No matching input found for step '{step_name}': {selectors}")
+
+
+def create_browser_context_mobile(playwright_instance, profile_dir, headless=True):
+    """モバイル viewport でコンテキストを作成（Instagram 用）
+
+    Args:
+        playwright_instance: playwright.sync_api.Playwright
+        profile_dir: プロファイル保存ディレクトリ
+        headless: ヘッドレスモード
+
+    Returns:
+        (browser, context)
+    """
+    browser = playwright_instance.chromium.launch(
+        headless=headless,
+        args=['--disable-gpu', '--no-sandbox', '--disable-dev-shm-usage'],
+    )
+    context = browser.new_context(
+        user_agent=(
+            'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) '
+            'AppleWebKit/605.1.15 (KHTML, like Gecko) '
+            'Version/17.0 Mobile/15E148 Safari/604.1'
+        ),
+        viewport={'width': 390, 'height': 844},
+        is_mobile=True,
+        has_touch=True,
+        storage_state=_get_storage_state(profile_dir),
+    )
+    return browser, context

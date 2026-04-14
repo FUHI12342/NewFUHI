@@ -144,14 +144,17 @@ def _execute_post(account, content, history, store_id):
 
 
 def dispatch_draft_post(draft, platform='x'):
-    """DraftPost を直接 API 投稿し PostHistory を記録する。
+    """DraftPost を直接投稿し PostHistory を記録する。
 
-    dispatch_post() と異なり PostTemplate は不要。
+    X は API 優先。Instagram / GBP はブラウザ投稿にルーティング。
     Returns:
         (success: bool, message: str)
     """
-    from booking.models import PostHistory, SocialAccount
+    if platform in ('instagram', 'gbp'):
+        return _dispatch_browser_post(draft, platform)
 
+    # X: API 投稿
+    from booking.models import PostHistory, SocialAccount
     from booking.services.post_generator import append_booking_url
 
     try:
@@ -187,6 +190,96 @@ def dispatch_draft_post(draft, platform='x'):
     if history.status == 'posted':
         return True, f'投稿完了 (ID: {history.external_post_id})'
     return False, history.error_message or '投稿に失敗しました'
+
+
+def _dispatch_browser_post(draft, platform):
+    """ブラウザ経由で投稿し、PostHistory + BrowserPostLog を記録する。
+
+    Args:
+        draft: DraftPost インスタンス
+        platform: 'instagram' | 'gbp'
+
+    Returns:
+        (success: bool, message: str)
+    """
+    from booking.models import PostHistory
+    from social_browser.models import BrowserSession, BrowserPostLog
+    from social_browser.services.browser_service import get_profile_dir
+
+    # BrowserSession を取得 or 作成
+    session, _ = BrowserSession.objects.get_or_create(
+        store=draft.store, platform=platform,
+        defaults={
+            'profile_dir': get_profile_dir(draft.store_id, platform),
+            'status': 'setup_required',
+        },
+    )
+
+    if session.status == 'setup_required':
+        return False, 'ブラウザセッション未設定（管理者がログインしてください）'
+
+    if session.status == 'expired':
+        return False, 'ブラウザセッション期限切れ（再ログインしてください）'
+
+    # PostHistory 作成 (pending)
+    history = PostHistory.objects.create(
+        store=draft.store,
+        platform=platform,
+        trigger_type='manual',
+        content=draft.content,
+        status='pending',
+    )
+
+    # プラットフォーム別ブラウザ投稿
+    success = False
+    screenshot_path = ''
+    error = ''
+
+    try:
+        if platform == 'instagram':
+            from social_browser.services.instagram_poster import post_to_instagram_browser
+            image_path = draft.image.path if draft.image else None
+            success, screenshot_path, error = post_to_instagram_browser(
+                draft.content, image_path, session.profile_dir, headless=True,
+            )
+        elif platform == 'gbp':
+            from social_browser.services.gbp_poster import post_to_gbp_browser
+            image_path = draft.image.path if draft.image else None
+            success, screenshot_path, error = post_to_gbp_browser(
+                draft.content, session.profile_dir,
+                headless=True, image_path=image_path,
+            )
+    except Exception as exc:
+        error = str(exc)
+        logger.error("Browser post error for %s: %s", platform, exc)
+
+    # BrowserPostLog 記録
+    BrowserPostLog.objects.create(
+        session=session,
+        draft_post=draft,
+        content=draft.content,
+        success=success,
+        error_message=error or '',
+    )
+
+    # PostHistory 更新
+    if success:
+        history.status = 'posted'
+        history.posted_at = timezone.now()
+        history.save(update_fields=['status', 'posted_at'])
+        return True, 'ブラウザ投稿完了'
+
+    history.status = 'failed'
+    history.error_message = error[:1000] if error else 'ブラウザ投稿に失敗'
+    history.retry_count += 1
+    history.save(update_fields=['status', 'error_message', 'retry_count'])
+
+    # BAN検出
+    if error and 'suspended' in error.lower():
+        session.status = 'expired'
+        session.save(update_fields=['status', 'updated_at'])
+
+    return False, error or 'ブラウザ投稿に失敗しました'
 
 
 def retry_failed_post(post_history_id):

@@ -210,17 +210,9 @@
           </button>
           <form method="post" action="{% url 'social_draft_post' draft.pk %}">
             {% csrf_token %}
-            <input type="hidden" name="post_method" value="api">
-            <button type="submit" style="width:100%; background:#16a34a; color:white; padding:6px 12px; border-radius:6px; font-size:0.75rem; border:none; cursor:pointer;">
-              <i class="fas fa-paper-plane" style="margin-right:4px;"></i>{% trans "API投稿" %}
-            </button>
-          </form>
-          <form method="post" action="{% url 'social_draft_post' draft.pk %}">
-            {% csrf_token %}
-            <input type="hidden" name="post_method" value="browser">
-            <button type="submit" style="width:100%; background:#7c3aed; color:white; padding:6px 12px; border-radius:6px; font-size:0.75rem; border:none; cursor:pointer;"
-              title="{% trans 'ブラウザ経由で自動投稿（X/Instagram/GBP対応）' %}">
-              <i class="fas fa-globe" style="margin-right:4px;"></i>{% trans "ブラウザ投稿" %}
+            <button type="submit" style="width:100%; background:#16a34a; color:white; padding:6px 12px; border-radius:6px; font-size:0.75rem; border:none; cursor:pointer;"
+              title="{% trans 'X=API優先/Instagram・GBP=ブラウザ自動判定' %}">
+              <i class="fas fa-paper-plane" style="margin-right:4px;"></i>{% trans "投稿" %}
             </button>
           </form>
           <form method="post" action="{% url 'social_draft_regenerate' draft.pk %}">
@@ -229,6 +221,18 @@
               <i class="fas fa-redo" style="margin-right:4px;"></i>{% trans "再生成" %}
             </button>
           </form>
+
+          <!-- セッション状態表示 -->
+          {% if draft.platform_states %}
+          <div style="font-size:0.65rem; color:#6b7280; margin-top:4px; line-height:1.6;">
+            {% for ps in draft.platform_states %}
+            <div>
+              <i class="{{ ps.icon }}"></i>
+              {{ ps.platform|upper }}: <span style="color:{{ ps.color }};">{{ ps.method }}</span>
+            </div>
+            {% endfor %}
+          </div>
+          {% endif %}
           {% endif %}
         </div>
       </div>

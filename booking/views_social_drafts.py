@@ -56,6 +56,72 @@ class DraftListView(StaffRequiredMixin, ListView):
         ctx['status_choices'] = DraftPost._meta.get_field('status').choices
         ctx['current_status'] = self.request.GET.get('status', '')
         ctx['current_store'] = self.request.GET.get('store', '')
+
+        # 各ドラフトにプラットフォーム別セッション状態をアノテーション
+        try:
+            from social_browser.models import BrowserSession
+            sessions = BrowserSession.objects.all()
+            session_map = {}
+            for s in sessions:
+                session_map[(s.store_id, s.platform)] = {
+                    'status': s.status,
+                    'label': s.get_status_display(),
+                }
+        except Exception:
+            session_map = {}
+
+        from booking.models import SocialAccount
+        x_api_store_ids = set(
+            SocialAccount.objects.filter(
+                platform='x', is_active=True,
+            ).values_list('store_id', flat=True)
+        )
+
+        for draft in ctx['drafts']:
+            platform_states = []
+            for p in (draft.platforms or []):
+                state = {'platform': p}
+                if p == 'x':
+                    if draft.store_id in x_api_store_ids:
+                        state['icon'] = 'fab fa-x-twitter'
+                        state['method'] = 'API'
+                        state['color'] = '#16a34a'
+                    else:
+                        sess = session_map.get((draft.store_id, 'x'))
+                        state['icon'] = 'fab fa-x-twitter'
+                        if sess and sess['status'] == 'active':
+                            state['method'] = 'ブラウザ'
+                            state['color'] = '#7c3aed'
+                        else:
+                            state['method'] = '要設定'
+                            state['color'] = '#9ca3af'
+                elif p == 'instagram':
+                    sess = session_map.get((draft.store_id, 'instagram'))
+                    state['icon'] = 'fab fa-instagram'
+                    if sess and sess['status'] == 'active':
+                        state['method'] = '有効'
+                        state['color'] = '#16a34a'
+                    elif sess and sess['status'] == 'expired':
+                        state['method'] = '期限切れ'
+                        state['color'] = '#dc2626'
+                    else:
+                        state['method'] = '要セットアップ'
+                        state['color'] = '#f59e0b'
+                elif p == 'gbp':
+                    sess = session_map.get((draft.store_id, 'gbp'))
+                    state['icon'] = 'fab fa-google'
+                    if sess and sess['status'] == 'active':
+                        state['method'] = '有効'
+                        state['color'] = '#16a34a'
+                    elif sess and sess['status'] == 'expired':
+                        state['method'] = '期限切れ'
+                        state['color'] = '#dc2626'
+                    else:
+                        state['method'] = '要セットアップ'
+                        state['color'] = '#f59e0b'
+                platform_states.append(state)
+            draft.platform_states = platform_states
+
         return ctx
 
 
@@ -90,7 +156,11 @@ class DraftEditView(StaffRequiredMixin, View):
 
 
 class DraftPostView(StaffRequiredMixin, View):
-    """即時投稿 — プラットフォームごとにAPI/ブラウザを振り分け"""
+    """即時投稿 — プラットフォームごとに自動ルーティング
+
+    X: API投稿（SocialAccount あり）→ フォールバック: ブラウザ
+    Instagram / GBP: ブラウザ投稿のみ（dispatch_draft_post 内で処理）
+    """
 
     def post(self, request, pk):
         draft = get_object_or_404(DraftPost, pk=pk)
@@ -99,17 +169,12 @@ class DraftPostView(StaffRequiredMixin, View):
         if not platforms:
             platforms = draft.platforms or ['x']
 
-        post_method = request.POST.get('post_method', 'api')  # 'api' or 'browser'
         errors = []
         successes = []
 
         for platform in platforms:
             try:
-                if post_method == 'browser':
-                    ok, msg = self._post_via_browser(draft, platform)
-                else:
-                    ok, msg = self._post_via_api(draft, platform)
-
+                ok, msg = self._dispatch(draft, platform)
                 if ok:
                     successes.append(f'{platform}: {msg}')
                 else:
@@ -129,64 +194,75 @@ class DraftPostView(StaffRequiredMixin, View):
 
         return redirect('social_draft_list')
 
-    def _post_via_api(self, draft, platform):
-        """API経由で投稿（X のみ対応）+ PostHistory 自動記録"""
-        if platform != 'x':
-            return False, f'{platform}はAPI投稿に非対応（ブラウザ投稿を使用）'
+    def _dispatch(self, draft, platform):
+        """プラットフォームごとに最適な投稿方法を自動判定
 
+        X: API投稿（SocialAccount あり時）→ フォールバック: ブラウザ
+        Instagram / GBP: ブラウザ投稿（dispatch_draft_post 内で処理）
+        """
         from booking.services.post_dispatcher import dispatch_draft_post
+
+        if platform == 'x':
+            # まず API 投稿を試行
+            from booking.models import SocialAccount
+            has_api = SocialAccount.objects.filter(
+                store=draft.store, platform='x', is_active=True,
+            ).exists()
+            if has_api:
+                ok, msg = dispatch_draft_post(draft, 'x')
+                if ok:
+                    return ok, msg
+                # API 失敗時はブラウザフォールバックを試行
+                logger.info("X API failed, trying browser fallback: %s", msg)
+                return self._post_via_browser_x(draft)
+            # API アカウントなし → ブラウザ
+            return self._post_via_browser_x(draft)
+
+        # Instagram / GBP はブラウザ投稿（PostHistory 記録含む）
         return dispatch_draft_post(draft, platform)
 
-    def _post_via_browser(self, draft, platform):
-        """ブラウザ経由で投稿（全プラットフォーム対応）"""
+    def _post_via_browser_x(self, draft):
+        """X ブラウザフォールバック（PostHistory も記録）"""
+        from booking.models import PostHistory
+
         try:
             from social_browser.models import BrowserSession, BrowserPostLog
             from social_browser.services.browser_service import get_profile_dir
         except ImportError:
             return False, 'social_browser モジュールが利用できません'
 
-        # BrowserSession を取得 or 作成
         session, _ = BrowserSession.objects.get_or_create(
-            store=draft.store, platform=platform,
+            store=draft.store, platform='x',
             defaults={
-                'profile_dir': get_profile_dir(draft.store_id, platform),
+                'profile_dir': get_profile_dir(draft.store_id, 'x'),
                 'status': 'setup_required',
             },
         )
 
-        if session.status == 'setup_required':
-            return False, 'ブラウザセッション未設定（管理者がログインしてください）'
+        if session.status in ('setup_required', 'expired'):
+            return False, f'Xブラウザセッション: {session.get_status_display()}'
 
-        # プラットフォーム別ブラウザ投稿
-        if platform == 'x':
-            from social_browser.services.x_browser_poster import post_to_x_browser
-            success, screenshot, error = post_to_x_browser(
-                draft.content, session.profile_dir, headless=True,
-            )
-        elif platform == 'instagram':
-            from social_browser.services.instagram_poster import post_to_instagram_browser
-            image_path = draft.image.path if draft.image else None
-            success, screenshot, error = post_to_instagram_browser(
-                draft.content, image_path, session.profile_dir, headless=True,
-            )
-        elif platform == 'gbp':
-            from social_browser.services.gbp_poster import post_to_gbp_browser
-            success, screenshot, error = post_to_gbp_browser(
-                draft.content, session.profile_dir, headless=True,
-            )
-        else:
-            return False, f'未対応プラットフォーム: {platform}'
+        from social_browser.services.x_browser_poster import post_to_x_browser
+        success, screenshot, error = post_to_x_browser(
+            draft.content, session.profile_dir, headless=True,
+        )
 
-        # ログ記録
         BrowserPostLog.objects.create(
-            session=session,
-            draft_post=draft,
-            content=draft.content,
-            success=success,
+            session=session, draft_post=draft,
+            content=draft.content, success=success,
             error_message=error or '',
         )
 
+        # PostHistory も記録
+        history = PostHistory.objects.create(
+            store=draft.store, platform='x',
+            trigger_type='manual', content=draft.content,
+            status='posted' if success else 'failed',
+            error_message='' if success else (error or ''),
+        )
         if success:
+            history.posted_at = timezone.now()
+            history.save(update_fields=['posted_at'])
             return True, 'ブラウザ投稿完了'
         return False, error or 'ブラウザ投稿に失敗'
 

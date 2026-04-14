@@ -1,21 +1,62 @@
-"""Google Business Profile ブラウザ自動投稿"""
+"""Google Business Profile ブラウザ自動投稿 — 多言語セレクタ + 画像対応"""
 import logging
+import os
 
 from .browser_service import (
-    create_browser_context, save_storage_state,
-    _random_delay, _human_type, take_screenshot,
+    create_browser_context,
+    save_storage_state,
+    _random_delay,
+    take_screenshot,
+    wait_and_click,
+    wait_for_input,
 )
 
 logger = logging.getLogger(__name__)
 
+# --- 多言語セレクタ（日本語 → 英語 フォールバック） ---
+CREATE_POST_SELECTORS = [
+    'button:has-text("投稿を作成")',
+    'button:has-text("最新情報を追加")',
+    'button:has-text("Create post")',
+    'button:has-text("Add update")',
+    'button:has-text("Add post")',
+    'a:has-text("投稿を作成")',
+    'a:has-text("Create post")',
+]
 
-def post_to_gbp_browser(content, profile_dir, headless=True):
+TEXT_INPUT_SELECTORS = [
+    'textarea[aria-label*="投稿"]',
+    'textarea[aria-label*="post"]',
+    '[contenteditable="true"]',
+    'textarea',
+]
+
+PUBLISH_SELECTORS = [
+    'button:has-text("投稿")',
+    'button:has-text("公開")',
+    'button:has-text("Post")',
+    'button:has-text("Publish")',
+    'button:has-text("送信")',
+    'button:has-text("Submit")',
+]
+
+POST_SUCCESS_TEXTS = [
+    '投稿が公開されました',
+    '投稿が作成されました',
+    'Post published',
+    'Post created',
+    'Your update is live',
+]
+
+
+def post_to_gbp_browser(content, profile_dir, headless=True, image_path=None):
     """GBP にブラウザ経由で投稿
 
     Args:
         content: 投稿テキスト
         profile_dir: ブラウザプロファイルディレクトリ
         headless: ヘッドレスモード
+        image_path: 画像ファイルパス（オプション）
 
     Returns:
         (success: bool, screenshot_path: str, error: str)
@@ -25,52 +66,97 @@ def post_to_gbp_browser(content, profile_dir, headless=True):
     except ImportError:
         return False, '', 'playwright is not installed'
 
+    # 画像バリデーション（オプション）
+    if image_path and not os.path.isfile(image_path):
+        return False, '', f'Image file not found: {image_path}'
+
     screenshot_path = ''
     try:
         with sync_playwright() as p:
             browser, context = create_browser_context(p, profile_dir, headless)
             page = context.new_page()
 
-            # GBP 管理画面へ移動
+            # Step 1: GBP 管理画面へ移動
             page.goto(
                 'https://business.google.com/',
-                wait_until='networkidle', timeout=30000,
+                wait_until='networkidle',
+                timeout=30000,
             )
             _random_delay(2, 4)
 
             # ログインチェック
             if 'accounts.google.com' in page.url:
+                screenshot_path = take_screenshot(page, profile_dir, 'gbp_login_required')
                 browser.close()
-                return False, '', 'Not logged in to Google - session expired'
+                return False, screenshot_path, 'Not logged in to Google - session expired'
 
-            # 「投稿を作成」または「最新情報を追加」ボタンを探す
-            create_post = page.locator('button:has-text("投稿を作成"), button:has-text("最新情報を追加")')
-            if create_post.is_visible():
-                create_post.first.click()
-                _random_delay(1, 2)
-            else:
+            screenshot_path = take_screenshot(page, profile_dir, 'gbp_step1_home')
+
+            # Step 2: 「投稿を作成」ボタン
+            try:
+                wait_and_click(
+                    page, CREATE_POST_SELECTORS,
+                    timeout=15000,
+                    step_name='投稿を作成',
+                )
+            except TimeoutError as e:
+                screenshot_path = take_screenshot(page, profile_dir, 'gbp_step2_no_create')
                 browser.close()
-                return False, '', 'Could not find create post button'
+                return False, screenshot_path, str(e)
+            _random_delay(1, 2)
+            screenshot_path = take_screenshot(page, profile_dir, 'gbp_step2_create_clicked')
 
-            # テキスト入力
-            text_area = page.locator('textarea, [contenteditable="true"]').first
-            if text_area.is_visible():
-                text_area.fill(content)
-                _random_delay(1, 2)
-            else:
+            # Step 3: 画像アップロード（オプション）
+            if image_path:
+                try:
+                    file_input = page.locator('input[type="file"]').first
+                    file_input.wait_for(state='attached', timeout=5000)
+                    file_input.set_input_files(image_path)
+                    _random_delay(2, 3)
+                    screenshot_path = take_screenshot(page, profile_dir, 'gbp_step3_image')
+                except Exception:
+                    logger.warning("GBP image upload skipped - file input not found")
+
+            # Step 4: テキスト入力
+            try:
+                text_el = wait_for_input(
+                    page, TEXT_INPUT_SELECTORS,
+                    timeout=10000,
+                    step_name='テキスト入力',
+                )
+                tag_name = text_el.evaluate('el => el.tagName')
+                if tag_name == 'TEXTAREA':
+                    text_el.fill(content)
+                else:
+                    text_el.click()
+                    page.keyboard.type(content, delay=20)
+            except TimeoutError as e:
+                screenshot_path = take_screenshot(page, profile_dir, 'gbp_step4_no_input')
                 browser.close()
-                return False, '', 'Could not find text input area'
+                return False, screenshot_path, str(e)
+            _random_delay(1, 2)
+            screenshot_path = take_screenshot(page, profile_dir, 'gbp_step4_text_done')
 
-            # 投稿ボタン
-            post_button = page.locator('button:has-text("投稿"), button:has-text("公開")')
-            if post_button.is_visible():
-                post_button.first.click()
-                _random_delay(3, 5)
-            else:
+            # Step 5: 投稿ボタン
+            try:
+                wait_and_click(
+                    page, PUBLISH_SELECTORS,
+                    timeout=10000,
+                    step_name='投稿公開',
+                )
+            except TimeoutError as e:
+                screenshot_path = take_screenshot(page, profile_dir, 'gbp_step5_no_publish')
                 browser.close()
-                return False, '', 'Could not find publish button'
+                return False, screenshot_path, str(e)
 
-            screenshot_path = take_screenshot(page, profile_dir, 'gbp_post')
+            _random_delay(3, 5)
+            screenshot_path = take_screenshot(page, profile_dir, 'gbp_step5_published')
+
+            # Step 6: 成功確認（オプション）
+            success_confirmed = _check_post_success(page)
+            if success_confirmed:
+                logger.info("GBP post success confirmed via UI message")
+
             save_storage_state(context, profile_dir)
             browser.close()
             return True, screenshot_path, ''
@@ -78,3 +164,12 @@ def post_to_gbp_browser(content, profile_dir, headless=True):
     except Exception as e:
         logger.error("GBP browser post failed: %s", e)
         return False, screenshot_path, str(e)
+
+
+def _check_post_success(page):
+    """投稿成功メッセージを画面から検出"""
+    try:
+        body_text = page.inner_text('body', timeout=3000)
+        return any(text in body_text for text in POST_SUCCESS_TEXTS)
+    except Exception:
+        return False

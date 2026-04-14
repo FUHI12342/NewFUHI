@@ -77,6 +77,22 @@ def task_browser_post(self, session_id, draft_post_id, content, platform):
         log.screenshot.name = screenshot_path
         log.save(update_fields=['screenshot'])
 
+    # PostHistory 記録（ブラウザ投稿でも履歴を残す）
+    from booking.models import PostHistory
+    from django.utils import timezone as tz
+
+    history = PostHistory.objects.create(
+        store=session.store,
+        platform=platform,
+        trigger_type='manual',
+        content=content,
+        status='posted' if success else 'failed',
+        error_message='' if success else error,
+    )
+    if success:
+        history.posted_at = tz.now()
+        history.save(update_fields=['posted_at'])
+
     # BAN検出: セッションを無効化
     if not success and 'suspended' in error.lower():
         session.status = 'expired'

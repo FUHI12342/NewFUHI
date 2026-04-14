@@ -463,14 +463,29 @@
 - staff_list ページに og:title, og:description, og:image, twitter:card を設定
 - X投稿のURL からカードプレビューが自動表示
 
-### 13.5 対応プラットフォーム
+### 13.5 ブラウザ投稿共通基盤
 
-| プラットフォーム | API | ステータス |
-|----------------|-----|----------|
-| X (Twitter) | OAuth 2.0 PKCE + v2 API | 本番稼働中 |
-| Instagram | Playwright ブラウザ自動化 | 実装済み（手動ログイン必要） |
+- `wait_and_click(page, selectors, timeout)` — 複数セレクタをフォールバック付きで待機・クリック
+- `wait_for_input(page, selectors, timeout)` — 入力フィールドの複数セレクタ待機
+- `create_browser_context_mobile()` — モバイルviewport（Instagram用）
+- 各ステップでデバッグスクリーンショットを自動保存
+- BAN検出: セッション自動無効化（'suspended' キーワード検出）
+
+### 13.6 投稿ルーティング
+
+- X: API投稿優先 → SocialAccount がない or API失敗時はブラウザフォールバック
+- Instagram / GBP: ブラウザ投稿のみ（dispatch_draft_post 内で自動判定）
+- 管理画面の「投稿」ボタン1つで自動ルーティング
+- 全プラットフォームで PostHistory を記録（API / ブラウザ共通）
+
+### 13.7 対応プラットフォーム
+
+| プラットフォーム | 投稿方式 | ステータス |
+|----------------|---------|----------|
+| X (Twitter) | OAuth 2.0 PKCE + v2 API → ブラウザフォールバック | 本番稼働中 |
+| Instagram | Playwright ブラウザ自動化（多言語セレクタ + 画像必須） | 実装済み（EC2セッション設定待ち） |
+| Google Business Profile | Playwright ブラウザ自動化（多言語セレクタ + 画像オプション） | 実装済み（アカウント作成 + EC2セッション設定待ち） |
 | TikTok | Content Posting API | OAuth実装済み（Developer承認待ち） |
-| Google Business Profile | テンプレート対応 | プロンプト対応のみ |
 
 **主要モデル**: `SocialAccount`, `PostTemplate`, `PostHistory`, `KnowledgeEntry`, `DraftPost`
 
