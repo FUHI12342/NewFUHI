@@ -1,7 +1,10 @@
 """ブラウザ自動投稿 Celery タスク"""
 import logging
+import os
 
 from celery import shared_task
+
+from social_browser.services.browser_service import VALID_PLATFORMS
 
 logger = logging.getLogger(__name__)
 
@@ -12,6 +15,11 @@ def task_browser_post(self, session_id, draft_post_id, content, platform):
 
     queue='browser_posting', pool=solo で実行。
     """
+    # プラットフォームバリデーション
+    if platform not in VALID_PLATFORMS:
+        logger.error("Invalid platform for browser post: %s", platform)
+        return
+
     from social_browser.models import BrowserSession, BrowserPostLog
     from booking.models import DraftPost, SystemConfig
 
@@ -35,7 +43,7 @@ def task_browser_post(self, session_id, draft_post_id, content, platform):
         try:
             draft = DraftPost.objects.get(id=draft_post_id)
         except DraftPost.DoesNotExist:
-            pass
+            logger.warning("DraftPost not found: %s (continuing without reference)", draft_post_id)
 
     success = False
     screenshot_path = ''
@@ -58,8 +66,6 @@ def task_browser_post(self, session_id, draft_post_id, content, platform):
             success, screenshot_path, error = post_to_gbp_browser(
                 content, session.profile_dir,
             )
-        else:
-            error = f"Unknown platform: {platform}"
 
     except Exception as exc:
         error = str(exc)
@@ -74,7 +80,12 @@ def task_browser_post(self, session_id, draft_post_id, content, platform):
         error_message=error,
     )
     if screenshot_path:
-        log.screenshot.name = screenshot_path
+        from django.conf import settings as django_settings
+        media_root = getattr(django_settings, 'MEDIA_ROOT', '')
+        if media_root and screenshot_path.startswith(media_root):
+            log.screenshot.name = os.path.relpath(screenshot_path, media_root)
+        else:
+            log.screenshot.name = screenshot_path
         log.save(update_fields=['screenshot'])
 
     # PostHistory 記録（ブラウザ投稿でも履歴を残す）
@@ -93,11 +104,12 @@ def task_browser_post(self, session_id, draft_post_id, content, platform):
         history.posted_at = tz.now()
         history.save(update_fields=['posted_at'])
 
-    # BAN検出: セッションを無効化
-    if not success and 'suspended' in error.lower():
+    # BAN検出: セッションを無効化し、リトライしない
+    if not success and error and 'suspended' in error.lower():
         session.status = 'expired'
         session.save(update_fields=['status', 'updated_at'])
         logger.critical("Account suspended for session %s, disabling", session_id)
+        return  # suspended時はリトライしない
 
     if not success:
         raise self.retry(exc=Exception(error))

@@ -3,6 +3,7 @@ import logging
 
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.core.exceptions import PermissionDenied
 from django.http import HttpResponseBadRequest
 from django.shortcuts import get_object_or_404, redirect
 from django.utils import timezone
@@ -10,8 +11,33 @@ from django.views import View
 from django.views.generic import ListView
 
 from booking.models import DraftPost, Store
+from social_browser.services.browser_service import VALID_PLATFORMS
 
 logger = logging.getLogger(__name__)
+
+
+def _get_user_store_ids(user):
+    """ユーザーがアクセス可能な店舗IDリストを返す"""
+    if user.is_superuser:
+        return None  # None = 全店舗アクセス可
+    if hasattr(user, 'staff') and user.staff.store_id:
+        return [user.staff.store_id]
+    return []
+
+
+def _get_draft_for_user(pk, user):
+    """ユーザーの権限に基づいてDraftPostを取得（IDOR防止）"""
+    store_ids = _get_user_store_ids(user)
+    if store_ids is None:
+        return get_object_or_404(DraftPost, pk=pk)
+    if not store_ids:
+        raise PermissionDenied
+    return get_object_or_404(DraftPost, pk=pk, store_id__in=store_ids)
+
+
+def _validate_platforms(platforms):
+    """プラットフォームリストをバリデーションし、有効なもののみ返す"""
+    return [p for p in platforms if p in VALID_PLATFORMS]
 
 
 class StaffRequiredMixin(LoginRequiredMixin):
@@ -129,15 +155,15 @@ class DraftEditView(StaffRequiredMixin, View):
     """インライン編集 (POST) — 内容 + プラットフォーム更新"""
 
     def post(self, request, pk):
-        draft = get_object_or_404(DraftPost, pk=pk)
+        draft = _get_draft_for_user(pk, request.user)
         content = request.POST.get('content', '').strip()
         if not content:
             return HttpResponseBadRequest("Content is required")
 
         draft.content = content
 
-        # プラットフォーム更新
-        platforms = request.POST.getlist('platforms')
+        # プラットフォーム更新（バリデーション付き）
+        platforms = _validate_platforms(request.POST.getlist('platforms'))
         if platforms:
             draft.platforms = platforms
 
@@ -163,11 +189,13 @@ class DraftPostView(StaffRequiredMixin, View):
     """
 
     def post(self, request, pk):
-        draft = get_object_or_404(DraftPost, pk=pk)
+        draft = _get_draft_for_user(pk, request.user)
 
-        platforms = request.POST.getlist('platforms')
+        platforms = _validate_platforms(request.POST.getlist('platforms'))
         if not platforms:
-            platforms = draft.platforms or ['x']
+            platforms = _validate_platforms(draft.platforms or ['x'])
+        if not platforms:
+            return HttpResponseBadRequest("有効なプラットフォームを選択してください")
 
         errors = []
         successes = []
@@ -181,15 +209,20 @@ class DraftPostView(StaffRequiredMixin, View):
                     errors.append(f'{platform}: {msg}')
             except Exception as e:
                 logger.error("Draft post failed for %s: %s", platform, e)
-                errors.append(f'{platform}: {e}')
+                errors.append(f'{platform}: 投稿処理中にエラーが発生しました')
 
-        if successes:
+        # 全成功 / 部分成功 / 全失敗 でステータスを分ける
+        if successes and not errors:
             draft.status = 'posted'
             draft.posted_at = timezone.now()
             draft.save(update_fields=['status', 'posted_at', 'updated_at'])
             messages.success(request, '投稿しました: ' + '; '.join(successes))
-
-        if errors:
+        elif successes and errors:
+            draft.posted_at = timezone.now()
+            draft.save(update_fields=['posted_at', 'updated_at'])
+            messages.warning(request, '一部投稿しました: ' + '; '.join(successes))
+            messages.error(request, '投稿失敗: ' + '; '.join(errors))
+        elif errors:
             messages.error(request, '投稿失敗: ' + '; '.join(errors))
 
         return redirect('social_draft_list')
@@ -271,7 +304,7 @@ class DraftScheduleView(StaffRequiredMixin, View):
     """予約投稿 (POST)"""
 
     def post(self, request, pk):
-        draft = get_object_or_404(DraftPost, pk=pk)
+        draft = _get_draft_for_user(pk, request.user)
         scheduled_at = request.POST.get('scheduled_at')
         if not scheduled_at:
             return HttpResponseBadRequest("scheduled_at is required")
@@ -284,7 +317,7 @@ class DraftScheduleView(StaffRequiredMixin, View):
         except (ValueError, TypeError):
             return HttpResponseBadRequest("Invalid datetime format")
 
-        platforms = request.POST.getlist('platforms')
+        platforms = _validate_platforms(request.POST.getlist('platforms'))
         if platforms:
             draft.platforms = platforms
 
@@ -311,7 +344,7 @@ class DraftGenerateView(StaffRequiredMixin, View):
     def post(self, request):
         store_id = request.POST.get('store_id')
         target_date_str = request.POST.get('target_date', '')
-        platforms = request.POST.getlist('platforms') or ['x']
+        platforms = _validate_platforms(request.POST.getlist('platforms')) or ['x']
 
         store = get_object_or_404(Store, pk=store_id)
 
@@ -329,7 +362,7 @@ class DraftGenerateView(StaffRequiredMixin, View):
             evaluate_draft_quality(draft)
             messages.success(request, f'下書きを生成しました (スコア: {draft.quality_score})')
         else:
-            messages.error(request, 'AI下書きの生成に失敗しました。GEMINI_API_KEY を確認してください。')
+            messages.error(request, 'AI下書きの生成に失敗しました。管理者に連絡してください。')
 
         return redirect('social_draft_list')
 
@@ -338,7 +371,7 @@ class DraftRegenerateView(StaffRequiredMixin, View):
     """AI 再生成"""
 
     def post(self, request, pk):
-        draft = get_object_or_404(DraftPost, pk=pk)
+        draft = _get_draft_for_user(pk, request.user)
 
         from booking.services.sns_draft_service import generate_daily_draft
         new_draft = generate_daily_draft(

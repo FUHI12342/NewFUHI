@@ -2,33 +2,55 @@
 import logging
 import os
 import random
+import stat
 import time
+from contextlib import contextmanager
 
 from django.conf import settings
 
 logger = logging.getLogger(__name__)
+
+# プラットフォームバリデーション用
+VALID_PLATFORMS = frozenset({'x', 'instagram', 'gbp', 'tiktok'})
 
 
 def get_profile_dir(store_id, platform):
     """ブラウザプロファイルディレクトリのパスを返す"""
     media_root = getattr(settings, 'MEDIA_ROOT', '/tmp/media')
     path = os.path.join(media_root, 'browser_profiles', str(store_id), platform)
-    os.makedirs(path, exist_ok=True)
+    os.makedirs(path, mode=0o700, exist_ok=True)
     return path
 
 
-def _random_delay(min_sec=1.0, max_sec=3.0):
+def random_delay(min_sec=1.0, max_sec=3.0):
     """ランダム遅延（人間らしい動作）"""
     time.sleep(random.uniform(min_sec, max_sec))
 
 
-def _human_type(page, selector, text, delay_ms=30):
+# 後方互換
+_random_delay = random_delay
+
+
+def human_type(page, selector, text, delay_ms=30):
     """人間らしいタイピング速度で入力"""
     page.click(selector)
-    _random_delay(0.3, 0.8)
+    random_delay(0.3, 0.8)
     for char in text:
-        page.keyboard.type(char, delay=delay_ms + random.randint(-10, 20))
-    _random_delay(0.5, 1.0)
+        page.keyboard.type(char, delay=max(0, delay_ms + random.randint(-10, 20)))
+    random_delay(0.5, 1.0)
+
+
+# 後方互換
+_human_type = human_type
+
+
+def _get_browser_args():
+    """Chromium 起動引数を環境に応じて生成"""
+    args = ['--disable-gpu', '--disable-dev-shm-usage']
+    # root実行時のみsandbox無効化（Docker/CI環境対応）
+    if os.getuid() == 0:
+        args.append('--no-sandbox')
+    return args
 
 
 def create_browser_context(playwright_instance, profile_dir, headless=True):
@@ -44,7 +66,7 @@ def create_browser_context(playwright_instance, profile_dir, headless=True):
     """
     browser = playwright_instance.chromium.launch(
         headless=headless,
-        args=['--disable-gpu', '--no-sandbox', '--disable-dev-shm-usage'],
+        args=_get_browser_args(),
     )
     context = browser.new_context(
         user_agent=(
@@ -70,7 +92,11 @@ def save_storage_state(context, profile_dir):
     """ストレージ状態を保存（Cookie + LocalStorage）"""
     state_file = os.path.join(profile_dir, 'storage_state.json')
     context.storage_state(path=state_file)
-    logger.info("Storage state saved to %s", state_file)
+    # セッションCookieを含むため、オーナーのみ読み書き可能に制限
+    os.chmod(state_file, stat.S_IRUSR | stat.S_IWUSR)
+    logger.info("Storage state saved for %s/%s",
+                os.path.basename(os.path.dirname(profile_dir)),
+                os.path.basename(profile_dir))
 
 
 def take_screenshot(page, profile_dir, name='post'):
@@ -151,7 +177,7 @@ def create_browser_context_mobile(playwright_instance, profile_dir, headless=Tru
     """
     browser = playwright_instance.chromium.launch(
         headless=headless,
-        args=['--disable-gpu', '--no-sandbox', '--disable-dev-shm-usage'],
+        args=_get_browser_args(),
     )
     context = browser.new_context(
         user_agent=(
@@ -165,3 +191,28 @@ def create_browser_context_mobile(playwright_instance, profile_dir, headless=Tru
         storage_state=_get_storage_state(profile_dir),
     )
     return browser, context
+
+
+@contextmanager
+def browser_session(profile_dir, headless=True, mobile=False):
+    """ブラウザセッションのコンテキストマネージャ（リソースリーク防止）
+
+    Usage:
+        with browser_session(profile_dir) as (page, context):
+            page.goto('https://...')
+            # ... 操作 ...
+    """
+    try:
+        from playwright.sync_api import sync_playwright
+    except ImportError:
+        raise RuntimeError('playwright is not installed')
+
+    with sync_playwright() as p:
+        create_fn = create_browser_context_mobile if mobile else create_browser_context
+        browser, context = create_fn(p, profile_dir, headless)
+        try:
+            page = context.new_page()
+            yield page, context
+            save_storage_state(context, profile_dir)
+        finally:
+            browser.close()

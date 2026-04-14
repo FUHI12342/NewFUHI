@@ -3,9 +3,8 @@ import logging
 import os
 
 from .browser_service import (
-    create_browser_context,
-    save_storage_state,
-    _random_delay,
+    browser_session,
+    random_delay,
     take_screenshot,
     wait_and_click,
     wait_for_input,
@@ -60,11 +59,6 @@ def post_to_instagram_browser(content, image_path, profile_dir, headless=True):
     Returns:
         (success: bool, screenshot_path: str, error: str)
     """
-    try:
-        from playwright.sync_api import sync_playwright
-    except ImportError:
-        return False, '', 'playwright is not installed'
-
     # 画像バリデーション
     if not image_path:
         return False, '', 'Image is required for Instagram posts'
@@ -73,22 +67,18 @@ def post_to_instagram_browser(content, image_path, profile_dir, headless=True):
 
     screenshot_path = ''
     try:
-        with sync_playwright() as p:
-            browser, context = create_browser_context(p, profile_dir, headless)
-            page = context.new_page()
-
+        with browser_session(profile_dir, headless) as (page, context):
             # Step 1: Instagram に移動
             page.goto(
                 'https://www.instagram.com/',
                 wait_until='networkidle',
                 timeout=30000,
             )
-            _random_delay(2, 4)
+            random_delay(2, 4)
 
             # ログインチェック
             if 'login' in page.url.lower() or 'accounts/login' in page.url:
                 screenshot_path = take_screenshot(page, profile_dir, 'ig_login_required')
-                browser.close()
                 return False, screenshot_path, 'Not logged in - session expired'
 
             screenshot_path = take_screenshot(page, profile_dir, 'ig_step1_home')
@@ -98,9 +88,8 @@ def post_to_instagram_browser(content, image_path, profile_dir, headless=True):
                 wait_and_click(page, NEW_POST_SELECTORS, timeout=10000, step_name='新規投稿')
             except TimeoutError as e:
                 screenshot_path = take_screenshot(page, profile_dir, 'ig_step2_no_newpost')
-                browser.close()
                 return False, screenshot_path, str(e)
-            _random_delay(1, 2)
+            random_delay(1, 2)
             screenshot_path = take_screenshot(page, profile_dir, 'ig_step2_newpost_clicked')
 
             # Step 3: 画像アップロード
@@ -110,9 +99,8 @@ def post_to_instagram_browser(content, image_path, profile_dir, headless=True):
                 file_input.set_input_files(image_path)
             except Exception as e:
                 screenshot_path = take_screenshot(page, profile_dir, 'ig_step3_upload_fail')
-                browser.close()
                 return False, screenshot_path, f'Image upload failed: {e}'
-            _random_delay(2, 3)
+            random_delay(2, 3)
             screenshot_path = take_screenshot(page, profile_dir, 'ig_step3_uploaded')
 
             # Step 4: 「次へ」ボタン（2回クリック）
@@ -125,7 +113,7 @@ def post_to_instagram_browser(content, image_path, profile_dir, headless=True):
                     )
                 except TimeoutError:
                     logger.warning("Next button not found at step %d, continuing", i + 1)
-                _random_delay(1, 2)
+                random_delay(1, 2)
 
             screenshot_path = take_screenshot(page, profile_dir, 'ig_step4_next_done')
 
@@ -136,7 +124,6 @@ def post_to_instagram_browser(content, image_path, profile_dir, headless=True):
                     timeout=10000,
                     step_name='キャプション',
                 )
-                # contenteditable の場合は fill でなく type
                 tag_name = caption_el.evaluate('el => el.tagName')
                 if tag_name == 'TEXTAREA':
                     caption_el.fill(content)
@@ -145,9 +132,8 @@ def post_to_instagram_browser(content, image_path, profile_dir, headless=True):
                     page.keyboard.type(content, delay=20)
             except TimeoutError as e:
                 screenshot_path = take_screenshot(page, profile_dir, 'ig_step5_no_caption')
-                browser.close()
                 return False, screenshot_path, str(e)
-            _random_delay(1, 2)
+            random_delay(1, 2)
             screenshot_path = take_screenshot(page, profile_dir, 'ig_step5_caption_done')
 
             # Step 6: シェアボタン
@@ -155,16 +141,15 @@ def post_to_instagram_browser(content, image_path, profile_dir, headless=True):
                 wait_and_click(page, SHARE_SELECTORS, timeout=10000, step_name='シェア')
             except TimeoutError as e:
                 screenshot_path = take_screenshot(page, profile_dir, 'ig_step6_no_share')
-                browser.close()
                 return False, screenshot_path, str(e)
 
-            _random_delay(3, 5)
+            random_delay(3, 5)
             screenshot_path = take_screenshot(page, profile_dir, 'ig_step6_shared')
-
-            save_storage_state(context, profile_dir)
-            browser.close()
             return True, screenshot_path, ''
 
+    except RuntimeError as e:
+        # playwright not installed
+        return False, '', str(e)
     except Exception as e:
-        logger.error("Instagram browser post failed: %s", e)
-        return False, screenshot_path, str(e)
+        logger.error("Instagram browser post failed: %s", e, exc_info=True)
+        return False, screenshot_path, 'Instagram投稿に失敗しました。サーバーログを確認してください。'

@@ -3,9 +3,8 @@ import logging
 import os
 
 from .browser_service import (
-    create_browser_context,
-    save_storage_state,
-    _random_delay,
+    browser_session,
+    random_delay,
     take_screenshot,
     wait_and_click,
     wait_for_input,
@@ -61,33 +60,24 @@ def post_to_gbp_browser(content, profile_dir, headless=True, image_path=None):
     Returns:
         (success: bool, screenshot_path: str, error: str)
     """
-    try:
-        from playwright.sync_api import sync_playwright
-    except ImportError:
-        return False, '', 'playwright is not installed'
-
     # 画像バリデーション（オプション）
     if image_path and not os.path.isfile(image_path):
         return False, '', f'Image file not found: {image_path}'
 
     screenshot_path = ''
     try:
-        with sync_playwright() as p:
-            browser, context = create_browser_context(p, profile_dir, headless)
-            page = context.new_page()
-
+        with browser_session(profile_dir, headless) as (page, context):
             # Step 1: GBP 管理画面へ移動
             page.goto(
                 'https://business.google.com/',
                 wait_until='networkidle',
                 timeout=30000,
             )
-            _random_delay(2, 4)
+            random_delay(2, 4)
 
             # ログインチェック
             if 'accounts.google.com' in page.url:
                 screenshot_path = take_screenshot(page, profile_dir, 'gbp_login_required')
-                browser.close()
                 return False, screenshot_path, 'Not logged in to Google - session expired'
 
             screenshot_path = take_screenshot(page, profile_dir, 'gbp_step1_home')
@@ -101,9 +91,8 @@ def post_to_gbp_browser(content, profile_dir, headless=True, image_path=None):
                 )
             except TimeoutError as e:
                 screenshot_path = take_screenshot(page, profile_dir, 'gbp_step2_no_create')
-                browser.close()
                 return False, screenshot_path, str(e)
-            _random_delay(1, 2)
+            random_delay(1, 2)
             screenshot_path = take_screenshot(page, profile_dir, 'gbp_step2_create_clicked')
 
             # Step 3: 画像アップロード（オプション）
@@ -112,7 +101,7 @@ def post_to_gbp_browser(content, profile_dir, headless=True, image_path=None):
                     file_input = page.locator('input[type="file"]').first
                     file_input.wait_for(state='attached', timeout=5000)
                     file_input.set_input_files(image_path)
-                    _random_delay(2, 3)
+                    random_delay(2, 3)
                     screenshot_path = take_screenshot(page, profile_dir, 'gbp_step3_image')
                 except Exception:
                     logger.warning("GBP image upload skipped - file input not found")
@@ -132,9 +121,8 @@ def post_to_gbp_browser(content, profile_dir, headless=True, image_path=None):
                     page.keyboard.type(content, delay=20)
             except TimeoutError as e:
                 screenshot_path = take_screenshot(page, profile_dir, 'gbp_step4_no_input')
-                browser.close()
                 return False, screenshot_path, str(e)
-            _random_delay(1, 2)
+            random_delay(1, 2)
             screenshot_path = take_screenshot(page, profile_dir, 'gbp_step4_text_done')
 
             # Step 5: 投稿ボタン
@@ -146,10 +134,9 @@ def post_to_gbp_browser(content, profile_dir, headless=True, image_path=None):
                 )
             except TimeoutError as e:
                 screenshot_path = take_screenshot(page, profile_dir, 'gbp_step5_no_publish')
-                browser.close()
                 return False, screenshot_path, str(e)
 
-            _random_delay(3, 5)
+            random_delay(3, 5)
             screenshot_path = take_screenshot(page, profile_dir, 'gbp_step5_published')
 
             # Step 6: 成功確認（オプション）
@@ -157,13 +144,13 @@ def post_to_gbp_browser(content, profile_dir, headless=True, image_path=None):
             if success_confirmed:
                 logger.info("GBP post success confirmed via UI message")
 
-            save_storage_state(context, profile_dir)
-            browser.close()
             return True, screenshot_path, ''
 
+    except RuntimeError as e:
+        return False, '', str(e)
     except Exception as e:
-        logger.error("GBP browser post failed: %s", e)
-        return False, screenshot_path, str(e)
+        logger.error("GBP browser post failed: %s", e, exc_info=True)
+        return False, screenshot_path, 'GBP投稿に失敗しました。サーバーログを確認してください。'
 
 
 def _check_post_success(page):

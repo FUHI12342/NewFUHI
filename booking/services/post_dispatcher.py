@@ -1,7 +1,10 @@
 """投稿ディスパッチャー: レート制限チェック + 投稿 + 履歴記録"""
 import json
 import logging
+import os
 
+from django.db import transaction
+from django.db.models import F
 from django.utils import timezone
 
 from booking.services.post_generator import append_booking_url, build_content
@@ -12,6 +15,7 @@ from booking.services.x_posting_service import (
     post_tweet,
 )
 from booking.services.x_rate_limiter import can_post, record_post
+from social_browser.services.browser_service import VALID_PLATFORMS
 
 logger = logging.getLogger(__name__)
 
@@ -119,7 +123,7 @@ def _execute_post(account, content, history, store_id):
     except XApiError as e:
         history.status = 'failed'
         history.error_message = str(e)[:1000]
-        history.retry_count += 1
+        history.retry_count = F('retry_count') + 1
         history.save(update_fields=['status', 'error_message', 'retry_count'])
         logger.error("X API error for store %s: %s", history.store.name, e)
         return
@@ -139,7 +143,7 @@ def _execute_post(account, content, history, store_id):
     else:
         history.status = 'failed'
         history.error_message = result.error_message
-        history.retry_count += 1
+        history.retry_count = F('retry_count') + 1
         history.save(update_fields=['status', 'error_message', 'retry_count'])
 
 
@@ -253,14 +257,22 @@ def _dispatch_browser_post(draft, platform):
         error = str(exc)
         logger.error("Browser post error for %s: %s", platform, exc)
 
-    # BrowserPostLog 記録
-    BrowserPostLog.objects.create(
+    # BrowserPostLog 記録（スクリーンショット含む）
+    log = BrowserPostLog.objects.create(
         session=session,
         draft_post=draft,
         content=draft.content,
         success=success,
         error_message=error or '',
     )
+    if screenshot_path:
+        from django.conf import settings as django_settings
+        media_root = getattr(django_settings, 'MEDIA_ROOT', '')
+        if media_root and screenshot_path.startswith(media_root):
+            log.screenshot.name = os.path.relpath(screenshot_path, media_root)
+        else:
+            log.screenshot.name = screenshot_path
+        log.save(update_fields=['screenshot'])
 
     # PostHistory 更新
     if success:
@@ -271,7 +283,7 @@ def _dispatch_browser_post(draft, platform):
 
     history.status = 'failed'
     history.error_message = error[:1000] if error else 'ブラウザ投稿に失敗'
-    history.retry_count += 1
+    history.retry_count = F('retry_count') + 1
     history.save(update_fields=['status', 'error_message', 'retry_count'])
 
     # BAN検出

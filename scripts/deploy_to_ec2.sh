@@ -156,6 +156,7 @@ $SSH_CMD "cd '$REMOTE_PATH/backups' && ls -1t db_pre_deploy_*.sqlite3 2>/dev/nul
 $SSH_CMD "cd '$REMOTE_PATH' && \
     source .venv/bin/activate && \
     pip install -q -r requirements.txt && \
+    playwright install chromium --with-deps 2>/dev/null || true && \
     python manage.py migrate --noinput && \
     python manage.py compilemessages 2>/dev/null && \
     python manage.py collectstatic --noinput && \

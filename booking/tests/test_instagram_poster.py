@@ -89,30 +89,23 @@ class TestInstagramPosterBrowserFlow(TestCase):
     @patch('os.path.isfile', return_value=True)
     def test_returns_error_when_not_logged_in(self, _mock_isfile):
         """ログインページにリダイレクトされた場合"""
+        from contextlib import contextmanager
         from social_browser.services.instagram_poster import post_to_instagram_browser
 
-        mock_pw = MagicMock()
-        mock_browser = MagicMock()
         mock_context = MagicMock()
         mock_page = MagicMock()
         mock_page.url = 'https://www.instagram.com/accounts/login/'
-        mock_context.new_page.return_value = mock_page
 
-        mock_pw.chromium.launch.return_value = mock_browser
-        mock_browser.new_context.return_value = mock_context
-
-        mock_sync_pw = MagicMock()
-        mock_sync_pw.return_value.__enter__ = MagicMock(return_value=mock_pw)
-        mock_sync_pw.return_value.__exit__ = MagicMock(return_value=False)
+        @contextmanager
+        def mock_browser_session(profile_dir, headless=True):
+            yield mock_page, mock_context
 
         with patch(
-            'social_browser.services.instagram_poster.create_browser_context',
-            return_value=(mock_browser, mock_context),
+            'social_browser.services.instagram_poster.browser_session',
+            mock_browser_session,
         ), patch(
             'social_browser.services.instagram_poster.take_screenshot',
             return_value='/tmp/screenshot.png',
-        ), patch(
-            'playwright.sync_api.sync_playwright', mock_sync_pw,
         ):
             ok, screenshot, error = post_to_instagram_browser(
                 'test content', '/tmp/test.jpg', '/tmp/profile',

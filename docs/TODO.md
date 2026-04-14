@@ -145,9 +145,10 @@
 - [x] 投稿ボタン統合（API/ブラウザ → 1つの「投稿」ボタン）
 - [ ] X API メディアアップロード (OAuth 1.0a)
 - [ ] Instagram Graph API（現在はブラウザ自動化のみ）
-- [ ] Instagram アカウント作成 + EC2セッション設定
-- [ ] GBP アカウント作成 + オーナー確認 + EC2セッション設定
-- [ ] EC2 Playwright 環境確認・インストール
+- [x] EC2 Playwright 環境確認・インストール（deploy script + requirements.txt 対応済み）
+- [x] `setup_browser_session` 管理コマンド実装（セッション設定・確認・環境チェック）
+- [ ] Instagram アカウント作成 + EC2セッション設定（手動作業）
+- [ ] GBP アカウント作成 + オーナー確認 + EC2セッション設定（手動作業）
 - [ ] 投稿のA/Bテスト機能
 - [ ] 投稿パフォーマンス分析（エンゲージメント率追跡）
 

@@ -4,16 +4,28 @@
 
 ---
 
-## 2026-04-14: SNS自動投稿 Phase4 — Instagram + GBP 完全対応
+## 2026-04-14: SNS自動投稿 Phase4 — Instagram + GBP 完全対応 + コード品質改善
 
 ### feat
 - Instagram ブラウザポスター堅牢化: 多言語セレクタフォールバック(日/英), 画像ファイル存在チェック, 各ステップのデバッグスクリーンショット
 - GBP ブラウザポスター堅牢化: 多言語セレクタフォールバック, 画像アップロード対応(オプション), 投稿成功メッセージ検出
-- ブラウザ投稿共通基盤: `wait_and_click()`, `wait_for_input()` ヘルパー関数, モバイルviewportコンテキスト追加
+- ブラウザ投稿共通基盤: `browser_session()` コンテキストマネージャでリソースリーク防止, モバイルviewportコンテキスト追加
 - ブラウザ投稿でも PostHistory を記録する仕組みを追加 (`_dispatch_browser_post()`, `task_browser_post` タスク)
 - 投稿ルーティング自動判定: X=API優先→ブラウザフォールバック, Instagram/GBP=ブラウザ自動
 - 管理画面 list.html: 「API投稿」「ブラウザ投稿」ボタンを「投稿」1つに統合
 - 管理画面: 各ドラフトにプラットフォーム別セッション状態(有効/要セットアップ/期限切れ)を表示
+- `setup_browser_session` 管理コマンド: EC2上でのブラウザセッション設定（X11転送GUI対応）
+- デプロイスクリプトに Playwright ブラウザ自動インストール追加
+- Celery worker に `browser_posting` キュー追加
+
+### security
+- IDOR防止: 全ビューに store レベル認可チェック追加
+- プラットフォーム入力バリデーション (`VALID_PLATFORMS` frozenset)
+- プロファイルディレクトリ権限 0o700, storage_state.json 権限 0o600
+- `--no-sandbox` を root 実行時のみに制限（条件付きサンドボックス）
+- list.html の innerHTML → DOM API (XSS防止), ハードコードURL → {% url %} タグ
+- エラーメッセージからの内部情報漏洩防止（ユーザー向けメッセージに統一）
+- retry_count を F() アトミック更新に変更（レースコンディション防止）
 
 ### test
 - test_instagram_poster.py (7テスト): バリデーション, セレクタ多言語, ブラウザフロー
