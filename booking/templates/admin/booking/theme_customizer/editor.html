@@ -1,5 +1,6 @@
 {% extends "admin/base_site.html" %}
 {% load i18n %}
+{% load safe_filters %}
 
 {% block title %}{{ title }}{% endblock %}
 
@@ -194,7 +195,7 @@
 </div>
 
 <script>
-var PRESETS = {{ presets_json|safe }};
+var PRESETS = {{ presets_json|safe_json }};
 var PRESET_LABELS = {
     'default': 'デフォルト', 'elegant': 'エレガント', 'modern': 'モダン',
     'natural': 'ナチュラル', 'luxury': 'ラグジュアリー', 'pop': 'ポップ',

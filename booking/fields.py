@@ -2,7 +2,7 @@
 import base64
 import hashlib
 
-from cryptography.fernet import Fernet
+from cryptography.fernet import Fernet, InvalidToken
 from django.conf import settings
 from django.db import models
 from django.utils.translation import gettext_lazy as _
@@ -65,13 +65,13 @@ class EncryptedCharField(models.CharField):
         # Try new PBKDF2-derived key first
         try:
             return _get_fernet().decrypt(value.encode('utf-8')).decode('utf-8')
-        except Exception:
+        except InvalidToken:
             pass
         # Fall back to legacy key (pre-migration data)
         try:
             return _get_fernet_legacy().decrypt(
                 value.encode('utf-8'),
             ).decode('utf-8')
-        except Exception:
+        except InvalidToken:
             # If both fail, return raw value (unencrypted or corrupt)
             return value

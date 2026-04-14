@@ -1,6 +1,7 @@
 {% extends "admin/base_site.html" %}
 {% load i18n %}
 {% load static %}
+{% load safe_filters %}
 
 {% block title %}{{ title }}{% endblock %}
 
@@ -373,7 +374,7 @@ if (themeCssVars) {
 }
 
 /* ── Load saved data ── */
-var savedData = {{ grapesjs_data_json|safe }};
+var savedData = {{ grapesjs_data_json|safe_json }};
 if (savedData && savedData.components) {
     editor.setComponents(savedData.components || []);
     editor.setStyle(savedData.styles || []);

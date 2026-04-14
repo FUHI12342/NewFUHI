@@ -11,8 +11,6 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.views import View
 
-import requests as http_requests
-
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -287,37 +285,29 @@ class TableCheckoutView(View):
                 'grand_total': grand_total,
             })
         elif method.method_type == 'coiney':
-            payment_api_url = method.api_endpoint or settings.PAYMENT_API_URL
-            api_key = method.api_key or settings.PAYMENT_API_KEY
-            headers = {
-                'Authorization': 'Bearer ' + api_key,
-                'Content-Type': 'application/json',
-                'Accept': 'application/json',
-                'X-CoineyPayge-Version': '2016-10-25',
-            }
-            _wh_token = f"?token={settings.COINEY_WEBHOOK_TOKEN}" if settings.COINEY_WEBHOOK_TOKEN else ""
-            webhook_url = f"{settings.WEBHOOK_URL_BASE}table_{table_id}/{_wh_token}"
-            data = {
-                "amount": grand_total,
-                "currency": "jpy",
-                "locale": "ja_JP",
-                "cancelUrl": request.build_absolute_uri(
-                    reverse('table:table_checkout', kwargs={'table_id': table_id})
-                ),
-                "webhookUrl": webhook_url,
-                "method": "creditcard",
-                "subject": f"テーブル注文 ({seat.label})",
-                "description": f"テーブル {seat.label} お会計",
-                "metadata": {"table_id": str(table_id), "order_ids": order_ids},
-            }
+            from booking.services.payment_service import CoineyPaymentError, create_payment_link
+
+            cancel_url = request.build_absolute_uri(
+                reverse('table:table_checkout', kwargs={'table_id': table_id})
+            )
+            reservation_number = f"table_{table_id}"
 
             try:
-                response = http_requests.post(payment_api_url, headers=headers, data=json.dumps(data))
-                if response.status_code == 201:
-                    payment_url = response.json().get('links', {}).get('paymentUrl')
-                    if payment_url:
-                        return redirect(payment_url)
-            except Exception as e:
+                payment_url = create_payment_link(
+                    amount=grand_total,
+                    subject=f"テーブル注文 ({seat.label})",
+                    description=f"テーブル {seat.label} お会計",
+                    remarks="",
+                    reservation_number=reservation_number,
+                    webhook_token=getattr(settings, 'COINEY_WEBHOOK_TOKEN', ''),
+                    cancel_url=cancel_url,
+                    metadata={"table_id": str(table_id), "order_ids": order_ids},
+                    api_url=method.api_endpoint or '',
+                    api_key=method.api_key or '',
+                )
+                if payment_url:
+                    return redirect(payment_url)
+            except CoineyPaymentError as e:
                 logger.error("Coiney API error for table order: %s", e)
 
             ctx.update({

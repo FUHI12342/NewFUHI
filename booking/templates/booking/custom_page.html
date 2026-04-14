@@ -1,6 +1,7 @@
 {% extends 'booking/base.html' %}
 {% load i18n %}
 {% load static %}
+{% load safe_filters %}
 
 {% block title %}{{ page.meta_title|default:page.title }} | {{ block.super }}{% endblock %}
 
@@ -9,12 +10,12 @@
 {% if page.og_image_url %}<meta property="og:image" content="{{ page.og_image_url }}">{% endif %}
 {% if page.meta_title %}<meta property="og:title" content="{{ page.meta_title }}">{% endif %}
 {% if page.css_content %}
-<style>{{ page.css_content|safe }}</style>
+<style>{{ page.css_content|safe_html }}</style>
 {% endif %}
 {% endblock %}
 
 {% block content %}
 <div class="custom-page-content">
-    {{ page.html_content|safe }}
+    {{ page.html_content|safe_html }}
 </div>
 {% endblock %}

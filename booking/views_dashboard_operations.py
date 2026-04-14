@@ -10,6 +10,7 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.throttling import AnonRateThrottle
+from rest_framework.permissions import IsAuthenticated
 
 from .models import (
     Store, Schedule, OrderItem, Staff, Product, Order,
@@ -343,6 +344,11 @@ class CustomerFeedbackAPIView(DashboardAuthMixin, APIView):
     """POST: submit feedback (public), GET: list feedbacks (admin)."""
     permission_classes = []
     throttle_classes = [_FeedbackThrottle]
+
+    def get_permissions(self):
+        if self.request.method == 'GET':
+            return [IsAuthenticated()]
+        return []  # POST is public (QR survey)
 
     def post(self, request):
         """Submit customer feedback — no auth required (QR survey)."""

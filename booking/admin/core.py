@@ -343,7 +343,15 @@ class StoreThemeForm(forms.ModelForm):
     """StoreTheme のフォーム。カラーフィールドに type="color" を適用。"""
     class Meta:
         model = StoreTheme
-        fields = '__all__'
+        fields = [
+            'store',
+            'preset',
+            'primary_color', 'secondary_color', 'accent_color',
+            'text_color', 'header_bg_color', 'footer_bg_color',
+            'heading_font', 'body_font',
+            'logo', 'favicon',
+            'custom_css',
+        ]
         widgets = {
             'primary_color': forms.TextInput(attrs={'type': 'color', 'style': 'width:60px;height:30px;padding:2px;'}),
             'secondary_color': forms.TextInput(attrs={'type': 'color', 'style': 'width:60px;height:30px;padding:2px;'}),
@@ -405,7 +413,14 @@ class StoreAdminForm(forms.ModelForm):
 
     class Meta:
         model = Store
-        fields = '__all__'
+        fields = [
+            'name', 'thumbnail', 'address', 'business_hours', 'nearest_station',
+            'regular_holiday', 'description', 'is_recommended',
+            'map_url', 'google_maps_embed', 'access_info',
+            'photo_2', 'photo_3',
+            'timezone', 'default_language',
+            'embed_api_key', 'embed_allowed_domains',
+        ]
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)

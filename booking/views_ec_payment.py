@@ -2,7 +2,6 @@
 import json
 import logging
 
-import requests
 from django.conf import settings
 from django.contrib import messages
 from django.http import JsonResponse
@@ -62,44 +61,30 @@ class ECPaymentView(View):
     @staticmethod
     def _try_coiney_redirect(request, order, coiney_method):
         """Coiney Payge API を呼び出し、決済URLを返す。失敗時は None。"""
+        from booking.services.payment_service import CoineyPaymentError, create_payment_link
+
         items, total = _get_order_items_with_total(order)
-        payment_api_url = coiney_method.api_endpoint or settings.PAYMENT_API_URL
-        api_key = coiney_method.api_key or settings.PAYMENT_API_KEY
-        headers = {
-            'Authorization': 'Bearer ' + api_key,
-            'Content-Type': 'application/json',
-            'Accept': 'application/json',
-            'X-CoineyPayge-Version': '2016-10-25',
-        }
-        _wh_token = f"?token={settings.COINEY_WEBHOOK_TOKEN}" if settings.COINEY_WEBHOOK_TOKEN else ""
-        webhook_url = f"{settings.WEBHOOK_URL_BASE}ec_order_{order.id}/{_wh_token}"
         cancel_url = request.build_absolute_uri(
             reverse('booking:shop_payment', kwargs={'order_id': order.id})
         )
-        data = {
-            "amount": total,
-            "currency": "jpy",
-            "locale": "ja_JP",
-            "cancelUrl": cancel_url,
-            "webhookUrl": webhook_url,
-            "method": "creditcard",
-            "subject": f"ECオーダー #{order.id}",
-            "description": f"EC注文 #{order.id}",
-            "metadata": {"orderId": f"ec_order_{order.id}"},
-        }
+        reservation_number = f"ec_order_{order.id}"
 
         try:
-            response = requests.post(
-                payment_api_url, headers=headers, data=json.dumps(data)
+            return create_payment_link(
+                amount=total,
+                subject=f"ECオーダー #{order.id}",
+                description=f"EC注文 #{order.id}",
+                remarks="",
+                reservation_number=reservation_number,
+                webhook_token=getattr(settings, 'COINEY_WEBHOOK_TOKEN', ''),
+                cancel_url=cancel_url,
+                metadata={"orderId": reservation_number},
+                api_url=coiney_method.api_endpoint or '',
+                api_key=coiney_method.api_key or '',
             )
-            if response.status_code == 201:
-                payment_url = response.json().get('links', {}).get('paymentUrl')
-                if payment_url:
-                    return payment_url
-        except Exception as e:
+        except CoineyPaymentError as e:
             logger.error("Coiney API error for EC order #%s: %s", order.id, e)
-
-        return None
+            return None
 
     def post(self, request, order_id):
         order = get_object_or_404(Order, pk=order_id, channel='ec')

@@ -1,12 +1,10 @@
 """セキュリティ監視ミドルウェア + 言語固定ミドルウェア + メンテナンスミドルウェア + AI保護"""
 import re
-import threading
-import time
 import logging
-from collections import defaultdict
 
 from django.conf import settings
-from django.http import HttpResponse, JsonResponse
+from django.core.cache import cache
+from django.http import HttpResponse, HttpResponseForbidden, JsonResponse
 from django.shortcuts import render
 from django.utils import translation
 
@@ -19,14 +17,17 @@ logger = logging.getLogger(__name__)
 
 class AdminCSPRelaxMiddleware:
     """管理画面パス (/admin/) の CSP を緩和する。
-
-    - nonce を除去し 'unsafe-inline' + 'unsafe-eval' を付与
-    - GrapesJS, Alpine.js, inline event handler が動作可能になる
-    - Observatory は公開ページのみスキャンするためスコアに影響なし
-    - CSPMiddleware の直後に配置すること
+    - 全 /admin/ パスで 'unsafe-inline' を付与（Django admin インラインスタイル/スクリプト用）
+    - GrapesJS エディタパスのみ 'unsafe-eval' を追加付与
     """
-
-    _NONCE_RE = re.compile(r"'nonce-[^']+'\s*")
+    _NONCE_RE = re.compile(r"'nonce-[^']*'\s*")
+    # GrapesJS/エディタ系パス（eval が必要）
+    _EDITOR_PATHS = (
+        '/admin/booking/custompage/',
+        '/admin/booking/pagelayout/',
+        '/admin/booking/storetheme/',
+        '/admin/booking/sitewizard/',
+    )
 
     def __init__(self, get_response):
         self.get_response = get_response
@@ -36,13 +37,20 @@ class AdminCSPRelaxMiddleware:
         if request.path.startswith('/admin/'):
             csp = response.get('Content-Security-Policy', '')
             if csp:
-                # nonce を除去し script-src に unsafe-inline/eval を付与
                 csp = self._NONCE_RE.sub('', csp)
-                csp = re.sub(
-                    r"script-src ",
-                    "script-src 'unsafe-inline' 'unsafe-eval' ",
-                    csp,
-                )
+                needs_eval = any(request.path.startswith(p) for p in self._EDITOR_PATHS)
+                if needs_eval:
+                    csp = re.sub(
+                        r"script-src ",
+                        "script-src 'unsafe-inline' 'unsafe-eval' ",
+                        csp,
+                    )
+                else:
+                    csp = re.sub(
+                        r"script-src ",
+                        "script-src 'unsafe-inline' ",
+                        csp,
+                    )
                 response['Content-Security-Policy'] = csp
         return response
 
@@ -165,7 +173,8 @@ class MaintenanceMiddleware:
         try:
             from booking.models import SiteSettings
             site_settings = SiteSettings.load()
-        except Exception:
+        except Exception as e:
+            logger.warning("MaintenanceMiddleware: SiteSettings unavailable: %s", e)
             return self.get_response(request)
 
         if site_settings.maintenance_mode:
@@ -197,7 +206,8 @@ class ForceLanguageMiddleware:
         try:
             from booking.models import SiteSettings
             site_settings = SiteSettings.load()
-        except Exception:
+        except Exception as e:
+            logger.warning("ForceLanguageMiddleware: SiteSettings unavailable: %s", e)
             return self.get_response(request)
 
         forced_lang = site_settings.forced_language if site_settings else ''
@@ -233,10 +243,6 @@ class SecurityAuditMiddleware:
     - 不審なリクエスト: 同一IPから60秒以内に100リクエスト超
     """
 
-    # インメモリレートカウンター（10,000エントリ上限で自動クリーン）
-    _rate_counter = defaultdict(list)
-    _rate_lock = threading.Lock()
-    _MAX_ENTRIES = 10000
     _RATE_WINDOW = 60  # seconds
     _RATE_THRESHOLD = 100
 
@@ -307,33 +313,25 @@ class SecurityAuditMiddleware:
     def _check_rate_limit(self, request, ip):
         if getattr(settings, 'TESTING', False):
             return None
-        now = time.time()
 
-        with self._rate_lock:
-            # エントリ数上限チェック
-            if len(self._rate_counter) > self._MAX_ENTRIES:
-                self._rate_counter.clear()
+        cache_key = f'security_rate:{ip}'
+        try:
+            count = cache.get(cache_key, 0)
+            if count >= self._RATE_THRESHOLD:
+                logger.warning("Rate limit exceeded: ip=%s count=%d", ip, count)
+                return HttpResponseForbidden('Rate limit exceeded')
 
-            # 古いエントリを削除
-            cutoff = now - self._RATE_WINDOW
-            self._rate_counter[ip] = [t for t in self._rate_counter[ip] if t > cutoff]
-            self._rate_counter[ip].append(now)
-            count = len(self._rate_counter[ip])
+            if count == 0:
+                cache.set(cache_key, 1, timeout=self._RATE_WINDOW)
+            else:
+                try:
+                    cache.incr(cache_key)
+                except ValueError:
+                    cache.set(cache_key, 1, timeout=self._RATE_WINDOW)
+        except Exception as e:
+            logger.warning("Rate limit cache error: %s", e)
+            # Cache failure should not block requests
 
-        if count > self._RATE_THRESHOLD:
-            self._log_event(
-                event_type='suspicious_request',
-                severity='critical',
-                request=request,
-                ip=ip,
-                detail=f'レートリミット超過: {ip} から60秒以内に{count}リクエスト',
-            )
-            retry_after = self._RATE_WINDOW
-            return JsonResponse(
-                {'error': 'Too many requests. Please try again later.'},
-                status=429,
-                headers={'Retry-After': str(retry_after)},
-            )
         return None
 
     def _handle_login_result(self, request, response, ip):
@@ -405,7 +403,7 @@ class SecurityAuditMiddleware:
                         detail[:500],
                         '',
                     )
-                except Exception:
-                    pass
+                except Exception as e:
+                    logger.warning("SecurityAuditMiddleware: notification failed: %s", e)
         except Exception as e:
             logger.error('SecurityLog記録失敗: %s', e)

@@ -1,5 +1,6 @@
 {% extends "admin/base_site.html" %}
 {% load i18n %}
+{% load safe_filters %}
 
 {% block title %}{{ title }}{% endblock %}
 
@@ -100,7 +101,7 @@ var SECTION_LABELS = {
     'ranking': 'ランキング',
 };
 
-var sections = {{ sections_json|safe }};
+var sections = {{ sections_json|safe_json }};
 var originalSections = JSON.parse(JSON.stringify(sections));
 
 function renderSections() {

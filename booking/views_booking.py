@@ -117,6 +117,86 @@ class LineCallbackView(View):
         if code is None:
             return HttpResponse('トークンの取得に失敗しました')
 
+        # LINEトークン交換
+        token_result = self._exchange_line_token(code)
+        if token_result is None:
+            return HttpResponse('トークンの取得に失敗しました。しばらく後でお試しください。')
+        access_token, id_token = token_result
+
+        # 顧客情報の取得または作成
+        customer_result = self._get_or_create_line_customer(access_token, id_token)
+        if customer_result is None:
+            return HttpResponseBadRequest()
+        user_profile, user_id, customer_name, hashed_id, is_friend, line_bot_api = customer_result
+
+        # デバッグ: ?test_line=not_friend|friend でフレンド状態を上書き（staff限定）
+        test_line = request.GET.get('test_line')
+        if test_line in ('not_friend', 'friend'):
+            _is_authorized = (
+                getattr(settings, 'DEBUG', False)
+                or (hasattr(request, 'user') and request.user.is_authenticated and request.user.is_staff)
+            )
+            if _is_authorized:
+                is_friend = (test_line == 'friend')
+                logger.warning("DEBUG: Forcing is_friend=%s for testing (user=%s)",
+                             is_friend, getattr(request.user, 'username', 'anonymous'))
+
+        try:
+            # スケジュール（仮予約）作成
+            schedule = self._create_schedule(request, customer_name, hashed_id, user_id)
+            if isinstance(schedule, HttpResponse):
+                return schedule
+
+            reservation_number = schedule.reservation_number
+
+            site_settings = SiteSettings.load()
+            if not site_settings.free_booking_mode and int(schedule.price) >= 100:
+                # 有料予約: Coiney で決済URL を発行
+                payment_url = self._create_coiney_payment(schedule)
+
+                if is_friend and payment_url is not None:
+                    line_bot_api.push_message(
+                        user_id,
+                        TextSendMessage(
+                            text='こちらのURLから決済を行ってください。決済後に予約が確定します。\n'
+                                 '15分以内にお支払いがない場合、仮予約は自動キャンセルされます。\n'
+                                 + payment_url
+                                 + '\n\n※ キャンセル時の返金は店舗スタッフが対応いたします。'
+                                 + '\n処理にお時間をいただく場合がございます。'
+                        )
+                    )
+                elif not is_friend and payment_url is not None:
+                    # 非友達: Webページで決済URLを表示
+                    return self._render_not_friend_page(
+                        request, schedule, user_profile,
+                        payment_url=payment_url,
+                    )
+                else:
+                    logger.error("Payment URL not obtained for reservation %s", reservation_number)
+            else:
+                # 無料予約（price=0）: 決済不要、直接確定
+                backup_code = self._confirm_free_booking(schedule)
+
+                if is_friend:
+                    # 顧客LINE通知（予約情報 + QR/バックアップコード）
+                    self._send_line_notification(
+                        line_bot_api, user_id, schedule, backup_code,
+                    )
+                else:
+                    # 非友達: Webページで QR/バックアップコード表示
+                    return self._render_not_friend_page(
+                        request, schedule, user_profile,
+                        backup_code=backup_code,
+                    )
+
+        except LineBotApiError as e:
+            logger.error("Failed to send LINE message: %s", e)
+
+        request.session['profile'] = user_profile
+        return render(request, 'booking/line_success.html', {'profile': user_profile})
+
+    def _exchange_line_token(self, code):
+        """LINE OAuth トークン交換。成功時は (access_token, id_token) を返す。失敗時は None。"""
         uri_access_token = "https://api.line.me/oauth2/v2.1/token"
         headers = {"Content-Type": "application/x-www-form-urlencoded"}
         data_params = {
@@ -130,16 +210,25 @@ class LineCallbackView(View):
 
         if response_post.status_code != 200:
             logger.error('LINE token exchange failed: %s %s', response_post.status_code, response_post.text)
-            return HttpResponse('トークンの取得に失敗しました。しばらく後でお試しください。')
+            return None
 
         try:
-            line_id_token = json.loads(response_post.text)["id_token"]
+            response_data = json.loads(response_post.text)
+            id_token = response_data["id_token"]
+            access_token = response_data.get("access_token", "")
         except (json.JSONDecodeError, KeyError) as e:
             logger.error('LINE token response parse error: %s', e)
-            return HttpResponse('トークンの取得に失敗しました。しばらく後でお試しください。')
+            return None
 
+        return access_token, id_token
+
+    def _get_or_create_line_customer(self, access_token, id_token):
+        """JWTデコード、プロフィール取得、顧客情報を返す。
+        成功時は (user_profile, user_id, customer_name, hashed_id, is_friend, line_bot_api)。
+        失敗時は None。
+        """
         user_profile = jwt.decode(
-            line_id_token,
+            id_token,
             get_line_channel_secret(),
             audience=get_line_channel_id(),
             issuer='https://access.line.me',
@@ -163,191 +252,137 @@ class LineCallbackView(View):
                 logger.info("LINE user %s is not a friend, proceeding with web fallback", user_id[:8])
             else:
                 logger.error("LINE get_profile failed: %s", e)
-                return HttpResponseBadRequest()
+                return None
 
-        # デバッグ: ?test_line=not_friend|friend でフレンド状態を上書き（staff限定）
-        test_line = request.GET.get('test_line')
-        if test_line in ('not_friend', 'friend'):
-            _is_authorized = (
-                getattr(settings, 'DEBUG', False)
-                or (hasattr(request, 'user') and request.user.is_authenticated and request.user.is_staff)
-            )
-            if _is_authorized:
-                is_friend = (test_line == 'friend')
-                logger.warning("DEBUG: Forcing is_friend=%s for testing (user=%s)",
-                             is_friend, getattr(request.user, 'username', 'anonymous'))
+        return user_profile, user_id, customer_name, hashed_id, is_friend, line_bot_api
+
+    def _create_schedule(self, request, customer_name, hashed_id, user_id):
+        """セッションの仮予約データから Schedule を作成・保存する。
+        成功時は Schedule インスタンス、仮予約情報がない場合は HttpResponse を返す。
+        """
+        from datetime import datetime as dt
+
+        temporary_booking = request.session.get('temporary_booking')
+        if temporary_booking is None:
+            return HttpResponse('仮予約情報がありません')
+
+        _start = dt.fromisoformat(temporary_booking['start'])
+        _end = dt.fromisoformat(temporary_booking['end'])
+        schedule = Schedule(
+            reservation_number=temporary_booking['reservation_number'],
+            start=_start if timezone.is_aware(_start) else timezone.make_aware(_start),
+            end=_end if timezone.is_aware(_end) else timezone.make_aware(_end),
+            price=temporary_booking['price'],
+            customer_name=customer_name,
+            hashed_id=hashed_id,
+            staff_id=temporary_booking['staff_id'],
+            store_id=temporary_booking.get('store_id'),
+            is_temporary=True,
+            temporary_booked_at=timezone.now(),
+        )
+        schedule.save()
+
+        # 生のLINE user_idは保存しない（暗号化+ハッシュで保存）
+        try:
+            schedule.set_line_user_id(user_id)
+            schedule.save(update_fields=["line_user_hash", "line_user_enc"])
+        except Exception as e:
+            logger.warning("Failed to store encrypted LINE user id: %s", e)
+
+        del request.session['temporary_booking']
+        return schedule
+
+    def _create_coiney_payment(self, schedule):
+        """Coiney API を呼び出して決済URLを取得する。成功時は payment_url (str)、失敗時は None。"""
+        from datetime import timedelta as td
+        from booking.services.payment_service import CoineyPaymentError, create_payment_link
+
+        now = timezone.now()
+        expired_on_str = (now + td(days=1)).strftime('%Y-%m-%d')
+        reservation_number = schedule.reservation_number
 
         try:
-            from datetime import datetime as dt, timedelta as td
-            now = timezone.now()
-            expired_on = now + td(days=1)
-            expired_on_str = expired_on.strftime('%Y-%m-%d')
-
-            temporary_booking = request.session.get('temporary_booking')
-            if temporary_booking is None:
-                return HttpResponse('仮予約情報がありません')
-
-            _start = dt.fromisoformat(temporary_booking['start'])
-            _end = dt.fromisoformat(temporary_booking['end'])
-            schedule = Schedule(
-                reservation_number=temporary_booking['reservation_number'],
-                start=_start if timezone.is_aware(_start) else timezone.make_aware(_start),
-                end=_end if timezone.is_aware(_end) else timezone.make_aware(_end),
-                price=temporary_booking['price'],
-                customer_name=customer_name,
-                hashed_id=hashed_id,
-                staff_id=temporary_booking['staff_id'],
-                store_id=temporary_booking.get('store_id'),
-                is_temporary=True,
-                temporary_booked_at=timezone.now(),
+            return create_payment_link(
+                amount=int(schedule.price),
+                subject="ご予約料金",
+                description="ウェブサイトからの支払い",
+                remarks="仮予約から15分を過ぎますと自動的にキャンセルとなります。あらかじめご了承ください。",
+                reservation_number=str(reservation_number),
+                webhook_token=getattr(settings, 'COINEY_WEBHOOK_TOKEN', ''),
+                expired_on=expired_on_str,
+                metadata={"orderId": reservation_number},
             )
-            schedule.save()
+        except CoineyPaymentError as e:
+            logger.error("Coiney決済URL取得失敗(LINE): %s", e)
+            return None
 
-            # 生のLINE user_idは保存しない（暗号化+ハッシュで保存）
-            try:
-                schedule.set_line_user_id(user_id)
-                schedule.save(update_fields=["line_user_hash", "line_user_enc"])
-            except Exception as e:
-                logger.warning("Failed to store encrypted LINE user id: %s", e)
+    def _confirm_free_booking(self, schedule):
+        """無料予約を確定し、QR/バックアップコード生成とスタッフ通知を行う。backup_code を返す。"""
+        schedule.is_temporary = False
+        schedule.save(update_fields=['is_temporary'])
 
-            del request.session['temporary_booking']
+        from booking.services.checkin_token import (
+            generate_backup_code as _gen_backup,
+            generate_signed_checkin_qr as _gen_qr,
+        )
+        backup_code = None
+        try:
+            staff_obj = Staff.objects.select_related('store').get(pk=schedule.staff_id)
+            qr_file = _gen_qr(str(schedule.reservation_number), schedule.end)
+            schedule.checkin_qr.save(qr_file.name, qr_file, save=True)
+            backup_code = _gen_backup(staff_obj.store, schedule.start.date())
+            Schedule.objects.filter(pk=schedule.pk).update(
+                checkin_backup_code=backup_code,
+            )
+        except Exception as e:
+            logger.warning('無料予約QR/バックアップコード生成エラー: %s', e)
 
-            reservation_number = schedule.reservation_number
+        from booking.services.staff_notifications import notify_booking_to_staff
+        notify_booking_to_staff(schedule)
 
-            site_settings = SiteSettings.load()
-            if not site_settings.free_booking_mode and int(schedule.price) >= 100:
-                # 有料予約: Coiney で決済URL を発行
-                payment_api_url = settings.PAYMENT_API_URL
-                pay_headers = {
-                    'Authorization': 'Bearer ' + settings.PAYMENT_API_KEY,
-                    'Content-Type': 'application/json',
-                    'Accept': 'application/json',
-                    'X-CoineyPayge-Version': '2016-10-25',
-                }
-                _wh_token = f"?token={settings.COINEY_WEBHOOK_TOKEN}" if settings.COINEY_WEBHOOK_TOKEN else ""
-                webhook_url = f"{settings.WEBHOOK_URL_BASE}{reservation_number}/{_wh_token}"
+        return backup_code
 
-                data = {
-                    "amount": int(schedule.price),
-                    "currency": "jpy",
-                    "locale": "ja_JP",
-                    "cancelUrl": settings.CANCEL_URL,
-                    "webhookUrl": webhook_url,
-                    "method": "creditcard",
-                    "subject": "ご予約料金",
-                    "description": "ウェブサイトからの支払い",
-                    "remarks": "仮予約から15分を過ぎますと自動的にキャンセルとなります。あらかじめご了承ください。",
-                    "metadata": {"orderId": reservation_number},
-                    "expiredOn": expired_on_str
-                }
-
-                response = requests.post(payment_api_url, headers=pay_headers, data=json.dumps(data))
-                payment_url = None
-                if response.status_code == 201:
-                    try:
-                        payment_url = response.json()['links']['paymentUrl']
-                    except (ValueError, KeyError) as e:
-                        logger.error("Coiny response JSON parse error: %s, body=%s", e, response.text)
-                else:
-                    logger.error("Coiny API failed: status=%s, body=%s", response.status_code, response.text)
-
-                if is_friend and payment_url is not None:
-                    line_bot_api.push_message(
-                        user_id,
-                        TextSendMessage(
-                            text='こちらのURLから決済を行ってください。決済後に予約が確定します。\n'
-                                 '15分以内にお支払いがない場合、仮予約は自動キャンセルされます。\n'
-                                 + payment_url
-                                 + '\n\n※ キャンセル時の返金は店舗スタッフが対応いたします。'
-                                 + '\n処理にお時間をいただく場合がございます。'
-                        )
-                    )
-                elif not is_friend and payment_url is not None:
-                    # 非友達: Webページで決済URLを表示
-                    return self._render_not_friend_page(
-                        request, schedule, user_profile,
-                        payment_url=payment_url,
-                    )
-                else:
-                    logger.error("Payment URL not obtained for reservation %s", reservation_number)
-            else:
-                # 無料予約（price=0）: 決済不要、直接確定
-                schedule.is_temporary = False
-                schedule.save(update_fields=['is_temporary'])
-
-                # 署名付きQR + バックアップコード生成
-                from booking.services.checkin_token import (
-                    generate_backup_code as _gen_backup,
-                    generate_signed_checkin_qr as _gen_qr,
-                )
-                backup_code = None
-                try:
-                    staff_obj = Staff.objects.select_related('store').get(pk=schedule.staff_id)
-                    qr_file = _gen_qr(str(schedule.reservation_number), schedule.end)
-                    schedule.checkin_qr.save(qr_file.name, qr_file, save=True)
-                    backup_code = _gen_backup(staff_obj.store, schedule.start.date())
-                    Schedule.objects.filter(pk=schedule.pk).update(
-                        checkin_backup_code=backup_code,
-                    )
-                except Exception as e:
-                    logger.warning('無料予約QR/バックアップコード生成エラー: %s', e)
-
-                # キャスト（スタッフ）通知
-                from booking.services.staff_notifications import notify_booking_to_staff
-                notify_booking_to_staff(schedule)
-
-                if is_friend:
-                    # 顧客LINE通知（予約情報 + QR/バックアップコード）
-                    local_tz = pytz.timezone('Asia/Tokyo')
-                    local_start = schedule.start.astimezone(local_tz)
-                    local_end = schedule.end.astimezone(local_tz)
-                    qr_page_url = (
-                        f'{settings.SITE_BASE_URL}/reservation/'
-                        f'{reservation_number}/qr/'
-                    )
-                    cancel_page_url = (
-                        f'{settings.SITE_BASE_URL}/cancel/{reservation_number}/'
-                    )
-                    staff_obj = Staff.objects.select_related('store').get(pk=schedule.staff_id)
-                    store = staff_obj.store
-                    access_lines = _build_access_lines(store)
-                    checkin_line = ''
-                    if backup_code:
-                        checkin_line = (
-                            f'\n\n■ チェックイン'
-                            f'\nQRコード: {qr_page_url}'
-                            f'\n口頭確認コード: {backup_code}'
-                            f'\n（QRが読み取れない場合、スタッフにこの6桁コードをお伝えください）'
-                        )
-                    duration_min = int((schedule.end - schedule.start).total_seconds() // 60)
-                    line_bot_api.push_message(
-                        user_id,
-                        TextSendMessage(
-                            text=f'【予約確定】ご予約が確定しました。'
-                                 f'\n\n■ 予約情報'
-                                 f'\n予約番号: {reservation_number}'
-                                 f'\n日時: {local_start.strftime("%Y年%m月%d日 %H:%M")}〜{local_end.strftime("%H:%M")}（{duration_min}分）'
-                                 f'\n担当: {staff_obj.name}'
-                                 + checkin_line
-                                 + access_lines
-                                 + f'\n\n■ キャンセル'
-                                 + f'\nキャンセル番号: {schedule.cancel_token}'
-                                 + f'\n{cancel_page_url}'
-                                 + f'\n（上記URLでキャンセル番号を入力してください）'
-                        )
-                    )
-                else:
-                    # 非友達: Webページで QR/バックアップコード表示
-                    return self._render_not_friend_page(
-                        request, schedule, user_profile,
-                        backup_code=backup_code,
-                    )
-
-        except LineBotApiError as e:
-            logger.error("Failed to send LINE message: %s", e)
-
-        request.session['profile'] = user_profile
-        return render(request, 'booking/line_success.html', {'profile': user_profile})
+    def _send_line_notification(self, line_bot_api, user_id, schedule, backup_code):
+        """友達ユーザーに予約確定LINEメッセージを送信する。"""
+        local_tz = pytz.timezone('Asia/Tokyo')
+        local_start = schedule.start.astimezone(local_tz)
+        local_end = schedule.end.astimezone(local_tz)
+        reservation_number = schedule.reservation_number
+        qr_page_url = (
+            f'{settings.SITE_BASE_URL}/reservation/'
+            f'{reservation_number}/qr/'
+        )
+        cancel_page_url = (
+            f'{settings.SITE_BASE_URL}/cancel/{reservation_number}/'
+        )
+        staff_obj = Staff.objects.select_related('store').get(pk=schedule.staff_id)
+        store = staff_obj.store
+        access_lines = _build_access_lines(store)
+        checkin_line = ''
+        if backup_code:
+            checkin_line = (
+                f'\n\n■ チェックイン'
+                f'\nQRコード: {qr_page_url}'
+                f'\n口頭確認コード: {backup_code}'
+                f'\n（QRが読み取れない場合、スタッフにこの6桁コードをお伝えください）'
+            )
+        duration_min = int((schedule.end - schedule.start).total_seconds() // 60)
+        line_bot_api.push_message(
+            user_id,
+            TextSendMessage(
+                text=f'【予約確定】ご予約が確定しました。'
+                     f'\n\n■ 予約情報'
+                     f'\n予約番号: {reservation_number}'
+                     f'\n日時: {local_start.strftime("%Y年%m月%d日 %H:%M")}〜{local_end.strftime("%H:%M")}（{duration_min}分）'
+                     f'\n担当: {staff_obj.name}'
+                     + checkin_line
+                     + access_lines
+                     + f'\n\n■ キャンセル'
+                     + f'\nキャンセル番号: {schedule.cancel_token}'
+                     + f'\n{cancel_page_url}'
+                     + f'\n（上記URLでキャンセル番号を入力してください）'
+            )
+        )
 
     @staticmethod
     def _render_not_friend_page(request, schedule, user_profile, payment_url=None, backup_code=None):
@@ -582,41 +617,25 @@ class EmailVerifyView(View):
 
         # 有料予約: Coiney決済URL取得
         from datetime import timedelta as td
+        from booking.services.payment_service import CoineyPaymentError, create_payment_link
+
         now = timezone.now()
-        expired_on = now + td(days=1)
-        expired_on_str = expired_on.strftime('%Y-%m-%d')
-
-        payment_api_url = settings.PAYMENT_API_URL
-        pay_headers = {
-            'Authorization': 'Bearer ' + settings.PAYMENT_API_KEY,
-            'Content-Type': 'application/json',
-            'Accept': 'application/json',
-            'X-CoineyPayge-Version': '2016-10-25',
-        }
+        expired_on_str = (now + td(days=1)).strftime('%Y-%m-%d')
         reservation_number = schedule.reservation_number
-        _wh_token = f"?token={settings.COINEY_WEBHOOK_TOKEN}" if settings.COINEY_WEBHOOK_TOKEN else ""
-        webhook_url = f"{settings.WEBHOOK_URL_BASE}{reservation_number}/{_wh_token}"
-
-        data = {
-            "amount": int(schedule.price),
-            "currency": "jpy",
-            "locale": "ja_JP",
-            "cancelUrl": settings.CANCEL_URL,
-            "webhookUrl": webhook_url,
-            "method": "creditcard",
-            "subject": "ご予約料金",
-            "description": "ウェブサイトからの支払い",
-            "remarks": "仮予約から15分を過ぎますと自動的にキャンセルとなります。あらかじめご了承ください。",
-            "metadata": {"orderId": str(reservation_number)},
-            "expiredOn": expired_on_str,
-        }
 
         payment_url = None
         try:
-            response = requests.post(payment_api_url, headers=pay_headers, data=json.dumps(data))
-            if response.status_code == 201:
-                payment_url = response.json()['links']['paymentUrl']
-        except Exception as e:
+            payment_url = create_payment_link(
+                amount=int(schedule.price),
+                subject="ご予約料金",
+                description="ウェブサイトからの支払い",
+                remarks="仮予約から15分を過ぎますと自動的にキャンセルとなります。あらかじめご了承ください。",
+                reservation_number=str(reservation_number),
+                webhook_token=getattr(settings, 'COINEY_WEBHOOK_TOKEN', ''),
+                expired_on=expired_on_str,
+                metadata={"orderId": str(reservation_number)},
+            )
+        except CoineyPaymentError as e:
             logger.error('決済URL取得失敗: %s', e)
 
         if payment_url:

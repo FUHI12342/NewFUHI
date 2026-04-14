@@ -7,6 +7,7 @@ import logging
 import secrets
 
 from django.conf import settings
+from django.core.cache import cache
 from django.core.exceptions import ValidationError
 from django.core.mail import send_mail
 from django.core.validators import validate_email
@@ -21,7 +22,6 @@ from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
 
 import pytz
-import requests
 
 from booking.models import SiteSettings, Store, Staff
 from booking.models.schedule import Schedule
@@ -29,6 +29,37 @@ from booking.models.shifts import ShiftAssignment, ShiftPeriod, ShiftPublishHist
 from booking.views import get_time_slots
 
 logger = logging.getLogger(__name__)
+
+# OTP検証ブルートフォース対策: IPアドレスごとに5回/分まで
+_OTP_RATE_LIMIT = 5
+_OTP_RATE_WINDOW = 60  # seconds
+
+
+def _check_otp_rate_limit(ip: str) -> bool:
+    """IPアドレスに対してOTP検証レート制限を確認・記録する。
+
+    Returns:
+        True: リクエストを許可（制限内）
+        False: リクエストを拒否（制限超過）
+    """
+    cache_key = f"embed_otp_attempts:{ip}"
+    attempts = cache.get(cache_key, 0)
+    if attempts >= _OTP_RATE_LIMIT:
+        return False
+    # TTLが残っていればincr、なければ新規セット（expire付き）
+    if attempts == 0:
+        cache.set(cache_key, 1, timeout=_OTP_RATE_WINDOW)
+    else:
+        cache.incr(cache_key)
+    return True
+
+
+def _get_client_ip(request) -> str:
+    """リバースプロキシ経由も考慮してクライアントIPを取得する。"""
+    x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR', '')
+    if x_forwarded_for:
+        return x_forwarded_for.split(',')[0].strip()
+    return request.META.get('REMOTE_ADDR', '')
 
 
 class EmbedAuthMixin:
@@ -484,6 +515,17 @@ class EmbedEmailVerifyView(EmbedTokenMixin, View):
                 request, 'booking/embed/expired.html', status=410)
 
         api_key = request.GET.get('api_key', '')
+
+        # ブルートフォース対策: IPアドレスごとに5回/分まで
+        client_ip = _get_client_ip(request)
+        if not _check_otp_rate_limit(client_ip):
+            logger.warning('OTP認証レート制限超過: IP=%s token=%s', client_ip, embed_token)
+            return HttpResponse(
+                '認証の試行回数が多すぎます。しばらく時間をおいてから再度お試しください。',
+                status=429,
+                content_type='text/plain; charset=utf-8',
+            )
+
         otp_input = request.POST.get('otp', '').strip()
         otp_hash_input = hashlib.sha256(otp_input.encode('utf-8')).hexdigest()
 
@@ -607,46 +649,23 @@ class EmbedLineRedirectView(EmbedTokenMixin, View):
 
 def _create_coiney_payment(schedule):
     """Coiney決済URLを生成。失敗時はNone。"""
-    payment_api_url = getattr(settings, 'PAYMENT_API_URL', '')
-    payment_api_key = getattr(settings, 'PAYMENT_API_KEY', '')
-    if not payment_api_url or not payment_api_key:
-        return None
+    from booking.services.payment_service import CoineyPaymentError, create_payment_link
 
     now = timezone.now()
     expired_on = (now + datetime.timedelta(days=1)).strftime('%Y-%m-%d')
-
     reservation_number = schedule.reservation_number
-    webhook_token = getattr(settings, 'COINEY_WEBHOOK_TOKEN', '')
-    _wh_token = f"?token={webhook_token}" if webhook_token else ""
-    webhook_url_base = getattr(settings, 'WEBHOOK_URL_BASE', '')
-    webhook_url = f"{webhook_url_base}{reservation_number}/{_wh_token}"
-
-    headers = {
-        'Authorization': f'Bearer {payment_api_key}',
-        'Content-Type': 'application/json',
-        'Accept': 'application/json',
-        'X-CoineyPayge-Version': '2016-10-25',
-    }
-    data = {
-        "amount": int(schedule.price),
-        "currency": "jpy",
-        "locale": "ja_JP",
-        "cancelUrl": getattr(settings, 'CANCEL_URL', ''),
-        "webhookUrl": webhook_url,
-        "method": "creditcard",
-        "subject": "ご予約料金",
-        "description": "ウェブサイトからの支払い",
-        "remarks": "仮予約から15分を過ぎますと自動的にキャンセルとなります。",
-        "metadata": {"orderId": str(reservation_number)},
-        "expiredOn": expired_on,
-    }
 
     try:
-        resp = requests.post(
-            payment_api_url, headers=headers, data=json.dumps(data),
-            timeout=10)
-        if resp.status_code == 201:
-            return resp.json()['links']['paymentUrl']
-    except Exception as e:
+        return create_payment_link(
+            amount=int(schedule.price),
+            subject="ご予約料金",
+            description="ウェブサイトからの支払い",
+            remarks="仮予約から15分を過ぎますと自動的にキャンセルとなります。",
+            reservation_number=str(reservation_number),
+            webhook_token=getattr(settings, 'COINEY_WEBHOOK_TOKEN', ''),
+            expired_on=expired_on,
+            metadata={"orderId": str(reservation_number)},
+        )
+    except CoineyPaymentError as e:
         logger.error('Coiney決済URL取得失敗(embed): %s', e)
-    return None
+        return None
