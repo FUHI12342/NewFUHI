@@ -370,10 +370,11 @@ def mock_line_notify():
 
 @pytest.fixture
 def mock_linebot():
-    """Mock LineBotApi."""
-    with patch('booking.views.LineBotApi') as m:
+    """Mock _make_messaging_api (v3 LINE SDK)."""
+    with patch('booking.views_booking._make_messaging_api') as m:
         mock_api = MagicMock()
-        m.return_value = mock_api
+        mock_client = MagicMock()
+        m.return_value = (mock_api, mock_client)
         yield mock_api
 
 

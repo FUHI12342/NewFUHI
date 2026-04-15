@@ -260,10 +260,11 @@ class BackupCodeCheckinTests(CheckinAPITestBase):
 class CheckinCustomerNotificationTests(CheckinAPITestBase):
     """Test that customer is notified on successful checkin."""
 
-    @patch('booking.views_booking.LineBotApi')
-    def test_line_notification_sent_on_checkin(self, mock_line_cls):
+    @patch('booking.views_booking._make_messaging_api')
+    def test_line_notification_sent_on_checkin(self, mock_make_api):
         mock_api = MagicMock()
-        mock_line_cls.return_value = mock_api
+        mock_client = MagicMock()
+        mock_make_api.return_value = (mock_api, mock_client)
         schedule = _make_schedule(
             self.staff, start_offset_min=15,
             checkin_backup_code='112233',

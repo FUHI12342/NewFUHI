@@ -74,10 +74,10 @@ def cancelled_paid_schedule(db, staff):
 class TestRefundStatusOnCancel:
     """キャンセル時に有料予約のrefund_statusがpendingに設定されるテスト。"""
 
-    @patch('booking.views_booking.LineBotApi')
+    @patch('booking.views_booking._make_messaging_api')
     def test_cancel_paid_sets_refund_pending(self, mock_bot_cls, paid_schedule):
         """有料予約をキャンセルするとrefund_status='pending'になる。"""
-        mock_bot_cls.return_value = MagicMock()
+        mock_bot_cls.return_value = (MagicMock(), MagicMock())
         client = Client()
         url = reverse('booking:customer_cancel_confirm', args=[paid_schedule.reservation_number])
         response = client.post(url, {'cancel_token': paid_schedule.cancel_token})
@@ -87,10 +87,10 @@ class TestRefundStatusOnCancel:
         assert paid_schedule.is_cancelled is True
         assert paid_schedule.refund_status == 'pending'
 
-    @patch('booking.views_booking.LineBotApi')
+    @patch('booking.views_booking._make_messaging_api')
     def test_cancel_free_keeps_refund_none(self, mock_bot_cls, free_schedule_rf):
         """無料予約をキャンセルしてもrefund_statusは'none'のまま。"""
-        mock_bot_cls.return_value = MagicMock()
+        mock_bot_cls.return_value = (MagicMock(), MagicMock())
         client = Client()
         url = reverse('booking:customer_cancel_confirm', args=[free_schedule_rf.reservation_number])
         response = client.post(url, {'cancel_token': free_schedule_rf.cancel_token})

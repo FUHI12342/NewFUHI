@@ -60,12 +60,14 @@ class ScheduleAdmin(admin.ModelAdmin):
     @admin.action(description=_('選択した予約を「返金済み」にする'))
     def mark_refund_completed(self, request, queryset):
         """選択した返金待ち予約を返金済みに更新し、顧客にLINE通知を送信する。"""
-        from linebot import LineBotApi
-        from linebot.models import TextSendMessage
-        import pytz
+        from linebot.v3.messaging import MessagingApi, Configuration, ApiClient
+        from linebot.v3.messaging import PushMessageRequest, TextMessage as LineTextMessage
+        from zoneinfo import ZoneInfo
 
-        local_tz = pytz.timezone('Asia/Tokyo')
-        bot = LineBotApi(settings.LINE_ACCESS_TOKEN)
+        local_tz = ZoneInfo('Asia/Tokyo')
+        config = Configuration(access_token=settings.LINE_ACCESS_TOKEN)
+        api_client = ApiClient(config)
+        bot = MessagingApi(api_client)
         staff_member = None
         try:
             staff_member = request.user.staff_set.first() or request.user.staff
@@ -73,32 +75,38 @@ class ScheduleAdmin(admin.ModelAdmin):
             pass
 
         count = 0
-        for schedule in queryset.filter(refund_status='pending'):
-            schedule.refund_status = 'completed'
-            schedule.refund_completed_at = timezone.now()
-            schedule.refund_completed_by = staff_member
-            schedule.save(update_fields=[
-                'refund_status', 'refund_completed_at', 'refund_completed_by',
-            ])
+        try:
+            for schedule in queryset.filter(refund_status='pending'):
+                schedule.refund_status = 'completed'
+                schedule.refund_completed_at = timezone.now()
+                schedule.refund_completed_by = staff_member
+                schedule.save(update_fields=[
+                    'refund_status', 'refund_completed_at', 'refund_completed_by',
+                ])
 
-            # 顧客LINE通知
-            try:
-                line_user_id = schedule.get_line_user_id()
-                if line_user_id:
-                    local_start = schedule.start.astimezone(local_tz)
-                    msg = (
-                        f'【返金完了のお知らせ】\n\n'
-                        f'ご予約 {schedule.reservation_number} の返金処理が完了いたしました。\n\n'
-                        f'日時: {local_start.strftime("%Y年%m月%d日 %H:%M")}\n'
-                        f'金額: {schedule.price:,}円\n\n'
-                        f'返金の反映までに数日かかる場合がございます。'
-                        f'ご不明な点がございましたらお気軽にお問い合わせください。'
-                    )
-                    bot.push_message(line_user_id, TextSendMessage(text=msg))
-            except Exception as e:
-                logger.warning('返金完了LINE通知に失敗 (schedule=%s): %s', schedule.pk, e)
+                # 顧客LINE通知
+                try:
+                    line_user_id = schedule.get_line_user_id()
+                    if line_user_id:
+                        local_start = schedule.start.astimezone(local_tz)
+                        msg = (
+                            f'【返金完了のお知らせ】\n\n'
+                            f'ご予約 {schedule.reservation_number} の返金処理が完了いたしました。\n\n'
+                            f'日時: {local_start.strftime("%Y年%m月%d日 %H:%M")}\n'
+                            f'金額: {schedule.price:,}円\n\n'
+                            f'返金の反映までに数日かかる場合がございます。'
+                            f'ご不明な点がございましたらお気軽にお問い合わせください。'
+                        )
+                        bot.push_message(PushMessageRequest(
+                            to=line_user_id,
+                            messages=[LineTextMessage(text=msg)],
+                        ))
+                except Exception as e:
+                    logger.warning('返金完了LINE通知に失敗 (schedule=%s): %s', schedule.pk, e)
 
-            count += 1
+                count += 1
+        finally:
+            api_client.close()
 
         if count:
             self.message_user(request, _(f'{count}件の返金処理を完了しました。'), messages.SUCCESS)

@@ -193,7 +193,7 @@ class TestProcessPayment:
         data = json.loads(result.content)
         assert data['status'] == 'success'
 
-    @patch('booking.views_booking.LineBotApi')
+    @patch('booking.views_booking._make_messaging_api')
     @patch('booking.views_booking._build_access_lines', return_value='')
     def test_success_confirms_schedule(
         self, mock_access, mock_linebot_cls, schedule_confirmed, settings
@@ -201,7 +201,7 @@ class TestProcessPayment:
         """payment.succeeded → schedule.is_temporary becomes False."""
         from booking.views import process_payment
         settings.LINE_ACCESS_TOKEN = 'test-token'
-        mock_linebot_cls.return_value = MagicMock()
+        mock_linebot_cls.return_value = (MagicMock(), MagicMock())
 
         factory = RequestFactory()
         request = factory.post('/fake/')
@@ -213,7 +213,7 @@ class TestProcessPayment:
         schedule_confirmed.refresh_from_db()
         assert schedule_confirmed.is_temporary is False
 
-    @patch('booking.views_booking.LineBotApi')
+    @patch('booking.views_booking._make_messaging_api')
     @patch('booking.views_booking._build_access_lines', return_value='')
     @patch('booking.services.staff_notifications.notify_booking_to_staff')
     def test_success_generates_qr(
@@ -223,7 +223,7 @@ class TestProcessPayment:
         from booking.views import process_payment
         settings.LINE_ACCESS_TOKEN = 'test-token'
         settings.SITE_BASE_URL = 'http://testserver'
-        mock_linebot_cls.return_value = MagicMock()
+        mock_linebot_cls.return_value = (MagicMock(), MagicMock())
 
         factory = RequestFactory()
         request = factory.post('/fake/')
@@ -247,7 +247,7 @@ class TestProcessPayment:
         )
         assert result.status_code == 404
 
-    @patch('booking.views_booking.LineBotApi')
+    @patch('booking.views_booking._make_messaging_api')
     @patch('booking.views_booking._build_access_lines', return_value='')
     @patch('booking.views_booking.send_mail')
     @patch('booking.services.staff_notifications.notify_booking_to_staff')
@@ -259,7 +259,7 @@ class TestProcessPayment:
         settings.LINE_ACCESS_TOKEN = 'test-token'
         settings.DEFAULT_FROM_EMAIL = 'noreply@test.com'
         settings.SITE_BASE_URL = 'http://testserver'
-        mock_linebot_cls.return_value = MagicMock()
+        mock_linebot_cls.return_value = (MagicMock(), MagicMock())
 
         factory = RequestFactory()
         request = factory.post('/fake/')
@@ -493,19 +493,19 @@ class TestCancelReservationView:
         resp = anon_client.post(self._url(schedule_confirmed.id))
         assert resp.status_code == 302  # redirect to login
 
-    @patch('booking.views_booking.LineBotApi')
+    @patch('booking.views_booking._make_messaging_api')
     def test_staff_can_cancel(self, mock_linebot_cls, staff_client, schedule_confirmed):
         """Staff user can cancel any schedule."""
-        mock_linebot_cls.return_value = MagicMock()
+        mock_linebot_cls.return_value = (MagicMock(), MagicMock())
         resp = staff_client.post(self._url(schedule_confirmed.id))
         assert resp.status_code == 200
         schedule_confirmed.refresh_from_db()
         assert schedule_confirmed.is_cancelled is True
 
-    @patch('booking.views_booking.LineBotApi')
+    @patch('booking.views_booking._make_messaging_api')
     def test_admin_can_cancel(self, mock_linebot_cls, admin_pay, schedule_confirmed):
         """Admin can cancel any schedule."""
-        mock_linebot_cls.return_value = MagicMock()
+        mock_linebot_cls.return_value = (MagicMock(), MagicMock())
         resp = admin_pay.post(self._url(schedule_confirmed.id))
         assert resp.status_code == 200
         schedule_confirmed.refresh_from_db()
@@ -515,14 +515,15 @@ class TestCancelReservationView:
         resp = staff_client.post(self._url(99999))
         assert resp.status_code == 404
 
-    @patch('booking.views_booking.LineBotApi')
+    @patch('booking.views_booking._make_messaging_api')
     def test_line_notification_failure_graceful(
         self, mock_linebot_cls, staff_client, schedule_confirmed
     ):
         """LINE notification failure doesn't break cancellation."""
         mock_linebot = MagicMock()
         mock_linebot.push_message.side_effect = Exception('LINE error')
-        mock_linebot_cls.return_value = mock_linebot
+        mock_client = MagicMock()
+        mock_linebot_cls.return_value = (mock_linebot, mock_client)
         resp = staff_client.post(self._url(schedule_confirmed.id))
         assert resp.status_code == 200
         schedule_confirmed.refresh_from_db()

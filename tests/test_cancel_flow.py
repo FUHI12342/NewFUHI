@@ -19,11 +19,9 @@ from booking.models import Schedule, Store, Staff
 
 
 def _make_line_bot_api_error(status_code=404):
-    """Create a LineBotApiError with the given status code."""
-    from linebot.exceptions import LineBotApiError
-    from linebot.models import Error
-    error = Error(message='not found')
-    return LineBotApiError(status_code, headers={}, error=error)
+    """Create an ApiException (v3) with the given status code."""
+    from linebot.v3.messaging import ApiException
+    return ApiException(status=status_code, reason='not found')
 
 
 # ==============================================================
@@ -147,13 +145,13 @@ class TestCustomerCancelView:
 
 @pytest.mark.django_db
 class TestCustomerCancelConfirmView:
-    @patch('booking.views_booking.LineBotApi')
+    @patch('booking.views_booking._make_messaging_api')
     @patch('booking.views_booking.send_mail')
     def test_cancel_success(self, mock_mail, mock_line_cls, api_client, schedule, settings):
         settings.SITE_BASE_URL = 'http://testserver'
         settings.LINE_ACCESS_TOKEN = 'test-token'
         settings.DEFAULT_FROM_EMAIL = 'test@example.com'
-        mock_line_cls.return_value = MagicMock()
+        mock_line_cls.return_value = (MagicMock(), MagicMock())
 
         url = reverse('booking:customer_cancel_confirm', args=[schedule.reservation_number])
         resp = api_client.post(url, {'cancel_token': schedule.cancel_token})
@@ -164,10 +162,11 @@ class TestCustomerCancelConfirmView:
         schedule.refresh_from_db()
         assert schedule.is_cancelled is True
 
-    @patch('booking.views_booking.LineBotApi')
+    @patch('booking.views_booking._make_messaging_api')
     @patch('booking.views_booking.send_mail')
     def test_cancel_wrong_token_rejected(self, mock_mail, mock_line_cls, api_client, schedule, settings):
         settings.LINE_ACCESS_TOKEN = 'test-token'
+        mock_line_cls.return_value = (MagicMock(), MagicMock())
         url = reverse('booking:customer_cancel_confirm', args=[schedule.reservation_number])
         resp = api_client.post(url, {'cancel_token': 'WRONGTKN'})
         assert resp.status_code == 200
@@ -176,10 +175,11 @@ class TestCustomerCancelConfirmView:
         schedule.refresh_from_db()
         assert schedule.is_cancelled is False
 
-    @patch('booking.views_booking.LineBotApi')
+    @patch('booking.views_booking._make_messaging_api')
     @patch('booking.views_booking.send_mail')
     def test_cancel_already_cancelled(self, mock_mail, mock_line_cls, api_client, schedule, settings):
         settings.LINE_ACCESS_TOKEN = 'test-token'
+        mock_line_cls.return_value = (MagicMock(), MagicMock())
         Schedule.objects.filter(pk=schedule.pk).update(is_cancelled=True)
         url = reverse('booking:customer_cancel_confirm', args=[schedule.reservation_number])
         resp = api_client.post(url, {'cancel_token': schedule.cancel_token})
@@ -187,14 +187,14 @@ class TestCustomerCancelConfirmView:
         template_names = [t.name for t in resp.templates]
         assert any('customer_cancel_done' in n for n in template_names)
 
-    @patch('booking.views_booking.LineBotApi')
+    @patch('booking.views_booking._make_messaging_api')
     @patch('booking.views_booking.send_mail')
     def test_cancel_sends_line_notification(self, mock_mail, mock_line_cls, api_client, schedule, settings):
         settings.LINE_ACCESS_TOKEN = 'test-token'
         settings.DEFAULT_FROM_EMAIL = 'test@example.com'
         settings.SITE_BASE_URL = 'http://testserver'
         mock_api = MagicMock()
-        mock_line_cls.return_value = mock_api
+        mock_line_cls.return_value = (mock_api, MagicMock())
 
         # Store LINE user id for customer notification
         schedule.set_line_user_id('U1234567890abcdef')
@@ -209,14 +209,14 @@ class TestCustomerCancelConfirmView:
         # LINE push called (customer + staff)
         assert mock_api.push_message.call_count >= 1
 
-    @patch('booking.views_booking.LineBotApi')
+    @patch('booking.views_booking._make_messaging_api')
     @patch('booking.views_booking.send_mail')
     def test_cancel_sends_admin_email(self, mock_mail, mock_line_cls, api_client, schedule, settings):
         settings.LINE_ACCESS_TOKEN = 'test-token'
         settings.DEFAULT_FROM_EMAIL = 'admin@test.com'
         settings.NOTIFICATION_EMAILS = ['admin@test.com']
         settings.SITE_BASE_URL = 'http://testserver'
-        mock_line_cls.return_value = MagicMock()
+        mock_line_cls.return_value = (MagicMock(), MagicMock())
 
         url = reverse('booking:customer_cancel_confirm', args=[schedule.reservation_number])
         api_client.post(url, {'cancel_token': schedule.cancel_token})
@@ -278,7 +278,7 @@ class TestLineNotFriendFallback:
             mock_requests_post.return_value = token_resp
 
     @patch('booking.views_booking.requests.post')
-    @patch('booking.views_booking.LineBotApi')
+    @patch('booking.views_booking._make_messaging_api')
     @patch('booking.views_booking.jwt.decode')
     def test_non_friend_free_booking_renders_web_page(
         self, mock_jwt, mock_line_cls, mock_requests_post, api_client, staff, settings
@@ -292,7 +292,7 @@ class TestLineNotFriendFallback:
 
         mock_jwt.return_value = {'sub': 'U_not_friend_001', 'name': 'テスト太郎'}
         mock_api = MagicMock()
-        mock_line_cls.return_value = mock_api
+        mock_line_cls.return_value = (mock_api, MagicMock())
         mock_api.get_profile.side_effect = _make_line_bot_api_error(404)
 
         self._mock_token_exchange(mock_requests_post)
@@ -313,7 +313,7 @@ class TestLineNotFriendFallback:
             mock_api.push_message.assert_not_called()
 
     @patch('booking.views_booking.requests.post')
-    @patch('booking.views_booking.LineBotApi')
+    @patch('booking.views_booking._make_messaging_api')
     @patch('booking.views_booking.jwt.decode')
     def test_non_friend_paid_booking_shows_payment_url(
         self, mock_jwt, mock_line_cls, mock_requests_post, api_client, staff, settings
@@ -332,7 +332,7 @@ class TestLineNotFriendFallback:
 
         mock_jwt.return_value = {'sub': 'U_not_friend_002', 'name': 'テスト花子'}
         mock_api = MagicMock()
-        mock_line_cls.return_value = mock_api
+        mock_line_cls.return_value = (mock_api, MagicMock())
         mock_api.get_profile.side_effect = _make_line_bot_api_error(404)
 
         coiney_resp = MagicMock()
@@ -352,7 +352,7 @@ class TestLineNotFriendFallback:
         assert 'https://pay.example.com/abc' in content
 
     @patch('booking.views_booking.requests.post')
-    @patch('booking.views_booking.LineBotApi')
+    @patch('booking.views_booking._make_messaging_api')
     @patch('booking.views_booking.jwt.decode')
     def test_friend_booking_uses_push_message(
         self, mock_jwt, mock_line_cls, mock_requests_post, api_client, staff, settings
@@ -365,7 +365,7 @@ class TestLineNotFriendFallback:
 
         mock_jwt.return_value = {'sub': 'U_friend_001', 'name': 'テスト友達'}
         mock_api = MagicMock()
-        mock_line_cls.return_value = mock_api
+        mock_line_cls.return_value = (mock_api, MagicMock())
         mock_profile = MagicMock()
         mock_profile.user_id = 'U_friend_001'
         mock_api.get_profile.return_value = mock_profile

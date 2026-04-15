@@ -172,11 +172,9 @@ def _make_get_profile_friend():
 
 
 def _make_line_bot_api_error(status_code, message='Error'):
-    """Create a LineBotApiError with the given status_code."""
-    from linebot.exceptions import LineBotApiError
-    from linebot.models import Error as LineError
-    error_obj = LineError(message=message)
-    return LineBotApiError(status_code, {}, error=error_obj)
+    """Create an ApiException (v3) with the given status code."""
+    from linebot.v3.messaging import ApiException
+    return ApiException(status=status_code, reason=message)
 
 
 def _build_callback_url():
@@ -231,13 +229,14 @@ def _common_patches(get_profile_side_effect):
         },
     )
 
-    # 3. LineBotApi (constructor returns mock instance)
+    # 3. _make_messaging_api (returns (mock_messaging_api, mock_api_client))
     mock_bot_api = MagicMock()
     mock_bot_api.get_profile.side_effect = get_profile_side_effect
     mock_bot_api.push_message.return_value = None
+    mock_api_client = MagicMock()
     patches['line_bot_api_cls'] = patch(
-        'booking.views_booking.LineBotApi',
-        return_value=mock_bot_api,
+        'booking.views_booking._make_messaging_api',
+        return_value=(mock_bot_api, mock_api_client),
     )
     patches['_mock_bot_api'] = mock_bot_api
 
@@ -281,8 +280,9 @@ class TestFriendPaidBooking:
 
         mock_bot.push_message.assert_called_once()
         call_args = mock_bot.push_message.call_args
-        assert call_args[0][0] == FAKE_LINE_USER_ID
-        message_text = call_args[0][1].text
+        req = call_args[0][0]
+        assert req.to == FAKE_LINE_USER_ID
+        message_text = req.messages[0].text
         assert FAKE_PAYMENT_URL in message_text
         assert '決済' in message_text
 
@@ -343,8 +343,9 @@ class TestFriendFreeBooking:
 
         mock_bot.push_message.assert_called_once()
         call_args = mock_bot.push_message.call_args
-        assert call_args[0][0] == FAKE_LINE_USER_ID
-        message_text = call_args[0][1].text
+        req = call_args[0][0]
+        assert req.to == FAKE_LINE_USER_ID
+        message_text = req.messages[0].text
         assert '予約確定' in message_text
         assert 'RES-TEST-001' in message_text
         assert '123456' in message_text

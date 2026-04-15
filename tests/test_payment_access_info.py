@@ -147,16 +147,17 @@ class TestProcessPaymentAccessInfo:
     @patch('booking.services.staff_notifications.notify_booking_to_staff')
     @patch('booking.services.checkin_token.generate_backup_code', return_value='123456')
     @patch('booking.services.checkin_token.generate_signed_checkin_qr')
-    @patch('booking.views_booking.LineBotApi')
+    @patch('booking.views_booking._make_messaging_api')
     def test_line_message_includes_access_info(
-        self, mock_linebot_cls, mock_qr, mock_backup, mock_notify,
+        self, mock_make_api, mock_qr, mock_backup, mock_notify,
         schedule_line, store_with_access, settings,
     ):
         from django.core.files.uploadedfile import SimpleUploadedFile
         mock_qr.return_value = SimpleUploadedFile('qr.png', b'\x89PNG', content_type='image/png')
 
         mock_api = MagicMock()
-        mock_linebot_cls.return_value = mock_api
+        mock_client = MagicMock()
+        mock_make_api.return_value = (mock_api, mock_client)
         settings.LINE_ACCESS_TOKEN = 'test-token'
         settings.SITE_BASE_URL = 'http://testserver'
 
@@ -171,9 +172,9 @@ class TestProcessPaymentAccessInfo:
         assert mock_api.push_message.called
         calls = mock_api.push_message.call_args_list
 
-        # 顧客向けメッセージ（2番目の呼び出し）にアクセス情報が含まれる
+        # 顧客向けメッセージ（最後の呼び出し）にアクセス情報が含まれる
         customer_call = calls[-1]
-        msg_text = customer_call[0][1].text
+        msg_text = customer_call[0][0].messages[0].text
         assert '■ 店舗アクセス' in msg_text
         assert '新宿店' in msg_text
         assert '西口を出て右折、徒歩3分' in msg_text
@@ -183,15 +184,15 @@ class TestProcessPaymentAccessInfo:
     @patch('booking.services.checkin_token.generate_backup_code', return_value='123456')
     @patch('booking.services.checkin_token.generate_signed_checkin_qr')
     @patch('booking.views_booking.send_mail')
-    @patch('booking.views_booking.LineBotApi')
+    @patch('booking.views_booking._make_messaging_api')
     def test_email_includes_access_info(
-        self, mock_linebot_cls, mock_send_mail, mock_qr, mock_backup, mock_notify,
+        self, mock_make_api, mock_send_mail, mock_qr, mock_backup, mock_notify,
         schedule_email, store_with_access, settings,
     ):
         from django.core.files.uploadedfile import SimpleUploadedFile
         mock_qr.return_value = SimpleUploadedFile('qr.png', b'\x89PNG', content_type='image/png')
 
-        mock_linebot_cls.return_value = MagicMock()
+        mock_make_api.return_value = (MagicMock(), MagicMock())
         settings.LINE_ACCESS_TOKEN = 'test-token'
         settings.SITE_BASE_URL = 'http://testserver'
         settings.DEFAULT_FROM_EMAIL = 'noreply@test.com'
@@ -211,9 +212,9 @@ class TestProcessPaymentAccessInfo:
         assert '新宿店' in email_body
         assert '西口を出て右折、徒歩3分' in email_body
 
-    @patch('booking.views_booking.LineBotApi')
-    def test_payment_not_succeeded_ignored(self, mock_linebot_cls):
-        mock_linebot_cls.return_value = MagicMock()
+    @patch('booking.views_booking._make_messaging_api')
+    def test_payment_not_succeeded_ignored(self, mock_make_api):
+        mock_make_api.return_value = (MagicMock(), MagicMock())
 
         from booking.views import process_payment
         factory = RequestFactory()

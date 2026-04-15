@@ -357,7 +357,7 @@ def _handle_confirm(event, customer, text, data):
 def _create_booking(event, customer, data):
     """予約を作成する（confirm から分離）"""
     import datetime as dt
-    import pytz
+    from zoneinfo import ZoneInfo
     from django.conf import settings as django_settings
     from booking.models import Schedule, Staff, Store
     from booking.models.line_customer import LineCustomer
@@ -368,15 +368,15 @@ def _create_booking(event, customer, data):
     store = Store.objects.filter(id=data.get('store_id')).first()
     selected_date = dt.date.fromisoformat(data['date'])
 
-    tz = pytz.timezone(django_settings.TIME_ZONE)
+    tz = ZoneInfo(django_settings.TIME_ZONE)
     start = dt.datetime(
         year=selected_date.year,
         month=selected_date.month,
         day=selected_date.day,
         hour=data['hour'],
         minute=data['minute'],
+        tzinfo=tz,
     )
-    start = tz.localize(start)
 
     _, _, _, duration = get_time_slots(store or staff.store)
     end = start + dt.timedelta(minutes=duration)

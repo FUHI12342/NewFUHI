@@ -18,7 +18,7 @@ def _get_webhook_handler():
     if _webhook_handler is not None:
         return _webhook_handler
 
-    from linebot import WebhookHandler
+    from linebot.v3.webhook import WebhookHandler
     channel_secret = getattr(settings, 'LINE_CHANNEL_SECRET', None)
     if not channel_secret:
         raise ValueError("LINE_CHANNEL_SECRET is not set")
@@ -30,8 +30,8 @@ def _get_webhook_handler():
 
 def _register_handlers(handler):
     """イベントハンドラを登録"""
-    from linebot.models import (
-        FollowEvent, UnfollowEvent, MessageEvent, TextMessage, PostbackEvent,
+    from linebot.v3.webhooks import (
+        FollowEvent, UnfollowEvent, MessageEvent, TextMessageContent, PostbackEvent,
     )
 
     @handler.add(FollowEvent)
@@ -59,7 +59,7 @@ def _register_handlers(handler):
         )
         logger.info("LINE unfollow: hash=%s", line_user_hash[:8])
 
-    @handler.add(MessageEvent, message=TextMessage)
+    @handler.add(MessageEvent, message=TextMessageContent)
     def handle_text_message(event):
         """テキストメッセージ受信"""
         from booking.models import SiteSettings

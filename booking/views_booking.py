@@ -8,7 +8,7 @@ import logging
 import secrets
 import urllib.parse
 import jwt
-import pytz
+from zoneinfo import ZoneInfo
 import requests
 
 from django.conf import settings
@@ -35,13 +35,30 @@ from rest_framework.views import APIView
 
 from django import forms
 
-from linebot import LineBotApi
-from linebot.exceptions import LineBotApiError
-from linebot.models import TextSendMessage
+from linebot.v3.messaging import MessagingApi, Configuration, ApiClient
+from linebot.v3.messaging import PushMessageRequest, TextMessage as LineTextMessage
+from linebot.v3.messaging import ApiException as LineBotApiError
 
 from booking.models import Schedule, SiteSettings, Staff
 
 logger = logging.getLogger(__name__)
+
+
+# ===== LINE API helpers =====
+
+def _make_messaging_api():
+    """v3 MessagingApi インスタンスを返す（ApiClient は呼び出し側で close すること）"""
+    config = Configuration(access_token=settings.LINE_ACCESS_TOKEN)
+    api_client = ApiClient(config)
+    return MessagingApi(api_client), api_client
+
+
+def _push_line_text(messaging_api, user_id, text):
+    """テキストメッセージを push 送信するショートハンド"""
+    messaging_api.push_message(PushMessageRequest(
+        to=user_id,
+        messages=[LineTextMessage(text=text)],
+    ))
 
 
 # ===== LINE settings helpers =====
@@ -127,7 +144,7 @@ class LineCallbackView(View):
         customer_result = self._get_or_create_line_customer(access_token, id_token)
         if customer_result is None:
             return HttpResponseBadRequest()
-        user_profile, user_id, customer_name, hashed_id, is_friend, line_bot_api = customer_result
+        user_profile, user_id, customer_name, hashed_id, is_friend, messaging_api, api_client = customer_result
 
         # デバッグ: ?test_line=not_friend|friend でフレンド状態を上書き（staff限定）
         test_line = request.GET.get('test_line')
@@ -155,15 +172,13 @@ class LineCallbackView(View):
                 payment_url = self._create_coiney_payment(schedule)
 
                 if is_friend and payment_url is not None:
-                    line_bot_api.push_message(
-                        user_id,
-                        TextSendMessage(
-                            text='こちらのURLから決済を行ってください。決済後に予約が確定します。\n'
-                                 '15分以内にお支払いがない場合、仮予約は自動キャンセルされます。\n'
-                                 + payment_url
-                                 + '\n\n※ キャンセル時の返金は店舗スタッフが対応いたします。'
-                                 + '\n処理にお時間をいただく場合がございます。'
-                        )
+                    _push_line_text(
+                        messaging_api, user_id,
+                        'こちらのURLから決済を行ってください。決済後に予約が確定します。\n'
+                        '15分以内にお支払いがない場合、仮予約は自動キャンセルされます。\n'
+                        + payment_url
+                        + '\n\n※ キャンセル時の返金は店舗スタッフが対応いたします。'
+                        + '\n処理にお時間をいただく場合がございます。',
                     )
                 elif not is_friend and payment_url is not None:
                     # 非友達: Webページで決済URLを表示
@@ -180,7 +195,7 @@ class LineCallbackView(View):
                 if is_friend:
                     # 顧客LINE通知（予約情報 + QR/バックアップコード）
                     self._send_line_notification(
-                        line_bot_api, user_id, schedule, backup_code,
+                        messaging_api, user_id, schedule, backup_code,
                     )
                 else:
                     # 非友達: Webページで QR/バックアップコード表示
@@ -191,6 +206,8 @@ class LineCallbackView(View):
 
         except LineBotApiError as e:
             logger.error("Failed to send LINE message: %s", e)
+        finally:
+            api_client.close()
 
         request.session['profile'] = user_profile
         return render(request, 'booking/line_success.html', {'profile': user_profile})
@@ -239,22 +256,24 @@ class LineCallbackView(View):
         customer_name = user_profile.get('name') if user_profile else 'Unknown User'
         hashed_id = hashlib.sha256(user_profile['sub'].encode()).hexdigest()
 
-        line_bot_api = LineBotApi(settings.LINE_ACCESS_TOKEN)
+        messaging_api, api_client = _make_messaging_api()
         user_id = user_profile['sub']
 
         is_friend = True
         try:
-            profile = line_bot_api.get_profile(user_id)
+            profile = messaging_api.get_profile(user_id)
             user_id = profile.user_id
         except LineBotApiError as e:
-            if getattr(e, "status_code", None) == 404:
+            if getattr(e, "status", None) == 404:
                 is_friend = False
                 logger.info("LINE user %s is not a friend, proceeding with web fallback", user_id[:8])
             else:
                 logger.error("LINE get_profile failed: %s", e)
+                api_client.close()
                 return None
 
-        return user_profile, user_id, customer_name, hashed_id, is_friend, line_bot_api
+        # api_client の所有権を呼び出し元に移譲（caller が close すること）
+        return user_profile, user_id, customer_name, hashed_id, is_friend, messaging_api, api_client
 
     def _create_schedule(self, request, customer_name, hashed_id, user_id):
         """セッションの仮予約データから Schedule を作成・保存する。
@@ -342,9 +361,9 @@ class LineCallbackView(View):
 
         return backup_code
 
-    def _send_line_notification(self, line_bot_api, user_id, schedule, backup_code):
+    def _send_line_notification(self, messaging_api, user_id, schedule, backup_code):
         """友達ユーザーに予約確定LINEメッセージを送信する。"""
-        local_tz = pytz.timezone('Asia/Tokyo')
+        local_tz = ZoneInfo('Asia/Tokyo')
         local_start = schedule.start.astimezone(local_tz)
         local_end = schedule.end.astimezone(local_tz)
         reservation_number = schedule.reservation_number
@@ -367,27 +386,25 @@ class LineCallbackView(View):
                 f'\n（QRが読み取れない場合、スタッフにこの6桁コードをお伝えください）'
             )
         duration_min = int((schedule.end - schedule.start).total_seconds() // 60)
-        line_bot_api.push_message(
-            user_id,
-            TextSendMessage(
-                text=f'【予約確定】ご予約が確定しました。'
-                     f'\n\n■ 予約情報'
-                     f'\n予約番号: {reservation_number}'
-                     f'\n日時: {local_start.strftime("%Y年%m月%d日 %H:%M")}〜{local_end.strftime("%H:%M")}（{duration_min}分）'
-                     f'\n担当: {staff_obj.name}'
-                     + checkin_line
-                     + access_lines
-                     + f'\n\n■ キャンセル'
-                     + f'\nキャンセル番号: {schedule.cancel_token}'
-                     + f'\n{cancel_page_url}'
-                     + f'\n（上記URLでキャンセル番号を入力してください）'
-            )
+        _push_line_text(
+            messaging_api, user_id,
+            f'【予約確定】ご予約が確定しました。'
+            f'\n\n■ 予約情報'
+            f'\n予約番号: {reservation_number}'
+            f'\n日時: {local_start.strftime("%Y年%m月%d日 %H:%M")}〜{local_end.strftime("%H:%M")}（{duration_min}分）'
+            f'\n担当: {staff_obj.name}'
+            + checkin_line
+            + access_lines
+            + f'\n\n■ キャンセル'
+            + f'\nキャンセル番号: {schedule.cancel_token}'
+            + f'\n{cancel_page_url}'
+            + f'\n（上記URLでキャンセル番号を入力してください）',
         )
 
     @staticmethod
     def _render_not_friend_page(request, schedule, user_profile, payment_url=None, backup_code=None):
         """非友達ユーザー向けWebページを表示。"""
-        local_tz = pytz.timezone('Asia/Tokyo')
+        local_tz = ZoneInfo('Asia/Tokyo')
         local_start = schedule.start.astimezone(local_tz)
         local_end = schedule.end.astimezone(local_tz)
         duration_min = int((schedule.end - schedule.start).total_seconds() // 60)
@@ -774,7 +791,7 @@ class CustomerCancelConfirmView(View):
             if not notification_emails:
                 return
 
-            local_tz = pytz.timezone('Asia/Tokyo')
+            local_tz = ZoneInfo('Asia/Tokyo')
             local_start = schedule.start.astimezone(local_tz)
 
             refund_note = ''
@@ -810,24 +827,23 @@ class CustomerCancelConfirmView(View):
             user_id = schedule.get_line_user_id()
             if not user_id:
                 return
-            local_tz = pytz.timezone('Asia/Tokyo')
+            local_tz = ZoneInfo('Asia/Tokyo')
             local_start = schedule.start.astimezone(local_tz)
             refund_line = ''
             if schedule.price and int(schedule.price) >= 100:
                 refund_line = '\n\n返金は店舗スタッフが対応いたします。処理完了後にご連絡いたします。'
-            line_bot_api = LineBotApi(settings.LINE_ACCESS_TOKEN)
-            line_bot_api.push_message(
-                user_id,
-                TextSendMessage(
-                    text=(
-                        f'【キャンセル完了】ご予約のキャンセルが完了しました。'
-                        f'\n\n予約番号: {schedule.reservation_number}'
-                        f'\n日時: {local_start.strftime("%Y年%m月%d日 %H:%M")}'
-                        f'\n担当: {schedule.staff.name}'
-                        + refund_line
-                    )
-                ),
-            )
+            messaging_api, api_client = _make_messaging_api()
+            try:
+                _push_line_text(
+                    messaging_api, user_id,
+                    f'【キャンセル完了】ご予約のキャンセルが完了しました。'
+                    f'\n\n予約番号: {schedule.reservation_number}'
+                    f'\n日時: {local_start.strftime("%Y年%m月%d日 %H:%M")}'
+                    f'\n担当: {schedule.staff.name}'
+                    + refund_line,
+                )
+            finally:
+                api_client.close()
         except Exception as e:
             logger.warning('CustomerCancelConfirmView: 顧客LINE通知に失敗: %s', e)
 
@@ -837,7 +853,7 @@ class CustomerCancelConfirmView(View):
         try:
             if not schedule.customer_email:
                 return
-            local_tz = pytz.timezone('Asia/Tokyo')
+            local_tz = ZoneInfo('Asia/Tokyo')
             local_start = schedule.start.astimezone(local_tz)
             refund_note = ''
             if schedule.price and int(schedule.price) >= 100:
@@ -867,19 +883,18 @@ class CustomerCancelConfirmView(View):
             staff_line_id = getattr(schedule.staff, 'line_id', None)
             if not staff_line_id:
                 return
-            local_tz = pytz.timezone('Asia/Tokyo')
+            local_tz = ZoneInfo('Asia/Tokyo')
             local_start = schedule.start.astimezone(local_tz)
-            line_bot_api = LineBotApi(settings.LINE_ACCESS_TOKEN)
-            line_bot_api.push_message(
-                staff_line_id,
-                TextSendMessage(
-                    text=(
-                        f'【キャンセル通知】予約がキャンセルされました。'
-                        f'\n顧客名: {schedule.customer_name or "不明"}'
-                        f'\n日時: {local_start.strftime("%Y年%m月%d日 %H:%M")}'
-                    )
-                ),
-            )
+            messaging_api, api_client = _make_messaging_api()
+            try:
+                _push_line_text(
+                    messaging_api, staff_line_id,
+                    f'【キャンセル通知】予約がキャンセルされました。'
+                    f'\n顧客名: {schedule.customer_name or "不明"}'
+                    f'\n日時: {local_start.strftime("%Y年%m月%d日 %H:%M")}',
+                )
+            finally:
+                api_client.close()
         except Exception as e:
             logger.warning('CustomerCancelConfirmView: スタッフLINE通知に失敗: %s', e)
 
@@ -906,13 +921,13 @@ class CancelReservationView(LoginRequiredMixin, View):
         try:
             staff_line_account_id = schedule.staff.line_id
             if staff_line_account_id:
-                line_bot_api = LineBotApi(settings.LINE_ACCESS_TOKEN)
-                local_tz = pytz.timezone('Asia/Tokyo')
+                messaging_api, api_client = _make_messaging_api()
+                local_tz = ZoneInfo('Asia/Tokyo')
                 local_time = timezone.localtime(schedule.start, local_tz)
-                line_bot_api.push_message(
-                    staff_line_account_id,
-                    TextSendMessage(text=f'予約がキャンセルされました。予約日時: {local_time}')
-                )
+                try:
+                    _push_line_text(messaging_api, staff_line_account_id, f'予約がキャンセルされました。予約日時: {local_time}')
+                finally:
+                    api_client.close()
         except Exception as e:
             logger.warning('CancelReservationView: スタッフLINE通知に失敗しました: %s', e)
 
@@ -920,13 +935,13 @@ class CancelReservationView(LoginRequiredMixin, View):
         try:
             customer_user_id = schedule.get_line_user_id()
             if customer_user_id:
-                line_bot_api = LineBotApi(settings.LINE_ACCESS_TOKEN)
-                local_tz = pytz.timezone('Asia/Tokyo')
+                messaging_api, api_client = _make_messaging_api()
+                local_tz = ZoneInfo('Asia/Tokyo')
                 local_time = timezone.localtime(schedule.start, local_tz)
-                line_bot_api.push_message(
-                    customer_user_id,
-                    TextSendMessage(text=f'あなたの予約がキャンセルされました。予約日時: {local_time}')
-                )
+                try:
+                    _push_line_text(messaging_api, customer_user_id, f'あなたの予約がキャンセルされました。予約日時: {local_time}')
+                finally:
+                    api_client.close()
         except Exception as e:
             logger.warning('CancelReservationView: 顧客LINE通知に失敗しました: %s', e)
 
@@ -994,8 +1009,6 @@ def process_payment(payment_response, request, order_id):
             )
             schedule.checkin_backup_code = backup_code
 
-        line_bot_api = LineBotApi(settings.LINE_ACCESS_TOKEN)
-
         # スタッフ通知（通知設定を尊重）
         from booking.services.staff_notifications import notify_booking_to_staff
         notify_booking_to_staff(schedule)
@@ -1008,7 +1021,7 @@ def process_payment(payment_response, request, order_id):
             logger.warning('Failed to decrypt LINE user id: %s', e)
 
         if user_id:
-            local_tz = pytz.timezone('Asia/Tokyo')
+            local_tz = ZoneInfo('Asia/Tokyo')
             local_start = schedule.start.astimezone(local_tz)
             local_end = schedule.end.astimezone(local_tz)
             qr_page_url = (
@@ -1044,14 +1057,17 @@ def process_payment(payment_response, request, order_id):
                 + f'\n（上記URLでキャンセル番号を入力してください）'
                 + f'\n※ 返金は店舗スタッフが対応いたします。処理にお時間をいただく場合がございます。'
             )
+            messaging_api, api_client = _make_messaging_api()
             try:
-                line_bot_api.push_message(user_id, TextSendMessage(text=message_text))
+                _push_line_text(messaging_api, user_id, message_text)
             except LineBotApiError as e:
                 logger.error('顧客向け決済完了メッセージにてLineBotApiErrorが発生しました: %s', e)
+            finally:
+                api_client.close()
 
         # メール予約の場合: 決済完了メールを送信
         if schedule.booking_channel == 'email' and schedule.customer_email:
-            local_tz = pytz.timezone('Asia/Tokyo')
+            local_tz = ZoneInfo('Asia/Tokyo')
             local_time = schedule.start.astimezone(local_tz)
             store = schedule.staff.store
             access_lines = _build_access_lines(store)
@@ -1274,7 +1290,7 @@ class CheckinAPIView(APIView):
     @staticmethod
     def _notify_customer_checkin(schedule):
         """チェックイン完了をLINEまたはメールで顧客に通知する。"""
-        local_tz = pytz.timezone('Asia/Tokyo')
+        local_tz = ZoneInfo('Asia/Tokyo')
         local_time = schedule.start.astimezone(local_tz)
         message = (
             f'チェックインが完了しました。\n\n'
@@ -1287,10 +1303,11 @@ class CheckinAPIView(APIView):
         try:
             user_id = schedule.get_line_user_id()
             if user_id:
-                line_bot_api = LineBotApi(settings.LINE_ACCESS_TOKEN)
-                line_bot_api.push_message(
-                    user_id, TextSendMessage(text=message),
-                )
+                messaging_api, api_client = _make_messaging_api()
+                try:
+                    _push_line_text(messaging_api, user_id, message)
+                finally:
+                    api_client.close()
         except Exception as e:
             logger.warning('チェックイン完了LINE通知に失敗: %s', e)
 

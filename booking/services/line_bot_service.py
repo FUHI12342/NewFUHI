@@ -7,13 +7,15 @@ from django.conf import settings
 logger = logging.getLogger(__name__)
 
 
-def _get_bot_api():
-    """LineBotApi インスタンスを返す"""
-    from linebot import LineBotApi
+def _get_messaging_api_client():
+    """v3 MessagingApi と ApiClient を返す（コンテキストマネージャ不使用）"""
+    from linebot.v3.messaging import MessagingApi, Configuration, ApiClient
     access_token = getattr(settings, 'LINE_ACCESS_TOKEN', None)
     if not access_token:
         raise ValueError("LINE_ACCESS_TOKEN is not set")
-    return LineBotApi(access_token)
+    config = Configuration(access_token=access_token)
+    api_client = ApiClient(config)
+    return MessagingApi(api_client), api_client
 
 
 def _decrypt_line_user_id(line_user_enc):
@@ -48,7 +50,7 @@ def push_text(line_user_enc, message, message_type='system', customer=None, max_
     Returns:
         True=成功, False=失敗
     """
-    from linebot.models import TextSendMessage
+    from linebot.v3.messaging import PushMessageRequest, TextMessage
 
     try:
         line_user_id = _decrypt_line_user_id(line_user_enc)
@@ -57,18 +59,24 @@ def push_text(line_user_enc, message, message_type='system', customer=None, max_
         _log_message(customer, message_type, message, status='failed', error_detail=str(e))
         return False
 
-    bot = _get_bot_api()
-    for attempt in range(max_retries):
-        try:
-            bot.push_message(line_user_id, TextSendMessage(text=message))
-            _log_message(customer, message_type, message)
-            return True
-        except Exception as e:
-            logger.warning(
-                "LINE push attempt %d/%d failed: %s", attempt + 1, max_retries, e,
-            )
-            if attempt < max_retries - 1:
-                time.sleep(2 ** attempt)
+    messaging_api, api_client = _get_messaging_api_client()
+    try:
+        for attempt in range(max_retries):
+            try:
+                messaging_api.push_message(PushMessageRequest(
+                    to=line_user_id,
+                    messages=[TextMessage(text=message)],
+                ))
+                _log_message(customer, message_type, message)
+                return True
+            except Exception as e:
+                logger.warning(
+                    "LINE push attempt %d/%d failed: %s", attempt + 1, max_retries, e,
+                )
+                if attempt < max_retries - 1:
+                    time.sleep(2 ** attempt)
+    finally:
+        api_client.close()
 
     _log_message(customer, message_type, message, status='failed', error_detail='Max retries exceeded')
     return False
@@ -76,20 +84,25 @@ def push_text(line_user_enc, message, message_type='system', customer=None, max_
 
 def reply_text(reply_token, message):
     """reply_token を使ってテキスト返信"""
-    from linebot.models import TextSendMessage
+    from linebot.v3.messaging import ReplyMessageRequest, TextMessage
 
+    messaging_api, api_client = _get_messaging_api_client()
     try:
-        bot = _get_bot_api()
-        bot.reply_message(reply_token, TextSendMessage(text=message))
+        messaging_api.reply_message(ReplyMessageRequest(
+            reply_token=reply_token,
+            messages=[TextMessage(text=message)],
+        ))
         return True
     except Exception as e:
         logger.error("LINE reply failed: %s", e)
         return False
+    finally:
+        api_client.close()
 
 
 def push_flex(line_user_enc, alt_text, flex_container, message_type='system', customer=None, max_retries=3):
     """Flex Messageをpush送信"""
-    from linebot.models import FlexSendMessage
+    from linebot.v3.messaging import PushMessageRequest, FlexMessage
 
     try:
         line_user_id = _decrypt_line_user_id(line_user_enc)
@@ -98,21 +111,24 @@ def push_flex(line_user_enc, alt_text, flex_container, message_type='system', cu
         _log_message(customer, message_type, alt_text, status='failed', error_detail=str(e))
         return False
 
-    bot = _get_bot_api()
-    for attempt in range(max_retries):
-        try:
-            bot.push_message(
-                line_user_id,
-                FlexSendMessage(alt_text=alt_text, contents=flex_container),
-            )
-            _log_message(customer, message_type, alt_text)
-            return True
-        except Exception as e:
-            logger.warning(
-                "LINE flex push attempt %d/%d failed: %s", attempt + 1, max_retries, e,
-            )
-            if attempt < max_retries - 1:
-                time.sleep(2 ** attempt)
+    messaging_api, api_client = _get_messaging_api_client()
+    try:
+        for attempt in range(max_retries):
+            try:
+                messaging_api.push_message(PushMessageRequest(
+                    to=line_user_id,
+                    messages=[FlexMessage(alt_text=alt_text, contents=flex_container)],
+                ))
+                _log_message(customer, message_type, alt_text)
+                return True
+            except Exception as e:
+                logger.warning(
+                    "LINE flex push attempt %d/%d failed: %s", attempt + 1, max_retries, e,
+                )
+                if attempt < max_retries - 1:
+                    time.sleep(2 ** attempt)
+    finally:
+        api_client.close()
 
     _log_message(customer, message_type, alt_text, status='failed', error_detail='Max retries exceeded')
     return False

@@ -16,7 +16,8 @@ from rest_framework.response import Response
 from rest_framework.throttling import SimpleRateThrottle
 from rest_framework.views import APIView
 
-from linebot import LineBotApi
+from linebot.v3.messaging import MessagingApi, Configuration, ApiClient
+from linebot.v3.messaging import PushMessageRequest, TextMessage as LineTextMessage
 
 from booking.admin_site import custom_site
 from booking.models import IoTDevice, IoTEvent, IRCode
@@ -145,17 +146,24 @@ def _validate_sensor_value(value: Optional[float], sensor_type: str) -> Optional
 # LINE Push通知ヘルパー（指数バックオフリトライ付き）
 # --------------------------------------------------
 def _send_line_push_with_retry(user_id: str, message: str, device_id: str = '', max_retries: int = 3):
-    """LineBotApi.push_message をリトライ付きで送信"""
-    from linebot.models import TextSendMessage
-    for attempt in range(max_retries):
-        try:
-            bot = LineBotApi(settings.LINE_ACCESS_TOKEN)
-            bot.push_message(user_id, TextSendMessage(text=message))
-            return True
-        except Exception as e:
-            logger.warning("LINE push attempt %d/%d failed (device=%s): %s", attempt + 1, max_retries, device_id, e)
-            if attempt < max_retries - 1:
-                time.sleep(2 ** attempt)
+    """MessagingApi.push_message をリトライ付きで送信"""
+    config = Configuration(access_token=settings.LINE_ACCESS_TOKEN)
+    api_client = ApiClient(config)
+    try:
+        messaging_api = MessagingApi(api_client)
+        for attempt in range(max_retries):
+            try:
+                messaging_api.push_message(PushMessageRequest(
+                    to=user_id,
+                    messages=[LineTextMessage(text=message)],
+                ))
+                return True
+            except Exception as e:
+                logger.warning("LINE push attempt %d/%d failed (device=%s): %s", attempt + 1, max_retries, device_id, e)
+                if attempt < max_retries - 1:
+                    time.sleep(2 ** attempt)
+    finally:
+        api_client.close()
     return False
 
 

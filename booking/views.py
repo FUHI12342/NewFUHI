@@ -16,7 +16,7 @@ import datetime
 import logging
 from datetime import timedelta
 
-import pytz
+from zoneinfo import ZoneInfo
 
 from django.conf import settings
 from django.contrib.auth import get_user_model
@@ -447,7 +447,7 @@ class PreBooking(generic.CreateView):
         hour = int(self.kwargs.get('hour'))
         minute = int(self.kwargs.get('minute', 0))
 
-        tz = pytz.timezone(settings.TIME_ZONE)
+        tz = ZoneInfo(settings.TIME_ZONE)
         start = datetime.datetime(year=year, month=month, day=day, hour=hour, minute=minute)
 
         # 動的コマ長
@@ -475,7 +475,7 @@ class PreBooking(generic.CreateView):
         else:
             schedule.store = staff.store
 
-        tz_jst = pytz.timezone('Asia/Tokyo')
+        tz_jst = ZoneInfo('Asia/Tokyo')
         self.request.session['temporary_booking'] = {
             'reservation_number': str(schedule.reservation_number),
             'start': start.isoformat(),

@@ -116,8 +116,6 @@ class EmbedPreBookingViewTest(TestCase):
 
     def test_post_double_booking_shows_error(self):
         # Create existing booking
-        import pytz
-        tz = pytz.timezone('Asia/Tokyo')
         start = datetime.datetime(2026, 4, 10, 14, 0)
         Schedule.objects.create(
             staff=self.staff, store=self.store,

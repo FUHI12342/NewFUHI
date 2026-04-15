@@ -336,9 +336,10 @@ class TestPushLineMessage:
 
         settings.LINE_ACCESS_TOKEN = 'test-token'
 
-        with patch('linebot.LineBotApi') as MockBot:
-            mock_api = MagicMock()
-            MockBot.return_value = mock_api
+        mock_api = MagicMock()
+        mock_client = MagicMock()
+        with patch('linebot.v3.messaging.MessagingApi', return_value=mock_api), \
+             patch('linebot.v3.messaging.ApiClient', return_value=mock_client):
             result = _push_line_message('U12345', 'テスト')
             assert result is True
             mock_api.push_message.assert_called_once()
@@ -358,15 +359,15 @@ class TestPushLineMessage:
 
         settings.LINE_ACCESS_TOKEN = 'test-token'
 
-        with patch('linebot.LineBotApi') as MockBot:
-            mock_api = MagicMock()
-            mock_api.push_message.side_effect = [Exception('fail'), None]
-            MockBot.return_value = mock_api
-
-            with patch('booking.services.staff_notifications.time.sleep'):
-                result = _push_line_message('U12345', 'テスト', max_retries=2)
-                assert result is True
-                assert mock_api.push_message.call_count == 2
+        mock_api = MagicMock()
+        mock_api.push_message.side_effect = [Exception('fail'), None]
+        mock_client = MagicMock()
+        with patch('linebot.v3.messaging.MessagingApi', return_value=mock_api), \
+             patch('linebot.v3.messaging.ApiClient', return_value=mock_client), \
+             patch('booking.services.staff_notifications.time.sleep'):
+            result = _push_line_message('U12345', 'テスト', max_retries=2)
+            assert result is True
+            assert mock_api.push_message.call_count == 2
 
 
 # ==============================

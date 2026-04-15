@@ -32,6 +32,13 @@ else:
         }
     }
 
+# SQLite は本番/ステージング環境で使用禁止
+if 'sqlite3' in DATABASES['default']['ENGINE']:
+    from django.core.exceptions import ImproperlyConfigured
+    raise ImproperlyConfigured(
+        "SQLite は本番環境では使用できません。DATABASE_URL を設定してください。"
+    )
+
 # Static and media files
 STATIC_ROOT = env_required("STATIC_ROOT")
 MEDIA_ROOT = env_required("MEDIA_ROOT")

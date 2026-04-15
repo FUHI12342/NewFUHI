@@ -25,17 +25,24 @@ def _make_encrypted_user(store=None, line_user_id='U_test_user_001', display_nam
     return customer
 
 
+def _make_mock_api():
+    """Return (mock_messaging_api, mock_api_client) tuple for patching _get_messaging_api_client."""
+    mock_api = MagicMock()
+    mock_client = MagicMock()
+    return mock_api, mock_client
+
+
 # ==============================================================
 # push_text
 # ==============================================================
 
 @pytest.mark.django_db
 class TestPushText:
-    @patch('booking.services.line_bot_service._get_bot_api')
-    def test_push_text_success(self, mock_get_bot, store):
+    @patch('booking.services.line_bot_service._get_messaging_api_client')
+    def test_push_text_success(self, mock_get_api, store):
         """push_text sends message and creates a sent log."""
-        mock_bot = MagicMock()
-        mock_get_bot.return_value = mock_bot
+        mock_api, mock_client = _make_mock_api()
+        mock_get_api.return_value = (mock_api, mock_client)
 
         customer = _make_encrypted_user(store)
         from booking.services.line_bot_service import push_text
@@ -46,19 +53,19 @@ class TestPushText:
         )
 
         assert result is True
-        mock_bot.push_message.assert_called_once()
+        mock_api.push_message.assert_called_once()
         log = LineMessageLog.objects.filter(customer=customer).first()
         assert log is not None
         assert log.status == 'sent'
         assert log.message_type == 'system'
 
     @patch('booking.services.line_bot_service.time.sleep')
-    @patch('booking.services.line_bot_service._get_bot_api')
-    def test_push_text_failure_retry(self, mock_get_bot, mock_sleep, store):
+    @patch('booking.services.line_bot_service._get_messaging_api_client')
+    def test_push_text_failure_retry(self, mock_get_api, mock_sleep, store):
         """push_text retries on failure and logs status='failed'."""
-        mock_bot = MagicMock()
-        mock_bot.push_message.side_effect = Exception('API error')
-        mock_get_bot.return_value = mock_bot
+        mock_api, mock_client = _make_mock_api()
+        mock_api.push_message.side_effect = Exception('API error')
+        mock_get_api.return_value = (mock_api, mock_client)
 
         customer = _make_encrypted_user(store)
         from booking.services.line_bot_service import push_text
@@ -69,7 +76,7 @@ class TestPushText:
         )
 
         assert result is False
-        assert mock_bot.push_message.call_count == 3
+        assert mock_api.push_message.call_count == 3
         log = LineMessageLog.objects.filter(customer=customer, status='failed').first()
         assert log is not None
         assert 'Max retries' in log.error_detail
@@ -81,20 +88,20 @@ class TestPushText:
 
 @pytest.mark.django_db
 class TestReplyText:
-    @patch('booking.services.line_bot_service._get_bot_api')
-    def test_reply_text_success(self, mock_get_bot):
+    @patch('booking.services.line_bot_service._get_messaging_api_client')
+    def test_reply_text_success(self, mock_get_api):
         """reply_text calls reply_message and returns True."""
-        mock_bot = MagicMock()
-        mock_get_bot.return_value = mock_bot
+        mock_api, mock_client = _make_mock_api()
+        mock_get_api.return_value = (mock_api, mock_client)
 
         from booking.services.line_bot_service import reply_text
 
         result = reply_text('reply-token-abc', 'Thank you')
 
         assert result is True
-        mock_bot.reply_message.assert_called_once()
-        args = mock_bot.reply_message.call_args
-        assert args[0][0] == 'reply-token-abc'
+        mock_api.reply_message.assert_called_once()
+        req = mock_api.reply_message.call_args[0][0]
+        assert req.reply_token == 'reply-token-abc'
 
 
 # ==============================================================
@@ -103,11 +110,11 @@ class TestReplyText:
 
 @pytest.mark.django_db
 class TestPushFlex:
-    @patch('booking.services.line_bot_service._get_bot_api')
-    def test_push_flex_success(self, mock_get_bot, store):
-        """push_flex sends FlexSendMessage and creates a log."""
-        mock_bot = MagicMock()
-        mock_get_bot.return_value = mock_bot
+    @patch('booking.services.line_bot_service._get_messaging_api_client')
+    def test_push_flex_success(self, mock_get_api, store):
+        """push_flex sends FlexMessage and creates a log."""
+        mock_api, mock_client = _make_mock_api()
+        mock_get_api.return_value = (mock_api, mock_client)
 
         customer = _make_encrypted_user(store)
         flex_container = {'type': 'bubble', 'body': {'type': 'box'}}
@@ -119,7 +126,7 @@ class TestPushFlex:
         )
 
         assert result is True
-        mock_bot.push_message.assert_called_once()
+        mock_api.push_message.assert_called_once()
         log = LineMessageLog.objects.filter(customer=customer).first()
         assert log is not None
         assert log.status == 'sent'

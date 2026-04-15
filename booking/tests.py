@@ -561,9 +561,8 @@ class MyPageHolidayAddViewTests(TestCase):
 from django.test import TestCase, Client
 from django.urls import reverse
 from django.contrib.auth.models import User
-from linebot import LineBotApi
 from django.conf import settings
-from unittest.mock import Mock  
+from unittest.mock import Mock
 from unittest.mock import patch
 from django.core.management import call_command
 
@@ -573,7 +572,6 @@ class PayingSuccessViewTest(TestCase):
         # フィクスチャをロード
         call_command('loaddata', 'initial', verbosity=0)
         self.client = Client()
-        line_bot_api = LineBotApi(settings.LINE_ACCESS_TOKEN)
         # テスト用のユーザーIDを設定
         line_user_id = 'testLineUserId'
 

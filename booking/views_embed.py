@@ -21,7 +21,7 @@ from django.views.decorators.clickjacking import xframe_options_exempt
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
 
-import pytz
+from zoneinfo import ZoneInfo
 
 from booking.models import SiteSettings, Store, Staff
 from booking.models.schedule import Schedule
@@ -320,9 +320,10 @@ class EmbedPreBookingView(EmbedAuthMixin, View):
         staff = get_object_or_404(Staff, pk=pk)
         api_key = request.GET.get('api_key', '')
 
-        tz = pytz.timezone(settings.TIME_ZONE)
-        start = tz.localize(datetime.datetime(
-            year=year, month=month, day=day, hour=hour, minute=minute))
+        tz = ZoneInfo(settings.TIME_ZONE)
+        start = datetime.datetime(
+            year=year, month=month, day=day, hour=hour, minute=minute,
+            tzinfo=tz)
         _, _, _, duration = get_time_slots(store)
         end = start + datetime.timedelta(minutes=duration)
 
@@ -371,7 +372,7 @@ class EmbedChannelChoiceView(EmbedAuthMixin, EmbedTokenMixin, View):
         api_key = request.GET.get('api_key', '')
         store = schedule.get_store()
         site_settings = SiteSettings.load()
-        tz_jst = pytz.timezone('Asia/Tokyo')
+        tz_jst = ZoneInfo('Asia/Tokyo')
         start_display = timezone.localtime(
             schedule.start, tz_jst).strftime('%Y年%m月%d日 %H:%M')
 
@@ -623,7 +624,7 @@ class EmbedLineRedirectView(EmbedTokenMixin, View):
             return TemplateResponse(
                 request, 'booking/embed/expired.html', status=410)
 
-        tz_jst = pytz.timezone('Asia/Tokyo')
+        tz_jst = ZoneInfo('Asia/Tokyo')
         start_display = timezone.localtime(
             schedule.start, tz_jst).strftime('%Y年%m月%d日 %H:%M')
 

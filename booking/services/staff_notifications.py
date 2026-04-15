@@ -19,27 +19,35 @@ NOTIFICATION_PREF_FIELDS = {
 
 
 def _push_line_message(line_id: str, message: str, max_retries: int = 3) -> bool:
-    """LineBotApi.push_message をリトライ付きで送信（内部ヘルパー）"""
-    from linebot import LineBotApi
-    from linebot.models import TextSendMessage
+    """MessagingApi.push_message をリトライ付きで送信（内部ヘルパー）"""
+    from linebot.v3.messaging import MessagingApi, Configuration, ApiClient
+    from linebot.v3.messaging import PushMessageRequest, TextMessage
 
     access_token = getattr(settings, 'LINE_ACCESS_TOKEN', None)
     if not access_token:
         logger.warning("LINE_ACCESS_TOKEN is not set")
         return False
 
-    for attempt in range(max_retries):
-        try:
-            bot = LineBotApi(access_token)
-            bot.push_message(line_id, TextSendMessage(text=message))
-            return True
-        except Exception as e:
-            logger.warning(
-                "LINE push attempt %d/%d failed (line_id=%s): %s",
-                attempt + 1, max_retries, line_id[:8], e,
-            )
-            if attempt < max_retries - 1:
-                time.sleep(2 ** attempt)
+    config = Configuration(access_token=access_token)
+    api_client = ApiClient(config)
+    try:
+        messaging_api = MessagingApi(api_client)
+        for attempt in range(max_retries):
+            try:
+                messaging_api.push_message(PushMessageRequest(
+                    to=line_id,
+                    messages=[TextMessage(text=message)],
+                ))
+                return True
+            except Exception as e:
+                logger.warning(
+                    "LINE push attempt %d/%d failed (line_id=%s): %s",
+                    attempt + 1, max_retries, line_id[:8], e,
+                )
+                if attempt < max_retries - 1:
+                    time.sleep(2 ** attempt)
+    finally:
+        api_client.close()
     return False
 
 
