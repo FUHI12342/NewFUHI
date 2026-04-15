@@ -1,6 +1,6 @@
 # TODO -- 未実装タスク・残課題
 
-最終更新: 2026-04-15
+最終更新: 2026-04-16
 
 ---
 
@@ -82,7 +82,7 @@
 - [ ] テストカバレッジ80%目標への到達（現状未計測）
 - [ ] E2Eテストの継続的実行環境構築（CI/CD統合）
 - [x] 決済処理のテスト追加（payment_service.py: 10テスト追加）
-- [ ] 決済処理テスト拡充（webhook + refund フロー）
+- [x] 決済処理テスト拡充（webhook 7件 + refund 4件 → 計21テスト）
 - [ ] 予約作成E2Eテスト（選択→決済→確認の全フロー）
 - [ ] SNS投稿の統合テスト強化（Playwright mock + 画像処理 + リトライ）
 - [ ] CI/CD で `continue-on-error: false` に変更（テスト通過を必須化）
@@ -95,7 +95,7 @@
 - [ ] 静的ファイルのCDN配信（CloudFront等）
 - [ ] ダッシュボードAPI のキャッシュ戦略（Redis cache）
 - [ ] IoTイベントの大量データ対応（パーティション or アーカイブ）
-- [ ] `SiteSettings.load()` の Redis キャッシュ化（毎リクエスト2回DB問い合わせ削減）
+- [x] `SiteSettings.load()` の Django cache 化（TTL 300秒、save()時無効化）
 - [ ] `SensorDataAPIView` のストリーミング対応（全件メモリロード回避）
 - [x] N+1クエリ修正: `check_property_alerts` （prefetch_related + 一括取得）
 - [x] N+1クエリ修正: `get_available_dates` （14日分Schedule一括取得）
@@ -126,6 +126,9 @@
 - [ ] Django 5.x LTS 移行計画策定
 - [ ] IoTデバイスのAPIキーローテーション自動化
 - [ ] 管理画面の2FA（TOTP）対応
+
+### 完了済み（2026-04-15）
+- [x] 電子透かし4層実装（meta tag/ZWCステガノグラフィ/HTMLコメント/CSSクラス + verify_watermarkコマンド）
 
 ### 完了済み（2026-04-14）
 - [x] `hmac.compare_digest` 導入: embed API key + OTP 比較（タイミング攻撃防止）
