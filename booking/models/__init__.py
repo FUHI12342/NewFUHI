@@ -77,27 +77,46 @@ from .cms import (  # noqa: F401
     Company,
     Notice,
     Media,
-    DEFAULT_DASHBOARD_LAYOUT,
-    DashboardLayout,
-    BusinessInsight,
-    CustomerFeedback,
-    AdminTheme,
-    SiteSettings,
-    AdminSidebarSettings,
     HomepageCustomBlock,
     HeroBanner,
     BannerAd,
     ExternalLink,
-    SecurityAudit,
-    SecurityLog,
-    CostReport,
+)
+
+# Admin config
+from .admin_config import (  # noqa: F401
+    DEFAULT_DASHBOARD_LAYOUT,
+    LANGUAGE_CHOICES,
+    DashboardLayout,
+    AdminTheme,
+    SiteSettings,
+    AdminSidebarSettings,
     AdminMenuConfig,
+)
+
+# Analytics
+from .analytics import (  # noqa: F401
+    BusinessInsight,
+    CustomerFeedback,
     VisitorCount,
     VisitorAnalyticsConfig,
+    CostReport,
+)
+
+# Security
+from .security import (  # noqa: F401
+    SecurityAudit,
+    SecurityLog,
+)
+
+# ML
+from .ml import (  # noqa: F401
     StaffRecommendationModel,
     StaffRecommendationResult,
-    ErrorReport,
 )
+
+# Error reporting
+from .error_reporting import ErrorReport  # noqa: F401
 
 # Theme
 from .theme import StoreTheme  # noqa: F401

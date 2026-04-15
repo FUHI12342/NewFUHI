@@ -136,7 +136,7 @@ class TestSiteSettingsForcedLanguage(TestCase):
 
     def test_choices_include_all_languages(self):
         """LANGUAGE_CHOICES に全対応言語が含まれる。"""
-        from booking.models.cms import LANGUAGE_CHOICES
+        from booking.models.admin_config import LANGUAGE_CHOICES
         codes = [code for code, _ in LANGUAGE_CHOICES]
         for expected in ['', 'ja', 'en', 'zh-hant', 'zh-hans', 'ko', 'es', 'pt']:
             self.assertIn(expected, codes)
