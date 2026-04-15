@@ -1188,7 +1188,7 @@
       <div style="margin-top:12px;">
         <button class="btn btn-primary btn-sm" @click="saveWeekly()" :disabled="stSaving">
           <span x-show="!stSaving">{% trans "保存" %}</span>
-          <span x-show="stSaving">{% trans "保存中..." %}</span>
+          <span x-show="stSaving" x-cloak style="display:none">{% trans "保存中..." %}</span>
         </button>
         <span x-show="stMsg" x-text="stMsg" style="margin-left:8px;font-size:13px;font-weight:600;"
               :style="stMsgType === 'success' ? 'color:#10B981;' : 'color:#EF4444;'" x-cloak></span>
@@ -1451,8 +1451,8 @@
               <div style="margin-top:12px;">
                 <button class="btn btn-primary btn-sm" @click="submitBatch()"
                         :disabled="pxSubmitting || pxSelectedDates.length === 0">
-                  <span x-show="!pxSubmitting">{% trans "まとめて申請" %} (<span x-text="pxSelectedDates.length"></span>{% trans "件" %})</span>
-                  <span x-show="pxSubmitting">{% trans "送信中..." %}</span>
+                  <span x-show="!pxSubmitting">{% trans "まとめて申請" %} (<span x-text="pxSelectedDates.length">0</span>{% trans "件" %})</span>
+                  <span x-show="pxSubmitting" x-cloak style="display:none">{% trans "送信中..." %}</span>
                 </button>
                 <span x-show="pxMsg" x-text="pxMsg" style="margin-left:8px;font-size:13px;font-weight:600;"
                       :style="pxMsgType === 'success' ? 'color:#10B981;' : 'color:#EF4444;'" x-cloak></span>

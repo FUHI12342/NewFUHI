@@ -130,7 +130,7 @@
       <div style="margin-top:16px;display:flex;gap:8px;">
         <button class="btn btn-primary" @click="saveWeekly()" :disabled="saving">
           <span x-show="!saving">{% trans "保存" %}</span>
-          <span x-show="saving">{% trans "保存中..." %}</span>
+          <span x-show="saving" x-cloak style="display:none">{% trans "保存中..." %}</span>
         </button>
       </div>
     </div>

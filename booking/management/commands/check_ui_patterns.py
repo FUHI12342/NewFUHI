@@ -54,6 +54,16 @@ RULES = [
         "check": "_check_dropdown_inline_style",
     },
     {
+        "id": "FOUC-004",
+        "severity": "HIGH",
+        "title": "x-show切替spanにx-cloak未設定（保存/保存中パターン）",
+        "description": (
+            "x-show で切り替える「保存中」「送信中」「読み込み中」等のspanに"
+            "x-cloakが未設定。Alpine初期化前に両方のテキストが同時表示される。"
+        ),
+        "check": "_check_loading_span_cloak",
+    },
+    {
         "id": "TOUR-001",
         "severity": "HIGH",
         "title": "ツアーガイドのTOUR_AUTO_START未設定",
@@ -485,6 +495,31 @@ def _check_modal_aria(content, filepath):
                 "line": i,
                 "detail": "モーダルにrole=\"dialog\"やaria-modal属性が未設定",
             })
+
+    return findings
+
+
+def _check_loading_span_cloak(content, filepath):
+    """x-showで切り替える保存中/読み込み中spanにx-cloakがあるか"""
+    findings = []
+    lines = content.split("\n")
+    loading_patterns = re.compile(
+        r'x-show="(saving|loading|submitting|stSaving|pxSubmitting)'
+    )
+
+    for i, line in enumerate(lines, 1):
+        if not loading_patterns.search(line):
+            continue
+        if "x-cloak" in line:
+            continue
+        findings.append({
+            "file": filepath,
+            "line": i,
+            "detail": (
+                "「保存中」「読み込み中」等のx-show要素にx-cloakが未設定。"
+                "Alpine初期化前に両テキストが同時表示される。"
+            ),
+        })
 
     return findings
 

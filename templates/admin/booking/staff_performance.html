@@ -125,7 +125,7 @@
 
   {# Table view #}
   <div class="card" x-show="view==='table'">
-    <div x-show="loading" class="empty-msg">{% trans "読み込み中..." %}</div>
+    <div x-show="loading" class="empty-msg" x-cloak style="display:none">{% trans "読み込み中..." %}</div>
     <div x-show="!loading && rows.length===0" class="empty-msg">{% trans "データがありません" %}</div>
     <div x-show="!loading && rows.length>0" style="overflow-x:auto;">
       <table class="perf-table">
@@ -161,7 +161,7 @@
 
   {# Graph view #}
   <div class="card" x-show="view==='graph'">
-    <div x-show="loading" class="empty-msg">{% trans "読み込み中..." %}</div>
+    <div x-show="loading" class="empty-msg" x-cloak style="display:none">{% trans "読み込み中..." %}</div>
     <div x-show="!loading && rows.length===0" class="empty-msg">{% trans "データがありません" %}</div>
     <div x-show="!loading && rows.length>0" class="chart-wrap">
       <canvas id="perfChart"></canvas>
