@@ -48,6 +48,8 @@ SECURE_CONTENT_TYPE_NOSNIFF = True
 # SECURE_HSTS_INCLUDE_SUBDOMAINS = True
 # SECURE_HSTS_PRELOAD = True
 X_FRAME_OPTIONS = "DENY"
+# Silence W004 because HSTS is managed by Nginx (not Django) to avoid duplicate headers
+SILENCED_SYSTEM_CHECKS = ["security.W004"]
 
 # Production logging
 LOG_LEVEL = os.getenv("LOG_LEVEL", "WARNING")
@@ -185,3 +187,20 @@ if os.getenv("TESTING"):
     raise RuntimeError("TESTING env var must never be set in production")
 
 logger.info("Production settings loaded (DEBUG=%s)", DEBUG)
+
+# ====================================
+# Sentry Error Monitoring
+# ====================================
+SENTRY_DSN = os.getenv("SENTRY_DSN", "")
+if SENTRY_DSN:
+    try:
+        import sentry_sdk
+        sentry_sdk.init(
+            dsn=SENTRY_DSN,
+            traces_sample_rate=0.1,
+            profiles_sample_rate=0.1,
+            send_default_pii=False,
+            environment="production",
+        )
+    except ImportError:
+        logger.warning("sentry-sdk not installed; SENTRY_DSN is set but Sentry is disabled")

@@ -118,6 +118,8 @@ TEMPLATES = [
                 "django.contrib.messages.context_processors.messages",
                 "django.template.context_processors.i18n",
                 "booking.context_processors.global_context",
+                "booking.context_processors.store_theme",
+                "booking.context_processors.admin_theme",
                 "booking.context_processors.admin_user_flags",
                 "social_django.context_processors.backends",
                 "social_django.context_processors.login_redirect",
@@ -291,6 +293,11 @@ PASSWORD_HASHERS = [
     "django.contrib.auth.hashers.PBKDF2PasswordHasher",
     "django.contrib.auth.hashers.PBKDF2SHA1PasswordHasher",
 ]
+
+# ====================================
+# Site base URL (used for building reservation/cancel links in LINE messages)
+# ====================================
+SITE_BASE_URL = os.getenv("SITE_BASE_URL", "https://timebaibai.com")
 
 # ====================================
 # QR Checkin

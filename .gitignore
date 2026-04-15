@@ -218,7 +218,7 @@ pico_backups/
 pico_device__ARCHIVE_*/
 
 # Stale settings patterns
-project/settings/
+project/settings/__pycache__/
 project/settings.py.orig
 .gstack/
 node_modules/
