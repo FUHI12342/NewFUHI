@@ -280,6 +280,9 @@ def task_post_shift_published(period_id):
 @shared_task
 def task_post_daily_staff():
     """毎日09:30: 各店舗の本日スタッフを投稿"""
+    from booking.models import SiteSettings
+    if not SiteSettings.load().sns_daily_staff_enabled:
+        return
     from booking.models import SocialAccount
     for account in SocialAccount.objects.filter(is_active=True, platform='x'):
         task_post_to_x.apply_async(
@@ -291,6 +294,9 @@ def task_post_daily_staff():
 @shared_task
 def task_post_weekly_schedule():
     """毎週月曜10:00: 週間スケジュールを投稿"""
+    from booking.models import SiteSettings
+    if not SiteSettings.load().sns_weekly_schedule_enabled:
+        return
     from booking.models import SocialAccount
     for account in SocialAccount.objects.filter(is_active=True, platform='x'):
         task_post_to_x.apply_async(
@@ -317,6 +323,9 @@ def task_refresh_social_tokens():
 @shared_task
 def task_generate_daily_drafts():
     """毎日08:00: 各店舗の下書き自動生成"""
+    from booking.models import SiteSettings
+    if not SiteSettings.load().sns_drafts_generation_enabled:
+        return
     from booking.models import Store, SocialAccount
     from booking.services.sns_draft_service import generate_daily_draft
     from booking.services.sns_evaluation_service import evaluate_draft_quality
@@ -339,6 +348,9 @@ def task_generate_daily_drafts():
 @shared_task
 def task_check_scheduled_posts():
     """5分ごと: 予約投稿の時刻チェック → 投稿実行"""
+    from booking.models import SiteSettings
+    if not SiteSettings.load().sns_scheduled_posts_enabled:
+        return
     from booking.models import DraftPost
     from booking.services.post_dispatcher import dispatch_post
 

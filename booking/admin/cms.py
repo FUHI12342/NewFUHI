@@ -143,6 +143,15 @@ class SiteSettingsAdmin(admin.ModelAdmin):
             ),
             'description': _('LINE Bot機能のON/OFF。管理画面から即座に切り替え可能'),
         }),
+        (_('SNS自動投稿'), {
+            'fields': (
+                'sns_daily_staff_enabled',
+                'sns_weekly_schedule_enabled',
+                'sns_drafts_generation_enabled',
+                'sns_scheduled_posts_enabled',
+            ),
+            'description': _('SNS自動投稿タスクのON/OFF。管理画面から即座に切り替え可能'),
+        }),
         (_('メンテナンスモード'), {
             'fields': ('maintenance_mode', 'maintenance_message'),
             'description': _('ONにするとログイン済みスタッフ以外にメンテナンス画面を表示します'),

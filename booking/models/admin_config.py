@@ -146,6 +146,16 @@ class SiteSettings(models.Model):
     line_segment_enabled = models.BooleanField(_('LINEセグメント配信'), default=False,
         help_text=_('顧客セグメント別のLINE配信機能を有効化'))
 
+    # SNS自動投稿フィーチャーフラグ
+    sns_daily_staff_enabled = models.BooleanField(_('毎日スタッフ投稿'), default=True,
+        help_text=_('毎日09:30にスタッフ情報を自動投稿'))
+    sns_weekly_schedule_enabled = models.BooleanField(_('週間スケジュール投稿'), default=True,
+        help_text=_('毎週月曜10:00に週間スケジュールを自動投稿'))
+    sns_drafts_generation_enabled = models.BooleanField(_('下書き自動生成'), default=True,
+        help_text=_('毎日08:00にAI下書きを自動生成'))
+    sns_scheduled_posts_enabled = models.BooleanField(_('予約投稿実行'), default=True,
+        help_text=_('予約投稿を5分ごとにチェック・実行'))
+
     # 管理画面サイドバー機能ON/OFF
     show_admin_reservation = models.BooleanField(_('予約管理を表示'), default=True,
         help_text=_('管理サイドバーに「予約管理」を表示するかどうか'))
