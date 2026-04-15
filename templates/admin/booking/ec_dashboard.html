@@ -6,6 +6,7 @@
 <link rel="stylesheet" href="{% static 'css/admin-dashboard.css' %}">
 <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.14.8/dist/cdn.min.js"></script>
 <style>
+  [x-cloak] { display: none !important; }
   #content { max-width: 100%; padding: 0 !important; }
   #content > h1 { display: none; }
   div.breadcrumbs { display: none; }
@@ -213,7 +214,7 @@
   </div>
 
   <!-- Toast notification -->
-  <div x-show="toast" x-cloak
+  <div x-show="toast" x-cloak style="display:none"
        x-transition:enter="transition ease-out duration-200"
        x-transition:leave="transition ease-in duration-150"
        class="fixed top-4 right-4 z-[60] px-4 py-2 rounded-lg shadow-lg text-sm font-medium"
@@ -221,7 +222,7 @@
        x-text="toast"></div>
 
   <!-- Detail Modal -->
-  <div x-show="detail !== null" x-cloak
+  <div x-show="detail !== null" x-cloak style="display:none"
        class="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4"
        @click.self="detail = null" @keydown.escape.window="detail = null">
     <div class="bg-white rounded-lg shadow-xl w-full max-w-lg max-h-[90vh] overflow-y-auto" x-show="detail">
