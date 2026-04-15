@@ -350,7 +350,7 @@ urlpatterns += i18n_patterns(
         name="admin_line_pending",
     ),
 
-    # SNS OAuth
+    # SNS OAuth + 下書き管理
     path("admin/social/", include("booking.social_urls")),
 
     # Admin site

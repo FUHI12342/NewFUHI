@@ -11,6 +11,7 @@ from django.views import View
 from django.views.generic import ListView
 
 from booking.models import DraftPost, Store
+from booking.views_dashboard_base import AdminSidebarMixin
 from social_browser.services.browser_service import VALID_PLATFORMS
 
 logger = logging.getLogger(__name__)
@@ -60,7 +61,7 @@ class StaffRequiredMixin(LoginRequiredMixin):
         return super().dispatch(request, *args, **kwargs)
 
 
-class DraftListView(StaffRequiredMixin, ListView):
+class DraftListView(AdminSidebarMixin, StaffRequiredMixin, ListView):
     """下書き一覧"""
     template_name = 'admin/booking/social_drafts/list.html'
     context_object_name = 'drafts'
@@ -336,10 +337,14 @@ class DraftGenerateView(StaffRequiredMixin, View):
     def get(self, request):
         """生成フォーム表示"""
         from django.template.response import TemplateResponse
+        from booking.admin_site import custom_site
         stores = Store.objects.all()
-        return TemplateResponse(request, 'admin/booking/social_drafts/generate.html', {
+        context = {
             'stores': stores,
-        })
+            'available_apps': custom_site.get_app_list(request),
+            'has_permission': True,
+        }
+        return TemplateResponse(request, 'admin/booking/social_drafts/generate.html', context)
 
     def post(self, request):
         store_id = request.POST.get('store_id')

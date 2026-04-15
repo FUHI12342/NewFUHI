@@ -152,6 +152,10 @@ class SiteSettingsAdmin(admin.ModelAdmin):
             ),
             'description': _('SNS自動投稿タスクのON/OFF。管理画面から即座に切り替え可能'),
         }),
+        (_('ヘルプガイド'), {
+            'fields': ('help_tour_auto_start',),
+            'description': _('管理画面の各ページに初回アクセス時にヘルプガイドを自動表示するかどうか'),
+        }),
         (_('メンテナンスモード'), {
             'fields': ('maintenance_mode', 'maintenance_message'),
             'description': _('ONにするとログイン済みスタッフ以外にメンテナンス画面を表示します'),

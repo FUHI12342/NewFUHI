@@ -9,6 +9,9 @@
 <script src="https://unpkg.com/htmx.org@1.9.10"></script>
 <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.14.9/dist/cdn.min.js"></script>
 <style>
+  /* Alpine.js FOUC防止 */
+  [x-cloak] { display: none !important; }
+
   /* ===== ワークフローステッパー ===== */
   .wf-steps { display: flex; gap: 0; margin-bottom: 24px; }
   .wf-step {
@@ -752,7 +755,7 @@
   </div>
 
   {# ===== テンプレート管理モーダル ===== #}
-  <div x-show="showTemplateModal" x-cloak class="tpl-overlay" @keydown.escape.window="showTemplateModal = false">
+  <div x-show="showTemplateModal" x-cloak style="display:none" class="tpl-overlay" @keydown.escape.window="showTemplateModal = false">
     <div class="tpl-modal" @click.outside="showTemplateModal = false">
       <div style="display:flex;justify-content:space-between;align-items:center;">
         <h2><i class="fas fa-puzzle-piece" style="margin-right:8px;"></i>{% trans "シフトテンプレート管理" %}</h2>
@@ -1522,7 +1525,7 @@
   {% endif %}
 
   {# ===== 撤回確認ダイアログ ===== #}
-  <div x-show="showRevokeDialog" x-cloak class="tpl-overlay" @keydown.escape.window="showRevokeDialog = false">
+  <div x-show="showRevokeDialog" x-cloak style="display:none" class="tpl-overlay" @keydown.escape.window="showRevokeDialog = false">
     <div class="tpl-modal" style="max-width:480px;" @click.outside="showRevokeDialog = false">
       <h2 style="color:#DC2626;"><i class="fas fa-exclamation-triangle" style="margin-right:8px;"></i>{% trans "シフト撤回確認" %}</h2>
       <p style="margin:12px 0;font-size:14px;color:#374151;">
@@ -1552,7 +1555,7 @@
   </div>
 
   {# ===== 個別修正理由ダイアログ ===== #}
-  <div x-show="showReviseReasonDialog" x-cloak class="tpl-overlay" @keydown.escape.window="showReviseReasonDialog = false">
+  <div x-show="showReviseReasonDialog" x-cloak style="display:none" class="tpl-overlay" @keydown.escape.window="showReviseReasonDialog = false">
     <div class="tpl-modal" style="max-width:480px;" @click.outside="showReviseReasonDialog = false">
       <h2><i class="fas fa-edit" style="margin-right:8px;"></i>{% trans "シフト変更理由" %}</h2>
       <p style="margin:12px 0;font-size:14px;color:#374151;">
@@ -1809,6 +1812,7 @@ function staffingInline() {
   };
 }
 
+window.TOUR_AUTO_START = {{ site_settings.help_tour_auto_start|yesno:"true,false" }};
 window.TOUR_STORAGE_KEY = 'shift_calendar_tour_seen_v2';
 window.TOUR_STEPS = [
   {

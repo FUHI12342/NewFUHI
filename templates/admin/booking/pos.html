@@ -178,6 +178,7 @@ function getCookie(name) {
   return v ? v[2] : '';
 }
 
+window.TOUR_AUTO_START = {{ site_settings.help_tour_auto_start|yesno:"true,false" }};
 window.TOUR_STORAGE_KEY = 'pos_tour_seen';
 window.TOUR_STEPS = [
   {

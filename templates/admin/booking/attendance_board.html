@@ -161,6 +161,7 @@ function manualStamp(stampType) {
 </script>
 
 <script>
+window.TOUR_AUTO_START = {{ site_settings.help_tour_auto_start|yesno:"true,false" }};
 window.TOUR_STORAGE_KEY = 'attendance_board_tour_seen';
 window.TOUR_STEPS = [
   {

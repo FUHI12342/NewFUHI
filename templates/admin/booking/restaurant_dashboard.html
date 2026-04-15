@@ -4351,6 +4351,7 @@ document.addEventListener('DOMContentLoaded', function () {
     }).catch(function() {});
 
   // ===== Page-specific Tour Steps =====
+  window.TOUR_AUTO_START = {{ site_settings.help_tour_auto_start|yesno:"true,false" }};
   window.TOUR_STORAGE_KEY = 'dashboard_tour_seen';
   window.TOUR_STEPS = [
     {

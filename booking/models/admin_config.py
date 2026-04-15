@@ -146,6 +146,10 @@ class SiteSettings(models.Model):
     line_segment_enabled = models.BooleanField(_('LINEセグメント配信'), default=False,
         help_text=_('顧客セグメント別のLINE配信機能を有効化'))
 
+    # ヘルプガイド設定
+    help_tour_auto_start = models.BooleanField(_('ヘルプガイド自動表示'), default=True,
+        help_text=_('ONにすると各管理画面に初回アクセス時にヘルプガイドを自動表示します'))
+
     # SNS自動投稿フィーチャーフラグ
     sns_daily_staff_enabled = models.BooleanField(_('毎日スタッフ投稿'), default=True,
         help_text=_('毎日09:30にスタッフ情報を自動投稿'))

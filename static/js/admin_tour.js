@@ -4,6 +4,7 @@
  * Each page sets:
  *   window.TOUR_STEPS       = [ { selector, title, text, action? }, ... ]
  *   window.TOUR_STORAGE_KEY = 'page_name_tour_seen'
+ *   window.TOUR_AUTO_START  = true/false (optional, default true)
  */
 (function () {
   'use strict';
@@ -45,11 +46,24 @@
     tt.style.left = left + 'px';
   }
 
-  function showStep(idx) {
+  /** 有効なステップのみをフィルタして返す */
+  function getVisibleSteps() {
     var allSteps = steps();
-    if (idx < 0 || idx >= allSteps.length) { endTour(); return; }
+    var visible = [];
+    for (var i = 0; i < allSteps.length; i++) {
+      var el = document.querySelector(allSteps[i].selector);
+      if (el && (el.offsetParent !== null || el.style.position === 'fixed')) {
+        visible.push(allSteps[i]);
+      }
+    }
+    return visible;
+  }
+
+  function showStep(idx) {
+    var visibleSteps = getVisibleSteps();
+    if (idx < 0 || idx >= visibleSteps.length) { endTour(); return; }
     tourCurrentStep = idx;
-    var step = allSteps[idx];
+    var step = visibleSteps[idx];
 
     if (tourPrevHighlight) tourPrevHighlight.classList.remove('tour-highlight');
 
@@ -58,11 +72,7 @@
 
     function doShow() {
       var el = document.querySelector(step.selector);
-      if (!el || el.offsetParent === null) {
-        // Element not found or hidden — skip to next
-        showStep(idx + 1);
-        return;
-      }
+      if (!el) { endTour(); return; }
 
       el.classList.add('tour-highlight');
       tourPrevHighlight = el;
@@ -71,12 +81,12 @@
       tourTooltip.innerHTML =
         '<h4>' + step.title + '</h4><p>' + step.text + '</p>' +
         '<div class="tour-tooltip-footer">' +
-          '<span class="tour-step-info">' + (idx + 1) + ' / ' + allSteps.length + '</span>' +
+          '<span class="tour-step-info">' + (idx + 1) + ' / ' + visibleSteps.length + '</span>' +
           '<div class="tour-btns">' +
             '<button class="tour-btn tour-btn-skip" onclick="endTour()">閉じる</button>' +
             (idx > 0 ? '<button class="tour-btn tour-btn-skip" onclick="window._tourShowStep(' + (idx - 1) + ')">戻る</button>' : '') +
             '<button class="tour-btn tour-btn-next" onclick="window._tourShowStep(' + (idx + 1) + ')">' +
-              (idx === allSteps.length - 1 ? '完了' : '次へ') +
+              (idx === visibleSteps.length - 1 ? '完了' : '次へ') +
             '</button>' +
           '</div>' +
         '</div>';
@@ -95,7 +105,8 @@
   }
 
   function startTour() {
-    if (!steps().length) return;
+    var visibleSteps = getVisibleSteps();
+    if (!visibleSteps.length) return;
     createOverlay();
     tourCurrentStep = 0;
     showStep(0);
@@ -113,8 +124,10 @@
   window.endTour = endTour;
   window._tourShowStep = showStep;
 
-  // Auto-show on first visit (after 800ms)
+  // Auto-show on first visit (after 800ms) — respects TOUR_AUTO_START setting
   document.addEventListener('DOMContentLoaded', function () {
+    // TOUR_AUTO_START が明示的に false の場合は自動表示しない
+    if (window.TOUR_AUTO_START === false) return;
     try {
       if (!localStorage.getItem(storageKey()) && steps().length) {
         setTimeout(startTour, 800);

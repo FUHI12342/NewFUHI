@@ -437,6 +437,24 @@ class OrderAdmin(admin.ModelAdmin):
     list_per_page = 10
     ordering = ('-created_at',)
     date_hierarchy = 'created_at'
+
+    # チャネル別カラム定義
+    EC_LIST_DISPLAY = (
+        'id', 'store', 'status', 'customer_name', 'customer_email',
+        'payment_status', 'shipping_status', 'created_at',
+    )
+    INSTORE_LIST_DISPLAY = (
+        'id', 'store', 'channel', 'status', 'table_label',
+        'schedule', 'payment_status', 'created_at',
+    )
+
+    def get_list_display(self, request):
+        channel_group = request.GET.get('channel_group', '')
+        if channel_group == 'ec':
+            return self.EC_LIST_DISPLAY
+        elif channel_group == 'instore':
+            return self.INSTORE_LIST_DISPLAY
+        return self.list_display
     fieldsets = (
         (None, {
             'fields': ('store', 'schedule', 'channel', 'table_label', 'table_seat', 'status', 'payment_status', 'discount_amount', 'tax_amount'),
