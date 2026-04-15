@@ -1,4 +1,4 @@
-{% load i18n %}
+{% load i18n watermark %}
 <!DOCTYPE html>
 <html lang="{{ current_language|default:'ja' }}">
 <head>
@@ -10,6 +10,7 @@
 <meta name="keywords" content="占い,サロン,予約,新宿,池袋,オンライン予約,占いサロンチャンス">
 <!-- AI学習・スクレイピング禁止 -->
 <meta name="robots" content="noai, noimageai">
+{% watermark %}
 {% load static %}
 {% if store_theme and store_theme.favicon %}
 <link rel="icon" href="{{ store_theme.favicon.url }}">

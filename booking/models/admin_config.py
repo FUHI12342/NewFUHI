@@ -263,17 +263,18 @@ class SiteSettings(models.Model):
         if self.tiktok_url:
             self.tiktok_url = sanitize_url(self.tiktok_url)
         super().save(*args, **kwargs)
-        # Invalidate cache on save
+        # 保存時にキャッシュを無効化
         from django.core.cache import cache
-        cache.delete('site_settings_singleton')
+        cache.delete('site_settings')
 
     @classmethod
     def load(cls):
+        """シングルトン設定を返す。キャッシュヒット時はDBアクセスをスキップ（TTL: 300秒）。"""
         from django.core.cache import cache
-        obj = cache.get('site_settings_singleton')
+        obj = cache.get('site_settings')
         if obj is None:
             obj, _ = cls.objects.get_or_create(pk=1)
-            cache.set('site_settings_singleton', obj, 60)
+            cache.set('site_settings', obj, 300)
         return obj
 
 
