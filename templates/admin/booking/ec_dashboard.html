@@ -212,6 +212,14 @@
     </table>
   </div>
 
+  <!-- Toast notification -->
+  <div x-show="toast" x-cloak
+       x-transition:enter="transition ease-out duration-200"
+       x-transition:leave="transition ease-in duration-150"
+       class="fixed top-4 right-4 z-[60] px-4 py-2 rounded-lg shadow-lg text-sm font-medium"
+       :class="toastType === 'error' ? 'bg-red-600 text-white' : 'bg-green-600 text-white'"
+       x-text="toast"></div>
+
   <!-- Detail Modal -->
   <div x-show="detail !== null" x-cloak
        class="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4"
@@ -303,6 +311,8 @@ function ecDashboard() {
     detail: null,
     detailTracking: '',
     detailNote: '',
+    toast: '',
+    toastType: 'success',
     filter: { shipping: 'all', date_from: '', date_to: '' },
 
     async fetchOrders() {
@@ -313,10 +323,12 @@ function ecDashboard() {
       if (this.filter.date_to) params.set('date_to', this.filter.date_to);
       try {
         const res = await fetch('/api/ec/orders/?' + params.toString());
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const data = await res.json();
         this.orders = data.orders || [];
       } catch (e) {
         console.error('Failed to fetch orders', e);
+        this.showToast('注文データの取得に失敗しました', 'error');
       }
       this.loading = false;
     },
@@ -347,16 +359,23 @@ function ecDashboard() {
           if (this.detail && this.detail.id === order.id) {
             this.detail = { ...this.detail, ...data };
           }
+          this.showToast('更新しました', 'success');
+        } else {
+          const err = await res.json().catch(() => ({}));
+          this.showToast(err.error || '更新に失敗しました', 'error');
         }
       } catch (e) {
         console.error('Failed to update shipping', e);
+        this.showToast('通信エラーが発生しました', 'error');
       }
     },
 
     markShipped(order) {
+      if (!window.confirm('この注文を「発送済み」にしますか？')) return;
       this.updateShipping(order, { shipping_status: 'shipped' });
     },
     markDelivered(order) {
+      if (!window.confirm('この注文を「配達完了」にしますか？')) return;
       this.updateShipping(order, { shipping_status: 'delivered' });
     },
     saveTracking() {
@@ -392,6 +411,12 @@ function ecDashboard() {
         refunded: 'bg-gray-100 text-gray-600',
       }[s] || 'bg-gray-100 text-gray-600';
     },
+    showToast(msg, type) {
+      this.toast = msg;
+      this.toastType = type || 'success';
+      setTimeout(() => { this.toast = ''; }, 3000);
+    },
+
     fmtDate(iso) {
       if (!iso) return '-';
       const d = new Date(iso);
