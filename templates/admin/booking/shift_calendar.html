@@ -109,8 +109,7 @@
   .template-chip { padding: 4px 10px; border-radius: 12px; color: #fff; font-size: 12px; cursor: pointer; }
 
   /* ===== サイドバー ===== */
-  .sidebar-panel { position: fixed; right: 0; top: 56px; width: 350px; max-width: 90vw; height: calc(100vh - 56px); background: #fff; box-shadow: -2px 0 8px rgba(0,0,0,.1); z-index: 100; padding: 16px; overflow-y: auto; transition: transform .2s; }
-  .sidebar-panel.hidden { transform: translateX(100%); }
+  .sidebar-panel { display: none; position: fixed; right: 0; top: 56px; width: 350px; max-width: 90vw; height: calc(100vh - 56px); background: #fff; box-shadow: -2px 0 8px rgba(0,0,0,.1); z-index: 100; padding: 16px; overflow-y: auto; }
   .today-col { background: #eff6ff !important; }
 
   /* ===== 公開履歴 ===== */
@@ -158,6 +157,7 @@
   }
   .admin-menu-btn:hover { background: #f3f4f6; }
   .admin-menu-drop {
+    display: none;
     position: absolute; top: 100%; left: 0; z-index: 50;
     background: #fff; border: 1px solid #e5e7eb; border-radius: 8px;
     box-shadow: 0 4px 12px rgba(0,0,0,.1); min-width: 220px; margin-top: 4px;
@@ -922,7 +922,7 @@
     {% if submitted_staff_details %}
     <div x-data="{ showStaffDetail: false }" style="margin-top:12px;">
       <button class="btn btn-outline btn-sm" @click="showStaffDetail = !showStaffDetail" style="margin-bottom:8px;">
-        <span x-text="showStaffDetail ? '{% trans '提出者を閉じる' %}' : '{% trans '提出者を表示' %}'"></span>
+        <span x-text="showStaffDetail ? '{% trans '提出者を閉じる' %}' : '{% trans '提出者を表示' %}'">{% trans "提出者を表示" %}</span>
       </button>
       <div x-show="showStaffDetail" x-cloak style="display:none">
         {% for detail in submitted_staff_details %}
@@ -1633,7 +1633,7 @@
   </dialog>
 
   {# ===== サイドバー ===== #}
-  <div id="sidebar" class="sidebar-panel hidden" :class="{ 'hidden': !showSidebar }">
+  <div id="sidebar" class="sidebar-panel" x-show="showSidebar" x-cloak style="display:none">
     <button @click="showSidebar = false" style="float:right;border:none;background:none;font-size:20px;cursor:pointer;">✕</button>
     <div id="sidebar-content"></div>
   </div>
