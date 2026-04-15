@@ -62,6 +62,17 @@ if ! git diff --quiet || ! git diff --cached --quiet; then
     exit 1
 fi
 
+# UIパターンチェック（FOUC防止、ツアー設定等）
+echo -e "${GREEN}  UIパターンチェック実行中...${NC}"
+source .venv/bin/activate 2>/dev/null || true
+if python manage.py check_ui_patterns --severity HIGH 2>/dev/null; then
+    echo -e "${GREEN}  UIパターンチェック OK${NC}"
+else
+    echo -e "${RED}  UIパターンチェックでCRITICALが検出されました${NC}"
+    echo -e "${YELLOW}  修正してから再デプロイしてください${NC}"
+    exit 1
+fi
+
 git push origin $BRANCH
 echo -e "${GREEN}  push 完了${NC}"
 echo ""

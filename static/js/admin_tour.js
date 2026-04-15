@@ -10,6 +10,7 @@
   'use strict';
 
   var tourCurrentStep = 0;
+  var tourStepList = [];   // ツアー開始時に確定した有効ステップリスト
   var tourOverlay = null;
   var tourTooltip = null;
   var tourPrevHighlight = null;
@@ -37,58 +38,52 @@
     var ttW = 340, ttH = tt.offsetHeight || 200;
     var top, left;
     if (rect.bottom + ttH + 16 < window.innerHeight) {
-      top = rect.bottom + 12;
+      top = rect.bottom + window.scrollY + 12;
     } else {
-      top = Math.max(8, rect.top - ttH - 12);
+      top = Math.max(8, rect.top + window.scrollY - ttH - 12);
     }
     left = Math.max(8, Math.min(rect.left, window.innerWidth - ttW - 16));
+    tt.style.position = 'absolute';
     tt.style.top = top + 'px';
     tt.style.left = left + 'px';
   }
 
-  /** 有効なステップのみをフィルタして返す */
-  function getVisibleSteps() {
-    var allSteps = steps();
-    var visible = [];
-    for (var i = 0; i < allSteps.length; i++) {
-      var el = document.querySelector(allSteps[i].selector);
-      if (el && (el.offsetParent !== null || el.style.position === 'fixed')) {
-        visible.push(allSteps[i]);
-      }
-    }
-    return visible;
-  }
-
   function showStep(idx) {
-    var visibleSteps = getVisibleSteps();
-    if (idx < 0 || idx >= visibleSteps.length) { endTour(); return; }
+    if (idx < 0 || idx >= tourStepList.length) { endTour(); return; }
     tourCurrentStep = idx;
-    var step = visibleSteps[idx];
+    var step = tourStepList[idx];
+    var total = tourStepList.length;
 
     if (tourPrevHighlight) tourPrevHighlight.classList.remove('tour-highlight');
 
-    // Run action first (e.g. switch tab), then wait for DOM to update
     if (step.action) step.action();
 
     function doShow() {
       var el = document.querySelector(step.selector);
-      if (!el) { endTour(); return; }
+      if (!el) {
+        // 要素が見つからない場合はスキップ
+        if (idx + 1 < tourStepList.length) { showStep(idx + 1); }
+        else { endTour(); }
+        return;
+      }
 
       el.classList.add('tour-highlight');
       tourPrevHighlight = el;
       el.scrollIntoView({ behavior: 'smooth', block: 'center' });
 
+      var btnsHtml =
+        '<button class="tour-btn tour-btn-skip" onclick="endTour()">閉じる</button>';
+      if (idx > 0) {
+        btnsHtml += '<button class="tour-btn tour-btn-skip" onclick="window._tourPrev()">戻る</button>';
+      }
+      btnsHtml += '<button class="tour-btn tour-btn-next" onclick="window._tourNext()">' +
+        (idx === total - 1 ? '完了' : '次へ') + '</button>';
+
       tourTooltip.innerHTML =
         '<h4>' + step.title + '</h4><p>' + step.text + '</p>' +
         '<div class="tour-tooltip-footer">' +
-          '<span class="tour-step-info">' + (idx + 1) + ' / ' + visibleSteps.length + '</span>' +
-          '<div class="tour-btns">' +
-            '<button class="tour-btn tour-btn-skip" onclick="endTour()">閉じる</button>' +
-            (idx > 0 ? '<button class="tour-btn tour-btn-skip" onclick="window._tourShowStep(' + (idx - 1) + ')">戻る</button>' : '') +
-            '<button class="tour-btn tour-btn-next" onclick="window._tourShowStep(' + (idx + 1) + ')">' +
-              (idx === visibleSteps.length - 1 ? '完了' : '次へ') +
-            '</button>' +
-          '</div>' +
+          '<span class="tour-step-info">' + (idx + 1) + ' / ' + total + '</span>' +
+          '<div class="tour-btns">' + btnsHtml + '</div>' +
         '</div>';
       tourTooltip.style.display = 'block';
       tourOverlay.style.display = 'block';
@@ -96,7 +91,6 @@
       setTimeout(function () { positionTooltip(el); }, 150);
     }
 
-    // Delay to allow DOM updates from action (tab switch, etc.)
     if (step.action) {
       setTimeout(doShow, 200);
     } else {
@@ -105,8 +99,17 @@
   }
 
   function startTour() {
-    var visibleSteps = getVisibleSteps();
-    if (!visibleSteps.length) return;
+    var allSteps = steps();
+    if (!allSteps.length) return;
+    // ツアー開始時に有効ステップを確定（以後変更しない）
+    tourStepList = [];
+    for (var i = 0; i < allSteps.length; i++) {
+      var el = document.querySelector(allSteps[i].selector);
+      if (el) {
+        tourStepList.push(allSteps[i]);
+      }
+    }
+    if (!tourStepList.length) return;
     createOverlay();
     tourCurrentStep = 0;
     showStep(0);
@@ -116,17 +119,18 @@
     if (tourPrevHighlight) tourPrevHighlight.classList.remove('tour-highlight');
     if (tourOverlay) tourOverlay.style.display = 'none';
     if (tourTooltip) tourTooltip.style.display = 'none';
+    tourStepList = [];
     try { localStorage.setItem(storageKey(), '1'); } catch (e) {}
   }
 
   // Expose globally
   window.startTour = startTour;
   window.endTour = endTour;
-  window._tourShowStep = showStep;
+  window._tourNext = function () { showStep(tourCurrentStep + 1); };
+  window._tourPrev = function () { showStep(tourCurrentStep - 1); };
 
   // Auto-show on first visit (after 800ms) — respects TOUR_AUTO_START setting
   document.addEventListener('DOMContentLoaded', function () {
-    // TOUR_AUTO_START が明示的に false の場合は自動表示しない
     if (window.TOUR_AUTO_START === false) return;
     try {
       if (!localStorage.getItem(storageKey()) && steps().length) {

@@ -738,7 +738,7 @@
       <button @click="openMenu = !openMenu" class="admin-menu-btn">
         <i class="fas fa-cog"></i> {% trans "管理メニュー" %} ▾
       </button>
-    <div x-show="openMenu" @click.outside="openMenu = false" x-cloak class="admin-menu-drop">
+    <div x-show="openMenu" @click.outside="openMenu = false" x-cloak style="display:none" class="admin-menu-drop">
       <a href="{% url 'admin:booking_shiftperiod_changelist' %}"><i class="fas fa-calendar-alt" style="width:16px;margin-right:6px;"></i>{% trans "シフト募集期間" %}</a>
       <a href="{% url 'admin:booking_shiftrequest_changelist' %}"><i class="fas fa-hand-paper" style="width:16px;margin-right:6px;"></i>{% trans "シフト希望一覧" %}</a>
       <a href="{% url 'admin:booking_shiftassignment_changelist' %}"><i class="fas fa-user-check" style="width:16px;margin-right:6px;"></i>{% trans "確定シフト一覧" %}</a>
@@ -850,7 +850,7 @@
     </div>
 
     {# 新規期間フォーム #}
-    <div x-show="showNewPeriod" x-cloak style="margin-top:12px;">
+    <div x-show="showNewPeriod" x-cloak style="display:none;margin-top:12px;">
       <div class="new-period-form" id="new-period-form">
         <div>
           <label for="new-year-month">{% trans "対象月" %}</label>
@@ -924,7 +924,7 @@
       <button class="btn btn-outline btn-sm" @click="showStaffDetail = !showStaffDetail" style="margin-bottom:8px;">
         <span x-text="showStaffDetail ? '{% trans '提出者を閉じる' %}' : '{% trans '提出者を表示' %}'"></span>
       </button>
-      <div x-show="showStaffDetail" x-cloak>
+      <div x-show="showStaffDetail" x-cloak style="display:none">
         {% for detail in submitted_staff_details %}
         <div x-data="{ expanded: false }" style="border:1px solid #e5e7eb;border-radius:6px;margin-bottom:6px;">
           <div @click="expanded = !expanded" style="display:flex;align-items:center;gap:8px;padding:8px 12px;cursor:pointer;">
@@ -935,7 +935,7 @@
             <span style="font-size:12px;color:#3B82F6;font-weight:600;margin-left:auto;">{{ detail.count }}{% trans "件" %}</span>
             <span x-text="expanded ? '▲' : '▼'" style="font-size:10px;color:#6b7280;"></span>
           </div>
-          <div x-show="expanded" x-cloak style="padding:0 12px 8px;">
+          <div x-show="expanded" x-cloak style="display:none;padding:0 12px 8px;">
             {% for req in detail.requests %}
             <div style="display:flex;align-items:center;gap:8px;padding:4px 0;border-top:1px solid #f3f4f6;font-size:13px;">
               <span style="font-weight:600;min-width:90px;">{{ req.date|date:"m/d (D)" }}</span>

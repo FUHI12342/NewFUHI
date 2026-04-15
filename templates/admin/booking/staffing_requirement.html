@@ -5,6 +5,9 @@
 {% block extrastyle %}
 <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.14.9/dist/cdn.min.js"></script>
 <style>
+  /* Alpine.js FOUC防止 */
+  [x-cloak] { display: none !important; }
+
   .sr-tabs { display: flex; border-bottom: 2px solid #e5e7eb; margin-bottom: 20px; gap: 0; }
   .sr-tab {
     padding: 10px 24px; font-size: 14px; font-weight: 600; cursor: pointer;
