@@ -1,5 +1,5 @@
 {% extends "booking/base.html" %}
-{% load i18n %}
+{% load i18n safe_filters %}
 
 {% block title %}{{ notice.title }} | {% trans "お知らせ" %}{% endblock %}
 
@@ -30,7 +30,7 @@
         <div class="prose prose-sm max-w-none text-salon-dark
                     prose-headings:text-salon-brown prose-a:text-salon-brown
                     prose-img:rounded-lg">
-            {{ notice.content|safe }}
+            {{ notice.content|safe_html }}
         </div>
     </article>
 

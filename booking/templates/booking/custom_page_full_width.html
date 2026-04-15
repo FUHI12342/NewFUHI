@@ -1,5 +1,4 @@
-{% load i18n %}
-{% load static %}
+{% load i18n static safe_filters %}
 <!DOCTYPE html>
 <html lang="{{ current_language|default:'ja' }}">
 <head>
@@ -58,7 +57,7 @@
 
 <!-- ===== FULL-WIDTH CONTENT ===== -->
 <main class="flex-1">
-    {{ page.html_content|safe }}
+    {{ page.html_content|safe_html }}
 </main>
 
 <!-- ===== FOOTER (Minimal) ===== -->

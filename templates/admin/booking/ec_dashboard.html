@@ -150,7 +150,7 @@
   </div>
 
   <!-- Loading -->
-  <div x-show="loading" class="text-center py-8 text-gray-400">{% trans "読み込み中..." %}</div>
+  <div x-show="loading" x-cloak class="text-center py-8 text-gray-400">{% trans "読み込み中..." %}</div>
 
   <!-- Orders Table -->
   <div x-show="!loading" class="overflow-x-auto">

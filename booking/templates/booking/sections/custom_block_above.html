@@ -1,11 +1,11 @@
-{% load i18n %}
+{% load i18n safe_filters %}
 {# HIDDEN: 初回限定キャンペーン — デザイン改善後に再有効化 (2026-04-02) #}
 {% comment %}
 <!-- Custom Blocks: Above Cards -->
 {% for block in custom_blocks_above %}
 <div class="mb-6">
     {% if block.title %}<h3 class="text-lg font-bold text-salon-dark mb-2">{{ block.title }}</h3>{% endif %}
-    <div class="prose max-w-none">{{ block.content|safe }}</div>
+    <div class="prose max-w-none">{{ block.content|safe_html }}</div>
 </div>
 {% endfor %}
 {% endcomment %}

@@ -117,27 +117,27 @@ class OrderCreateAPIView(APIView):
     authentication_classes = []
     permission_classes = []
 
-    _rate_limit_cache: dict = {}
     _RATE_LIMIT_MAX = 30
     _RATE_LIMIT_WINDOW = 60
 
     @classmethod
     def _check_order_rate_limit(cls, request) -> bool:
-        """Return True if the request should be rate-limited (rejected)."""
-        import time as _time
+        """Return True if the request should be rate-limited (rejected).
+
+        Uses Django cache backend instead of process-local dict so that
+        rate limiting works correctly across multiple Gunicorn workers.
+        """
+        from django.core.cache import cache
+
         ip = request.META.get('REMOTE_ADDR', '')
-        now = _time.time()
-        cls._rate_limit_cache = {
-            k: v for k, v in cls._rate_limit_cache.items()
-            if now - v['start'] < cls._RATE_LIMIT_WINDOW
-        }
-        entry = cls._rate_limit_cache.get(ip)
-        if entry is None:
-            cls._rate_limit_cache[ip] = {'start': now, 'count': 1}
+        cache_key = f"order_rate:{ip}"
+        count = cache.get(cache_key)
+        if count is None:
+            cache.set(cache_key, 1, cls._RATE_LIMIT_WINDOW)
             return False
-        if entry['count'] >= cls._RATE_LIMIT_MAX:
+        if count >= cls._RATE_LIMIT_MAX:
             return True
-        entry['count'] += 1
+        cache.incr(cache_key)
         return False
 
     def post(self, request, *args, **kwargs):
