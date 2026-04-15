@@ -88,6 +88,9 @@ urlpatterns = [
     path("healthz", healthz, name="healthz"),
 
     # API endpoints (no language prefix)
+    # v1 versioned prefix (新規クライアントはこちらを使用)
+    path("api/v1/", include("booking.api_v1_urls")),
+    # 後方互換: 既存の /api/ パスも引き続き動作
     path("api/", include("booking.api_urls")),
 
     # Payment webhook
@@ -99,7 +102,10 @@ urlpatterns = [
     # LINE Webhook
     path("line/webhook/", line_webhook_view, name="line_webhook"),
 
-    # LINE予約確認/却下API
+    # LINE予約確認/却下API (v1 versioned)
+    path("api/v1/line/reservations/<int:pk>/confirm/", LineReservationConfirmView.as_view(), name="line_reservation_confirm_v1"),
+    path("api/v1/line/reservations/<int:pk>/reject/", LineReservationRejectView.as_view(), name="line_reservation_reject_v1"),
+    # LINE予約確認/却下API (後方互換)
     path("api/line/reservations/<int:pk>/confirm/", LineReservationConfirmView.as_view(), name="line_reservation_confirm"),
     path("api/line/reservations/<int:pk>/reject/", LineReservationRejectView.as_view(), name="line_reservation_reject"),
 
