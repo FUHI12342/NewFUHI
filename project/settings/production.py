@@ -32,11 +32,13 @@ else:
         }
     }
 
-# SQLite は本番/ステージング環境で使用禁止
+# SQLite 使用時の警告（PostgreSQL移行推奨）
 if 'sqlite3' in DATABASES['default']['ENGINE']:
-    from django.core.exceptions import ImproperlyConfigured
-    raise ImproperlyConfigured(
-        "SQLite は本番環境では使用できません。DATABASE_URL を設定してください。"
+    import warnings
+    warnings.warn(
+        "本番環境で SQLite を使用中です。DATABASE_URL で PostgreSQL への移行を推奨します。",
+        UserWarning,
+        stacklevel=1,
     )
 
 # Static and media files
