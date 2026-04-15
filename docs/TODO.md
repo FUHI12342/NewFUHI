@@ -51,7 +51,7 @@
 - [ ] backfill_line_customers コマンドの本番実行
 
 ### 既存機能の改善
-- [ ] line-bot-sdk deprecation warning 対応（v3 utils）
+- [x] line-bot-sdk v2→v3移行完了（LineBotApi→MessagingApi、deprecation warnings解消）
 
 ---
 
@@ -81,7 +81,8 @@
 - [x] シフトテスト34件の失敗修正（LINE機能とは無関係の既存テスト）— 全359件パス
 - [ ] テストカバレッジ80%目標への到達（現状未計測）
 - [ ] E2Eテストの継続的実行環境構築（CI/CD統合）
-- [ ] 決済処理のテスト追加（Coiney API mock + webhook + refund）
+- [x] 決済処理のテスト追加（payment_service.py: 10テスト追加）
+- [ ] 決済処理テスト拡充（webhook + refund フロー）
 - [ ] 予約作成E2Eテスト（選択→決済→確認の全フロー）
 - [ ] SNS投稿の統合テスト強化（Playwright mock + 画像処理 + リトライ）
 - [ ] CI/CD で `continue-on-error: false` に変更（テスト通過を必須化）
@@ -208,8 +209,8 @@
 
 ### 高（正確性・安全性）
 - [x] settings.py 統合（`project/settings.py` → `settings_legacy.py` にリネーム、分割環境別設定を有効化）
-- [ ] 非ローカル環境で SQLite 使用時にエラー発生させる起動チェック追加
-- [ ] API バージョニング導入（`/api/v1/` プレフィックス）
+- [x] 非ローカル環境で SQLite 使用時にエラー発生させる起動チェック追加
+- [x] API バージョニング導入（`/api/v1/` プレフィックス、後方互換維持）
 
 ### 中（保守性向上）
 - [x] `booking/models/cms.py`（919行）を分割 → `cms.py`(230行), `admin_config.py`, `analytics.py`, `security.py`, `ml.py`, `error_reporting.py`
@@ -217,7 +218,7 @@
 - [ ] 統一通知サービス作成（LINE, email, event を統合）
 - [ ] フィーチャーフラグの統合（SiteSettings booleans + SystemConfig KV → 一元管理）
 - [ ] `UserSerializer` を `booking/models/core.py` → `booking/serializers/` に移動
-- [ ] `pytz.timezone('Asia/Tokyo')` ハードコード19箇所 → store.timezone + zoneinfo ヘルパー
+- [x] `pytz.timezone('Asia/Tokyo')` → `ZoneInfo('Asia/Tokyo')` 全6ファイル移行
 - [ ] サービス層の型アノテーション追加（availability.py, post_dispatcher.py 等）
 - [ ] `views_booking.py` のインライン import 解消（循環依存のリファクタリング）
 
