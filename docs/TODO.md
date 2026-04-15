@@ -1,6 +1,6 @@
 # TODO -- 未実装タスク・残課題
 
-最終更新: 2026-04-16
+最終更新: 2026-04-15
 
 ---
 
@@ -78,7 +78,7 @@
 
 ## 8. テスト
 
-- [ ] シフトテスト34件の失敗修正（LINE機能とは無関係の既存テスト）
+- [x] シフトテスト34件の失敗修正（LINE機能とは無関係の既存テスト）— 全359件パス
 - [ ] テストカバレッジ80%目標への到達（現状未計測）
 - [ ] E2Eテストの継続的実行環境構築（CI/CD統合）
 - [ ] 決済処理のテスト追加（Coiney API mock + webhook + refund）
@@ -107,17 +107,17 @@
 - [ ] **Gemini APIキーのローテーション**（git履歴 commit bf017c46 で露出）
 - [ ] **db.sqlite3 の git 履歴削除**（`git-filter-repo --path db.sqlite3 --invert-paths`）
 
-### HIGH
-- [ ] Stored XSS 対策: `|safe` フィルタのレンダー時再サニタイズ（`safe_html` カスタムフィルタ）
-- [ ] `AdminCSPRelaxMiddleware` の CSP 緩和を最小限に（`unsafe-eval` のみに限定）
-- [ ] `StoreThemeForm` / `StoreAdminForm` の `fields='__all__'` → 明示的フィールド指定
-- [ ] `CustomerFeedbackAPIView` の `permission_classes=[]` → GET/POST分離
-- [ ] Embed OTP ブルートフォース防止（`django-ratelimit` で 5/min 制限）
-- [ ] `LineCallbackView.get` の God メソッド分割（260行→`LineBookingService`に抽出）
-- [ ] Coiney 決済処理の重複コード統合（`payment_service.py` に抽出）
-- [ ] `SecurityAuditMiddleware._rate_counter` を Redis ベースに変更
-- [ ] `fields.py` の broad except を `InvalidToken` 限定に変更
-- [ ] bare `except Exception: pass` のロギング追加（middleware.py, views_line_admin.py）
+### HIGH — 完了済み（2026-04-15）
+- [x] Stored XSS 対策: `safe_html`/`safe_json` カスタムフィルタ作成（templatetags/safe_filters.py）
+- [x] `AdminCSPRelaxMiddleware` の CSP 緩和を最小限に（`unsafe-eval` はエディタパスのみ）
+- [x] `StoreThemeForm` / `StoreAdminForm` の `fields='__all__'` → 明示的フィールド指定
+- [x] `CustomerFeedbackAPIView` の `permission_classes=[]` → GET認証必須化
+- [x] Embed OTP ブルートフォース防止（Django cache ベースレート制限 5回/分/IP）
+- [x] `LineCallbackView.get` の God メソッド分割（241行→6メソッドに分割）
+- [x] Coiney 決済処理の重複コード統合（`services/payment_service.py` に抽出）
+- [x] `SecurityAuditMiddleware._rate_counter` を Django cache ベースに変更
+- [x] `fields.py` の broad except を `InvalidToken` 限定に変更
+- [x] bare `except Exception: pass` のロギング追加（middleware.py 3箇所）
 
 ### 既存
 - [ ] social-auth-app-django 5.6.0+ への移行（Django 5.1必要 -- Django 5.x 移行と同時に）
@@ -207,12 +207,12 @@
 ## 15. アーキテクチャ改善（2026-04-14 レビューで判明）
 
 ### 高（正確性・安全性）
-- [ ] settings.py 統合（`project/settings.py` と `project/settings/` の二重管理解消）
+- [x] settings.py 統合（`project/settings.py` → `settings_legacy.py` にリネーム、分割環境別設定を有効化）
 - [ ] 非ローカル環境で SQLite 使用時にエラー発生させる起動チェック追加
 - [ ] API バージョニング導入（`/api/v1/` プレフィックス）
 
 ### 中（保守性向上）
-- [ ] `booking/models/cms.py`（919行）を分割 → `cms.py`, `admin_config.py`, `analytics.py`, `security.py`, `ml.py`
+- [x] `booking/models/cms.py`（919行）を分割 → `cms.py`(230行), `admin_config.py`, `analytics.py`, `security.py`, `ml.py`, `error_reporting.py`
 - [ ] `booking/` モノリスからドメイン別アプリ抽出（`shifts/`, `hr/`, `iot/`, `social/`）
 - [ ] 統一通知サービス作成（LINE, email, event を統合）
 - [ ] フィーチャーフラグの統合（SiteSettings booleans + SystemConfig KV → 一元管理）
