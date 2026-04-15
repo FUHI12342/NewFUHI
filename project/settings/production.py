@@ -45,6 +45,23 @@ if 'sqlite3' in DATABASES['default']['ENGINE']:
 STATIC_ROOT = env_required("STATIC_ROOT")
 MEDIA_ROOT = env_required("MEDIA_ROOT")
 
+# ====================================
+# Cache (Redis)
+# ====================================
+CACHES = {
+    "default": {
+        "BACKEND": "django.core.cache.backends.redis.RedisCache",
+        "LOCATION": os.environ.get("REDIS_URL", "redis://localhost:6379/1"),
+    }
+}
+
+# ====================================
+# SameSite Cookie 設定
+# "Strict" だとLINEログインコールバックで問題が出るため "Lax" を使用
+# ====================================
+CSRF_COOKIE_SAMESITE = "Lax"
+SESSION_COOKIE_SAMESITE = "Lax"
+
 # Full security hardening
 SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 SECURE_SSL_REDIRECT = True

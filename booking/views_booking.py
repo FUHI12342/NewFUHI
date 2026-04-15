@@ -40,6 +40,14 @@ from linebot.v3.messaging import PushMessageRequest, TextMessage as LineTextMess
 from linebot.v3.messaging import ApiException as LineBotApiError
 
 from booking.models import Schedule, SiteSettings, Staff
+from booking.services.checkin_token import (
+    generate_backup_code,
+    generate_signed_checkin_qr,
+    is_within_checkin_window,
+    verify_qr_token,
+)
+from booking.services.payment_service import CoineyPaymentError, create_payment_link
+from booking.services.staff_notifications import notify_booking_to_staff
 
 logger = logging.getLogger(__name__)
 
@@ -313,11 +321,8 @@ class LineCallbackView(View):
 
     def _create_coiney_payment(self, schedule):
         """Coiney API を呼び出して決済URLを取得する。成功時は payment_url (str)、失敗時は None。"""
-        from datetime import timedelta as td
-        from booking.services.payment_service import CoineyPaymentError, create_payment_link
-
         now = timezone.now()
-        expired_on_str = (now + td(days=1)).strftime('%Y-%m-%d')
+        expired_on_str = (now + datetime.timedelta(days=1)).strftime('%Y-%m-%d')
         reservation_number = schedule.reservation_number
 
         try:
@@ -340,23 +345,18 @@ class LineCallbackView(View):
         schedule.is_temporary = False
         schedule.save(update_fields=['is_temporary'])
 
-        from booking.services.checkin_token import (
-            generate_backup_code as _gen_backup,
-            generate_signed_checkin_qr as _gen_qr,
-        )
         backup_code = None
         try:
             staff_obj = Staff.objects.select_related('store').get(pk=schedule.staff_id)
-            qr_file = _gen_qr(str(schedule.reservation_number), schedule.end)
+            qr_file = generate_signed_checkin_qr(str(schedule.reservation_number), schedule.end)
             schedule.checkin_qr.save(qr_file.name, qr_file, save=True)
-            backup_code = _gen_backup(staff_obj.store, schedule.start.date())
+            backup_code = generate_backup_code(staff_obj.store, schedule.start.date())
             Schedule.objects.filter(pk=schedule.pk).update(
                 checkin_backup_code=backup_code,
             )
         except Exception as e:
             logger.warning('無料予約QR/バックアップコード生成エラー: %s', e)
 
-        from booking.services.staff_notifications import notify_booking_to_staff
         notify_booking_to_staff(schedule)
 
         return backup_code
@@ -588,21 +588,16 @@ class EmailVerifyView(View):
             schedule.save(update_fields=['is_temporary'])
 
             # QR + バックアップコード生成
-            from booking.services.checkin_token import (
-                generate_backup_code as _gen_backup,
-                generate_signed_checkin_qr as _gen_qr,
-            )
             try:
                 staff_obj = Staff.objects.select_related('store').get(pk=schedule.staff_id)
-                qr_file = _gen_qr(str(schedule.reservation_number), schedule.end)
+                qr_file = generate_signed_checkin_qr(str(schedule.reservation_number), schedule.end)
                 schedule.checkin_qr.save(qr_file.name, qr_file, save=True)
-                backup_code = _gen_backup(staff_obj.store, schedule.start.date())
+                backup_code = generate_backup_code(staff_obj.store, schedule.start.date())
                 Schedule.objects.filter(pk=schedule.pk).update(checkin_backup_code=backup_code)
             except Exception as e:
                 logger.warning('無料予約QR/バックアップコード生成エラー(email): %s', e)
 
             # スタッフ通知
-            from booking.services.staff_notifications import notify_booking_to_staff
             notify_booking_to_staff(schedule)
 
             # 確認メール送信
@@ -633,11 +628,8 @@ class EmailVerifyView(View):
             })
 
         # 有料予約: Coiney決済URL取得
-        from datetime import timedelta as td
-        from booking.services.payment_service import CoineyPaymentError, create_payment_link
-
         now = timezone.now()
-        expired_on_str = (now + td(days=1)).strftime('%Y-%m-%d')
+        expired_on_str = (now + datetime.timedelta(days=1)).strftime('%Y-%m-%d')
         reservation_number = schedule.reservation_number
 
         payment_url = None
@@ -991,10 +983,6 @@ def process_payment(payment_response, request, order_id):
             return JsonResponse({"error": "reservation not found"}, status=404)
 
         # 署名付きQRコード + 6桁バックアップコード生成
-        from booking.services.checkin_token import (
-            generate_backup_code,
-            generate_signed_checkin_qr,
-        )
         if not schedule.checkin_qr:
             qr_file = generate_signed_checkin_qr(
                 str(schedule.reservation_number), schedule.end,
@@ -1010,7 +998,6 @@ def process_payment(payment_response, request, order_id):
             schedule.checkin_backup_code = backup_code
 
         # スタッフ通知（通知設定を尊重）
-        from booking.services.staff_notifications import notify_booking_to_staff
         notify_booking_to_staff(schedule)
 
         # 顧客通知：Scheduleに保存した暗号化LINE user id を復号してpush
@@ -1179,11 +1166,6 @@ class CheckinAPIView(APIView):
     permission_classes = [IsAuthenticated]
 
     def post(self, request):
-        from booking.services.checkin_token import (
-            is_within_checkin_window,
-            verify_qr_token,
-        )
-
         qr_token = request.data.get('qr_token', '').strip()
         backup_code = request.data.get('backup_code', '').strip()
 

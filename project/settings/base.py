@@ -58,6 +58,7 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    "django.contrib.sitemaps",  # SEO: サイトマップ生成
     "rest_framework",
 
     # SNSブラウザ投稿（Playwright不要で登録、実行時にPlaywrightが必要）

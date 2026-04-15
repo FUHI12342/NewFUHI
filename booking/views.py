@@ -37,7 +37,6 @@ from booking.models import (
     Staff,
     Schedule,
     Timer,
-    UserSerializer,
     SiteSettings,
     HeroBanner,
     HomepageCustomBlock,
@@ -45,6 +44,7 @@ from booking.models import (
     StoreScheduleConfig,
     ShiftPeriod,
 )
+from booking.serializers import UserSerializer
 
 logger = logging.getLogger(__name__)
 

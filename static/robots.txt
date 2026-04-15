@@ -67,3 +67,5 @@ Disallow: /
 User-agent: *
 Disallow: /admin/
 Disallow: /api/
+
+Sitemap: https://timebaibai.com/sitemap.xml

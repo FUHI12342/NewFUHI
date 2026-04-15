@@ -76,11 +76,11 @@ class ECOrderAPIView(View):
         if date_to:
             orders = orders.filter(created_at__date__lte=date_to)
 
-        orders = orders.order_by('-created_at')[:200]
+        orders = orders.order_by('-created_at').prefetch_related('items__product')[:200]
 
         result = []
         for order in orders:
-            items = OrderItem.objects.filter(order=order).select_related('product')
+            items = order.items.all()
             items_data = [
                 {
                     'product_name': item.product.name if item.product else '(削除済)',

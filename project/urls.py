@@ -5,6 +5,7 @@ from django.urls import path, include, re_path
 from django.conf import settings
 from django.conf.urls.static import static
 from django.conf.urls.i18n import i18n_patterns
+from django.contrib.sitemaps.views import sitemap
 
 from booking import views as booking_views
 from booking.admin_site import custom_site
@@ -39,9 +40,23 @@ from booking.views_line_admin import (
     LinePendingView, LineReservationConfirmView, LineReservationRejectView,
 )
 import booking.admin
+from booking.sitemaps import StaticPageSitemap, StoreStaffSitemap
+
+# サイトマップ辞書
+SITEMAPS = {
+    "static": StaticPageSitemap,
+    "stores": StoreStaffSitemap,
+}
 
 # Non-i18n URLs (APIs, health check, legacy redirects, embed)
 urlpatterns = [
+    # sitemap.xml — SEO用サイトマップ
+    path(
+        "sitemap.xml",
+        sitemap,
+        {"sitemaps": SITEMAPS},
+        name="django.contrib.sitemaps.views.sitemap",
+    ),
     # robots.txt (served from static/)
     path(
         "robots.txt",

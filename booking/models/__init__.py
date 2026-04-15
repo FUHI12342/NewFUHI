@@ -6,7 +6,6 @@ from .core import (  # noqa: F401
     Timer,
     Store,
     Staff,
-    UserSerializer,
     Category,
     Product,
     ECCategory,

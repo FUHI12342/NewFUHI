@@ -4,7 +4,18 @@
 
 {% block title %}{% trans "占いサロンチャンス　ご予約" %} | {{ block.super }}{% endblock %}
 
+{% block meta_description %}{% trans "占いサロンチャンスのオンライン予約サイト。新宿・池袋の占い師に簡単オンライン予約。" %}{% endblock %}
+
+{% block og_title %}{% trans "占いサロンチャンス　オンライン予約" %}{% endblock %}
+{% block og_description %}{% trans "占いサロンチャンスのオンライン予約サイト。新宿・池袋の占い師に簡単オンライン予約。" %}{% endblock %}
+{% block og_type %}website{% endblock %}
+{% block twitter_title %}{% trans "占いサロンチャンス　オンライン予約" %}{% endblock %}
+{% block twitter_description %}{% trans "占いサロンチャンスのオンライン予約サイト。新宿・池袋の占い師に簡単オンライン予約。" %}{% endblock %}
+
 {% block content %}
+
+<!-- SEO: トップページH1（スクリーンリーダーと検索エンジン向け、視覚的に目立たないスタイル） -->
+<h1 class="sr-only">{% trans "占いサロンチャンス　オンライン予約" %}</h1>
 
 {% for section in page_sections %}
     {% include section.template_name with section_settings=section.settings %}

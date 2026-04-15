@@ -67,6 +67,33 @@ else:
 STATIC_ROOT = os.getenv("STATIC_ROOT", os.path.join(BASE_DIR, "staticfiles"))
 MEDIA_ROOT = os.getenv("MEDIA_ROOT", os.path.join(BASE_DIR, "media"))
 
+# ====================================
+# Cache (ローカル開発: LocMemCache)
+# REDIS_URL が設定されている場合は Redis を使用
+# ====================================
+_redis_url = os.getenv("REDIS_URL")
+if _redis_url:
+    CACHES = {
+        "default": {
+            "BACKEND": "django.core.cache.backends.redis.RedisCache",
+            "LOCATION": _redis_url,
+        }
+    }
+else:
+    CACHES = {
+        "default": {
+            "BACKEND": "django.core.cache.backends.locmem.LocMemCache",
+            "LOCATION": "newfuhi-local",
+        }
+    }
+
+# ====================================
+# SameSite Cookie 設定
+# "Strict" だとLINEログインコールバックで問題が出るため "Lax" を使用
+# ====================================
+CSRF_COOKIE_SAMESITE = "Lax"
+SESSION_COOKIE_SAMESITE = "Lax"
+
 # Logging
 LOG_LEVEL = os.getenv("LOG_LEVEL", "DEBUG" if DEBUG else "INFO")
 LOG_FILE = os.getenv("LOG_FILE", os.path.join(BASE_DIR, "debug.log"))

@@ -5,7 +5,6 @@ from django.utils.translation import gettext_lazy as _
 from django.utils import timezone
 from django.contrib.auth.hashers import make_password, check_password
 from django.core.validators import MinValueValidator, MaxValueValidator
-from rest_framework import serializers
 from django.contrib.auth.models import User
 
 import uuid
@@ -223,12 +222,6 @@ class Staff(models.Model):
         if len(self.attendance_pin) <= 6:
             return self.attendance_pin == raw_pin
         return check_password(raw_pin, self.attendance_pin)
-
-
-class UserSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = User
-        fields = ['id', 'username', 'email']
 
 
 class Category(models.Model):

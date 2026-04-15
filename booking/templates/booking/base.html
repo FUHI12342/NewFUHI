@@ -1,4 +1,4 @@
-{% load i18n watermark %}
+{% load i18n watermark seo_tags %}
 <!DOCTYPE html>
 <html lang="{{ current_language|default:'ja' }}">
 <head>
@@ -6,12 +6,38 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <title>{% block title %}{% trans "占いサロンチャンス　オンライン予約ページ" %}{% endblock %}</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="description" content="{% trans '占いサロンチャンスのオンライン予約サイト。新宿・池袋の占い師に簡単予約。' %}">
+<meta name="description" content="{% block meta_description %}{% trans '占いサロンチャンスのオンライン予約サイト。新宿・池袋の占い師に簡単予約。' %}{% endblock %}">
 <meta name="keywords" content="占い,サロン,予約,新宿,池袋,オンライン予約,占いサロンチャンス">
 <!-- AI学習・スクレイピング禁止 -->
 <meta name="robots" content="noai, noimageai">
 {% watermark %}
 {% load static %}
+
+<!-- ===== canonical URL ===== -->
+{% block canonical %}
+<link rel="canonical" href="{{ request.build_absolute_uri }}">
+{% endblock %}
+
+<!-- ===== hreflang（多言語SEO）===== -->
+{% for lang_code, lang_name in available_languages %}
+<link rel="alternate" hreflang="{{ lang_code }}" href="{{ request.scheme }}://{{ request.get_host }}{% hreflang_url lang_code %}">
+{% endfor %}
+<link rel="alternate" hreflang="x-default" href="{{ request.build_absolute_uri }}">
+
+<!-- ===== OGP / Twitter Card ===== -->
+{% block og_tags %}
+<meta property="og:title" content="{% block og_title %}{% trans "占いサロンチャンス" %}{% endblock %}">
+<meta property="og:description" content="{% block og_description %}{% trans "占いサロンチャンスのオンライン予約サイト" %}{% endblock %}">
+<meta property="og:type" content="{% block og_type %}website{% endblock %}">
+<meta property="og:url" content="{{ request.build_absolute_uri }}">
+<meta property="og:image" content="{% block og_image %}{{ request.scheme }}://{{ request.get_host }}{% static 'images/og-default.png' %}{% endblock %}">
+<meta property="og:site_name" content="{% trans "占いサロンチャンス" %}">
+<meta property="og:locale" content="{{ current_language|default:'ja' }}">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="{% block twitter_title %}{% trans "占いサロンチャンス" %}{% endblock %}">
+<meta name="twitter:description" content="{% block twitter_description %}{% trans "占いサロンチャンスのオンライン予約サイト" %}{% endblock %}">
+<meta name="twitter:image" content="{% block twitter_image %}{{ request.scheme }}://{{ request.get_host }}{% static 'images/og-default.png' %}{% endblock %}">
+{% endblock %}
 {% if store_theme and store_theme.favicon %}
 <link rel="icon" href="{{ store_theme.favicon.url }}">
 {% else %}
@@ -19,6 +45,42 @@
 {% endif %}
 <!-- Tailwind CSS (built) -->
 <link rel="stylesheet" href="{% static 'css/tailwind.css' %}">
+<!-- アクセシビリティ: スキップナビゲーション・スクリーンリーダー用スタイル -->
+<style>
+.skip-nav {
+  position: absolute;
+  left: -9999px;
+  top: auto;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  z-index: 9999;
+}
+.skip-nav:focus {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: auto;
+  height: auto;
+  padding: 1rem 1.5rem;
+  background: #333;
+  color: #fff;
+  font-size: 1rem;
+  text-decoration: none;
+  z-index: 9999;
+}
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+</style>
 <!-- Store Theme CSS Variables -->
 {% if store_theme %}
 <style>
@@ -43,6 +105,9 @@
 
 <body class="font-jp text-salon-dark bg-white min-h-screen flex flex-col">
 
+<!-- アクセシビリティ: スキップナビゲーション -->
+<a href="#main-content" class="skip-nav">メインコンテンツへスキップ</a>
+
 <!-- ===== HEADER ===== -->
 <header class="bg-white shadow-sm border-b border-gray-200">
     <div class="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
@@ -58,6 +123,7 @@
             <form action="{% url 'set_language' %}" method="post" class="hidden md:inline-flex">
                 {% csrf_token %}
                 <input type="hidden" name="next" value="{{ request.path }}">
+                <label for="desktop-lang-select" class="sr-only">言語を選択</label>
                 <select name="language" id="desktop-lang-select" class="text-xs border border-gray-300 rounded px-1.5 py-1 bg-white">
                     {% for lang_code, lang_name in available_languages %}
                     <option value="{{ lang_code }}" {% if lang_code == current_language %}selected{% endif %}>{{ lang_name }}</option>
@@ -72,8 +138,11 @@
                 <form id="hdr-logout-form" action="{% url 'booking:logout' %}" method="post" class="hidden">{% csrf_token %}</form>
             {% endif %}
             <!-- モバイルメニューボタン -->
-            <button id="mobile-menu-btn" class="md:hidden p-2 rounded hover:bg-gray-100">
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <button id="mobile-menu-btn" class="md:hidden p-2 rounded hover:bg-gray-100"
+                    aria-expanded="false"
+                    aria-controls="mobile-menu"
+                    aria-label="メニューを開く">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
                 </svg>
             </button>
@@ -121,6 +190,7 @@
         <form action="{% url 'set_language' %}" method="post">
             {% csrf_token %}
             <input type="hidden" name="next" value="{{ request.path }}">
+            <label for="mobile-lang-select" class="sr-only">言語を選択</label>
             <select name="language" id="mobile-lang-select" class="w-full text-sm border border-white/30 rounded px-2 py-1.5 bg-white/10 text-white">
                 {% for lang_code, lang_name in available_languages %}
                 <option value="{{ lang_code }}" {% if lang_code == current_language %}selected{% endif %} class="text-black">{{ lang_name }}</option>
@@ -144,7 +214,7 @@
     <div class="flex flex-col lg:flex-row gap-6">
 
         <!-- メインコンテンツ -->
-        <main class="flex-1 min-w-0">
+        <main id="main-content" class="flex-1 min-w-0">
             {% block content %}{% endblock %}
         </main>
 
@@ -313,7 +383,11 @@ document.addEventListener('DOMContentLoaded', function() {
     var mobileMenuBtn = document.getElementById('mobile-menu-btn');
     if (mobileMenuBtn) {
         mobileMenuBtn.addEventListener('click', function() {
-            document.getElementById('mobile-menu').classList.toggle('hidden');
+            var mobileMenu = document.getElementById('mobile-menu');
+            var isExpanded = this.getAttribute('aria-expanded') === 'true';
+            mobileMenu.classList.toggle('hidden');
+            this.setAttribute('aria-expanded', String(!isExpanded));
+            this.setAttribute('aria-label', isExpanded ? 'メニューを開く' : 'メニューを閉じる');
         });
     }
 
